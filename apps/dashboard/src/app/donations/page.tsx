@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { config } from "@thrift/config";
 import { Card, ColorfulBadge, FadeInUp, StatCard, StaggerChildren } from "@thrift/ui";
 import { formatNaira } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
+import { DataTable, Column, PaginationInfo } from "@/components/DataTable";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -29,32 +30,35 @@ interface DonationStats {
   completedCount: number;
 }
 
+const PAGE_SIZE = 20;
+
 export default function DonationsPage() {
   const { token } = useAuth();
   const [donations, setDonations] = useState<Donation[]>([]);
   const [stats, setStats] = useState<DonationStats>({ totalDonated: 0, totalCount: 0, completedCount: 0 });
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "monetary" | "item">("all");
+  const [pagination, setPagination] = useState<PaginationInfo>({ page: 1, limit: PAGE_SIZE, total: 0, totalPages: 1 });
 
-  useEffect(() => {
-    if (!token) {
-      setLoading(false);
-      return;
-    }
+  const fetchDonations = useCallback(async (page: number) => {
+    if (!token) { setLoading(false); return; }
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE) });
+      const res = await fetch(`${API_URL}/api/donations?${params}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success) {
+        setDonations(data.data.donations);
+        setStats(data.data.stats);
+        setPagination({ page: data.data.page, limit: data.data.limit, total: data.data.total, totalPages: data.data.totalPages });
+      }
+    } catch {}
+    setLoading(false);
+  }, [token]);
 
-    fetch(`${API_URL}/api/donations`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.success) {
-          setDonations(data.data.donations);
-          setStats(data.data.stats);
-        }
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+  useEffect(() => { fetchDonations(1); }, [fetchDonations]);
 
   const filtered = donations.filter((d) => filter === "all" || d.type === filter);
 
@@ -66,6 +70,69 @@ export default function DonationsPage() {
       default: return "#717171";
     }
   };
+
+  const columns: Column<Donation>[] = [
+    {
+      key: "createdAt",
+      header: "Date",
+      mono: true,
+      render: (d) => (
+        <span style={{ color: "#717171" }}>
+          {new Date(d.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+        </span>
+      ),
+    },
+    {
+      key: "type",
+      header: "Type",
+      render: (d) => (
+        <span style={{ padding: "0.125rem 0.5rem", borderRadius: "0.375rem", fontSize: "9px", fontWeight: 700, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace", backgroundColor: d.type === "monetary" ? `${config.colors.primary}12` : "#FEF3C7", color: d.type === "monetary" ? config.colors.primary : "#D97706", border: `1px solid ${d.type === "monetary" ? `${config.colors.primary}20` : "#FDE68A"}` }}>
+          {d.type === "monetary" ? "Funds" : "Item"}
+        </span>
+      ),
+    },
+    {
+      key: "details",
+      header: "Details",
+      render: (d) => (
+        <span style={{ fontWeight: 500, color: "#2D2D2D" }}>
+          {d.type === "monetary"
+            ? `${d.paymentProvider ? d.paymentProvider.charAt(0).toUpperCase() + d.paymentProvider.slice(1) : "Payment"}`
+            : d.itemName || "Item donation"}
+        </span>
+      ),
+    },
+    {
+      key: "group",
+      header: "Circle",
+      render: (d) => d.group ? (
+        <span style={{ fontSize: "11px", color: "#717171" }}>{d.group.name}</span>
+      ) : (
+        <span style={{ fontSize: "11px", color: "#CCC" }}>—</span>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      align: "right",
+      render: (d) => (
+        <span style={{ fontSize: "9px", fontWeight: 700, color: statusColor(d.status), backgroundColor: `${statusColor(d.status)}12`, padding: "0.125rem 0.5rem", borderRadius: "0.375rem", textTransform: "capitalize" }}>
+          {d.status}
+        </span>
+      ),
+    },
+    {
+      key: "amount",
+      header: "Amount",
+      align: "right",
+      mono: true,
+      render: (d) => (
+        <span style={{ fontWeight: 600, color: "#2D2D2D" }}>
+          {d.type === "monetary" && d.amount ? formatNaira(d.amount) : "—"}
+        </span>
+      ),
+    },
+  ];
 
   return (
     <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
@@ -80,7 +147,7 @@ export default function DonationsPage() {
       <StaggerChildren staggerDelay={100} style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1.5rem", marginBottom: "2rem" }}>
         <StatCard label="Total Donated" value={formatNaira(stats.totalDonated)} change="All time" positive variant="default" />
         <StatCard label="Total Donations" value={String(stats.totalCount)} change={`${stats.completedCount} completed`} positive variant="warm" />
-        <StatCard label="Item Donations" value={String(donations.filter((d) => d.type === "item").length)} change="Items contributed" positive variant="default" />
+        <StatCard label="Item Donations" value={String(stats.totalCount - stats.completedCount)} change="Items contributed" positive variant="default" />
       </StaggerChildren>
 
       <FadeInUp delay={400}>
@@ -114,68 +181,20 @@ export default function DonationsPage() {
             </div>
           </div>
 
-          {loading ? (
-            <div style={{ textAlign: "center", padding: "3rem", color: "#999", fontSize: "13px" }}>Loading...</div>
-          ) : filtered.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "3rem", color: "#999", fontSize: "13px" }}>
-              {filter === "all" ? "No donations yet." : `No ${filter} donations.`}
-              <br />
-              <a href="/donate" style={{ color: config.colors.primary, textDecoration: "none", fontWeight: 600, fontSize: "12px", marginTop: "0.5rem", display: "inline-block" }}>
+          <DataTable
+            columns={columns}
+            data={filtered}
+            pagination={{ ...pagination, total: filtered.length, totalPages: Math.ceil(filtered.length / pagination.limit) }}
+            onPageChange={(page) => fetchDonations(page)}
+            loading={loading}
+            emptyMessage={filter === "all" ? "No donations yet." : `No ${filter} donations.`}
+            emptyAction={
+              <a href="/donate" style={{ color: config.colors.primary, textDecoration: "none", fontWeight: 600, fontSize: "12px" }}>
                 Make your first donation &rarr;
               </a>
-            </div>
-          ) : (
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", fontSize: "12px", borderCollapse: "collapse" }}>
-                <thead>
-                  <tr style={{ borderBottom: "1px solid #F0F0F0", color: "#999", textTransform: "uppercase", letterSpacing: "0.1em", fontSize: "9px", fontFamily: "'JetBrains Mono', monospace" }}>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Date</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Type</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Details</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Circle</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "right", fontWeight: 600 }}>Status</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "right", fontWeight: 600 }}>Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((d) => (
-                    <tr key={d.id} style={{ borderBottom: "1px solid #F5F5F5", transition: "background-color 0.2s ease" }}
-                      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#F9FAFB"; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}>
-                      <td style={{ padding: "0.75rem 0", fontFamily: "'JetBrains Mono', monospace", color: "#717171" }}>
-                        {new Date(d.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
-                      </td>
-                      <td style={{ padding: "0.75rem 0" }}>
-                        <span style={{ padding: "0.125rem 0.5rem", borderRadius: "0.375rem", fontSize: "9px", fontWeight: 700, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace", backgroundColor: d.type === "monetary" ? `${config.colors.primary}12` : "#FEF3C7", color: d.type === "monetary" ? config.colors.primary : "#D97706", border: `1px solid ${d.type === "monetary" ? `${config.colors.primary}20` : "#FDE68A"}` }}>
-                          {d.type === "monetary" ? "Funds" : "Item"}
-                        </span>
-                      </td>
-                      <td style={{ padding: "0.75rem 0", fontWeight: 500, color: "#2D2D2D" }}>
-                        {d.type === "monetary"
-                          ? `${d.paymentProvider ? d.paymentProvider.charAt(0).toUpperCase() + d.paymentProvider.slice(1) : "Payment"}`
-                          : d.itemName || "Item donation"}
-                      </td>
-                      <td style={{ padding: "0.75rem 0" }}>
-                        {d.group ? (
-                          <span style={{ fontSize: "11px", color: "#717171" }}>{d.group.name}</span>
-                        ) : (
-                          <span style={{ fontSize: "11px", color: "#CCC" }}>—</span>
-                        )}
-                      </td>
-                      <td style={{ padding: "0.75rem 0", textAlign: "right" }}>
-                        <span style={{ fontSize: "9px", fontWeight: 700, color: statusColor(d.status), backgroundColor: `${statusColor(d.status)}12`, padding: "0.125rem 0.5rem", borderRadius: "0.375rem", textTransform: "capitalize" }}>
-                          {d.status}
-                        </span>
-                      </td>
-                      <td style={{ padding: "0.75rem 0", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: "#2D2D2D" }}>
-                        {d.type === "monetary" && d.amount ? formatNaira(d.amount) : "—"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+            }
+            accentColor={config.colors.accent}
+          />
         </Card>
       </FadeInUp>
     </div>

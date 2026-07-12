@@ -183,13 +183,19 @@ export async function updateDonationStatus(id: string, status: string) {
 }
 
 export async function getUserDonations(userId: string, opts?: { limit?: number; offset?: number }) {
-  return prisma.donation.findMany({
-    where: { userId },
-    orderBy: { createdAt: "desc" },
-    take: opts?.limit ?? 50,
-    skip: opts?.offset ?? 0,
-    include: { group: { select: { id: true, name: true } } },
-  });
+  const limit = opts?.limit ?? 50;
+  const offset = opts?.offset ?? 0;
+  const [items, total] = await Promise.all([
+    prisma.donation.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+      skip: offset,
+      include: { group: { select: { id: true, name: true } } },
+    }),
+    prisma.donation.count({ where: { userId } }),
+  ]);
+  return { items, total };
 }
 
 export async function getDonationStats(userId: string) {
@@ -257,12 +263,18 @@ export async function createTransaction(data: {
 }
 
 export async function getUserTransactions(userId: string, opts?: { limit?: number; offset?: number }) {
-  return prisma.transaction.findMany({
-    where: { userId },
-    orderBy: { createdAt: "desc" },
-    take: opts?.limit ?? 50,
-    skip: opts?.offset ?? 0,
-  });
+  const limit = opts?.limit ?? 50;
+  const offset = opts?.offset ?? 0;
+  const [items, total] = await Promise.all([
+    prisma.transaction.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+      skip: offset,
+    }),
+    prisma.transaction.count({ where: { userId } }),
+  ]);
+  return { items, total };
 }
 
 // ── Referrals ─────────────────────────────────────────
@@ -698,12 +710,18 @@ export async function getUserTransactionsFiltered(
   if (opts?.type && opts.type !== "all") {
     where.type = opts.type;
   }
-  return prisma.transaction.findMany({
-    where,
-    orderBy: { createdAt: "desc" },
-    take: opts?.limit ?? 50,
-    skip: opts?.offset ?? 0,
-  });
+  const limit = opts?.limit ?? 50;
+  const offset = opts?.offset ?? 0;
+  const [items, total] = await Promise.all([
+    prisma.transaction.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      take: limit,
+      skip: offset,
+    }),
+    prisma.transaction.count({ where }),
+  ]);
+  return { items, total };
 }
 
 // ── Wallet Funding ────────────────────────────────────

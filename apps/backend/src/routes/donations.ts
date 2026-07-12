@@ -145,15 +145,28 @@ donationsRouter.post("/item", authMiddleware, async (req, res) => {
 donationsRouter.get("/", authMiddleware, async (req, res) => {
   try {
     const userId = req.user!.userId;
-    const limit = parseInt(req.query.limit as string) || 50;
-    const offset = parseInt(req.query.offset as string) || 0;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const page = parseInt(req.query.page as string) || 1;
+    const offset = (page - 1) * limit;
 
-    const [donations, stats] = await Promise.all([
+    const [result, stats] = await Promise.all([
       getUserDonations(userId, { limit, offset }),
       getDonationStats(userId),
     ]);
 
-    res.json({ success: true, data: { donations, stats } });
+    const totalPages = Math.ceil(result.total / limit);
+
+    res.json({
+      success: true,
+      data: {
+        donations: result.items,
+        stats,
+        total: result.total,
+        page,
+        limit,
+        totalPages,
+      },
+    });
   } catch (err) {
     console.error("Get donations error:", err);
     res.status(500).json({ success: false, error: "Failed to fetch donations" });

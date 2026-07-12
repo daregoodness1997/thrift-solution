@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { config, BrandConfig } from "@thrift/config";
 import { StatCard, Card, Button, GradientStrip, SavingsGrowthChart, ColorfulBadge, ColorBar, FadeIn, FadeInUp, StaggerChildren } from "@thrift/ui";
 import { KYC_STATUS_CONFIG } from "@thrift/types";
@@ -54,6 +55,7 @@ interface CircleAccount {
 
 export default function Dashboard() {
   const { user, token } = useAuth();
+  const router = useRouter();
   const [cfg, setCfg] = useState<BrandConfig>(fallback);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -97,7 +99,7 @@ export default function Dashboard() {
         setProfile(profileData.data);
         setWalletBalance(profileData.data.stats.walletBalance);
       }
-      if (txData.success) setTransactions(txData.data || []);
+      if (txData.success) setTransactions(txData.data.items || []);
       if (circlesData.success) setCircleAccounts(circlesData.data?.accounts || []);
       if (referralData?.data?.code) setReferralCode(referralData.data.code);
     } catch {}
@@ -419,7 +421,8 @@ export default function Dashboard() {
                   {transactions.map((t) => {
                     const typeColor = getTypeColor(t.type);
                     return (
-                      <tr key={t.id} style={{ borderBottom: "1px solid #F5F5F5", transition: "background-color 0.2s ease" }}
+                      <tr key={t.id} style={{ borderBottom: "1px solid #F5F5F5", transition: "background-color 0.2s ease", cursor: "pointer" }}
+                        onClick={() => router.push(`/transactions/${t.id}`)}
                         onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#F9FAFB"; }}
                         onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}>
                         <td style={{ padding: "0.75rem 0", fontFamily: "'JetBrains Mono', monospace", color: "#717171" }}>
