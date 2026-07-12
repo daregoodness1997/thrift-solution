@@ -1,0 +1,28 @@
+{
+  "name": "thrift-solution",
+  "private": true,
+  "scripts": {
+    "dev:website": "pnpm --filter @thrift/website dev",
+    "dev:dashboard": "pnpm --filter @thrift/dashboard dev",
+    "dev:config-app": "pnpm --filter @thrift/config-app dev",
+    "dev:backend": "pnpm --filter @thrift/backend dev",
+    "dev": "pnpm --parallel --filter @thrift/website --filter @thrift/dashboard --filter @thrift/config-app --filter @thrift/backend dev",
+    "build": "pnpm --parallel --filter @thrift/website --filter @thrift/dashboard --filter @thrift/config-app --filter @thrift/backend build",
+    "build:website": "pnpm --filter @thrift/website build",
+    "build:dashboard": "pnpm --filter @thrift/dashboard build",
+    "build:config-app": "pnpm --filter @thrift/config-app build",
+    "build:backend": "pnpm --filter @thrift/backend build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "prisma"
+    ]
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
