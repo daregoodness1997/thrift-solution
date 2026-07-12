@@ -102,8 +102,26 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div style={{ display: "flex", minHeight: "100vh", backgroundColor: "#FDFDFC", alignItems: "center", justifyContent: "center" }}>
-        <span style={{ fontSize: "12px", color: "#999" }}>Loading...</span>
+      <div style={{ display: "flex", minHeight: "100vh", backgroundColor: "#FDFDFC" }}>
+        <aside style={{ width: "240px", backgroundColor: "#ffffff", borderRight: "1px solid #EAEAEA", padding: "1.25rem", flexShrink: 0 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            <div style={{ background: "linear-gradient(90deg, #F0F0F0 25%, #E8E8E8 50%, #F0F0F0 75%)", backgroundSize: "200% 100%", animation: "shimmer 1.5s ease-in-out infinite", borderRadius: "0.375rem", width: "80px", height: "20px" }} />
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "1rem" }}>
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: "0.625rem", padding: "0.5rem 0.75rem", borderRadius: "0.5rem" }}>
+                  <div style={{ background: "linear-gradient(90deg, #F0F0F0 25%, #E8E8E8 50%, #F0F0F0 75%)", backgroundSize: "200% 100%", animation: "shimmer 1.5s ease-in-out infinite", borderRadius: "0.375rem", width: "18px", height: "18px" }} />
+                  <div style={{ background: "linear-gradient(90deg, #F0F0F0 25%, #E8E8E8 50%, #F0F0F0 75%)", backgroundSize: "200% 100%", animation: "shimmer 1.5s ease-in-out infinite", borderRadius: "0.375rem", width: `${60 + Math.random() * 40}px`, height: "12px" }} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </aside>
+        <main style={{ flex: 1, marginLeft: "240px", padding: "clamp(1rem, 3vw, 2rem)" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+            <div style={{ background: "linear-gradient(90deg, #F0F0F0 25%, #E8E8E8 50%, #F0F0F0 75%)", backgroundSize: "200% 100%", animation: "shimmer 1.5s ease-in-out infinite", borderRadius: "0.375rem", width: "200px", height: "12px" }} />
+            <div style={{ background: "linear-gradient(90deg, #F0F0F0 25%, #E8E8E8 50%, #F0F0F0 75%)", backgroundSize: "200% 100%", animation: "shimmer 1.5s ease-in-out infinite", borderRadius: "0.375rem", width: "300px", height: "28px" }} />
+          </div>
+        </main>
       </div>
     );
   }

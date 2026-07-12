@@ -6,6 +6,7 @@ import { Card, StatCard, ColorfulBadge, ColorBar, FadeInUp, FadeIn, StaggerChild
 import { formatNaira } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
+import { Skeleton, SkeletonCard, SkeletonTable } from "@/components/Skeleton";
 
 const fallback = config;
 
@@ -129,8 +130,21 @@ export default function ReferralsPage() {
     return (
       <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
         <ColorBar />
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "400px" }}>
-          <span style={{ fontSize: "12px", color: "#999" }}>Loading referrals...</span>
+        <div style={{ marginBottom: "2rem" }}>
+          <Skeleton width="100px" height="12px" style={{ marginBottom: "0.75rem" }} />
+          <Skeleton width="320px" height="28px" style={{ marginBottom: "0.5rem" }} />
+          <Skeleton width="250px" height="12px" />
+        </div>
+        <Skeleton width="100%" height="120px" style={{ marginBottom: "2rem" }} />
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.5rem", marginBottom: "2rem" }}>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
+        <Skeleton width="100%" height="140px" style={{ marginBottom: "2rem" }} />
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))", gap: "1.5rem", marginBottom: "2rem" }}>
+          <SkeletonCard />
+          <SkeletonCard />
         </div>
       </div>
     );
