@@ -33,6 +33,23 @@ export async function findUserById(id: string) {
   return prisma.user.findUnique({ where: { id } });
 }
 
+async function generateAccountNumber(): Promise<string> {
+  const lastUser = await prisma.user.findFirst({
+    orderBy: { createdAt: "desc" },
+    select: { accountNumber: true },
+  });
+
+  let nextNumber = 1;
+  if (lastUser?.accountNumber) {
+    const match = lastUser.accountNumber.match(/(\d+)$/);
+    if (match) {
+      nextNumber = parseInt(match[1], 10) + 1;
+    }
+  }
+
+  return `THR-${String(nextNumber).padStart(6, "0")}`;
+}
+
 export async function createUser(data: { email: string; name: string; passwordHash: string }) {
   let code = generateCode(data.name);
   let attempts = 0;
@@ -43,7 +60,16 @@ export async function createUser(data: { email: string; name: string; passwordHa
     attempts++;
   }
 
-  return prisma.user.create({ data: { ...data, referralCode: code } });
+  let accountNumber = await generateAccountNumber();
+  let accAttempts = 0;
+  while (accAttempts < 10) {
+    const existing = await prisma.user.findUnique({ where: { accountNumber } });
+    if (!existing) break;
+    accountNumber = await generateAccountNumber();
+    accAttempts++;
+  }
+
+  return prisma.user.create({ data: { ...data, referralCode: code, accountNumber, accountTier: "basic" } });
 }
 
 // ── Donations ───────────────────────────────────────────
@@ -527,6 +553,8 @@ export async function getUserProfile(userId: string) {
     email: user.email,
     name: user.name,
     role: user.role,
+    accountNumber: user.accountNumber,
+    accountTier: user.accountTier,
     createdAt: user.createdAt,
     stats: {
       totalSaved,
@@ -951,4 +979,378 @@ export async function seedDefaultWhatsappGroups() {
   for (const g of defaults) {
     await prisma.whatsappGroup.create({ data: g });
   }
+}
+
+// ── Marketplace ───────────────────────────────────────
+
+export async function createMarketplaceListing(data: {
+  sellerId: string;
+  title: string;
+  description: string;
+  price: number;
+  currency?: string;
+  category: string;
+  condition: string;
+  imageUrl?: string;
+}) {
+  return prisma.marketplaceListing.create({ data });
+}
+
+export async function getMarketplaceListings(params: {
+  page?: number;
+  limit?: number;
+  category?: string;
+  search?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  status?: string;
+}) {
+  const { page = 1, limit = 20, category, search, minPrice, maxPrice, status = "active" } = params;
+  const where: Record<string, unknown> = { status };
+
+  if (category) where.category = category;
+  if (minPrice !== undefined || maxPrice !== undefined) {
+    where.price = {};
+    if (minPrice !== undefined) (where.price as Record<string, number>).gte = minPrice;
+    if (maxPrice !== undefined) (where.price as Record<string, number>).lte = maxPrice;
+  }
+  if (search) {
+    where.OR = [
+      { title: { contains: search, mode: "insensitive" } },
+      { description: { contains: search, mode: "insensitive" } },
+    ];
+  }
+
+  const [items, total] = await Promise.all([
+    prisma.marketplaceListing.findMany({
+      where,
+      include: { seller: { select: { id: true, name: true, email: true } }, _count: { select: { offers: true } } },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.marketplaceListing.count({ where }),
+  ]);
+
+  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+}
+
+export async function getMarketplaceListingById(id: string) {
+  return prisma.marketplaceListing.findUnique({
+    where: { id },
+    include: {
+      seller: { select: { id: true, name: true, email: true } },
+      offers: {
+        include: { offerer: { select: { id: true, name: true, email: true } } },
+        orderBy: { createdAt: "desc" },
+      },
+    },
+  });
+}
+
+export async function updateMarketplaceListing(id: string, data: {
+  title?: string;
+  description?: string;
+  price?: number;
+  category?: string;
+  condition?: string;
+  imageUrl?: string;
+  status?: string;
+}) {
+  return prisma.marketplaceListing.update({ where: { id }, data });
+}
+
+export async function deleteMarketplaceListing(id: string) {
+  return prisma.marketplaceListing.delete({ where: { id } });
+}
+
+export async function getMarketplaceListingsBySeller(sellerId: string) {
+  return prisma.marketplaceListing.findMany({
+    where: { sellerId },
+    include: { _count: { select: { offers: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function createMarketplaceOffer(data: {
+  listingId: string;
+  offererId: string;
+  amount: number;
+  message?: string;
+}) {
+  return prisma.marketplaceOffer.create({
+    data,
+    include: {
+      offerer: { select: { id: true, name: true, email: true } },
+      listing: { select: { id: true, title: true, price: true, currency: true } },
+    },
+  });
+}
+
+export async function updateMarketplaceOffer(id: string, data: { status: string }) {
+  return prisma.marketplaceOffer.update({
+    where: { id },
+    data,
+    include: {
+      offerer: { select: { id: true, name: true, email: true } },
+      listing: { select: { id: true, title: true, price: true, currency: true } },
+    },
+  });
+}
+
+export async function getMarketplaceOffersByListing(listingId: string) {
+  return prisma.marketplaceOffer.findMany({
+    where: { listingId },
+    include: { offerer: { select: { id: true, name: true, email: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function getMarketplaceOffersForSeller(sellerId: string) {
+  return prisma.marketplaceOffer.findMany({
+    where: { listing: { sellerId } },
+    include: {
+      offerer: { select: { id: true, name: true, email: true } },
+      listing: { select: { id: true, title: true, price: true, currency: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function getMarketplaceOffererOffers(offererId: string) {
+  return prisma.marketplaceOffer.findMany({
+    where: { offererId },
+    include: {
+      listing: {
+        select: { id: true, title: true, price: true, currency: true, seller: { select: { id: true, name: true } } },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+// ── Jobs ───────────────────────────────────────
+
+export async function createJobListing(data: {
+  posterId: string;
+  title: string;
+  description: string;
+  company?: string;
+  location: string;
+  jobType: string;
+  salaryMin?: number;
+  salaryMax?: number;
+  currency?: string;
+  category: string;
+}) {
+  return prisma.jobListing.create({ data });
+}
+
+export async function getJobListings(params: {
+  page?: number;
+  limit?: number;
+  category?: string;
+  jobType?: string;
+  search?: string;
+  status?: string;
+}) {
+  const { page = 1, limit = 20, category, jobType, search, status = "active" } = params;
+  const where: Record<string, unknown> = { status };
+
+  if (category) where.category = category;
+  if (jobType) where.jobType = jobType;
+  if (search) {
+    where.OR = [
+      { title: { contains: search, mode: "insensitive" } },
+      { description: { contains: search, mode: "insensitive" } },
+      { company: { contains: search, mode: "insensitive" } },
+    ];
+  }
+
+  const [items, total] = await Promise.all([
+    prisma.jobListing.findMany({
+      where,
+      include: { poster: { select: { id: true, name: true, email: true } }, _count: { select: { applications: true } } },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.jobListing.count({ where }),
+  ]);
+
+  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+}
+
+export async function getJobListingById(id: string) {
+  return prisma.jobListing.findUnique({
+    where: { id },
+    include: {
+      poster: { select: { id: true, name: true, email: true } },
+      applications: {
+        include: { applicant: { select: { id: true, name: true, email: true } } },
+        orderBy: { createdAt: "desc" },
+      },
+    },
+  });
+}
+
+export async function updateJobListing(id: string, data: {
+  title?: string;
+  description?: string;
+  company?: string;
+  location?: string;
+  jobType?: string;
+  salaryMin?: number;
+  salaryMax?: number;
+  category?: string;
+  status?: string;
+}) {
+  return prisma.jobListing.update({ where: { id }, data });
+}
+
+export async function deleteJobListing(id: string) {
+  return prisma.jobListing.delete({ where: { id } });
+}
+
+export async function getJobListingsByPoster(posterId: string) {
+  return prisma.jobListing.findMany({
+    where: { posterId },
+    include: { _count: { select: { applications: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function createJobApplication(data: {
+  listingId: string;
+  applicantId: string;
+  resumeUrl?: string;
+  coverLetter?: string;
+}) {
+  return prisma.jobApplication.create({
+    data,
+    include: {
+      applicant: { select: { id: true, name: true, email: true } },
+      listing: { select: { id: true, title: true, company: true, location: true } },
+    },
+  });
+}
+
+export async function updateJobApplication(id: string, data: { status: string }) {
+  return prisma.jobApplication.update({
+    where: { id },
+    data,
+    include: {
+      applicant: { select: { id: true, name: true, email: true } },
+      listing: { select: { id: true, title: true, company: true, location: true } },
+    },
+  });
+}
+
+export async function getJobApplicationsByListing(listingId: string) {
+  return prisma.jobApplication.findMany({
+    where: { listingId },
+    include: { applicant: { select: { id: true, name: true, email: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function getJobApplicationsByApplicant(applicantId: string) {
+  return prisma.jobApplication.findMany({
+    where: { applicantId },
+    include: {
+      listing: {
+        select: { id: true, title: true, company: true, location: true, jobType: true },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function getJobApplicationsForPoster(posterId: string) {
+  return prisma.jobApplication.findMany({
+    where: { listing: { posterId } },
+    include: {
+      applicant: { select: { id: true, name: true, email: true } },
+      listing: { select: { id: true, title: true, company: true, location: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+// ── Loans ───────────────────────────────────────
+
+export async function createLoan(data: {
+  borrowerId: string;
+  amount: number;
+  interestRate: number;
+  termMonths: number;
+  monthlyPayment: number;
+  totalRepayment: number;
+  purpose?: string;
+}) {
+  return prisma.loan.create({ data });
+}
+
+export async function getLoanById(id: string) {
+  return prisma.loan.findUnique({
+    where: { id },
+    include: { borrower: { select: { id: true, name: true, email: true } } },
+  });
+}
+
+export async function getLoansByBorrower(borrowerId: string) {
+  return prisma.loan.findMany({
+    where: { borrowerId },
+    include: { borrower: { select: { id: true, name: true, email: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function getAllLoans(params: {
+  page?: number;
+  limit?: number;
+  status?: string;
+}) {
+  const { page = 1, limit = 20, status } = params;
+  const where: Record<string, unknown> = {};
+  if (status) where.status = status;
+
+  const [items, total] = await Promise.all([
+    prisma.loan.findMany({
+      where,
+      include: { borrower: { select: { id: true, name: true, email: true } } },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.loan.count({ where }),
+  ]);
+
+  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+}
+
+export async function updateLoan(id: string, data: {
+  status?: string;
+  approvedAt?: Date;
+  disbursedAt?: Date;
+  completedAt?: Date;
+}) {
+  return prisma.loan.update({
+    where: { id },
+    data,
+    include: { borrower: { select: { id: true, name: true, email: true } } },
+  });
+}
+
+export function calculateLoanTerms(amount: number, termMonths: number, annualRate: number = 5) {
+  const monthlyRate = annualRate / 100 / 12;
+  const monthlyPayment = monthlyRate > 0
+    ? (amount * monthlyRate * Math.pow(1 + monthlyRate, termMonths)) / (Math.pow(1 + monthlyRate, termMonths) - 1)
+    : amount / termMonths;
+  const totalRepayment = monthlyPayment * termMonths;
+  return {
+    monthlyPayment: Math.round(monthlyPayment * 100) / 100,
+    totalRepayment: Math.round(totalRepayment * 100) / 100,
+    interestRate: annualRate,
+  };
 }

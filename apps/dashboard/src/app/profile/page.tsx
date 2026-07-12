@@ -12,6 +12,8 @@ interface UserProfile {
   name: string;
   email: string;
   role: string;
+  accountNumber: string;
+  accountTier: string;
   createdAt: string;
   stats: {
     totalSaved: number;
@@ -26,6 +28,14 @@ interface UserProfile {
     referralCount: number;
   };
 }
+
+const tierConfig: Record<string, { label: string; bg: string; color: string; icon: string }> = {
+  basic: { label: "Basic", bg: "#F3F4F6", color: "#6B7280", icon: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" },
+  silver: { label: "Silver", bg: "#F3F4F6", color: "#9CA3AF", icon: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" },
+  gold: { label: "Gold", bg: "#FFFBEB", color: "#D97706", icon: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" },
+  platinum: { label: "Platinum", bg: "#F5F3FF", color: "#7C3AED", icon: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" },
+  diamond: { label: "Diamond", bg: "#ECFDF5", color: "#059669", icon: "M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" },
+};
 
 const typeColors: Record<string, { bg: string; color: string }> = {
   wallet: { bg: "#EFF6FF", color: "#2563EB" },
@@ -44,6 +54,7 @@ export default function ProfilePage() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [saved, setSaved] = useState(false);
+  const [accountCopied, setAccountCopied] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -78,6 +89,15 @@ export default function ProfilePage() {
         setSaved(true);
         setTimeout(() => setSaved(false), 2000);
       }
+    } catch {}
+  };
+
+  const handleCopyAccount = async () => {
+    if (!profile?.accountNumber) return;
+    try {
+      await navigator.clipboard.writeText(profile.accountNumber);
+      setAccountCopied(true);
+      setTimeout(() => setAccountCopied(false), 2000);
     } catch {}
   };
 
@@ -135,6 +155,48 @@ export default function ProfilePage() {
                   <span style={{ fontSize: "13px", fontWeight: 600, color: "#2D2D2D", display: "block", marginTop: "0.125rem" }}>{item.value}</span>
                 </div>
               ))}
+            </div>
+          </Card>
+        </FadeInUp>
+
+        <FadeInUp delay={250}>
+          <Card padding="1.5rem">
+            <div style={{ marginBottom: "1.25rem" }}>
+              <ColorfulBadge label="Account" color={cfg.colors.primary} />
+              <h3 style={{ fontSize: "1rem", fontWeight: 500, color: "#1A1A1A", marginTop: "0.5rem" }}>Account Details</h3>
+            </div>
+
+            <div style={{ marginBottom: "1.25rem" }}>
+              <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", fontWeight: 700, display: "block", marginBottom: "0.375rem" }}>Account Number</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <span style={{ fontSize: "1.25rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: "#1A1A1A", letterSpacing: "0.05em" }}>
+                  {profile.accountNumber}
+                </span>
+                <button onClick={handleCopyAccount}
+                  style={{ padding: "0.25rem 0.5rem", borderRadius: "0.375rem", fontSize: "10px", fontWeight: 600, cursor: "pointer", border: `1px solid ${cfg.colors.primary}`, backgroundColor: accountCopied ? "#ECFDF5" : "transparent", color: accountCopied ? "#059669" : cfg.colors.primary, transition: "all 0.2s ease", whiteSpace: "nowrap" }}>
+                  {accountCopied ? "Copied!" : "Copy"}
+                </button>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: "1.25rem" }}>
+              <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", fontWeight: 700, display: "block", marginBottom: "0.375rem" }}>Account Tier</span>
+              {(() => {
+                const tier = tierConfig[profile.accountTier] || tierConfig.basic;
+                return (
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.375rem 0.75rem", borderRadius: "9999px", backgroundColor: tier.bg, border: `1px solid ${tier.color}20` }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={tier.color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                      <path d={tier.icon} />
+                    </svg>
+                    <span style={{ fontSize: "12px", fontWeight: 700, color: tier.color }}>{tier.label}</span>
+                  </div>
+                );
+              })()}
+            </div>
+
+            <div style={{ padding: "0.75rem", borderRadius: "0.5rem", backgroundColor: "#FAFAFA" }}>
+              <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", fontWeight: 700, display: "block", marginBottom: "0.25rem" }}>Role</span>
+              <span style={{ fontSize: "13px", fontWeight: 600, color: "#2D2D2D", textTransform: "capitalize" }}>{profile.role}</span>
             </div>
           </Card>
         </FadeInUp>

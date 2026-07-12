@@ -9,6 +9,8 @@ interface AuthUser {
   email: string;
   name: string;
   role?: string;
+  accountNumber?: string;
+  accountTier?: string;
 }
 
 interface AuthContextType {

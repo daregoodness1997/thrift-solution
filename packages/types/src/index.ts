@@ -3,6 +3,8 @@ export interface User {
   email: string;
   name: string;
   role?: string;
+  accountNumber: string;
+  accountTier: string;
   kycStatus?: string;
   createdAt: Date;
 }
@@ -215,6 +217,8 @@ export interface UserProfile {
   email: string;
   name: string;
   role: string;
+  accountNumber: string;
+  accountTier: string;
   phone?: string;
   createdAt: Date;
   stats: {
@@ -270,3 +274,189 @@ export interface Default {
   daysOverdue: number;
   createdAt: Date;
 }
+
+export type ListingStatus = "active" | "sold" | "cancelled" | "expired";
+
+export type ListingCategory = "clothing" | "electronics" | "food" | "household" | "books" | "health" | "services" | "other";
+
+export type ListingCondition = "new" | "like_new" | "good" | "fair";
+
+export type OfferStatus = "pending" | "accepted" | "rejected" | "withdrawn";
+
+export interface MarketplaceListing {
+  id: string;
+  sellerId: string;
+  title: string;
+  description: string;
+  price: number;
+  currency: string;
+  category: ListingCategory;
+  condition: ListingCondition;
+  imageUrl?: string;
+  status: ListingStatus;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface MarketplaceListingWithSeller extends MarketplaceListing {
+  seller: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  _count?: {
+    offers: number;
+  };
+}
+
+export interface MarketplaceOffer {
+  id: string;
+  listingId: string;
+  offererId: string;
+  amount: number;
+  message?: string;
+  status: OfferStatus;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface MarketplaceOfferWithDetails extends MarketplaceOffer {
+  offerer: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  listing: {
+    id: string;
+    title: string;
+    price: number;
+    currency: string;
+  };
+}
+
+export const LISTING_CATEGORY_CONFIG: Record<ListingCategory, { label: string; icon: string }> = {
+  clothing: { label: "Clothing & Accessories", icon: "M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" },
+  electronics: { label: "Electronics", icon: "M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" },
+  food: { label: "Food & Groceries", icon: "M3 3h18v18H3V3zm3 12h12M12 3v12" },
+  household: { label: "Household Items", icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4" },
+  books: { label: "Books & Supplies", icon: "M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" },
+  health: { label: "Health & Wellness", icon: "M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" },
+  services: { label: "Services", icon: "M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" },
+  other: { label: "Other", icon: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" },
+};
+
+export const LISTING_CONDITION_CONFIG: Record<ListingCondition, { label: string; color: string }> = {
+  new: { label: "New", color: "#059669" },
+  like_new: { label: "Like New", color: "#2563EB" },
+  good: { label: "Good", color: "#D97706" },
+  fair: { label: "Fair", color: "#717171" },
+};
+
+export type JobType = "full_time" | "part_time" | "contract" | "internship" | "remote";
+
+export type JobStatus = "active" | "closed" | "expired";
+
+export type ApplicationStatus = "pending" | "reviewed" | "shortlisted" | "rejected" | "accepted";
+
+export type LoanStatus = "pending" | "approved" | "disbursed" | "completed" | "rejected" | "defaulted";
+
+export interface JobListing {
+  id: string;
+  posterId: string;
+  title: string;
+  description: string;
+  company?: string;
+  location: string;
+  jobType: JobType;
+  salaryMin?: number;
+  salaryMax?: number;
+  currency: string;
+  category: string;
+  status: JobStatus;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface JobListingWithPoster extends JobListing {
+  poster: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  _count?: {
+    applications: number;
+  };
+}
+
+export interface JobApplication {
+  id: string;
+  listingId: string;
+  applicantId: string;
+  resumeUrl?: string;
+  coverLetter?: string;
+  status: ApplicationStatus;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface JobApplicationWithDetails extends JobApplication {
+  applicant: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  listing: {
+    id: string;
+    title: string;
+    company?: string;
+    location: string;
+  };
+}
+
+export interface Loan {
+  id: string;
+  borrowerId: string;
+  amount: number;
+  interestRate: number;
+  termMonths: number;
+  monthlyPayment: number;
+  totalRepayment: number;
+  purpose?: string;
+  status: LoanStatus;
+  approvedAt?: Date;
+  disbursedAt?: Date;
+  completedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface LoanWithBorrower extends Loan {
+  borrower: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
+export const JOB_TYPE_CONFIG: Record<JobType, { label: string; color: string }> = {
+  full_time: { label: "Full Time", color: "#059669" },
+  part_time: { label: "Part Time", color: "#2563EB" },
+  contract: { label: "Contract", color: "#D97706" },
+  internship: { label: "Internship", color: "#8B5CF6" },
+  remote: { label: "Remote", color: "#EC4899" },
+};
+
+export const JOB_CATEGORY_CONFIG: Record<string, { label: string }> = {
+  technology: { label: "Technology" },
+  finance: { label: "Finance" },
+  healthcare: { label: "Healthcare" },
+  education: { label: "Education" },
+  marketing: { label: "Marketing" },
+  sales: { label: "Sales" },
+  design: { label: "Design" },
+  engineering: { label: "Engineering" },
+  operations: { label: "Operations" },
+  other: { label: "Other" },
+};
+
+export const LOAN_INTEREST_RATE = 5; // 5% annual interest rate

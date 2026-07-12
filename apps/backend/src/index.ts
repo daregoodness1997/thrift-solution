@@ -13,6 +13,9 @@ import { clearancesRouter } from "./routes/clearances";
 import { defaultsRouter } from "./routes/defaults";
 import { chatRouter } from "./routes/chat";
 import { whatsappRouter } from "./routes/whatsapp";
+import { marketplaceRouter } from "./routes/marketplace";
+import { jobsRouter } from "./routes/jobs";
+import { loansRouter } from "./routes/loans";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -33,6 +36,9 @@ app.use("/api/clearances", clearancesRouter);
 app.use("/api/defaults", defaultsRouter);
 app.use("/api/chat", chatRouter);
 app.use("/api/whatsapp", whatsappRouter);
+app.use("/api/marketplace", marketplaceRouter);
+app.use("/api/jobs", jobsRouter);
+app.use("/api/loans", loansRouter);
 
 app.listen(PORT, () => {
   console.log(`Backend server running on http://localhost:${PORT}`);

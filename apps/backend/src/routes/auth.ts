@@ -65,7 +65,7 @@ authRouter.post("/register", async (req, res) => {
 
     res.status(201).json({
       success: true,
-      data: { user: { id: user.id, email: user.email, name: user.name }, token },
+      data: { user: { id: user.id, email: user.email, name: user.name, accountNumber: user.accountNumber, accountTier: user.accountTier }, token },
     });
   } catch (err) {
     console.error("Register error:", err);
@@ -98,7 +98,7 @@ authRouter.post("/login", async (req, res) => {
 
     res.json({
       success: true,
-      data: { user: { id: user.id, email: user.email, name: user.name }, token },
+      data: { user: { id: user.id, email: user.email, name: user.name, accountNumber: user.accountNumber, accountTier: user.accountTier }, token },
     });
   } catch (err) {
     console.error("Login error:", err);
@@ -116,7 +116,7 @@ authRouter.get("/me", authMiddleware, async (req, res) => {
 
     res.json({
       success: true,
-      data: { id: user.id, email: user.email, name: user.name, role: user.role },
+      data: { id: user.id, email: user.email, name: user.name, role: user.role, accountNumber: user.accountNumber, accountTier: user.accountTier },
     });
   } catch (err) {
     console.error("Me error:", err);

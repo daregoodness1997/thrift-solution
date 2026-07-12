@@ -17,15 +17,17 @@ model Config {
 }
 
 model User {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  name         String
-  passwordHash String   @map("password_hash")
-  role         String   @default("member")
-  referralCode String   @unique @map("referral_code")
-  referredBy   String?  @map("referred_by")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
+  id            String   @id @default(uuid())
+  email         String   @unique
+  name          String
+  passwordHash  String   @map("password_hash")
+  role          String   @default("member")
+  accountNumber String   @unique @map("account_number")
+  accountTier   String   @default("basic") @map("account_tier")
+  referralCode  String   @unique @map("referral_code")
+  referredBy    String?  @map("referred_by")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at")
 
   donations              Donation[]
   transactions           Transaction[]
@@ -36,6 +38,11 @@ model User {
   conversationMembers    ConversationMember[]
   sentMessages           Message[]
   whatsappGroupMembers   WhatsappGroupMember[]
+  marketplaceListings    MarketplaceListing[]
+  marketplaceOffers      MarketplaceOffer[]  @relation("Offerer")
+  jobListings            JobListing[]
+  jobApplications        JobApplication[]    @relation("Applicant")
+  loans                  Loan[]              @relation("Borrower")
 
   @@map("users")
 }
@@ -277,4 +284,113 @@ model WhatsappGroupMember {
 
   @@unique([groupId, userId])
   @@map("whatsapp_group_members")
+}
+
+model MarketplaceListing {
+  id          String   @id @default(uuid())
+  sellerId    String   @map("seller_id")
+  title       String
+  description String   @db.Text
+  price       Float
+  currency    String   @default("NGN")
+  category    String
+  condition   String
+  imageUrl    String?  @map("image_url")
+  status      String   @default("active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+
+  seller User               @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  offers MarketplaceOffer[]
+
+  @@index([sellerId])
+  @@index([status])
+  @@index([category])
+  @@map("marketplace_listings")
+}
+
+model MarketplaceOffer {
+  id         String   @id @default(uuid())
+  listingId  String   @map("listing_id")
+  offererId  String   @map("offerer_id")
+  amount     Float
+  message    String?
+  status     String   @default("pending")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at")
+
+  listing MarketplaceListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  offerer User               @relation("Offerer", fields: [offererId], references: [id], onDelete: Cascade)
+
+  @@index([listingId])
+  @@index([offererId])
+  @@map("marketplace_offers")
+}
+
+model JobListing {
+  id          String   @id @default(uuid())
+  posterId    String   @map("poster_id")
+  title       String
+  description String   @db.Text
+  company     String?
+  location    String
+  jobType     String   @map("job_type")
+  salaryMin   Float?   @map("salary_min")
+  salaryMax   Float?   @map("salary_max")
+  currency    String   @default("NGN")
+  category    String
+  status      String   @default("active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+
+  poster       User             @relation(fields: [posterId], references: [id], onDelete: Cascade)
+  applications JobApplication[]
+
+  @@index([posterId])
+  @@index([status])
+  @@index([category])
+  @@index([jobType])
+  @@map("job_listings")
+}
+
+model JobApplication {
+  id          String   @id @default(uuid())
+  listingId   String   @map("listing_id")
+  applicantId String   @map("applicant_id")
+  resumeUrl   String?  @map("resume_url")
+  coverLetter String?  @db.Text
+  status      String   @default("pending")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+
+  listing   JobListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  applicant User       @relation("Applicant", fields: [applicantId], references: [id], onDelete: Cascade)
+
+  @@unique([listingId, applicantId])
+  @@index([listingId])
+  @@index([applicantId])
+  @@map("job_applications")
+}
+
+model Loan {
+  id             String   @id @default(uuid())
+  borrowerId     String   @map("borrower_id")
+  amount         Float
+  interestRate   Float    @map("interest_rate")
+  termMonths     Int      @map("term_months")
+  monthlyPayment Float    @map("monthly_payment")
+  totalRepayment Float    @map("total_repayment")
+  purpose        String?
+  status         String   @default("pending")
+  approvedAt     DateTime? @map("approved_at")
+  disbursedAt    DateTime? @map("disbursed_at")
+  completedAt    DateTime? @map("completed_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
+
+  borrower User @relation("Borrower", fields: [borrowerId], references: [id], onDelete: Cascade)
+
+  @@index([borrowerId])
+  @@index([status])
+  @@map("loans")
 }

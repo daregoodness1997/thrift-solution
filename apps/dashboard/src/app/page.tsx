@@ -183,7 +183,18 @@ export default function Dashboard() {
         heading={`Welcome back, ${displayName}`}
         description="Your Arosco savings dashboard"
         right={
-          <div style={{ display: "flex", gap: "0.75rem" }}>
+          <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+            {user?.accountNumber && (
+              <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", backgroundColor: "#FAF9F5", borderRadius: "1rem", padding: "0.625rem 1rem", transition: "all 0.2s ease" }}>
+                <div style={{ width: "32px", height: "32px", borderRadius: "50%", backgroundColor: `${cfg.colors.primary}12`, color: cfg.colors.primary, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="M7 8h10M7 12h6" /></svg>
+                </div>
+                <div>
+                  <span style={{ fontSize: "9px", color: "#999", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", display: "block" }}>Account</span>
+                  <span style={{ fontSize: "11px", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: "#2D2D2D", letterSpacing: "0.03em" }}>{user.accountNumber}</span>
+                </div>
+              </div>
+            )}
             <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", backgroundColor: "#FAF9F5", borderRadius: "1rem", padding: "0.625rem 1rem", transition: "all 0.2s ease" }}>
               <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: `linear-gradient(135deg, ${cfg.colors.primary}, ${cfg.colors.accent})`, color: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: 700 }}>{profile?.stats.trustScore || 1}</div>
               <div>
