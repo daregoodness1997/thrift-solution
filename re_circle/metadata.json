@@ -1,6 +1,0 @@
-{
-  "name": "Re:Circle",
-  "description": "A community-driven minimalist thrift donation marketplace where users can donate items, buy vintage treasures, and see their real-time sustainability impact.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}

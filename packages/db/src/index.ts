@@ -34,7 +34,16 @@ export async function findUserById(id: string) {
 }
 
 export async function createUser(data: { email: string; name: string; passwordHash: string }) {
-  return prisma.user.create({ data });
+  let code = generateCode(data.name);
+  let attempts = 0;
+  while (attempts < 10) {
+    const existing = await prisma.user.findUnique({ where: { referralCode: code } });
+    if (!existing) break;
+    code = generateCode(data.name);
+    attempts++;
+  }
+
+  return prisma.user.create({ data: { ...data, referralCode: code } });
 }
 
 // ── Donations ───────────────────────────────────────────
