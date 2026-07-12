@@ -1,10 +1,87 @@
 import { PrismaClient } from "@prisma/client";
+import nodeCrypto from "node:crypto";
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 
 export const prisma = globalForPrisma.prisma || new PrismaClient();
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+
+// ── Soft Delete Middleware ────────────────────────────────
+
+const SOFT_DELETE_MODELS = [
+  "config",
+  "user",
+  "group",
+  "groupMember",
+  "donation",
+  "transaction",
+  "referral",
+  "referralEarning",
+  "kyc",
+  "kycDocument",
+  "kycAuditLog",
+  "conversation",
+  "conversationMember",
+  "message",
+  "whatsappGroup",
+  "whatsappGroupMember",
+  "marketplaceListing",
+  "marketplaceOffer",
+  "jobListing",
+  "jobApplication",
+  "loan",
+  "circle",
+  "circleAccount",
+  "circleInterestLog",
+  "navigationItem",
+  "roleNavigation",
+];
+
+prisma.$use(async (params, next) => {
+  if (SOFT_DELETE_MODELS.includes(params.model || "")) {
+    if (params.action === "findUnique" || params.action === "findFirst") {
+      params.args.where = { ...params.args.where, deletedAt: null };
+    }
+    if (params.action === "findMany") {
+      if (!params.args.where) params.args.where = {};
+      if (params.args.where.deletedAt === undefined) {
+        params.args.where.deletedAt = null;
+      }
+    }
+    if (params.action === "count") {
+      if (!params.args?.where) {
+        params.args = { ...params.args, where: { deletedAt: null } };
+      } else if (params.args.where.deletedAt === undefined) {
+        params.args.where.deletedAt = null;
+      }
+    }
+    if (params.action === "aggregate") {
+      if (!params.args?.where) {
+        params.args = { ...params.args, where: { deletedAt: null } };
+      } else if (params.args.where.deletedAt === undefined) {
+        params.args.where.deletedAt = null;
+      }
+    }
+    if (params.action === "groupBy") {
+      if (!params.args?.where) {
+        params.args = { ...params.args, where: { deletedAt: null } };
+      } else if (params.args.where.deletedAt === undefined) {
+        params.args.where.deletedAt = null;
+      }
+    }
+  }
+  return next(params);
+});
+
+// ── Soft Delete Helper ────────────────────────────────────
+
+export async function softDelete(model: string, id: string) {
+  return (prisma as any)[model].update({
+    where: { id },
+    data: { deletedAt: new Date() },
+  });
+}
 
 // ── Config ──────────────────────────────────────────────
 
@@ -192,7 +269,7 @@ export async function getUserTransactions(userId: string, opts?: { limit?: numbe
 
 function generateCode(name: string): string {
   const clean = name.replace(/[^A-Z]/gi, "").toUpperCase().slice(0, 6);
-  const suffix = crypto.randomBytes(2).toString("hex").toUpperCase();
+  const suffix = nodeCrypto.randomBytes(2).toString("hex").toUpperCase();
   return `${clean}-${suffix}`;
 }
 
@@ -334,6 +411,7 @@ export async function getKycById(kycId: string) {
 
 export async function createKycSubmission(data: {
   userId: string;
+  level?: number;
   idType: string;
   idNumber: string;
   idDocumentUrl?: string;
@@ -352,10 +430,13 @@ export async function createKycSubmission(data: {
       throw new Error("KYC already submitted or verified");
     }
 
+    const level = data.level ?? 1;
+
     const kyc = await tx.kyc.upsert({
       where: { userId: data.userId },
       create: {
         userId: data.userId,
+        level,
         idType: data.idType,
         idNumber: data.idNumber,
         idDocumentUrl: data.idDocumentUrl ?? null,
@@ -364,6 +445,7 @@ export async function createKycSubmission(data: {
         submittedAt: new Date(),
       },
       update: {
+        level,
         idType: data.idType,
         idNumber: data.idNumber,
         idDocumentUrl: data.idDocumentUrl ?? null,
@@ -377,7 +459,7 @@ export async function createKycSubmission(data: {
     });
 
     if (data.documents && data.documents.length > 0) {
-      await tx.kycDocument.deleteMany({ where: { kycId: kyc.id } });
+      await tx.kycDocument.updateMany({ where: { kycId: kyc.id, deletedAt: null }, data: { deletedAt: new Date() } });
       await tx.kycDocument.createMany({
         data: data.documents.map((doc) => ({
           kycId: kyc.id,
@@ -530,20 +612,21 @@ export async function getUserProfile(userId: string) {
       _sum: { amount: true },
     }),
     prisma.transaction.aggregate({
-      where: { userId, type: "contribution", status: "completed" },
+      where: { userId, type: "circle_deposit", status: "completed" },
       _sum: { amount: true },
     }),
     prisma.transaction.aggregate({
-      where: { userId, type: "payout", status: "completed" },
+      where: { userId, type: "circle_withdrawal", status: "completed" },
       _sum: { amount: true },
     }),
-    prisma.groupMember.count({ where: { userId, group: { status: "active" } } }),
+    prisma.circleAccount.count({ where: { userId, status: "active" } }),
     prisma.transaction.count({ where: { userId, type: "default", status: "pending" } }),
     prisma.transaction.count({ where: { userId, type: "clearance", status: "completed" } }),
     prisma.referral.count({ where: { referrerId: userId } }),
   ]);
 
-  const totalSaved = (totalContributed._sum.amount ?? 0) + (totalReceived._sum.amount ?? 0);
+  const totalSaved = totalContributed._sum.amount ?? 0;
+  const walletBalance = await getWalletBalance(userId);
   const trustScore = Math.min(5, Math.max(1, Math.ceil(totalSaved / 100000) + (activeCircles > 0 ? 1 : 0)));
   const trustLevels = ["", "Bronze", "Silver", "Gold", "Platinum", "Diamond"];
   const trustLevel = trustLevels[trustScore] || "Bronze";
@@ -567,6 +650,7 @@ export async function getUserProfile(userId: string) {
       defaults,
       clearances,
       referralCount,
+      walletBalance,
     },
   };
 }
@@ -625,7 +709,7 @@ export async function getUserTransactionsFiltered(
 // ── Wallet Funding ────────────────────────────────────
 
 export async function fundWallet(userId: string, amount: number) {
-  const reference = `FUND-${Date.now()}-${crypto.randomBytes(4).toString("hex")}`;
+  const reference = `FUND-${Date.now()}-${nodeCrypto.randomBytes(4).toString("hex")}`;
   return prisma.transaction.create({
     data: {
       userId,
@@ -939,6 +1023,16 @@ export async function joinWhatsappGroup(groupId: string, userId: string) {
   });
   if (existing) return existing;
 
+  const softDeleted = await prisma.$queryRawUnsafe<{ id: string }[]>(
+    `SELECT id FROM whatsapp_group_members WHERE group_id = $1 AND user_id = $2 AND deleted_at IS NOT NULL LIMIT 1`,
+    groupId,
+    userId,
+  );
+
+  if (softDeleted.length > 0) {
+    await prisma.whatsappGroupMember.delete({ where: { id: softDeleted[0].id } });
+  }
+
   const membership = await prisma.whatsappGroupMember.create({
     data: { groupId, userId },
   });
@@ -1061,7 +1155,7 @@ export async function updateMarketplaceListing(id: string, data: {
 }
 
 export async function deleteMarketplaceListing(id: string) {
-  return prisma.marketplaceListing.delete({ where: { id } });
+  return prisma.marketplaceListing.update({ where: { id }, data: { deletedAt: new Date() } });
 }
 
 export async function getMarketplaceListingsBySeller(sellerId: string) {
@@ -1209,7 +1303,7 @@ export async function updateJobListing(id: string, data: {
 }
 
 export async function deleteJobListing(id: string) {
-  return prisma.jobListing.delete({ where: { id } });
+  return prisma.jobListing.update({ where: { id }, data: { deletedAt: new Date() } });
 }
 
 export async function getJobListingsByPoster(posterId: string) {
@@ -1274,6 +1368,23 @@ export async function getJobApplicationsForPoster(posterId: string) {
       listing: { select: { id: true, title: true, company: true, location: true } },
     },
     orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function getJobApplicationById(id: string) {
+  return prisma.jobApplication.findUnique({
+    where: { id },
+    include: {
+      applicant: { select: { id: true, name: true, email: true } },
+      listing: {
+        select: {
+          id: true, title: true, description: true, company: true, location: true,
+          jobType: true, salaryMin: true, salaryMax: true, currency: true, category: true,
+          status: true, createdAt: true,
+          poster: { select: { id: true, name: true, email: true } },
+        },
+      },
+    },
   });
 }
 
@@ -1353,4 +1464,454 @@ export function calculateLoanTerms(amount: number, termMonths: number, annualRat
     totalRepayment: Math.round(totalRepayment * 100) / 100,
     interestRate: annualRate,
   };
+}
+
+// ── Wallet Helpers ─────────────────────────────────────
+
+const CREDIT_TYPES = ["funding", "payout", "circle_withdrawal", "circle_interest", "referral_earning"];
+const DEBIT_TYPES = ["contribution", "circle_deposit"];
+
+export async function getWalletBalance(userId: string): Promise<number> {
+  const credits = await prisma.transaction.aggregate({
+    where: { userId, status: "completed", type: { in: CREDIT_TYPES } },
+    _sum: { amount: true },
+  });
+  const debits = await prisma.transaction.aggregate({
+    where: { userId, status: "completed", type: { in: DEBIT_TYPES } },
+    _sum: { amount: true },
+  });
+  return (credits._sum.amount || 0) - (debits._sum.amount || 0);
+}
+
+export async function debitWallet(userId: string, amount: number, description: string) {
+  const reference = `DEBIT-${Date.now()}-${nodeCrypto.randomBytes(4).toString("hex")}`;
+  return prisma.transaction.create({
+    data: { userId, type: "circle_deposit", amount, reference, status: "completed", description },
+  });
+}
+
+export async function creditWallet(userId: string, amount: number, type: string, description: string) {
+  const reference = `${type.toUpperCase()}-${Date.now()}-${nodeCrypto.randomBytes(4).toString("hex")}`;
+  return prisma.transaction.create({
+    data: { userId, type, amount, reference, status: "completed", description },
+  });
+}
+
+// ── Circles ───────────────────────────────────────────
+
+export async function createCircle(data: {
+  name: string;
+  description?: string;
+  amount: number;
+  durationMonths: number;
+  interestRateAnnual: number;
+  maxAccountsPerUser?: number;
+}) {
+  return prisma.circle.create({ data });
+}
+
+export async function getCircleById(id: string) {
+  return prisma.circle.findUnique({
+    where: { id },
+    include: { _count: { select: { accounts: true } } },
+  });
+}
+
+export async function getAllCircles(params: {
+  page?: number;
+  limit?: number;
+  status?: string;
+}) {
+  const { page = 1, limit = 20, status } = params;
+  const where: Record<string, unknown> = {};
+  if (status) where.status = status;
+
+  const [items, total] = await Promise.all([
+    prisma.circle.findMany({
+      where,
+      include: { _count: { select: { accounts: true } } },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.circle.count({ where }),
+  ]);
+
+  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+}
+
+export async function getActiveCircles() {
+  return prisma.circle.findMany({
+    where: { status: "active" },
+    include: { _count: { select: { accounts: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function updateCircle(id: string, data: {
+  name?: string;
+  description?: string;
+  amount?: number;
+  durationMonths?: number;
+  interestRateAnnual?: number;
+  maxAccountsPerUser?: number;
+  status?: string;
+}) {
+  return prisma.circle.update({
+    where: { id },
+    data,
+    include: { _count: { select: { accounts: true } } },
+  });
+}
+
+// ── Circle Accounts ───────────────────────────────────
+
+export async function openCircleAccount(circleId: string, userId: string) {
+  const circle = await prisma.circle.findUnique({ where: { id: circleId } });
+  if (!circle) throw new Error("Circle not found");
+  if (circle.status !== "active") throw new Error("Circle is not active");
+
+  const userAccounts = await prisma.circleAccount.count({
+    where: { circleId, userId, status: "active" },
+  });
+  if (userAccounts >= circle.maxAccountsPerUser) {
+    throw new Error(`Maximum ${circle.maxAccountsPerUser} active accounts per circle reached`);
+  }
+
+  const balance = await getWalletBalance(userId);
+  if (balance < circle.amount) {
+    throw new Error(`Insufficient wallet balance. Required: ${circle.amount}, Available: ${balance}`);
+  }
+
+  const now = new Date();
+  const maturityDate = new Date(now);
+  maturityDate.setMonth(maturityDate.getMonth() + circle.durationMonths);
+
+  return prisma.$transaction(async (tx) => {
+    const reference = `CIRCLE-DEPOSIT-${Date.now()}-${nodeCrypto.randomBytes(4).toString("hex")}`;
+    await tx.transaction.create({
+      data: {
+        userId,
+        type: "circle_deposit",
+        amount: circle.amount,
+        reference,
+        status: "completed",
+        description: `Deposit into ${circle.name}`,
+      },
+    });
+
+    return tx.circleAccount.create({
+      data: {
+        circleId,
+        userId,
+        principalAmount: circle.amount,
+        startDate: now,
+        maturityDate,
+        lastInterestCalculation: now,
+      },
+      include: {
+        circle: { select: { id: true, name: true, amount: true, durationMonths: true, interestRateAnnual: true } },
+      },
+    });
+  });
+}
+
+export async function getCircleAccountById(id: string) {
+  return prisma.circleAccount.findUnique({
+    where: { id },
+    include: {
+      circle: { select: { id: true, name: true, amount: true, durationMonths: true, interestRateAnnual: true } },
+      user: { select: { id: true, name: true, email: true } },
+      interestLogs: { orderBy: { calculatedAt: "desc" }, take: 50 },
+    },
+  });
+}
+
+export async function getCircleAccountsByUser(userId: string) {
+  return prisma.circleAccount.findMany({
+    where: { userId },
+    include: {
+      circle: { select: { id: true, name: true, amount: true, durationMonths: true, interestRateAnnual: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function getActiveCircleAccountsByUser(userId: string) {
+  return prisma.circleAccount.findMany({
+    where: { userId, status: "active" },
+    include: {
+      circle: { select: { id: true, name: true, amount: true, durationMonths: true, interestRateAnnual: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function getAllActiveCircleAccounts() {
+  return prisma.circleAccount.findMany({
+    where: { status: "active" },
+    include: {
+      circle: { select: { id: true, name: true, amount: true, interestRateAnnual: true } },
+    },
+  });
+}
+
+export async function updateCircleAccount(id: string, data: {
+  interestEarned?: number;
+  totalWithdrawn?: number;
+  status?: string;
+  lastInterestCalculation?: Date;
+}) {
+  return prisma.circleAccount.update({
+    where: { id },
+    data,
+    include: {
+      circle: { select: { id: true, name: true, amount: true, durationMonths: true, interestRateAnnual: true } },
+    },
+  });
+}
+
+export async function earlyWithdrawCircleAccount(id: string, userId: string) {
+  const account = await prisma.circleAccount.findUnique({ where: { id } });
+  if (!account) throw new Error("Circle account not found");
+  if (account.userId !== userId) throw new Error("Not your account");
+  if (account.status !== "active") throw new Error("Account is not active");
+
+  return prisma.$transaction(async (tx) => {
+    const reference = `CIRCLE-WITHDRAWAL-${Date.now()}-${nodeCrypto.randomBytes(4).toString("hex")}`;
+    await tx.transaction.create({
+      data: {
+        userId,
+        type: "circle_withdrawal",
+        amount: account.principalAmount,
+        reference,
+        status: "completed",
+        description: "Early circle withdrawal (interest forfeited)",
+      },
+    });
+
+    return tx.circleAccount.update({
+      where: { id },
+      data: {
+        status: "early_withdrawn",
+        totalWithdrawn: account.principalAmount,
+        interestEarned: 0,
+      },
+      include: {
+        circle: { select: { id: true, name: true, amount: true, durationMonths: true, interestRateAnnual: true } },
+      },
+    });
+  });
+}
+
+export async function matureCircleAccount(id: string, userId: string) {
+  const account = await prisma.circleAccount.findUnique({ where: { id } });
+  if (!account) throw new Error("Circle account not found");
+  if (account.userId !== userId) throw new Error("Not your account");
+  if (account.status !== "active") throw new Error("Account is not active");
+
+  const now = new Date();
+  if (now < account.maturityDate) {
+    throw new Error(`Account matures on ${account.maturityDate.toISOString()}`);
+  }
+
+  const totalPayout = account.principalAmount + account.interestEarned;
+
+  return prisma.$transaction(async (tx) => {
+    const reference = `CIRCLE-MATURITY-${Date.now()}-${nodeCrypto.randomBytes(4).toString("hex")}`;
+    await tx.transaction.create({
+      data: {
+        userId,
+        type: "circle_withdrawal",
+        amount: totalPayout,
+        reference,
+        status: "completed",
+        description: "Circle maturity payout (principal + interest)",
+      },
+    });
+
+    return tx.circleAccount.update({
+      where: { id },
+      data: {
+        status: "withdrawn",
+        totalWithdrawn: totalPayout,
+      },
+      include: {
+        circle: { select: { id: true, name: true, amount: true, durationMonths: true, interestRateAnnual: true } },
+      },
+    });
+  });
+}
+
+// ── Circle Interest Calculation ────────────────────────
+
+export async function calculateWeeklyInterestForAccount(circleAccountId: string) {
+  const account = await prisma.circleAccount.findUnique({
+    where: { id: circleAccountId },
+    include: { circle: true },
+  });
+  if (!account || account.status !== "active") return null;
+
+  const now = new Date();
+  const lastCalc = account.lastInterestCalculation || account.startDate;
+  const weeksElapsed = Math.floor((now.getTime() - lastCalc.getTime()) / (7 * 24 * 60 * 60 * 1000));
+
+  if (weeksElapsed <= 0) return null;
+
+  const weeklyInterest = account.principalAmount * (account.circle.interestRateAnnual / 100) / 52;
+  const interestToAdd = weeklyInterest * weeksElapsed;
+  const roundedInterest = Math.round(interestToAdd * 100) / 100;
+
+  if (roundedInterest <= 0) return null;
+
+  return prisma.$transaction(async (tx) => {
+    await tx.circleInterestLog.create({
+      data: {
+        circleAccountId,
+        amount: roundedInterest,
+        principalAtCalculation: account.principalAmount,
+        annualRate: account.circle.interestRateAnnual,
+      },
+    });
+
+    return tx.circleAccount.update({
+      where: { id: circleAccountId },
+      data: {
+        interestEarned: { increment: roundedInterest },
+        lastInterestCalculation: now,
+      },
+    });
+  });
+}
+
+export async function runWeeklyInterestJob() {
+  const activeAccounts = await prisma.circleAccount.findMany({
+    where: { status: "active" },
+  });
+
+  let processed = 0;
+  let errors = 0;
+
+  for (const account of activeAccounts) {
+    try {
+      await calculateWeeklyInterestForAccount(account.id);
+      processed++;
+    } catch (err) {
+      console.error(`Interest calculation failed for account ${account.id}:`, err);
+      errors++;
+    }
+
+    const refreshed = await prisma.circleAccount.findUnique({ where: { id: account.id } });
+    if (refreshed && refreshed.status === "active" && new Date() >= refreshed.maturityDate) {
+      try {
+        await prisma.circleAccount.update({
+          where: { id: account.id },
+          data: { status: "matured" },
+        });
+      } catch (err) {
+        console.error(`Failed to mark account ${account.id} as matured:`, err);
+      }
+    }
+  }
+
+  return { processed, errors, total: activeAccounts.length };
+}
+
+// ── Navigation ──────────────────────────────────────
+
+export async function getNavigationForRole(role: string) {
+  const roleNavigations = await prisma.roleNavigation.findMany({
+    where: { role },
+    orderBy: { sortOrder: "asc" },
+  });
+
+  const navItemIds = roleNavigations.map((rn) => rn.navigationItemId);
+  const navItems = await prisma.navigationItem.findMany({
+    where: { id: { in: navItemIds }, isActive: true },
+    orderBy: { sortOrder: "asc" },
+  });
+  const navItemMap = new Map(navItems.map((item) => [item.id, item]));
+
+  const orderedItems = roleNavigations
+    .map((rn) => navItemMap.get(rn.navigationItemId))
+    .filter(Boolean);
+
+  const sections: Record<string, { label: string; href: string; icon: string }[]> = {};
+
+  for (const navItem of orderedItems) {
+    if (!navItem) continue;
+
+    const section = navItem.section || "";
+    if (!sections[section]) {
+      sections[section] = [];
+    }
+
+    sections[section].push({
+      label: navItem.label,
+      href: navItem.href,
+      icon: navItem.icon,
+    });
+  }
+
+  return Object.entries(sections).map(([title, items]) => ({
+    title,
+    items,
+  }));
+}
+
+export async function getAllNavigationItems() {
+  return prisma.navigationItem.findMany({
+    where: { isActive: true },
+    orderBy: { sortOrder: "asc" },
+  });
+}
+
+export async function createNavigationItem(data: {
+  label: string;
+  href: string;
+  icon: string;
+  section?: string;
+  sortOrder?: number;
+}) {
+  return prisma.navigationItem.create({ data });
+}
+
+export async function updateNavigationItem(id: string, data: {
+  label?: string;
+  href?: string;
+  icon?: string;
+  section?: string;
+  sortOrder?: number;
+  isActive?: boolean;
+}) {
+  return prisma.navigationItem.update({ where: { id }, data });
+}
+
+export async function deleteNavigationItem(id: string) {
+  return prisma.navigationItem.update({
+    where: { id },
+    data: { deletedAt: new Date() },
+  });
+}
+
+export async function assignNavigationToRole(role: string, navigationItemId: string, sortOrder?: number) {
+  return prisma.roleNavigation.upsert({
+    where: { role_navigationItemId: { role, navigationItemId } },
+    create: { role, navigationItemId, sortOrder: sortOrder ?? 0 },
+    update: { sortOrder: sortOrder ?? 0 },
+  });
+}
+
+export async function removeNavigationFromRole(role: string, navigationItemId: string) {
+  return prisma.roleNavigation.deleteMany({
+    where: { role, navigationItemId },
+  });
+}
+
+export async function getRoles() {
+  const roles = await prisma.roleNavigation.findMany({
+    select: { role: true },
+    distinct: ["role"],
+  });
+  return roles.map((r) => r.role);
 }

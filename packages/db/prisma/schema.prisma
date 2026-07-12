@@ -8,26 +8,28 @@ datasource db {
 }
 
 model Config {
-  id        String   @id @default("default")
-  data      String   @db.Text
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+  id        String    @id @default("default")
+  data      String    @db.Text
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @default(now()) @updatedAt @map("updated_at")
 
   @@map("configs")
 }
 
 model User {
-  id            String   @id @default(uuid())
-  email         String   @unique
+  id            String    @id @default(uuid())
+  email         String    @unique
   name          String
-  passwordHash  String   @map("password_hash")
-  role          String   @default("member")
-  accountNumber String   @unique @map("account_number")
-  accountTier   String   @default("basic") @map("account_tier")
-  referralCode  String   @unique @map("referral_code")
-  referredBy    String?  @map("referred_by")
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at")
+  passwordHash  String    @map("password_hash")
+  role          String    @default("member")
+  accountNumber String    @unique @map("account_number")
+  accountTier   String    @default("basic") @map("account_tier")
+  referralCode  String    @unique @map("referral_code")
+  referredBy    String?   @map("referred_by")
+  deletedAt     DateTime? @map("deleted_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at")
 
   donations              Donation[]
   transactions           Transaction[]
@@ -43,21 +45,23 @@ model User {
   jobListings            JobListing[]
   jobApplications        JobApplication[]    @relation("Applicant")
   loans                  Loan[]              @relation("Borrower")
+  circleAccounts         CircleAccount[]
 
   @@map("users")
 }
 
 model Group {
-  id              String   @id @default(uuid())
+  id              String    @id @default(uuid())
   name            String
   description     String?
-  targetAmount    Float    @map("target_amount")
-  currentAmount   Float    @default(0) @map("current_amount")
-  memberCount     Int      @default(0) @map("member_count")
-  cycleFrequency  String   @map("cycle_frequency")
-  status          String   @default("active")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
+  targetAmount    Float     @map("target_amount")
+  currentAmount   Float     @default(0) @map("current_amount")
+  memberCount     Int       @default(0) @map("member_count")
+  cycleFrequency  String    @map("cycle_frequency")
+  status          String    @default("active")
+  deletedAt       DateTime? @map("deleted_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at")
 
   members   GroupMember[]
   donations Donation[]
@@ -66,40 +70,42 @@ model Group {
 }
 
 model GroupMember {
-  id       String   @id @default(uuid())
-  groupId  String   @map("group_id")
-  userId   String   @map("user_id")
-  role     String   @default("member")
-  joinedAt DateTime @default(now()) @map("joined_at")
+  id        String    @id @default(uuid())
+  groupId   String    @map("group_id")
+  userId    String    @map("user_id")
+  role      String    @default("member")
+  deletedAt DateTime? @map("deleted_at")
+  joinedAt  DateTime  @default(now()) @map("joined_at")
 
-  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group Group @relation(fields: [groupId], references: [id], onDelete: Restrict)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Restrict)
 
   @@unique([groupId, userId])
   @@map("group_members")
 }
 
 model Donation {
-  id                String   @id @default(uuid())
-  userId            String   @map("user_id")
+  id                String    @id @default(uuid())
+  userId            String    @map("user_id")
   type              String
   amount            Float?
-  currency          String   @default("NGN")
-  itemName          String?  @map("item_name")
-  itemDescription   String?  @map("item_description")
-  itemImage         String?  @map("item_image")
-  itemCategory      String?  @map("item_category")
-  itemCondition     String?  @map("item_condition")
-  status            String   @default("pending")
-  paymentProvider   String?  @map("payment_provider")
-  paymentReference  String?  @map("payment_reference")
-  paymentUrl        String?  @map("payment_url")
-  groupId           String?  @map("group_id")
+  currency          String    @default("NGN")
+  itemName          String?   @map("item_name")
+  itemDescription   String?   @map("item_description")
+  itemImage         String?   @map("item_image")
+  itemCategory      String?   @map("item_category")
+  itemCondition     String?   @map("item_condition")
+  status            String    @default("pending")
+  paymentProvider   String?   @map("payment_provider")
+  paymentReference  String?   @map("payment_reference")
+  paymentUrl        String?   @map("payment_url")
+  groupId           String?   @map("group_id")
   notes             String?
-  createdAt         DateTime @default(now()) @map("created_at")
-  updatedAt         DateTime @default(now()) @updatedAt @map("updated_at")
+  deletedAt         DateTime? @map("deleted_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @default(now()) @updatedAt @map("updated_at")
 
-  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user  User   @relation(fields: [userId], references: [id], onDelete: Restrict)
   group Group? @relation(fields: [groupId], references: [id], onDelete: SetNull)
 
   transactions Transaction[]
@@ -111,18 +117,19 @@ model Donation {
 }
 
 model Transaction {
-  id           String   @id @default(uuid())
-  userId       String   @map("user_id")
+  id           String    @id @default(uuid())
+  userId       String    @map("user_id")
   type         String
   amount       Float
-  groupId      String?  @map("group_id")
-  donationId   String?  @map("donation_id")
-  reference    String   @unique
-  status       String   @default("pending")
+  groupId      String?   @map("group_id")
+  donationId   String?   @map("donation_id")
+  reference    String    @unique
+  status       String    @default("pending")
   description  String?
-  createdAt    DateTime @default(now()) @map("created_at")
+  deletedAt    DateTime? @map("deleted_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
 
-  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Restrict)
   donation Donation? @relation(fields: [donationId], references: [id], onDelete: SetNull)
 
   @@index([userId])
@@ -130,13 +137,14 @@ model Transaction {
 }
 
 model Referral {
-  id             String   @id @default(uuid())
-  referrerId     String   @map("referrer_id")
-  referredUserId String   @map("referred_user_id")
-  status         String   @default("pending")
-  createdAt      DateTime @default(now()) @map("created_at")
+  id             String    @id @default(uuid())
+  referrerId     String    @map("referrer_id")
+  referredUserId String    @map("referred_user_id")
+  status         String    @default("pending")
+  deletedAt      DateTime? @map("deleted_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
 
-  referrer User               @relation("Referrer", fields: [referrerId], references: [id], onDelete: Cascade)
+  referrer User               @relation("Referrer", fields: [referrerId], references: [id], onDelete: Restrict)
   earnings ReferralEarning[]
 
   @@unique([referrerId, referredUserId])
@@ -145,37 +153,40 @@ model Referral {
 }
 
 model ReferralEarning {
-  id          String   @id @default(uuid())
-  referralId  String   @map("referral_id")
-  referrerId  String   @map("referrer_id")
+  id          String    @id @default(uuid())
+  referralId  String    @map("referral_id")
+  referrerId  String    @map("referrer_id")
   tier        String
   amount      Float
-  status      String   @default("pending")
-  createdAt   DateTime @default(now()) @map("created_at")
+  status      String    @default("pending")
+  deletedAt   DateTime? @map("deleted_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
 
-  referral Referral @relation(fields: [referralId], references: [id], onDelete: Cascade)
-  referrer User     @relation(fields: [referrerId], references: [id], onDelete: Cascade)
+  referral Referral @relation(fields: [referralId], references: [id], onDelete: Restrict)
+  referrer User     @relation(fields: [referrerId], references: [id], onDelete: Restrict)
 
   @@index([referrerId])
   @@map("referral_earnings")
 }
 
 model Kyc {
-  id              String   @id @default(uuid())
-  userId          String   @unique @map("user_id")
-  idType          String   @map("id_type")
-  idNumber        String   @map("id_number")
-  idDocumentUrl   String?  @map("id_document_url")
-  selfieUrl       String?  @map("selfie_url")
-  status          String   @default("pending")
-  rejectionReason String?  @map("rejection_reason")
-  reviewedBy      String?  @map("reviewed_by")
+  id              String    @id @default(uuid())
+  userId          String    @unique @map("user_id")
+  level           Int       @default(1)
+  idType          String    @map("id_type")
+  idNumber        String    @map("id_number")
+  idDocumentUrl   String?   @map("id_document_url")
+  selfieUrl       String?   @map("selfie_url")
+  status          String    @default("pending")
+  rejectionReason String?   @map("rejection_reason")
+  reviewedBy      String?   @map("reviewed_by")
   verifiedAt      DateTime? @map("verified_at")
-  submittedAt     DateTime @default(now()) @map("submitted_at")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
+  submittedAt     DateTime  @default(now()) @map("submitted_at")
+  deletedAt       DateTime? @map("deleted_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at")
 
-  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User           @relation(fields: [userId], references: [id], onDelete: Restrict)
   documents  KycDocument[]
   auditLogs  KycAuditLog[]
 
@@ -185,32 +196,34 @@ model Kyc {
 }
 
 model KycDocument {
-  id          String   @id @default(uuid())
-  kycId       String   @map("kyc_id")
-  fileUrl     String   @map("file_url")
-  fileType    String   @map("file_type")
-  fileName    String   @map("file_name")
-  fileSize    Int      @map("file_size")
-  purpose     String   @default("id_document")
-  uploadedAt  DateTime @default(now()) @map("uploaded_at")
+  id          String    @id @default(uuid())
+  kycId       String    @map("kyc_id")
+  fileUrl     String    @map("file_url")
+  fileType    String    @map("file_type")
+  fileName    String    @map("file_name")
+  fileSize    Int       @map("file_size")
+  purpose     String    @default("id_document")
+  deletedAt   DateTime? @map("deleted_at")
+  uploadedAt  DateTime  @default(now()) @map("uploaded_at")
 
-  kyc Kyc @relation(fields: [kycId], references: [id], onDelete: Cascade)
+  kyc Kyc @relation(fields: [kycId], references: [id], onDelete: Restrict)
 
   @@index([kycId])
   @@map("kyc_documents")
 }
 
 model KycAuditLog {
-  id          String   @id @default(uuid())
-  kycId       String   @map("kyc_id")
+  id          String    @id @default(uuid())
+  kycId       String    @map("kyc_id")
   action      String
-  oldStatus   String?  @map("old_status")
-  newStatus   String?  @map("new_status")
+  oldStatus   String?   @map("old_status")
+  newStatus   String?   @map("new_status")
   notes       String?
-  performedBy String?  @map("performed_by")
-  createdAt   DateTime @default(now()) @map("created_at")
+  performedBy String?   @map("performed_by")
+  deletedAt   DateTime? @map("deleted_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
 
-  kyc Kyc @relation(fields: [kycId], references: [id], onDelete: Cascade)
+  kyc Kyc @relation(fields: [kycId], references: [id], onDelete: Restrict)
 
   @@index([kycId])
   @@index([createdAt])
@@ -218,10 +231,11 @@ model KycAuditLog {
 }
 
 model Conversation {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   name      String?
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @default(now()) @updatedAt @map("updated_at")
 
   members ConversationMember[]
   messages Message[]
@@ -230,27 +244,29 @@ model Conversation {
 }
 
 model ConversationMember {
-  id             String   @id @default(uuid())
-  conversationId String   @map("conversation_id")
-  userId         String   @map("user_id")
-  joinedAt       DateTime @default(now()) @map("joined_at")
+  id             String    @id @default(uuid())
+  conversationId String    @map("conversation_id")
+  userId         String    @map("user_id")
+  deletedAt      DateTime? @map("deleted_at")
+  joinedAt       DateTime  @default(now()) @map("joined_at")
 
-  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Restrict)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Restrict)
 
   @@unique([conversationId, userId])
   @@map("conversation_members")
 }
 
 model Message {
-  id             String   @id @default(uuid())
-  conversationId String   @map("conversation_id")
-  senderId       String   @map("sender_id")
+  id             String    @id @default(uuid())
+  conversationId String    @map("conversation_id")
+  senderId       String    @map("sender_id")
   text           String
-  createdAt      DateTime @default(now()) @map("created_at")
+  deletedAt      DateTime? @map("deleted_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
 
-  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Restrict)
+  sender       User         @relation(fields: [senderId], references: [id], onDelete: Restrict)
 
   @@index([conversationId])
   @@index([senderId])
@@ -258,15 +274,16 @@ model Message {
 }
 
 model WhatsappGroup {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   name        String
   description String?
-  circleName  String?  @map("circle_name")
-  inviteLink  String?  @map("invite_link")
-  memberCount Int      @default(0) @map("member_count")
-  pinned      Boolean  @default(false)
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+  circleName  String?   @map("circle_name")
+  inviteLink  String?   @map("invite_link")
+  memberCount Int       @default(0) @map("member_count")
+  pinned      Boolean   @default(false)
+  deletedAt   DateTime? @map("deleted_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at")
 
   members WhatsappGroupMember[]
 
@@ -274,33 +291,35 @@ model WhatsappGroup {
 }
 
 model WhatsappGroupMember {
-  id        String   @id @default(uuid())
-  groupId   String   @map("group_id")
-  userId    String   @map("user_id")
-  joinedAt  DateTime @default(now()) @map("joined_at")
+  id        String    @id @default(uuid())
+  groupId   String    @map("group_id")
+  userId    String    @map("user_id")
+  deletedAt DateTime? @map("deleted_at")
+  joinedAt  DateTime  @default(now()) @map("joined_at")
 
-  group WhatsappGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  user  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group WhatsappGroup @relation(fields: [groupId], references: [id], onDelete: Restrict)
+  user  User          @relation(fields: [userId], references: [id], onDelete: Restrict)
 
   @@unique([groupId, userId])
   @@map("whatsapp_group_members")
 }
 
 model MarketplaceListing {
-  id          String   @id @default(uuid())
-  sellerId    String   @map("seller_id")
+  id          String    @id @default(uuid())
+  sellerId    String    @map("seller_id")
   title       String
-  description String   @db.Text
+  description String    @db.Text
   price       Float
-  currency    String   @default("NGN")
+  currency    String    @default("NGN")
   category    String
   condition   String
-  imageUrl    String?  @map("image_url")
-  status      String   @default("active")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+  imageUrl    String?   @map("image_url")
+  status      String    @default("active")
+  deletedAt   DateTime? @map("deleted_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at")
 
-  seller User               @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  seller User               @relation(fields: [sellerId], references: [id], onDelete: Restrict)
   offers MarketplaceOffer[]
 
   @@index([sellerId])
@@ -310,17 +329,18 @@ model MarketplaceListing {
 }
 
 model MarketplaceOffer {
-  id         String   @id @default(uuid())
-  listingId  String   @map("listing_id")
-  offererId  String   @map("offerer_id")
+  id         String    @id @default(uuid())
+  listingId  String    @map("listing_id")
+  offererId  String    @map("offerer_id")
   amount     Float
   message    String?
-  status     String   @default("pending")
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at")
+  status     String    @default("pending")
+  deletedAt  DateTime? @map("deleted_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @default(now()) @updatedAt @map("updated_at")
 
-  listing MarketplaceListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  offerer User               @relation("Offerer", fields: [offererId], references: [id], onDelete: Cascade)
+  listing MarketplaceListing @relation(fields: [listingId], references: [id], onDelete: Restrict)
+  offerer User               @relation("Offerer", fields: [offererId], references: [id], onDelete: Restrict)
 
   @@index([listingId])
   @@index([offererId])
@@ -328,22 +348,23 @@ model MarketplaceOffer {
 }
 
 model JobListing {
-  id          String   @id @default(uuid())
-  posterId    String   @map("poster_id")
+  id          String    @id @default(uuid())
+  posterId    String    @map("poster_id")
   title       String
-  description String   @db.Text
+  description String    @db.Text
   company     String?
   location    String
-  jobType     String   @map("job_type")
-  salaryMin   Float?   @map("salary_min")
-  salaryMax   Float?   @map("salary_max")
-  currency    String   @default("NGN")
+  jobType     String    @map("job_type")
+  salaryMin   Float?    @map("salary_min")
+  salaryMax   Float?    @map("salary_max")
+  currency    String    @default("NGN")
   category    String
-  status      String   @default("active")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+  status      String    @default("active")
+  deletedAt   DateTime? @map("deleted_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at")
 
-  poster       User             @relation(fields: [posterId], references: [id], onDelete: Cascade)
+  poster       User             @relation(fields: [posterId], references: [id], onDelete: Restrict)
   applications JobApplication[]
 
   @@index([posterId])
@@ -354,17 +375,18 @@ model JobListing {
 }
 
 model JobApplication {
-  id          String   @id @default(uuid())
-  listingId   String   @map("listing_id")
-  applicantId String   @map("applicant_id")
-  resumeUrl   String?  @map("resume_url")
-  coverLetter String?  @db.Text
-  status      String   @default("pending")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+  id          String    @id @default(uuid())
+  listingId   String    @map("listing_id")
+  applicantId String    @map("applicant_id")
+  resumeUrl   String?   @map("resume_url")
+  coverLetter String?   @db.Text
+  status      String    @default("pending")
+  deletedAt   DateTime? @map("deleted_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at")
 
-  listing   JobListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
-  applicant User       @relation("Applicant", fields: [applicantId], references: [id], onDelete: Cascade)
+  listing   JobListing @relation(fields: [listingId], references: [id], onDelete: Restrict)
+  applicant User       @relation("Applicant", fields: [applicantId], references: [id], onDelete: Restrict)
 
   @@unique([listingId, applicantId])
   @@index([listingId])
@@ -373,24 +395,117 @@ model JobApplication {
 }
 
 model Loan {
-  id             String   @id @default(uuid())
-  borrowerId     String   @map("borrower_id")
+  id             String    @id @default(uuid())
+  borrowerId     String    @map("borrower_id")
   amount         Float
-  interestRate   Float    @map("interest_rate")
-  termMonths     Int      @map("term_months")
-  monthlyPayment Float    @map("monthly_payment")
-  totalRepayment Float    @map("total_repayment")
+  interestRate   Float     @map("interest_rate")
+  termMonths     Int       @map("term_months")
+  monthlyPayment Float     @map("monthly_payment")
+  totalRepayment Float     @map("total_repayment")
   purpose        String?
-  status         String   @default("pending")
+  status         String    @default("pending")
   approvedAt     DateTime? @map("approved_at")
   disbursedAt    DateTime? @map("disbursed_at")
   completedAt    DateTime? @map("completed_at")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @default(now()) @updatedAt @map("updated_at")
 
-  borrower User @relation("Borrower", fields: [borrowerId], references: [id], onDelete: Cascade)
+  borrower User @relation("Borrower", fields: [borrowerId], references: [id], onDelete: Restrict)
 
   @@index([borrowerId])
   @@index([status])
   @@map("loans")
+}
+
+model Circle {
+  id                  String    @id @default(uuid())
+  name                String
+  description         String?
+  amount              Float
+  durationMonths      Int       @map("duration_months")
+  interestRateAnnual  Float     @map("interest_rate_annual")
+  maxAccountsPerUser  Int       @default(10) @map("max_accounts_per_user")
+  status              String    @default("active")
+  deletedAt           DateTime? @map("deleted_at")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  accounts CircleAccount[]
+
+  @@map("circles")
+}
+
+model CircleAccount {
+  id                        String    @id @default(uuid())
+  circleId                  String    @map("circle_id")
+  userId                    String    @map("user_id")
+  principalAmount           Float     @map("principal_amount")
+  interestEarned            Float     @default(0) @map("interest_earned")
+  totalWithdrawn            Float     @default(0) @map("total_withdrawn")
+  status                    String    @default("active")
+  startDate                 DateTime  @map("start_date")
+  maturityDate              DateTime  @map("maturity_date")
+  lastInterestCalculation   DateTime? @map("last_interest_calculation")
+  deletedAt                 DateTime? @map("deleted_at")
+  createdAt                 DateTime  @default(now()) @map("created_at")
+  updatedAt                 DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  circle        Circle              @relation(fields: [circleId], references: [id], onDelete: Restrict)
+  user          User                @relation(fields: [userId], references: [id], onDelete: Restrict)
+  interestLogs  CircleInterestLog[]
+
+  @@index([circleId])
+  @@index([userId])
+  @@index([status])
+  @@map("circle_accounts")
+}
+
+model CircleInterestLog {
+  id                      String    @id @default(uuid())
+  circleAccountId         String    @map("circle_account_id")
+  amount                  Float
+  principalAtCalculation  Float     @map("principal_at_calculation")
+  annualRate              Float     @map("annual_rate")
+  deletedAt               DateTime? @map("deleted_at")
+  calculatedAt            DateTime  @default(now()) @map("calculated_at")
+
+  circleAccount CircleAccount @relation(fields: [circleAccountId], references: [id], onDelete: Restrict)
+
+  @@index([circleAccountId])
+  @@index([calculatedAt])
+  @@map("circle_interest_logs")
+}
+
+model NavigationItem {
+  id        String    @id @default(uuid())
+  label     String
+  href      String
+  icon      String    @db.Text
+  section   String    @default("")
+  sortOrder Int       @default(0) @map("sort_order")
+  isActive  Boolean   @default(true) @map("is_active")
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  roles RoleNavigation[]
+
+  @@unique([href])
+  @@map("navigation_items")
+}
+
+model RoleNavigation {
+  id               String    @id @default(uuid())
+  role             String
+  navigationItemId String    @map("navigation_item_id")
+  sortOrder        Int       @default(0) @map("sort_order")
+  deletedAt        DateTime? @map("deleted_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  navigationItem NavigationItem @relation(fields: [navigationItemId], references: [id], onDelete: Restrict)
+
+  @@unique([role, navigationItemId])
+  @@index([role])
+  @@map("role_navigation")
 }

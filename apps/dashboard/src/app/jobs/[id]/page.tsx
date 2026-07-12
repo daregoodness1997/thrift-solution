@@ -217,28 +217,32 @@ export default function JobDetailPage() {
             <h2 style={{ fontSize: "1.125rem", fontWeight: 500, color: "#1A1A1A", marginTop: "0.5rem", marginBottom: "1rem" }}>Applications ({job.applications.length})</h2>
             <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
               {job.applications.map((app) => (
-                <div key={app.id} style={{ padding: "1rem", borderRadius: "0.75rem", border: "1px solid #F0F0F0", backgroundColor: "#FAFAFA" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.75rem" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                      <div style={{ width: "32px", height: "32px", borderRadius: "50%", backgroundColor: "#F0F0F0", color: "#717171", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 700 }}>
-                        {app.applicant.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}
-                      </div>
-                      <div>
-                        <span style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", display: "block" }}>{app.applicant.name}</span>
-                        {app.coverLetter && <span style={{ fontSize: "11px", color: "#717171", display: "block", marginTop: "0.125rem", maxWidth: "400px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{app.coverLetter}</span>}
-                      </div>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                      <span style={{ fontSize: "9px", fontWeight: 700, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace", color: APP_STATUS_COLORS[app.status], backgroundColor: `${APP_STATUS_COLORS[app.status]}12`, padding: "0.125rem 0.5rem", borderRadius: "0.375rem" }}>{app.status}</span>
-                      {app.status === "pending" && (
-                        <div style={{ display: "flex", gap: "0.375rem" }}>
-                          <button onClick={() => handleApplicationAction(app.id, "shortlisted")} style={{ padding: "0.375rem 0.75rem", borderRadius: "9999px", fontSize: "11px", fontWeight: 600, backgroundColor: "#059669", color: "#ffffff", border: "none", cursor: "pointer" }}>Shortlist</button>
-                          <button onClick={() => handleApplicationAction(app.id, "rejected")} style={{ padding: "0.375rem 0.75rem", borderRadius: "9999px", fontSize: "11px", fontWeight: 600, backgroundColor: "#ffffff", color: "#DC2626", border: "1px solid #FECACA", cursor: "pointer" }}>Reject</button>
+                <a key={app.id} href={`/jobs/applications/${app.id}`} style={{ textDecoration: "none", display: "block" }}>
+                  <div style={{ padding: "1rem", borderRadius: "0.75rem", border: "1px solid #F0F0F0", backgroundColor: "#FAFAFA", cursor: "pointer", transition: "border-color 0.2s ease" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = cfg.colors.primary; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#F0F0F0"; }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.75rem" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                        <div style={{ width: "32px", height: "32px", borderRadius: "50%", backgroundColor: "#F0F0F0", color: "#717171", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 700 }}>
+                          {app.applicant.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}
                         </div>
-                      )}
+                        <div>
+                          <span style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", display: "block" }}>{app.applicant.name}</span>
+                          {app.coverLetter && <span style={{ fontSize: "11px", color: "#717171", display: "block", marginTop: "0.125rem", maxWidth: "400px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{app.coverLetter}</span>}
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                        <span style={{ fontSize: "9px", fontWeight: 700, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace", color: APP_STATUS_COLORS[app.status], backgroundColor: `${APP_STATUS_COLORS[app.status]}12`, padding: "0.125rem 0.5rem", borderRadius: "0.375rem" }}>{app.status}</span>
+                        {app.status === "pending" && (
+                          <div style={{ display: "flex", gap: "0.375rem" }} onClick={(e) => e.preventDefault()}>
+                            <button onClick={(e) => { e.preventDefault(); handleApplicationAction(app.id, "shortlisted"); }} style={{ padding: "0.375rem 0.75rem", borderRadius: "9999px", fontSize: "11px", fontWeight: 600, backgroundColor: "#059669", color: "#ffffff", border: "none", cursor: "pointer" }}>Shortlist</button>
+                            <button onClick={(e) => { e.preventDefault(); handleApplicationAction(app.id, "rejected"); }} style={{ padding: "0.375rem 0.75rem", borderRadius: "9999px", fontSize: "11px", fontWeight: 600, backgroundColor: "#ffffff", color: "#DC2626", border: "1px solid #FECACA", cursor: "pointer" }}>Reject</button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
+                </a>
               ))}
             </div>
           </Card>

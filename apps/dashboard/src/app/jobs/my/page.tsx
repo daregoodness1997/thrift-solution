@@ -112,20 +112,22 @@ export default function MyJobsPage() {
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
             {receivedApps.map((app) => (
-              <Card key={app.id} padding="1.25rem">
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.75rem" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                    <div style={{ width: "32px", height: "32px", borderRadius: "50%", backgroundColor: "#F0F0F0", color: "#717171", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 700 }}>
-                      {app.applicant.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}
+              <a key={app.id} href={`/jobs/applications/${app.id}`} style={{ textDecoration: "none" }}>
+                <Card padding="1.25rem">
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.75rem" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                      <div style={{ width: "32px", height: "32px", borderRadius: "50%", backgroundColor: "#F0F0F0", color: "#717171", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 700 }}>
+                        {app.applicant.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}
+                      </div>
+                      <div>
+                        <span style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", display: "block" }}>{app.applicant.name}</span>
+                        <span style={{ fontSize: "11px", color: "#999" }}>for {app.listing.title}</span>
+                      </div>
                     </div>
-                    <div>
-                      <span style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", display: "block" }}>{app.applicant.name}</span>
-                      <span style={{ fontSize: "11px", color: "#999" }}>for {app.listing.title}</span>
-                    </div>
+                    <span style={{ fontSize: "9px", fontWeight: 700, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace", color: STATUS_COLORS[app.status], backgroundColor: `${STATUS_COLORS[app.status]}12`, padding: "0.125rem 0.5rem", borderRadius: "0.375rem" }}>{app.status}</span>
                   </div>
-                  <span style={{ fontSize: "9px", fontWeight: 700, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace", color: STATUS_COLORS[app.status], backgroundColor: `${STATUS_COLORS[app.status]}12`, padding: "0.125rem 0.5rem", borderRadius: "0.375rem" }}>{app.status}</span>
-                </div>
-              </Card>
+                </Card>
+              </a>
             ))}
           </div>
         )
@@ -134,7 +136,7 @@ export default function MyJobsPage() {
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
           {myApps.map((app) => (
-            <a key={app.id} href={`/jobs/${app.listing.id}`} style={{ textDecoration: "none" }}>
+            <a key={app.id} href={`/jobs/applications/${app.id}`} style={{ textDecoration: "none" }}>
               <Card padding="1.25rem">
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.75rem" }}>
                   <div>

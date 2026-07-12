@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { config, BrandConfig } from "@thrift/config";
 import { StatCard, Card, Button, GradientStrip, SavingsGrowthChart, ColorfulBadge, ColorBar, FadeIn, FadeInUp, StaggerChildren } from "@thrift/ui";
+import { KYC_STATUS_CONFIG } from "@thrift/types";
 import { formatNaira } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
@@ -22,6 +23,7 @@ interface UserProfile {
     clearances: number;
     totalContributed: number;
     totalReceived: number;
+    walletBalance: number;
   };
 }
 
@@ -35,12 +37,19 @@ interface Transaction {
   groupId?: string;
 }
 
-interface UserGroup {
-  groupId: string;
-  groupName: string;
-  targetAmount: number;
-  currentAmount: number;
-  cycleFrequency: string;
+interface CircleAccount {
+  id: string;
+  circleId: string;
+  principalAmount: number;
+  interestEarned: number;
+  status: string;
+  maturityDate: string;
+  circle: {
+    id: string;
+    name: string;
+    amount: number;
+    durationMonths: number;
+  };
 }
 
 export default function Dashboard() {
@@ -48,7 +57,7 @@ export default function Dashboard() {
   const [cfg, setCfg] = useState<BrandConfig>(fallback);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [groups, setGroups] = useState<UserGroup[]>([]);
+  const [circleAccounts, setCircleAccounts] = useState<CircleAccount[]>([]);
   const [walletBalance, setWalletBalance] = useState(0);
   const [walletAmount, setWalletAmount] = useState("");
   const [walletCustom, setWalletCustom] = useState("");
@@ -70,26 +79,26 @@ export default function Dashboard() {
   const fetchData = useCallback(async () => {
     if (!token) { setLoading(false); return; }
     try {
-      const [profileRes, txRes, groupsRes, referralRes] = await Promise.all([
+      const [profileRes, txRes, circlesRes, referralRes] = await Promise.all([
         fetch(`${API_URL}/api/user/profile`, { headers: { Authorization: `Bearer ${token}` } }),
         fetch(`${API_URL}/api/transactions?limit=5`, { headers: { Authorization: `Bearer ${token}` } }),
-        fetch(`${API_URL}/api/user/groups`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${API_URL}/api/circles/accounts/my`, { headers: { Authorization: `Bearer ${token}` } }),
         fetch(`${API_URL}/api/referrals/code`, { headers: { Authorization: `Bearer ${token}` } }),
       ]);
 
-      const [profileData, txData, groupsData, referralData] = await Promise.all([
+      const [profileData, txData, circlesData, referralData] = await Promise.all([
         profileRes.json(),
         txRes.json(),
-        groupsRes.json(),
+        circlesRes.json(),
         referralRes.json(),
       ]);
 
       if (profileData.success) {
         setProfile(profileData.data);
-        setWalletBalance(profileData.data.stats.totalSaved);
+        setWalletBalance(profileData.data.stats.walletBalance);
       }
       if (txData.success) setTransactions(txData.data || []);
-      if (groupsData.success) setGroups(groupsData.data || []);
+      if (circlesData.success) setCircleAccounts(circlesData.data?.accounts || []);
       if (referralData?.data?.code) setReferralCode(referralData.data.code);
     } catch {}
     setLoading(false);
@@ -206,6 +215,38 @@ export default function Dashboard() {
         }
       />
 
+      {user && (!user.kycStatus || user.kycStatus === "none" || user.kycStatus === "rejected" || user.kycStatus === "expired") && (
+        <FadeInUp delay={200}>
+          <Card padding="1.25rem" style={{ marginBottom: "2rem", border: `1px solid ${KYC_STATUS_CONFIG[user.kycStatus as keyof typeof KYC_STATUS_CONFIG]?.border || KYC_STATUS_CONFIG.none.border}` }}>
+            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "1rem" }}>
+              <div style={{ width: "40px", height: "40px", borderRadius: "0.75rem", backgroundColor: KYC_STATUS_CONFIG[user.kycStatus as keyof typeof KYC_STATUS_CONFIG]?.bg || KYC_STATUS_CONFIG.none.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={KYC_STATUS_CONFIG[user.kycStatus as keyof typeof KYC_STATUS_CONFIG]?.color || KYC_STATUS_CONFIG.none.color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                  <path d={KYC_STATUS_CONFIG[user.kycStatus as keyof typeof KYC_STATUS_CONFIG]?.icon || KYC_STATUS_CONFIG.none.icon} />
+                </svg>
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                  <span style={{ fontSize: "13px", fontWeight: 600, color: "#1A1A1A" }}>Complete Your KYC Verification</span>
+                  {user.accountTier && (
+                    <span style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", padding: "0.125rem 0.5rem", borderRadius: "9999px", backgroundColor: "#F3F4F6", color: "#6B7280", border: "1px solid #E5E7EB" }}>
+                      {user.accountTier} tier
+                    </span>
+                  )}
+                </div>
+                <span style={{ fontSize: "12px", color: "#717171", display: "block", marginTop: "0.125rem" }}>
+                  {user.kycStatus === "rejected"
+                    ? "Your previous submission was rejected. Please resubmit your documents."
+                    : "Verify your identity to unlock full platform features and build trust."}
+                </span>
+              </div>
+              <a href="/kyc" style={{ padding: "0.5rem 1.25rem", borderRadius: "9999px", fontSize: "12px", fontWeight: 600, cursor: "pointer", backgroundColor: cfg.colors.primary, color: "#ffffff", textDecoration: "none", transition: "all 0.2s ease", whiteSpace: "nowrap" }}>
+                {user.kycStatus === "rejected" ? "Resubmit KYC" : "Start Verification"}
+              </a>
+            </div>
+          </Card>
+        </FadeInUp>
+      )}
+
       <StaggerChildren staggerDelay={100} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.5rem", marginBottom: "2rem" }}>
         <StatCard label="Total Saved" value={formatNaira(profile?.stats.totalSaved || 0)} change={`Across ${profile?.stats.activeCircles || 0} circles`} positive variant="default" />
         <StatCard label="Total Donated" value={formatNaira(profile?.stats.totalDonated || 0)} change={`${profile?.stats.clearances || 0} clearances`} positive variant="warm" />
@@ -298,21 +339,21 @@ export default function Dashboard() {
               <p style={{ fontSize: "12px", color: "#717171", fontWeight: 300, marginTop: "0.25rem" }}>Select a circle and make your contribution.</p>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginBottom: "1rem" }}>
-              {groups.length > 0 ? groups.slice(0, 3).map((g) => (
-                <a key={g.groupId} href="/groups"
+              {circleAccounts.length > 0 ? circleAccounts.slice(0, 3).map((ca) => (
+                <a key={ca.id} href="/circles"
                   style={{ padding: "0.75rem", borderRadius: "0.75rem", cursor: "pointer", transition: "all 0.2s ease", textDecoration: "none", display: "block" }}
                   onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#F9FAFB"; e.currentTarget.style.transform = "translateX(4px)"; }}
                   onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.transform = "translateX(0)"; }}>
-                  <span style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", display: "block" }}>{g.groupName}</span>
-                  <span style={{ fontSize: "10px", color: "#717171", fontWeight: 300 }}>{g.cycleFrequency} contributions &middot; {formatNaira(g.currentAmount)} saved</span>
+                  <span style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", display: "block" }}>{ca.circle.name}</span>
+                  <span style={{ fontSize: "10px", color: "#717171", fontWeight: 300 }}>{formatNaira(ca.principalAmount)} deposited &middot; {ca.status}</span>
                 </a>
               )) : (
                 <div style={{ padding: "1rem", textAlign: "center", color: "#999", fontSize: "12px" }}>
-                  No circles yet. <a href="/groups" style={{ color: cfg.colors.primary }}>Create one</a>
+                  No circles yet. <a href="/circles" style={{ color: cfg.colors.primary }}>Join one</a>
                 </div>
               )}
             </div>
-            <a href="/groups" style={{ display: "block", textAlign: "center", padding: "0.625rem 1rem", borderRadius: "9999px", fontSize: "13px", fontWeight: 600, color: cfg.colors.primary, border: `1px solid ${cfg.colors.primary}30`, backgroundColor: `${cfg.colors.primary}08`, textDecoration: "none", transition: "all 0.2s ease" }}>
+            <a href="/circles" style={{ display: "block", textAlign: "center", padding: "0.625rem 1rem", borderRadius: "9999px", fontSize: "13px", fontWeight: 600, color: cfg.colors.primary, border: `1px solid ${cfg.colors.primary}30`, backgroundColor: `${cfg.colors.primary}08`, textDecoration: "none", transition: "all 0.2s ease" }}>
               View All Circles &rarr;
             </a>
           </Card>
@@ -325,21 +366,25 @@ export default function Dashboard() {
               <h2 style={{ fontSize: "1.125rem", fontWeight: 500, color: "#1A1A1A", marginTop: "0.75rem" }}>My Stats</h2>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-              {[
-                { label: "Total Contributed", value: formatNaira(profile?.stats.totalContributed || 0), color: "#4A5D4E" },
-                { label: "Total Received", value: formatNaira(profile?.stats.totalReceived || 0), color: "#059669" },
-                { label: "Total Donated", value: formatNaira(profile?.stats.totalDonated || 0), color: cfg.colors.accent },
-              ].map((m) => (
-                <div key={m.label}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.375rem" }}>
-                    <span style={{ fontSize: "12px", fontWeight: 500, color: "#2D2D2D" }}>{m.label}</span>
-                    <span style={{ fontSize: "12px", fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: m.color }}>{m.value}</span>
+              {(() => {
+                const stats = [
+                  { label: "Total Contributed", value: profile?.stats.totalContributed || 0, color: "#4A5D4E" },
+                  { label: "Total Received", value: profile?.stats.totalReceived || 0, color: "#059669" },
+                  { label: "Total Donated", value: profile?.stats.totalDonated || 0, color: cfg.colors.accent },
+                ];
+                const maxValue = Math.max(...stats.map((s) => s.value), 1);
+                return stats.map((m) => (
+                  <div key={m.label}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.375rem" }}>
+                      <span style={{ fontSize: "12px", fontWeight: 500, color: "#2D2D2D" }}>{m.label}</span>
+                      <span style={{ fontSize: "12px", fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: m.color }}>{formatNaira(m.value)}</span>
+                    </div>
+                    <div style={{ height: "6px", backgroundColor: "#F0F0F0", borderRadius: "9999px", overflow: "hidden" }}>
+                      <div style={{ height: "100%", backgroundColor: m.color, borderRadius: "9999px", width: `${(m.value / maxValue) * 100}%`, transition: "width 1s cubic-bezier(0.16, 1, 0.3, 1)" }} />
+                    </div>
                   </div>
-                  <div style={{ height: "6px", backgroundColor: "#F0F0F0", borderRadius: "9999px", overflow: "hidden" }}>
-                    <div style={{ height: "100%", backgroundColor: m.color, borderRadius: "9999px", width: `${Math.min(100, (parseFloat(m.value.replace(/[₦,]/g, "")) || 0) / 1000)}%`, transition: "width 1s cubic-bezier(0.16, 1, 0.3, 1)" }} />
-                  </div>
-                </div>
-              ))}
+                ));
+              })()}
             </div>
           </Card>
         </FadeInUp>
@@ -356,7 +401,7 @@ export default function Dashboard() {
           </div>
           {transactions.length === 0 ? (
             <div style={{ textAlign: "center", padding: "2rem", color: "#999", fontSize: "13px" }}>
-              No transactions yet. <a href="/groups" style={{ color: cfg.colors.primary }}>Join a circle</a> to get started.
+              No transactions yet. <a href="/circles" style={{ color: cfg.colors.primary }}>Join a circle</a> to get started.
             </div>
           ) : (
             <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>

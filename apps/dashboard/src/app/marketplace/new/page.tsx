@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { config, BrandConfig } from "@thrift/config";
 import { Card, Button, ColorfulBadge, FadeInUp } from "@thrift/ui";
 import { useAuth } from "@/lib/auth-context";
@@ -78,12 +79,13 @@ export default function NewListingPage() {
       });
       const data = await res.json();
       if (data.success) {
+        toast.success("Listing created successfully!");
         router.push(`/marketplace/${data.data.id}`);
       } else {
-        setError(data.error || "Failed to create listing");
+        toast.error(data.error || "Failed to create listing");
       }
     } catch {
-      setError("Failed to create listing");
+      toast.error("Failed to create listing");
     }
     setSubmitting(false);
   };

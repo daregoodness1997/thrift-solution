@@ -15,6 +15,9 @@ import {
 export const kycRouter = Router();
 
 const VALID_ID_TYPES = ["bvn", "nin", "drivers_license", "international_passport", "voter_card"];
+const VALID_LEVELS = [1, 2, 3];
+const LEVEL_1_ID_TYPES = ["bvn", "nin"];
+const LEVEL_2_ID_TYPES = ["drivers_license", "international_passport", "voter_card"];
 
 const ID_VALIDATORS: Record<string, { pattern?: RegExp; minLength: number; maxLength: number }> = {
   bvn: { pattern: /^\d{11}$/, minLength: 11, maxLength: 11 },
@@ -68,6 +71,7 @@ kycRouter.get("/", authMiddleware, async (req, res) => {
       success: true,
       data: {
         id: kyc.id,
+        level: kyc.level,
         status: kyc.status,
         idType: kyc.idType,
         idNumber: kyc.idNumber,
@@ -121,8 +125,13 @@ kycRouter.get("/status", authMiddleware, async (req, res) => {
 
 kycRouter.post("/", authMiddleware, async (req, res) => {
   try {
-    const { idType, idNumber, idDocumentUrl, selfieUrl, documents } = req.body;
+    const { level, idType, idNumber, idDocumentUrl, selfieUrl, documents } = req.body;
     const userId = req.user!.userId;
+
+    if (!level || !VALID_LEVELS.includes(level)) {
+      res.status(400).json({ success: false, error: `Invalid level. Must be one of: ${VALID_LEVELS.join(", ")}` });
+      return;
+    }
 
     if (!idType || !idNumber) {
       res.status(400).json({ success: false, error: "ID type and ID number are required" });
@@ -134,6 +143,16 @@ kycRouter.post("/", authMiddleware, async (req, res) => {
         success: false,
         error: `Invalid ID type. Must be one of: ${VALID_ID_TYPES.join(", ")}`,
       });
+      return;
+    }
+
+    if (level === 1 && !LEVEL_1_ID_TYPES.includes(idType)) {
+      res.status(400).json({ success: false, error: "Level 1 requires BVN or NIN" });
+      return;
+    }
+
+    if (level === 2 && !LEVEL_2_ID_TYPES.includes(idType)) {
+      res.status(400).json({ success: false, error: "Level 2 requires Driver's License, International Passport, or Voter's Card" });
       return;
     }
 
@@ -158,6 +177,7 @@ kycRouter.post("/", authMiddleware, async (req, res) => {
 
     const kyc = await createKycSubmission({
       userId,
+      level,
       idType,
       idNumber,
       idDocumentUrl: idDocumentUrl || undefined,
@@ -169,6 +189,7 @@ kycRouter.post("/", authMiddleware, async (req, res) => {
       success: true,
       data: {
         id: kyc!.id,
+        level: kyc!.level,
         status: kyc!.status,
         idType: kyc!.idType,
         idNumber: kyc!.idNumber,

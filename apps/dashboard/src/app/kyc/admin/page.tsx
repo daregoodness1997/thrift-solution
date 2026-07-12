@@ -84,7 +84,7 @@ export default function KycAdminPage() {
   }, [API_URL, authHeaders]);
 
   useEffect(() => {
-    if (!token) return;
+    if (!token) { setLoading(false); return; }
     Promise.all([fetchStats(), fetchSubmissions()]).finally(() => setLoading(false));
   }, [token, fetchStats, fetchSubmissions]);
 

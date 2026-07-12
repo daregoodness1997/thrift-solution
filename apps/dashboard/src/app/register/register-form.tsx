@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { config } from "@thrift/config";
 
@@ -64,8 +65,9 @@ export default function RegisterForm() {
     setLoading(false);
 
     if (result.error) {
-      setError(result.error);
+      toast.error(result.error);
     } else {
+      toast.success("Account created successfully!");
       window.location.href = "/";
     }
   };

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { config } from "@thrift/config";
 import { Button, Card, ColorfulBadge, FadeIn, FadeInUp, ScaleIn, StaggerChildren } from "@thrift/ui";
 
@@ -66,17 +67,18 @@ export default function DonatePage() {
       const data = await res.json();
 
       if (!data.success) {
-        setError(data.error || "Failed to initiate donation");
+        toast.error(data.error || "Failed to initiate donation");
         return;
       }
 
+      toast.success("Donation initiated successfully!");
       if (data.data.authorizationUrl) {
         window.location.href = data.data.authorizationUrl;
       } else {
         setSuccess(true);
       }
     } catch {
-      setError("Network error. Please try again.");
+      toast.error("Network error. Please try again.");
     } finally {
       setLoading(false);
     }

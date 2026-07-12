@@ -11,6 +11,7 @@ import {
   updateJobApplication,
   getJobApplicationsForPoster,
   getJobApplicationsByApplicant,
+  getJobApplicationById,
 } from "@thrift/db";
 
 export const jobsRouter = Router();
@@ -58,6 +59,29 @@ jobsRouter.get("/received-applications", authMiddleware, async (req, res) => {
   } catch (err) {
     console.error("Get received applications error:", err);
     res.status(500).json({ success: false, error: "Failed to fetch received applications" });
+  }
+});
+
+jobsRouter.get("/applications/:applicationId", authMiddleware, async (req, res) => {
+  try {
+    const application = await getJobApplicationById(req.params.applicationId);
+    if (!application) {
+      res.status(404).json({ success: false, error: "Application not found" });
+      return;
+    }
+
+    const userId = req.user!.userId;
+    const isApplicant = application.applicantId === userId;
+    const isPoster = application.listing.poster.id === userId;
+    if (!isApplicant && !isPoster) {
+      res.status(403).json({ success: false, error: "Not authorized to view this application" });
+      return;
+    }
+
+    res.json({ success: true, data: application });
+  } catch (err) {
+    console.error("Get application detail error:", err);
+    res.status(500).json({ success: false, error: "Failed to fetch application" });
   }
 });
 

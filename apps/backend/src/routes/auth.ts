@@ -114,9 +114,11 @@ authRouter.get("/me", authMiddleware, async (req, res) => {
       return;
     }
 
+    const kyc = await prisma.kyc.findUnique({ where: { userId: user.id }, select: { status: true } });
+
     res.json({
       success: true,
-      data: { id: user.id, email: user.email, name: user.name, role: user.role, accountNumber: user.accountNumber, accountTier: user.accountTier },
+      data: { id: user.id, email: user.email, name: user.name, role: user.role, accountNumber: user.accountNumber, accountTier: user.accountTier, kycStatus: kyc?.status || "none" },
     });
   } catch (err) {
     console.error("Me error:", err);

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { config } from "@thrift/config";
 import { ThemeProvider, CookieConsent, Footer } from "@thrift/ui";
+import { Toaster } from "sonner";
 import { SiteHeader } from "@/components/SiteHeader";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import "./globals.css";
@@ -30,6 +31,7 @@ export default function RootLayout({
             ]}
           />
           <CookieConsent />
+          <Toaster position="top-right" richColors />
         </ThemeProvider>
       </body>
     </html>

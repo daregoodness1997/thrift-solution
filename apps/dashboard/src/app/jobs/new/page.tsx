@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { config, BrandConfig } from "@thrift/config";
 import { Card, Button, FadeInUp } from "@thrift/ui";
 import { useAuth } from "@/lib/auth-context";
@@ -78,9 +79,15 @@ export default function NewJobPage() {
         }),
       });
       const data = await res.json();
-      if (data.success) router.push(`/jobs/${data.data.id}`);
-      else setError(data.error || "Failed to create job listing");
-    } catch { setError("Failed to create job listing"); }
+      if (data.success) {
+        toast.success("Job posted successfully!");
+        router.push(`/jobs/${data.data.id}`);
+      } else {
+        toast.error(data.error || "Failed to create job listing");
+      }
+    } catch {
+      toast.error("Failed to create job listing");
+    }
     setSubmitting(false);
   };
 

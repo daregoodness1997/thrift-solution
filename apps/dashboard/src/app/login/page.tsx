@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { config } from "@thrift/config";
 
@@ -23,8 +24,9 @@ export default function LoginPage() {
     const result = await login(email, password);
     setLoading(false);
     if (result.error) {
-      setError(result.error);
+      toast.error(result.error);
     } else {
+      toast.success("Welcome back!");
       window.location.href = "/";
     }
   };

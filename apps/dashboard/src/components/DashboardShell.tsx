@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import Link from "next/link";
 import { config } from "@thrift/config";
 import { useAuth } from "@/lib/auth-context";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 interface NavItem {
   label: string;
@@ -18,14 +21,14 @@ interface NavSection {
 
 const AUTH_ROUTES = ["/login", "/register"];
 
-const navSections: NavSection[] = [
+const FALLBACK_NAV: NavSection[] = [
   {
     title: "",
     items: [
       { label: "Overview", href: "/", icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1" },
       { label: "Transactions", href: "/transactions", icon: "M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" },
       { label: "Donate", href: "/donate", icon: "M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" },
-      { label: "My Circles", href: "/groups", icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" },
+      { label: "My Circles", href: "/circles", icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" },
       { label: "Chat", href: "/chat", icon: "M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" },
       { label: "Marketplace", href: "/marketplace", icon: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" },
       { label: "Jobs", href: "/jobs", icon: "M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" },
@@ -39,6 +42,7 @@ const navSections: NavSection[] = [
       { label: "Referrals", href: "/referrals", icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" },
       { label: "KYC Verification", href: "/kyc", icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" },
       { label: "Loans", href: "/loans", icon: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" },
+      { label: "Circle Savings", href: "/circles", icon: "M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" },
     ],
   },
   {
@@ -75,12 +79,32 @@ function Icon({ path, size = 20 }: { path: string; size?: number }) {
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, loading, logout } = useAuth();
+  const { user, token, loading, logout } = useAuth();
   const [hoveredNav, setHoveredNav] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [navSections, setNavSections] = useState<NavSection[]>(FALLBACK_NAV);
+  const [navLoading, setNavLoading] = useState(true);
 
   const isAuthPage = AUTH_ROUTES.includes(pathname);
+
+  const fetchNavigation = useCallback(async () => {
+    if (!token) return;
+    try {
+      setNavLoading(true);
+      const res = await fetch(`${API_URL}/api/navigation`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success && data.data && data.data.length > 0) {
+        setNavSections(data.data);
+      }
+    } catch {
+      setNavSections(FALLBACK_NAV);
+    } finally {
+      setNavLoading(false);
+    }
+  }, [token]);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth <= 1024);
@@ -99,11 +123,17 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     }
   }, [user, loading, isAuthPage, router]);
 
+  useEffect(() => {
+    if (user && token) {
+      fetchNavigation();
+    }
+  }, [user, token, fetchNavigation]);
+
   if (isAuthPage) {
     return <>{children}</>;
   }
 
-  if (loading) {
+  if (loading || navLoading) {
     return (
       <div style={{ display: "flex", minHeight: "100vh", backgroundColor: "#FDFDFC" }}>
         <aside style={{ width: "240px", backgroundColor: "#ffffff", borderRight: "1px solid #EAEAEA", padding: "1.25rem", flexShrink: 0 }}>
@@ -171,7 +201,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       >
         <div style={{ padding: "1.25rem 1.25rem 1rem", borderBottom: "1px solid #F0F0F0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
-            <a href="/" style={{ textDecoration: "none" }}>
+            <Link href="/" style={{ textDecoration: "none" }}>
               <span
                 style={{ fontSize: "1.125rem", fontWeight: 800, letterSpacing: "-0.05em", color: config.colors.primary, transition: "transform 0.2s ease", display: "inline-block" }}
                 onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.05)"; }}
@@ -179,8 +209,10 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               >
                 {config.name.toUpperCase().replace(/\s+/g, "")}
               </span>
-            </a>
-            <p style={{ fontSize: "10px", color: "#999", fontWeight: 300, marginTop: "0.125rem" }}>Member Portal</p>
+            </Link>
+            <p style={{ fontSize: "10px", color: "#999", fontWeight: 300, marginTop: "0.125rem" }}>
+              {user.role === "admin" ? "Admin Portal" : "Member Portal"}
+            </p>
           </div>
           {isMobile && (
             <button onClick={() => setSidebarOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", padding: "0.25rem", color: "#717171" }}>
@@ -201,7 +233,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                 {section.items.map((item) => {
                   const isActive = pathname === item.href;
                   return (
-                    <a
+                    <Link
                       key={item.href}
                       href={item.href}
                       onMouseEnter={() => setHoveredNav(item.href)}
@@ -223,7 +255,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                     >
                       <Icon path={item.icon} size={18} />
                       <span>{item.label}</span>
-                    </a>
+                    </Link>
                   );
                 })}
               </div>
@@ -232,7 +264,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         </nav>
 
         <div style={{ padding: "0.75rem", borderTop: "1px solid #F0F0F0" }}>
-          <a
+          <Link
             href="/profile"
             style={{
               display: "flex",
@@ -264,7 +296,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                 <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
               </svg>
             </button>
-          </a>
+          </Link>
         </div>
       </aside>
 

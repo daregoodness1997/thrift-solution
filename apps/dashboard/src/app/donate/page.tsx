@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { config } from "@thrift/config";
 import { Card, Button, ColorfulBadge, FadeInUp } from "@thrift/ui";
 import { useAuth } from "@/lib/auth-context";
@@ -88,17 +89,18 @@ export default function DonatePage() {
       const data = await res.json();
 
       if (!data.success) {
-        setError(data.error || "Failed to create donation");
+        toast.error(data.error || "Failed to create donation");
         return;
       }
 
+      toast.success("Donation initiated successfully!");
       if (data.data.authorizationUrl) {
         window.location.href = data.data.authorizationUrl;
       } else {
         setSuccess(true);
       }
     } catch {
-      setError("Network error. Please try again.");
+      toast.error("Network error. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -137,13 +139,14 @@ export default function DonatePage() {
       const data = await res.json();
 
       if (!data.success) {
-        setError(data.error || "Failed to submit item donation");
+        toast.error(data.error || "Failed to submit item donation");
         return;
       }
 
+      toast.success("Item donation submitted!");
       setSuccess(true);
     } catch {
-      setError("Network error. Please try again.");
+      toast.error("Network error. Please try again.");
     } finally {
       setLoading(false);
     }

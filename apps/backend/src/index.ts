@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import cron from "node-cron";
 import { healthRouter } from "./routes/health";
 import { configRouter } from "./routes/config";
 import { authRouter } from "./routes/auth";
@@ -16,6 +17,9 @@ import { whatsappRouter } from "./routes/whatsapp";
 import { marketplaceRouter } from "./routes/marketplace";
 import { jobsRouter } from "./routes/jobs";
 import { loansRouter } from "./routes/loans";
+import { circlesRouter } from "./routes/circles";
+import { navigationRouter } from "./routes/navigation";
+import { circleInterestJob } from "./jobs/circleInterestJob";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -39,6 +43,10 @@ app.use("/api/whatsapp", whatsappRouter);
 app.use("/api/marketplace", marketplaceRouter);
 app.use("/api/jobs", jobsRouter);
 app.use("/api/loans", loansRouter);
+app.use("/api/circles", circlesRouter);
+app.use("/api/navigation", navigationRouter);
+
+cron.schedule("0 0 * * 0", circleInterestJob);
 
 app.listen(PORT, () => {
   console.log(`Backend server running on http://localhost:${PORT}`);

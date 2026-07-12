@@ -1,28 +1,25 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { toast } from "sonner";
 import { config, BrandConfig } from "@thrift/config";
 import { useAuth } from "@/lib/auth-context";
 import { Card, ColorfulBadge, ColorBar, FadeInUp } from "@thrift/ui";
 import { PageHeader } from "@/components/PageHeader";
+import { KYC_LEVEL_CONFIG, KYC_STATUS_CONFIG, type KycLevel, type KycIdType } from "@thrift/types";
 
 const fallback = config;
 
-const ID_TYPES = [
+const LEVEL_1_ID_TYPES: { value: KycIdType; label: string; placeholder: string; pattern: RegExp | null; minLength: number; maxLength: number }[] = [
   { value: "bvn", label: "Bank Verification Number (BVN)", placeholder: "Enter your 11-digit BVN", pattern: /^\d{11}$/, minLength: 11, maxLength: 11 },
   { value: "nin", label: "National Identification Number (NIN)", placeholder: "Enter your 11-digit NIN", pattern: /^\d{11}$/, minLength: 11, maxLength: 11 },
+];
+
+const LEVEL_2_ID_TYPES: { value: KycIdType; label: string; placeholder: string; pattern: RegExp | null; minLength: number; maxLength: number }[] = [
   { value: "drivers_license", label: "Driver's License", placeholder: "Enter license number", pattern: null, minLength: 5, maxLength: 20 },
   { value: "international_passport", label: "International Passport", placeholder: "Enter passport number", pattern: null, minLength: 5, maxLength: 20 },
   { value: "voter_card", label: "Voter's Card", placeholder: "Enter voter card number", pattern: null, minLength: 5, maxLength: 20 },
-] as const;
-
-const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; icon: string; description: string }> = {
-  verified: { label: "Verified", color: "#059669", bg: "#ECFDF5", border: "#A7F3D0", icon: "M22 11.08V12a10 10 0 11-5.93-9.14M22 4L12 14.01l-3-3", description: "Your identity has been verified. You now have full access to all platform features." },
-  pending: { label: "Submitted", color: "#2563EB", bg: "#EFF6FF", border: "#BFDBFE", icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z", description: "Your KYC has been submitted and is awaiting review. This usually takes 1-2 business days." },
-  under_review: { label: "Under Review", color: "#D97706", bg: "#FFFBEB", border: "#FDE68A", icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z", description: "Your submission is being actively reviewed by our team. You will be notified once complete." },
-  rejected: { label: "Rejected", color: "#DC2626", bg: "#FEF2F2", border: "#FECACA", icon: "M6 18L18 6M6 6l12 12", description: "Your submission was rejected. Please review the reason below and resubmit." },
-  expired: { label: "Expired", color: "#9333EA", bg: "#FAF5FF", border: "#E9D5FF", icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z", description: "Your KYC submission has expired. Please submit a new one." },
-};
+];
 
 interface UploadedFile {
   file: File;
@@ -32,6 +29,7 @@ interface UploadedFile {
 
 interface KycData {
   id?: string;
+  level?: number;
   status: string;
   idType?: string;
   idNumber?: string;
@@ -47,20 +45,23 @@ interface KycData {
 export default function KycPage() {
   const { user, token } = useAuth();
   const [cfg, setCfg] = useState<BrandConfig>(fallback);
-  const [step, setStep] = useState(1);
   const [kycData, setKycData] = useState<KycData | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
 
+  const [selectedLevel, setSelectedLevel] = useState<KycLevel>(1);
+  const [step, setStep] = useState(1);
   const [idType, setIdType] = useState("");
   const [idNumber, setIdNumber] = useState("");
   const [idDocumentFile, setIdDocumentFile] = useState<UploadedFile | null>(null);
   const [selfieFile, setSelfieFile] = useState<UploadedFile | null>(null);
+  const [proofOfAddressFile, setProofOfAddressFile] = useState<UploadedFile | null>(null);
 
   const idFileRef = useRef<HTMLInputElement>(null);
   const selfieFileRef = useRef<HTMLInputElement>(null);
+  const proofFileRef = useRef<HTMLInputElement>(null);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
   const authHeaders: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
@@ -73,7 +74,7 @@ export default function KycPage() {
   }, [API_URL]);
 
   useEffect(() => {
-    if (!token) return;
+    if (!token) { setLoading(false); return; }
     fetch(`${API_URL}/api/kyc`, { headers: authHeaders })
       .then((r) => r.json())
       .then((data) => { if (data?.data) setKycData(data.data); })
@@ -107,8 +108,8 @@ export default function KycPage() {
     setFile(null);
   }, []);
 
-  const validateIdNumber = (): string | null => {
-    const idTypeConfig = ID_TYPES.find((t) => t.value === idType);
+  const validateIdNumber = (types: typeof LEVEL_1_ID_TYPES): string | null => {
+    const idTypeConfig = types.find((t) => t.value === idType);
     if (!idTypeConfig) return "Invalid ID type";
     if (idNumber.length < idTypeConfig.minLength || idNumber.length > idTypeConfig.maxLength) {
       return `ID number must be between ${idTypeConfig.minLength} and ${idTypeConfig.maxLength} characters`;
@@ -120,78 +121,94 @@ export default function KycPage() {
   };
 
   const handleSubmit = async () => {
-    const validationError = validateIdNumber();
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-    if (!idDocumentFile) {
-      setError("Please upload your ID document");
-      return;
+    setError("");
+
+    if (selectedLevel === 1) {
+      const validationError = validateIdNumber(LEVEL_1_ID_TYPES);
+      if (validationError) { setError(validationError); return; }
+    } else if (selectedLevel === 2) {
+      const validationError = validateIdNumber(LEVEL_2_ID_TYPES);
+      if (validationError) { setError(validationError); return; }
+      if (!idDocumentFile) { setError("Please upload your ID document"); return; }
+    } else if (selectedLevel === 3) {
+      if (!proofOfAddressFile) { setError("Please upload proof of address"); return; }
     }
 
     setSubmitting(true);
-    setError("");
 
     try {
-      let idDocumentUrl = "";
-      let selfieUrl = "";
+      const body: Record<string, unknown> = {
+        level: selectedLevel,
+        idType: idType || "bvn",
+        idNumber: idNumber || "00000000000",
+        documents: [],
+      };
 
-      if (idDocumentFile) {
-        idDocumentUrl = idDocumentFile.preview;
-      }
-      if (selfieFile) {
-        selfieUrl = selfieFile.preview;
+      if (selectedLevel === 1) {
+        body.idDocumentUrl = "";
+        body.selfieUrl = "";
+      } else if (selectedLevel === 2) {
+        body.idDocumentUrl = idDocumentFile?.preview || "";
+        body.selfieUrl = selfieFile?.preview || "";
+        body.documents = [
+          {
+            fileUrl: idDocumentFile!.preview,
+            fileType: idDocumentFile!.file.type,
+            fileName: idDocumentFile!.file.name,
+            fileSize: idDocumentFile!.file.size,
+            purpose: "id_document",
+          },
+          ...(selfieFile
+            ? [{
+                fileUrl: selfieFile.preview,
+                fileType: selfieFile.file.type,
+                fileName: selfieFile.file.name,
+                fileSize: selfieFile.file.size,
+                purpose: "selfie",
+              }]
+            : []),
+        ];
+      } else if (selectedLevel === 3) {
+        body.idType = "voter_card";
+        body.idNumber = kycData?.idNumber || "00000000000";
+        body.idDocumentUrl = proofOfAddressFile?.preview || "";
+        body.selfieUrl = "";
+        body.documents = [
+          {
+            fileUrl: proofOfAddressFile!.preview,
+            fileType: proofOfAddressFile!.file.type,
+            fileName: proofOfAddressFile!.file.name,
+            fileSize: proofOfAddressFile!.file.size,
+            purpose: "proof_of_address",
+          },
+        ];
       }
 
       const res = await fetch(`${API_URL}/api/kyc`, {
         method: "POST",
         headers: { ...authHeaders, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          idType,
-          idNumber,
-          idDocumentUrl,
-          selfieUrl,
-          documents: [
-            {
-              fileUrl: idDocumentUrl,
-              fileType: idDocumentFile.file.type,
-              fileName: idDocumentFile.file.name,
-              fileSize: idDocumentFile.file.size,
-              purpose: "id_document",
-            },
-            ...(selfieFile
-              ? [{
-                  fileUrl: selfieUrl,
-                  fileType: selfieFile.file.type,
-                  fileName: selfieFile.file.name,
-                  fileSize: selfieFile.file.size,
-                  purpose: "selfie",
-                }]
-              : []),
-          ],
-        }),
+        body: JSON.stringify(body),
       });
 
       const data = await res.json();
       if (!data.success) {
-        setError(data.error || "Failed to submit KYC");
+        toast.error(data.error || "Failed to submit KYC");
         setSubmitting(false);
         return;
       }
 
+      toast.success(`Level ${selectedLevel} KYC submitted successfully!`);
       setSubmitted(true);
       setKycData(data.data);
     } catch {
-      setError("Network error. Please try again.");
+      toast.error("Network error. Please try again.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  const canProceedStep2 = idType.length > 0;
-  const canProceedStep3 = idNumber.length >= 5;
-  const canProceedStep4 = idDocumentFile !== null;
+  const currentIdTypes = selectedLevel === 1 ? LEVEL_1_ID_TYPES : LEVEL_2_ID_TYPES;
+  const levelConfig = KYC_LEVEL_CONFIG[selectedLevel];
 
   if (loading) {
     return (
@@ -204,9 +221,20 @@ export default function KycPage() {
     );
   }
 
-  const isVerified = kycData?.status === "verified";
-  const isPendingOrReview = kycData?.status === "pending" || kycData?.status === "under_review";
-  const showForm = !kycData || kycData.status === "none" || kycData.status === "rejected" || kycData.status === "expired";
+  const getLevelStatus = (level: number): string => {
+    if (!kycData) return "none";
+    if (kycData.level === level) return kycData.status;
+    if (kycData.level && kycData.level > level) return "verified";
+    return "none";
+  };
+
+  const isLevelAvailable = (level: number): boolean => {
+    if (!kycData) return level === 1;
+    if (kycData.status === "pending" || kycData.status === "under_review") return false;
+    if (kycData.status === "rejected" && kycData.level === level) return true;
+    if (kycData.level && kycData.level >= level) return false;
+    return level === (kycData.level || 0) + 1;
+  };
 
   return (
     <div style={{ maxWidth: "900px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
@@ -214,7 +242,7 @@ export default function KycPage() {
         badgeLabel="Identity Verification"
         heading="KYC"
         accentText="Verification"
-        description="Verify your identity to access all platform features and build trust in your circles."
+        description="Complete verification levels to unlock platform features and build trust."
       />
 
       {/* Status Banner */}
@@ -222,7 +250,7 @@ export default function KycPage() {
         <FadeInUp delay={200}>
           <Card padding="1.5rem" style={{ marginBottom: "2rem" }}>
             {(() => {
-              const sc = STATUS_CONFIG[kycData.status] || STATUS_CONFIG.pending;
+              const sc = KYC_STATUS_CONFIG[kycData.status as keyof typeof KYC_STATUS_CONFIG] || KYC_STATUS_CONFIG.pending;
               return (
                 <div style={{ padding: "1rem", borderRadius: "0.75rem", backgroundColor: sc.bg, border: `1px solid ${sc.border}` }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
@@ -230,11 +258,13 @@ export default function KycPage() {
                       <path d={sc.icon} />
                     </svg>
                     <div style={{ flex: 1 }}>
-                      <span style={{ fontSize: "13px", fontWeight: 600, color: sc.color }}>{sc.label}</span>
-                      <span style={{ fontSize: "11px", color: "#717171", display: "block", marginTop: "0.125rem" }}>{sc.description}</span>
+                      <span style={{ fontSize: "13px", fontWeight: 600, color: sc.color }}>Level {kycData.level} - {sc.label}</span>
+                      <span style={{ fontSize: "11px", color: "#717171", display: "block", marginTop: "0.125rem" }}>
+                        {kycData.status === "verified" ? "This level is verified." : "Awaiting review. This usually takes 1-2 business days."}
+                      </span>
                       {kycData.idType && (
                         <span style={{ fontSize: "11px", color: "#717171", display: "block", marginTop: "0.25rem" }}>
-                          {ID_TYPES.find((t) => t.value === kycData.idType)?.label} ending in ...{kycData.idNumber?.slice(-4)}
+                          {kycData.idType.replace(/_/g, " ").toUpperCase()} ending in ...{kycData.idNumber?.slice(-4)}
                         </span>
                       )}
                     </div>
@@ -248,11 +278,6 @@ export default function KycPage() {
                   {kycData.verifiedAt && (
                     <span style={{ fontSize: "10px", color: "#059669", display: "block", marginTop: "0.5rem" }}>
                       Verified on {new Date(kycData.verifiedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
-                    </span>
-                  )}
-                  {kycData.submittedAt && (
-                    <span style={{ fontSize: "10px", color: "#999", display: "block", marginTop: "0.25rem" }}>
-                      Submitted on {new Date(kycData.submittedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
                     </span>
                   )}
                 </div>
@@ -271,9 +296,9 @@ export default function KycPage() {
                 <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
               <div>
-                <span style={{ fontSize: "13px", fontWeight: 600, color: "#2563EB" }}>KYC Submitted Successfully</span>
+                <span style={{ fontSize: "13px", fontWeight: 600, color: "#2563EB" }}>Level {selectedLevel} KYC Submitted</span>
                 <span style={{ fontSize: "11px", color: "#717171", display: "block", marginTop: "0.125rem" }}>
-                  Your identity verification has been submitted. You will be notified once reviewed (usually 1-2 business days).
+                  Your verification has been submitted. You will be notified once reviewed (usually 1-2 business days).
                 </span>
               </div>
             </div>
@@ -281,13 +306,74 @@ export default function KycPage() {
         </FadeInUp>
       )}
 
-      {/* KYC Form */}
-      {(showForm || kycData?.status === "rejected" || kycData?.status === "expired") && !submitted && (
+      {/* Level Selector Cards */}
+      <FadeInUp delay={250}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1rem", marginBottom: "2rem" }}>
+          {([1, 2, 3] as KycLevel[]).map((level) => {
+            const lc = KYC_LEVEL_CONFIG[level];
+            const status = getLevelStatus(level);
+            const available = isLevelAvailable(level);
+            const isActive = selectedLevel === level;
+            const isVerified = status === "verified";
+            const isPending = status === "pending" || status === "under_review";
+
+            return (
+              <button
+                key={level}
+                onClick={() => { if (available || isVerified || isPending) { setSelectedLevel(level); setStep(1); setIdType(""); setIdNumber(""); setIdDocumentFile(null); setSelfieFile(null); setProofOfAddressFile(null); setError(""); setSubmitted(false); } }}
+                disabled={!available && !isVerified && !isPending}
+                style={{
+                  padding: "1.25rem",
+                  borderRadius: "0.75rem",
+                  border: `2px solid ${isActive ? lc.color : isVerified ? "#059669" : "#EAEAEA"}`,
+                  backgroundColor: isActive ? lc.bg : "#ffffff",
+                  cursor: available || isVerified || isPending ? "pointer" : "not-allowed",
+                  textAlign: "left",
+                  transition: "all 0.2s ease",
+                  opacity: !available && !isVerified && !isPending ? 0.5 : 1,
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    <div style={{ width: "28px", height: "28px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: isVerified ? "#059669" : isPending ? "#D97706" : lc.color, color: "#ffffff", fontSize: "11px", fontWeight: 700 }}>
+                      {isVerified ? (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round"><path d="M20 6L9 17l-5-5" /></svg>
+                      ) : level}
+                    </div>
+                    <span style={{ fontSize: "11px", fontWeight: 700, color: lc.color, textTransform: "uppercase", letterSpacing: "0.05em" }}>Level {level}</span>
+                  </div>
+                  {isVerified && <span style={{ fontSize: "9px", fontWeight: 700, color: "#059669", backgroundColor: "#ECFDF5", padding: "0.125rem 0.5rem", borderRadius: "9999px" }}>Verified</span>}
+                  {isPending && <span style={{ fontSize: "9px", fontWeight: 700, color: "#D97706", backgroundColor: "#FFFBEB", padding: "0.125rem 0.5rem", borderRadius: "9999px" }}>Pending</span>}
+                </div>
+                <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#1A1A1A", marginBottom: "0.25rem" }}>{lc.title}</h3>
+                <p style={{ fontSize: "11px", color: "#717171", lineHeight: 1.5, margin: 0 }}>{lc.subtitle}</p>
+              </button>
+            );
+          })}
+        </div>
+      </FadeInUp>
+
+      {/* Level Form */}
+      {!submitted && (
         <FadeInUp delay={300}>
           <Card padding="1.5rem" style={{ marginBottom: "2rem" }}>
+            <div style={{ marginBottom: "1.5rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem" }}>
+                <div style={{ width: "32px", height: "32px", borderRadius: "0.5rem", backgroundColor: levelConfig.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={levelConfig.color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                    <path d={levelConfig.icon} />
+                  </svg>
+                </div>
+                <div>
+                  <h2 style={{ fontSize: "1rem", fontWeight: 600, color: "#1A1A1A" }}>Level {selectedLevel}: {levelConfig.title}</h2>
+                  <p style={{ fontSize: "11px", color: "#717171", margin: 0 }}>{levelConfig.description}</p>
+                </div>
+              </div>
+            </div>
+
             {/* Progress Steps */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", marginBottom: "2rem" }}>
-              {["ID Type", "ID Details", "Document", "Review"].map((label, i) => {
+              {(selectedLevel === 1 ? ["Select ID", "Enter Number", "Review"] : selectedLevel === 2 ? ["Select ID", "Enter Number", "Upload Docs", "Review"] : ["Upload Proof", "Review"]).map((label, i) => {
                 const num = i + 1;
                 const isActive = step === num;
                 const isDone = step > num;
@@ -302,7 +388,7 @@ export default function KycPage() {
                       {isDone ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round"><path d="M20 6L9 17l-5-5" /></svg> : num}
                     </div>
                     <span style={{ fontSize: "11px", fontWeight: isActive ? 600 : 400, color: isActive ? "#2D2D2D" : "#999" }}>{label}</span>
-                    {i < 3 && <div style={{ width: "24px", height: "1px", backgroundColor: isDone ? "#059669" : "#E5E7EB" }} />}
+                    {i < (selectedLevel === 1 ? 2 : selectedLevel === 2 ? 3 : 1) && <div style={{ width: "24px", height: "1px", backgroundColor: isDone ? "#059669" : "#E5E7EB" }} />}
                   </div>
                 );
               })}
@@ -314,13 +400,13 @@ export default function KycPage() {
               </div>
             )}
 
-            {/* Step 1: ID Type */}
-            {step === 1 && (
+            {/* Level 1 & 2: Step 1 - ID Type */}
+            {(selectedLevel === 1 || selectedLevel === 2) && step === 1 && (
               <div>
-                <h2 style={{ fontSize: "1rem", fontWeight: 500, color: "#1A1A1A", marginBottom: "0.25rem" }}>Select ID Type</h2>
+                <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#1A1A1A", marginBottom: "0.25rem" }}>Select ID Type</h3>
                 <p style={{ fontSize: "12px", color: "#717171", marginBottom: "1.5rem" }}>Choose the identity document you want to verify with.</p>
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                  {ID_TYPES.map((t) => (
+                  {currentIdTypes.map((t) => (
                     <button key={t.value} onClick={() => setIdType(t.value)} style={{
                       padding: "0.875rem 1rem", borderRadius: "0.75rem",
                       border: `1px solid ${idType === t.value ? cfg.colors.primary : "#EAEAEA"}`,
@@ -342,38 +428,38 @@ export default function KycPage() {
               </div>
             )}
 
-            {/* Step 2: ID Number */}
-            {step === 2 && (
+            {/* Level 1 & 2: Step 2 - ID Number */}
+            {(selectedLevel === 1 || selectedLevel === 2) && step === 2 && (
               <div>
-                <h2 style={{ fontSize: "1rem", fontWeight: 500, color: "#1A1A1A", marginBottom: "0.25rem" }}>Enter ID Number</h2>
-                <p style={{ fontSize: "12px", color: "#717171", marginBottom: "1.5rem" }}>{ID_TYPES.find((t) => t.value === idType)?.label}</p>
+                <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#1A1A1A", marginBottom: "0.25rem" }}>Enter ID Number</h3>
+                <p style={{ fontSize: "12px", color: "#717171", marginBottom: "1.5rem" }}>{currentIdTypes.find((t) => t.value === idType)?.label}</p>
                 <div style={{ marginBottom: "1.5rem" }}>
                   <label style={{ fontSize: "11px", fontWeight: 600, color: "#2D2D2D", textTransform: "uppercase", letterSpacing: "0.05em", display: "block", marginBottom: "0.375rem" }}>ID Number</label>
-                  <input type="text" value={idNumber} onChange={(e) => setIdNumber(e.target.value.toUpperCase())} placeholder={ID_TYPES.find((t) => t.value === idType)?.placeholder}
+                  <input type="text" value={idNumber} onChange={(e) => setIdNumber(e.target.value.toUpperCase())} placeholder={currentIdTypes.find((t) => t.value === idType)?.placeholder}
                     style={{ width: "100%", padding: "0.75rem", borderRadius: "0.75rem", border: "1px solid #EAEAEA", fontSize: "14px", fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.05em", outline: "none", boxSizing: "border-box", transition: "border-color 0.2s ease" }}
                     onFocus={(e) => { e.currentTarget.style.borderColor = cfg.colors.primary; }}
                     onBlur={(e) => { e.currentTarget.style.borderColor = "#EAEAEA"; }}
                   />
-                  {idNumber && ID_TYPES.find((t) => t.value === idType)?.pattern && (
-                    <span style={{ fontSize: "10px", color: (ID_TYPES.find((t) => t.value === idType)!.pattern as RegExp | null)?.test(idNumber) ? "#059669" : "#DC2626", display: "block", marginTop: "0.25rem" }}>
-                      {(ID_TYPES.find((t) => t.value === idType)!.pattern as RegExp | null)?.test(idNumber) ? "Valid format" : "Invalid format"}
+                  {idNumber && currentIdTypes.find((t) => t.value === idType)?.pattern && (
+                    <span style={{ fontSize: "10px", color: (currentIdTypes.find((t) => t.value === idType)!.pattern as RegExp | null)?.test(idNumber) ? "#059669" : "#DC2626", display: "block", marginTop: "0.25rem" }}>
+                      {(currentIdTypes.find((t) => t.value === idType)!.pattern as RegExp | null)?.test(idNumber) ? "Valid format" : "Invalid format"}
                     </span>
                   )}
                 </div>
                 <div style={{ display: "flex", gap: "0.75rem" }}>
                   <button onClick={() => setStep(1)} style={{ flex: 1, padding: "0.75rem", borderRadius: "9999px", fontSize: "13px", fontWeight: 600, cursor: "pointer", backgroundColor: "transparent", color: "#717171", border: "1px solid #EAEAEA" }}>Back</button>
-                  <button onClick={() => { const err = validateIdNumber(); if (err) { setError(err); } else { setError(""); setStep(3); } }}
+                  <button onClick={() => { const err = validateIdNumber(currentIdTypes); if (err) { setError(err); } else { setError(""); setStep(selectedLevel === 1 ? 3 : 3); } }}
                     disabled={idNumber.length < 5}
                     style={{ flex: 2, padding: "0.75rem", borderRadius: "9999px", fontSize: "13px", fontWeight: 600, cursor: idNumber.length >= 5 ? "pointer" : "not-allowed", backgroundColor: idNumber.length >= 5 ? cfg.colors.primary : "#E5E7EB", color: "#ffffff", border: "none" }}>Continue</button>
                 </div>
               </div>
             )}
 
-            {/* Step 3: Document Upload */}
-            {step === 3 && (
+            {/* Level 2: Step 3 - Document Upload */}
+            {selectedLevel === 2 && step === 3 && (
               <div>
-                <h2 style={{ fontSize: "1rem", fontWeight: 500, color: "#1A1A1A", marginBottom: "0.25rem" }}>Upload Documents</h2>
-                <p style={{ fontSize: "12px", color: "#717171", marginBottom: "1.5rem" }}>Upload a clear photo or scan of your ID document. Max 5MB, JPEG/PNG/WebP/PDF.</p>
+                <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#1A1A1A", marginBottom: "0.25rem" }}>Upload Documents</h3>
+                <p style={{ fontSize: "12px", color: "#717171", marginBottom: "1.5rem" }}>Upload a clear photo of your ID document and a selfie. Max 5MB, JPEG/PNG/WebP/PDF.</p>
 
                 {/* ID Document Upload */}
                 <div style={{ marginBottom: "1.5rem" }}>
@@ -446,18 +532,73 @@ export default function KycPage() {
               </div>
             )}
 
-            {/* Step 4: Review */}
-            {step === 4 && (
+            {/* Level 3: Step 1 - Proof of Address */}
+            {selectedLevel === 3 && step === 1 && (
               <div>
-                <h2 style={{ fontSize: "1rem", fontWeight: 500, color: "#1A1A1A", marginBottom: "0.25rem" }}>Review & Submit</h2>
+                <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#1A1A1A", marginBottom: "0.25rem" }}>Upload Proof of Address</h3>
+                <p style={{ fontSize: "12px", color: "#717171", marginBottom: "1.5rem" }}>Upload a recent utility bill, bank statement, or government letter showing your address. Max 5MB.</p>
+
+                <div style={{ marginBottom: "1.5rem" }}>
+                  <label style={{ fontSize: "11px", fontWeight: 600, color: "#2D2D2D", textTransform: "uppercase", letterSpacing: "0.05em", display: "block", marginBottom: "0.375rem" }}>
+                    Proof of Address <span style={{ color: "#DC2626" }}>*</span>
+                  </label>
+                  <input ref={proofFileRef} type="file" accept="image/jpeg,image/png,image/webp,application/pdf" onChange={(e) => handleFileSelect(e, setProofOfAddressFile, "proof_of_address")} style={{ display: "none" }} />
+                  {proofOfAddressFile ? (
+                    <div style={{ padding: "0.75rem", borderRadius: "0.75rem", border: "1px solid #A7F3D0", backgroundColor: "#ECFDF5", display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                      {proofOfAddressFile.file.type.startsWith("image/") ? (
+                        <img src={proofOfAddressFile.preview} alt="Proof Preview" style={{ width: "48px", height: "48px", borderRadius: "0.5rem", objectFit: "cover" }} />
+                      ) : (
+                        <div style={{ width: "48px", height: "48px", borderRadius: "0.5rem", backgroundColor: "#F5F3FF", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" strokeWidth={2}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
+                        </div>
+                      )}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ fontSize: "12px", fontWeight: 500, color: "#2D2D2D", display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{proofOfAddressFile.file.name}</span>
+                        <span style={{ fontSize: "10px", color: "#059669" }}>{(proofOfAddressFile.file.size / 1024).toFixed(1)} KB</span>
+                      </div>
+                      <button onClick={() => removeFile(setProofOfAddressFile)} style={{ background: "none", border: "none", cursor: "pointer", padding: "0.25rem", color: "#DC2626" }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M18 6L6 18M6 6l12 12" /></svg>
+                      </button>
+                    </div>
+                  ) : (
+                    <button onClick={() => proofFileRef.current?.click()} style={{ width: "100%", padding: "2rem", borderRadius: "0.75rem", border: "2px dashed #D1D5DB", backgroundColor: "#FAFAFA", cursor: "pointer", textAlign: "center", transition: "all 0.2s ease" }}
+                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#7C3AED"; e.currentTarget.style.backgroundColor = "#F5F3FF05"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#D1D5DB"; e.currentTarget.style.backgroundColor = "#FAFAFA"; }}
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth={1.5} style={{ margin: "0 auto 0.5rem" }}><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+                      <span style={{ fontSize: "12px", color: "#717171", display: "block" }}>Click to upload proof of address</span>
+                      <span style={{ fontSize: "10px", color: "#999", display: "block", marginTop: "0.25rem" }}>Utility bill, bank statement, or government letter (JPEG, PNG, WebP, or PDF)</span>
+                    </button>
+                  )}
+                </div>
+
+                <div style={{ display: "flex", gap: "0.75rem" }}>
+                  <button onClick={() => setStep(2)} disabled={!proofOfAddressFile}
+                    style={{ flex: 2, padding: "0.75rem", borderRadius: "9999px", fontSize: "13px", fontWeight: 600,
+                      cursor: proofOfAddressFile ? "pointer" : "not-allowed", backgroundColor: proofOfAddressFile ? cfg.colors.primary : "#E5E7EB",
+                      color: "#ffffff", border: "none" }}>Review</button>
+                </div>
+              </div>
+            )}
+
+            {/* Level 1: Step 3 - Review / Level 2: Step 4 - Review / Level 3: Step 2 - Review */}
+            {((selectedLevel === 1 && step === 3) || (selectedLevel === 2 && step === 4) || (selectedLevel === 3 && step === 2)) && (
+              <div>
+                <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#1A1A1A", marginBottom: "0.25rem" }}>Review & Submit</h3>
                 <p style={{ fontSize: "12px", color: "#717171", marginBottom: "1.5rem" }}>Please verify your details before submitting.</p>
 
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginBottom: "1.5rem" }}>
                   {[
-                    { label: "ID Type", value: ID_TYPES.find((t) => t.value === idType)?.label || idType },
-                    { label: "ID Number", value: `${idNumber.slice(0, 3)}****${idNumber.slice(-2)}`, mono: true },
-                    { label: "ID Document", value: idDocumentFile?.file.name || "Not provided" },
-                    { label: "Selfie", value: selfieFile?.file.name || "Not provided" },
+                    { label: "KYC Level", value: `Level ${selectedLevel} - ${KYC_LEVEL_CONFIG[selectedLevel].title}` },
+                    { label: "ID Type", value: currentIdTypes.find((t) => t.value === idType)?.label || idType || "N/A" },
+                    { label: "ID Number", value: idNumber ? `${idNumber.slice(0, 3)}****${idNumber.slice(-2)}` : "N/A", mono: true },
+                    ...(selectedLevel === 2 ? [
+                      { label: "ID Document", value: idDocumentFile?.file.name || "Not provided" },
+                      { label: "Selfie", value: selfieFile?.file.name || "Not provided" },
+                    ] : []),
+                    ...(selectedLevel === 3 ? [
+                      { label: "Proof of Address", value: proofOfAddressFile?.file.name || "Not provided" },
+                    ] : []),
                   ].map((item) => (
                     <div key={item.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.75rem", borderRadius: "0.5rem", backgroundColor: "#FAFAFA" }}>
                       <span style={{ fontSize: "11px", color: "#717171", textTransform: "uppercase", letterSpacing: "0.05em" }}>{item.label}</span>
@@ -474,13 +615,13 @@ export default function KycPage() {
                 )}
 
                 <div style={{ display: "flex", gap: "0.75rem" }}>
-                  <button onClick={() => setStep(3)} style={{ flex: 1, padding: "0.75rem", borderRadius: "9999px", fontSize: "13px", fontWeight: 600, cursor: "pointer", backgroundColor: "transparent", color: "#717171", border: "1px solid #EAEAEA" }}>Back</button>
+                  <button onClick={() => setStep(selectedLevel === 1 ? 2 : selectedLevel === 2 ? 3 : 1)} style={{ flex: 1, padding: "0.75rem", borderRadius: "9999px", fontSize: "13px", fontWeight: 600, cursor: "pointer", backgroundColor: "transparent", color: "#717171", border: "1px solid #EAEAEA" }}>Back</button>
                   <button onClick={handleSubmit} disabled={submitting} style={{
                     flex: 2, padding: "0.75rem", borderRadius: "9999px", fontSize: "13px", fontWeight: 600,
                     cursor: submitting ? "not-allowed" : "pointer", backgroundColor: submitting ? "#9CA3AF" : "#059669",
                     color: "#ffffff", border: "none", opacity: submitting ? 0.7 : 1, transition: "all 0.2s ease",
                   }}>
-                    {submitting ? "Submitting..." : "Submit KYC"}
+                    {submitting ? "Submitting..." : `Submit Level ${selectedLevel} KYC`}
                   </button>
                 </div>
               </div>
@@ -516,10 +657,10 @@ export default function KycPage() {
           <ColorfulBadge label="Why KYC?" color={cfg.colors.accent} />
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem", marginTop: "1rem" }}>
             {[
-              { title: "Secure Transactions", desc: "Verify your identity for safe contributions and payouts." },
-              { title: "Build Trust", desc: "Verified members earn higher trust scores in circles." },
-              { title: "Regulatory Compliance", desc: "Meet Nigerian financial regulations for savings platforms." },
-              { title: "Faster Processing", desc: "Verified users get priority processing for withdrawals." },
+              { title: "Level 1: Basic Access", desc: "BVN/NIN verification for instant basic platform access and lower limits." },
+              { title: "Level 2: Enhanced Limits", desc: "Government ID verification for higher transaction limits and features." },
+              { title: "Level 3: Full Access", desc: "Address verification for premium features and priority support." },
+              { title: "Build Trust", desc: "Higher KYC levels increase your trust score in circles." },
             ].map((item) => (
               <div key={item.title} style={{ padding: "1rem", borderRadius: "0.75rem", backgroundColor: "#FAFAFA" }}>
                 <h3 style={{ fontSize: "13px", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.25rem" }}>{item.title}</h3>

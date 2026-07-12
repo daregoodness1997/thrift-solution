@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { BrandConfig } from "@thrift/config";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -125,7 +126,6 @@ function ColorInput({ label, value, onChange }: { label: string; value: string; 
 export default function ConfigPage() {
   const [config, setConfig] = useState<BrandConfig>(fallback);
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`${API_URL}/api/config`)
@@ -153,36 +153,19 @@ export default function ConfigPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(config),
       });
-      setToast(res.ok ? "Config saved successfully" : "Failed to save config");
+      if (res.ok) {
+        toast.success("Config saved successfully");
+      } else {
+        toast.error("Failed to save config");
+      }
     } catch {
-      setToast("Could not reach backend");
+      toast.error("Could not reach backend");
     }
     setSaving(false);
-    setTimeout(() => setToast(null), 3000);
   }
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#FDFDFC" }}>
-      {toast && (
-        <div
-          style={{
-            position: "fixed",
-            top: "1rem",
-            right: "1rem",
-            backgroundColor: "#2D2D2D",
-            color: "#ffffff",
-            padding: "0.75rem 1.25rem",
-            borderRadius: "9999px",
-            fontSize: "12px",
-            fontWeight: 600,
-            zIndex: 1000,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-          }}
-        >
-          {toast}
-        </div>
-      )}
-
       <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "2rem" }}>
         {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>

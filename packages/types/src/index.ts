@@ -22,7 +22,7 @@ export interface Transaction {
   createdAt: Date;
 }
 
-export type TransactionType = "contribution" | "payout" | "donation" | "funding" | "referral_earning";
+export type TransactionType = "contribution" | "payout" | "donation" | "funding" | "referral_earning" | "circle_deposit" | "circle_withdrawal" | "circle_interest";
 
 export type DonationType = "monetary" | "item";
 
@@ -126,6 +126,8 @@ export interface ReferralStats {
 
 export type KycStatus = "none" | "pending" | "under_review" | "verified" | "rejected" | "expired";
 
+export type KycLevel = 1 | 2 | 3;
+
 export type KycIdType = "bvn" | "nin" | "drivers_license" | "international_passport" | "voter_card";
 
 export type KycDocumentPurpose = "id_document" | "selfie" | "proof_of_address" | "signature";
@@ -133,6 +135,7 @@ export type KycDocumentPurpose = "id_document" | "selfie" | "proof_of_address" |
 export interface Kyc {
   id: string;
   userId: string;
+  level: KycLevel;
   idType: KycIdType;
   idNumber: string;
   idDocumentUrl?: string;
@@ -169,6 +172,7 @@ export interface KycAuditLog {
 }
 
 export interface KycSubmissionData {
+  level: KycLevel;
   idType: KycIdType;
   idNumber: string;
   idDocumentUrl?: string;
@@ -209,6 +213,60 @@ export const KYC_STATUS_CONFIG: Record<KycStatus, { label: string; color: string
   expired: { label: "Expired", color: "#9333EA", bg: "#FAF5FF", border: "#E9D5FF", icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" },
 };
 
+export const KYC_LEVEL_CONFIG: Record<KycLevel, {
+  title: string;
+  subtitle: string;
+  description: string;
+  color: string;
+  bg: string;
+  border: string;
+  icon: string;
+  idTypes: KycIdType[];
+  requiresDocument: boolean;
+  requiresSelfie: boolean;
+  requiresProofOfAddress: boolean;
+}> = {
+  1: {
+    title: "Basic Identity",
+    subtitle: "BVN / NIN Verification",
+    description: "Verify your identity with your Bank Verification Number or National Identification Number for instant basic access.",
+    color: "#2563EB",
+    bg: "#EFF6FF",
+    border: "#BFDBFE",
+    icon: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z",
+    idTypes: ["bvn", "nin"],
+    requiresDocument: false,
+    requiresSelfie: false,
+    requiresProofOfAddress: false,
+  },
+  2: {
+    title: "Document Verification",
+    subtitle: "Government-Issued ID",
+    description: "Upload a government-issued photo ID and selfie for enhanced verification and higher transaction limits.",
+    color: "#D97706",
+    bg: "#FFFBEB",
+    border: "#FDE68A",
+    icon: "M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2",
+    idTypes: ["drivers_license", "international_passport", "voter_card"],
+    requiresDocument: true,
+    requiresSelfie: true,
+    requiresProofOfAddress: false,
+  },
+  3: {
+    title: "Enhanced Verification",
+    subtitle: "Proof of Address",
+    description: "Upload proof of address to unlock premium features, higher limits, and priority support.",
+    color: "#7C3AED",
+    bg: "#F5F3FF",
+    border: "#E9D5FF",
+    icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4",
+    idTypes: [],
+    requiresDocument: false,
+    requiresSelfie: false,
+    requiresProofOfAddress: true,
+  },
+};
+
 export const ALLOWED_KYC_FILE_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
 export const MAX_KYC_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -232,6 +290,7 @@ export interface UserProfile {
     defaults: number;
     clearances: number;
     referralCount: number;
+    walletBalance: number;
   };
 }
 
@@ -360,6 +419,10 @@ export type ApplicationStatus = "pending" | "reviewed" | "shortlisted" | "reject
 
 export type LoanStatus = "pending" | "approved" | "disbursed" | "completed" | "rejected" | "defaulted";
 
+export type CircleStatus = "active" | "inactive";
+
+export type CircleAccountStatus = "active" | "matured" | "withdrawn" | "early_withdrawn";
+
 export interface JobListing {
   id: string;
   posterId: string;
@@ -460,3 +523,75 @@ export const JOB_CATEGORY_CONFIG: Record<string, { label: string }> = {
 };
 
 export const LOAN_INTEREST_RATE = 5; // 5% annual interest rate
+
+export interface Circle {
+  id: string;
+  name: string;
+  description?: string;
+  amount: number;
+  durationMonths: number;
+  interestRateAnnual: number;
+  maxAccountsPerUser: number;
+  status: CircleStatus;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CircleWithStats extends Circle {
+  _count?: {
+    accounts: number;
+  };
+}
+
+export interface CircleAccount {
+  id: string;
+  circleId: string;
+  userId: string;
+  principalAmount: number;
+  interestEarned: number;
+  totalWithdrawn: number;
+  status: CircleAccountStatus;
+  startDate: Date;
+  maturityDate: Date;
+  lastInterestCalculation?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CircleAccountWithDetails extends CircleAccount {
+  circle: {
+    id: string;
+    name: string;
+    amount: number;
+    durationMonths: number;
+    interestRateAnnual: number;
+  };
+  user?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
+export interface CircleInterestLog {
+  id: string;
+  circleAccountId: string;
+  amount: number;
+  principalAtCalculation: number;
+  annualRate: number;
+  calculatedAt: Date;
+}
+
+export interface CircleWithAccounts extends Circle {
+  accounts: CircleAccountWithDetails[];
+  _count?: {
+    accounts: number;
+  };
+}
+
+export const CIRCLE_DEFAULT_CONFIG = {
+  INTEREST_CALCULATION_DAY: "sunday",
+  INTEREST_CALCULATION_HOUR: 0,
+  INTEREST_CALCULATION_MINUTE: 0,
+  EARLY_WITHDRAWAL_PENALTY_RATE: 1, // forfeit 100% of interest
+} as const;

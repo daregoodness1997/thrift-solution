@@ -11,6 +11,7 @@ interface AuthUser {
   role?: string;
   accountNumber?: string;
   accountTier?: string;
+  kycStatus?: string;
 }
 
 interface AuthContextType {

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { config } from "@thrift/config";
 import { ThemeProvider } from "@thrift/ui";
+import { Toaster } from "sonner";
 import { AuthProvider } from "@/lib/auth-context";
 import { DashboardShell } from "@/components/DashboardShell";
 import "./globals.css";
@@ -22,6 +23,7 @@ export default function RootLayout({
           <AuthProvider>
             <DashboardShell>{children}</DashboardShell>
           </AuthProvider>
+          <Toaster position="top-right" richColors />
         </ThemeProvider>
       </body>
     </html>

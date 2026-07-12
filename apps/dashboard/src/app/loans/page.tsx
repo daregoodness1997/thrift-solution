@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
 import { config, BrandConfig } from "@thrift/config";
 import { Card, Button, ColorfulBadge, FadeIn, FadeInUp, StaggerChildren, StatCard } from "@thrift/ui";
 import { formatNaira } from "@thrift/utils";
@@ -79,6 +80,7 @@ export default function LoansPage() {
       });
       const data = await res.json();
       if (data.success) {
+        toast.success("Loan request submitted!");
         setSuccess(true);
         setAmount("");
         setTermMonths("12");
@@ -86,8 +88,12 @@ export default function LoansPage() {
         setShowForm(false);
         fetchLoans();
         setTimeout(() => setSuccess(false), 3000);
-      } else setError(data.error || "Failed to submit loan request");
-    } catch { setError("Failed to submit loan request"); }
+      } else {
+        toast.error(data.error || "Failed to submit loan request");
+      }
+    } catch {
+      toast.error("Failed to submit loan request");
+    }
     setSubmitting(false);
   };
 
