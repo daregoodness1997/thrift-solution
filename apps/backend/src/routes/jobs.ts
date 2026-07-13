@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { authMiddleware } from "../middleware/auth";
+import { upload, uploadFile } from "../utils/upload";
 import {
   createJobListing,
   getJobListings,
@@ -186,7 +187,7 @@ jobsRouter.delete("/:id", authMiddleware, async (req, res) => {
   }
 });
 
-jobsRouter.post("/:id/apply", authMiddleware, async (req, res) => {
+jobsRouter.post("/:id/apply", authMiddleware, upload.single('resume'), async (req, res) => {
   try {
     const listing = await getJobListingById(req.params.id);
     if (!listing) {
@@ -202,7 +203,14 @@ jobsRouter.post("/:id/apply", authMiddleware, async (req, res) => {
       return;
     }
 
-    const { resumeUrl, coverLetter } = req.body;
+    const { coverLetter } = req.body;
+    
+    let resumeUrl: string | undefined;
+    if (req.file) {
+      const result = await uploadFile(req.file, 'jobs/resumes');
+      resumeUrl = result.url;
+    }
+
     const application = await createJobApplication({
       listingId: req.params.id,
       applicantId: req.user!.userId,

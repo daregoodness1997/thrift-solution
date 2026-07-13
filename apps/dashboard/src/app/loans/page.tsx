@@ -38,6 +38,7 @@ export default function LoansPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [loanStats, setLoanStats] = useState({ total: 0, completedCount: 0, totalBorrowed: 0 });
   const LIMIT = 20;
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -47,24 +48,24 @@ export default function LoansPage() {
   const fetchLoans = useCallback(async () => {
     if (!token) { setLoading(false); return; }
     try {
-      const res = await fetch(`${API_URL}/api/loans/my?page=${page}&limit=${LIMIT}`, { headers: { Authorization: `Bearer ${token}` } });
+      const statusParam = statusFilter !== "all" ? `&status=${statusFilter}` : "";
+      const res = await fetch(`${API_URL}/api/loans/my?page=${page}&limit=${LIMIT}${statusParam}`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
       if (data.success) {
         setLoans(data.data.items);
         setTotalPages(data.data.totalPages || 1);
         setTotal(data.data.total || 0);
+        if (data.data.stats) setLoanStats(data.data.stats);
       }
     } catch {}
     setLoading(false);
-  }, [token, API_URL, page, LIMIT]);
+  }, [token, API_URL, page, LIMIT, statusFilter]);
 
   useEffect(() => { fetchLoans(); }, [fetchLoans]);
   useEffect(() => { setPage(1); }, [statusFilter]);
 
-  const filteredLoans = statusFilter === "all" ? loans : loans.filter((l) => l.status === statusFilter);
+  const filteredLoans = loans;
   const activeLoan = loans.find((l) => l.status === "pending" || l.status === "approved" || l.status === "disbursed");
-  const completedCount = loans.filter((l) => l.status === "completed").length;
-  const totalBorrowed = loans.filter((l) => l.status === "disbursed" || l.status === "completed").reduce((sum, l) => sum + l.amount, 0);
 
   const handleRequestFromCalculator = (calcAmount: number, calcTerm: number) => {
     setAmount(String(calcAmount));
@@ -122,9 +123,9 @@ export default function LoansPage() {
         right={<Button variant="primary" size="sm" onClick={() => setShowForm(!showForm)} disabled={!!activeLoan}>{showForm ? "Cancel" : "+ Request Loan"}</Button>} />
 
       <StaggerChildren staggerDelay={100} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.5rem", marginBottom: "2rem" }}>
-        <StatCard label="Total Borrowed" value={formatNaira(totalBorrowed)} change={`${loans.length} total loan${loans.length !== 1 ? "s" : ""}`} positive variant="default" />
+        <StatCard label="Total Borrowed" value={formatNaira(loanStats.totalBorrowed)} change={`${loans.length} total loan${loans.length !== 1 ? "s" : ""}`} positive variant="default" />
         <StatCard label="Active Loan" value={activeLoan ? formatNaira(activeLoan.amount) : "None"} change={activeLoan ? activeLoan.status : "No active loan"} positive variant="warm" />
-        <StatCard label="Completed" value={String(completedCount)} change={completedCount > 0 ? "Successfully repaid" : "No completed loans yet"} positive variant="default" />
+        <StatCard label="Completed" value={String(loanStats.completedCount)} change={loanStats.completedCount > 0 ? "Successfully repaid" : "No completed loans yet"} positive variant="default" />
       </StaggerChildren>
 
       <FadeInUp delay={200} style={{ marginBottom: "2rem" }}>

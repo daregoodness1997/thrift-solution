@@ -1,0 +1,52 @@
+{
+  "name": "@thrift/image-upload",
+  "version": "1.0.0",
+  "description": "Pluggable image upload package supporting multiple cloud providers with compression and fallback",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "sharp": "^0.35.3"
+  },
+  "peerDependencies": {
+    "@aws-sdk/client-s3": "^3.0.0",
+    "@supabase/supabase-js": "^2.0.0",
+    "cloudinary": "^2.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@aws-sdk/client-s3": {
+      "optional": true
+    },
+    "cloudinary": {
+      "optional": true
+    },
+    "@supabase/supabase-js": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@aws-sdk/s3-request-presigner": "^3.0.0",
+    "@types/express": "^4.17.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "keywords": [
+    "upload",
+    "image",
+    "cloud",
+    "s3",
+    "supabase",
+    "cloudinary",
+    "compression",
+    "fallback"
+  ],
+  "license": "MIT"
+}

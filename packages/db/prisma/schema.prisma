@@ -482,6 +482,7 @@ model NavigationItem {
   label     String
   href      String
   icon      String    @db.Text
+  badge     String?
   section   String    @default("")
   sortOrder Int       @default(0) @map("sort_order")
   isActive  Boolean   @default(true) @map("is_active")

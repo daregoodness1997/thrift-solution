@@ -67,7 +67,8 @@ circlesRouter.get("/accounts/my", authMiddleware, async (req, res) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
-    const result = await getCircleAccountsByUser(req.user!.userId, { page, limit });
+    const status = req.query.status as string | undefined;
+    const result = await getCircleAccountsByUser(req.user!.userId, { page, limit, status });
     const balance = await getWalletBalance(req.user!.userId);
     res.json({ success: true, data: { ...result, walletBalance: balance } });
   } catch (err) {

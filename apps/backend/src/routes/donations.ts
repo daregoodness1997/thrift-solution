@@ -1,6 +1,7 @@
 import { Router } from "express";
 import crypto from "crypto";
 import { authMiddleware } from "../middleware/auth";
+import { upload, uploadFile } from "../utils/upload";
 import { getPaymentProvider, getAvailableProviders } from "../services/payments";
 import {
   createDonation,
@@ -104,9 +105,9 @@ donationsRouter.post("/", authMiddleware, async (req, res) => {
 });
 
 // Create an item donation (no payment needed)
-donationsRouter.post("/item", authMiddleware, async (req, res) => {
+donationsRouter.post("/item", authMiddleware, upload.single('itemImage'), async (req, res) => {
   try {
-    const { itemName, itemDescription, itemImage, itemCategory, itemCondition, notes } = req.body;
+    const { itemName, itemDescription, itemCategory, itemCondition, notes } = req.body;
     const userId = req.user!.userId;
 
     if (!itemName) {
@@ -114,12 +115,19 @@ donationsRouter.post("/item", authMiddleware, async (req, res) => {
       return;
     }
 
+    let itemImage: string | undefined;
+
+    if (req.file) {
+      const result = await uploadFile(req.file, 'donations');
+      itemImage = result.url;
+    }
+
     const donation = await createDonation({
       userId,
       type: "item",
       itemName,
       itemDescription: itemDescription || undefined,
-      itemImage: itemImage || undefined,
+      itemImage,
       itemCategory: itemCategory || undefined,
       itemCondition: itemCondition || undefined,
       notes: notes || undefined,
@@ -147,10 +155,11 @@ donationsRouter.get("/", authMiddleware, async (req, res) => {
     const userId = req.user!.userId;
     const limit = parseInt(req.query.limit as string) || 20;
     const page = parseInt(req.query.page as string) || 1;
+    const type = req.query.type as string | undefined;
     const offset = (page - 1) * limit;
 
     const [result, stats] = await Promise.all([
-      getUserDonations(userId, { limit, offset }),
+      getUserDonations(userId, { limit, offset, type }),
       getDonationStats(userId),
     ]);
 

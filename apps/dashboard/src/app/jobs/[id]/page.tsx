@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { config, BrandConfig } from "@thrift/config";
 import { Card, Button, ColorfulBadge, FadeInUp, FadeIn } from "@thrift/ui";
 import { formatNaira } from "@thrift/utils";
@@ -37,6 +37,12 @@ interface Application {
   applicant: { id: string; name: string; email: string };
 }
 
+interface ResumeFile {
+  file: File;
+  name: string;
+  size: number;
+}
+
 const JOB_TYPE_COLORS: Record<string, string> = {
   full_time: "#059669", part_time: "#2563EB", contract: "#D97706", internship: "#8B5CF6", remote: "#EC4899",
 };
@@ -55,10 +61,12 @@ export default function JobDetailPage() {
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState(false);
   const [coverLetter, setCoverLetter] = useState("");
-  const [resumeUrl, setResumeUrl] = useState("");
+  const [resumeFile, setResumeFile] = useState<ResumeFile | null>(null);
   const [applyError, setApplyError] = useState("");
   const [applySuccess, setApplySuccess] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  const resumeFileRef = useRef<HTMLInputElement>(null);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -86,21 +94,54 @@ export default function JobDetailPage() {
     return `Up to ${formatNaira(max!)}`;
   };
 
+  const handleResumeSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setApplyError("Resume file size must be less than 5MB");
+      return;
+    }
+    const allowedTypes = ["application/pdf", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
+    if (!allowedTypes.includes(file.type)) {
+      setApplyError("Only PDF, DOC, and DOCX files are allowed");
+      return;
+    }
+
+    setApplyError("");
+    setResumeFile({ file, name: file.name, size: file.size });
+  };
+
+  const removeResume = () => {
+    setResumeFile(null);
+    if (resumeFileRef.current) {
+      resumeFileRef.current.value = "";
+    }
+  };
+
   const handleApply = async (e: React.FormEvent) => {
     e.preventDefault();
     setApplyError("");
     setApplying(true);
     try {
+      const formData = new FormData();
+      if (resumeFile) {
+        formData.append("resume", resumeFile.file);
+      }
+      if (coverLetter.trim()) {
+        formData.append("coverLetter", coverLetter.trim());
+      }
+
       const res = await fetch(`${API_URL}/api/jobs/${id}/apply`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ resumeUrl: resumeUrl.trim() || undefined, coverLetter: coverLetter.trim() || undefined }),
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
       });
       const data = await res.json();
       if (data.success) {
         setApplySuccess(true);
         setCoverLetter("");
-        setResumeUrl("");
+        setResumeFile(null);
         fetchJob();
         setTimeout(() => setApplySuccess(false), 3000);
       } else setApplyError(data.error || "Failed to submit application");
@@ -193,8 +234,31 @@ export default function JobDetailPage() {
           ) : !hasApplied && job.status === "active" ? (
             <form onSubmit={handleApply} style={{ marginTop: "1.5rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
               <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.375rem" }}>Resume URL (optional)</label>
-                <input type="url" value={resumeUrl} onChange={(e) => setResumeUrl(e.target.value)} placeholder="https://..." style={{ width: "100%", padding: "0.625rem 0.75rem", borderRadius: "0.75rem", border: "1px solid #EAEAEA", fontSize: "13px", outline: "none", boxSizing: "border-box" }} />
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.375rem" }}>Resume (optional)</label>
+                <input ref={resumeFileRef} type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={handleResumeSelect} style={{ display: "none" }} />
+                {resumeFile ? (
+                  <div style={{ padding: "0.75rem", borderRadius: "0.75rem", border: "1px solid #A7F3D0", backgroundColor: "#ECFDF5", display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                    <div style={{ width: "40px", height: "40px", borderRadius: "0.5rem", backgroundColor: "#EFF6FF", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth={2}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{ fontSize: "12px", fontWeight: 500, color: "#2D2D2D", display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{resumeFile.name}</span>
+                      <span style={{ fontSize: "10px", color: "#059669" }}>{(resumeFile.size / 1024).toFixed(1)} KB</span>
+                    </div>
+                    <button type="button" onClick={removeResume} style={{ background: "none", border: "none", cursor: "pointer", padding: "0.25rem", color: "#DC2626" }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M18 6L6 18M6 6l12 12" /></svg>
+                    </button>
+                  </div>
+                ) : (
+                  <button type="button" onClick={() => resumeFileRef.current?.click()} style={{ width: "100%", padding: "1.5rem", borderRadius: "0.75rem", border: "2px dashed #D1D5DB", backgroundColor: "#FAFAFA", cursor: "pointer", textAlign: "center", transition: "all 0.2s ease" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = cfg.colors.primary; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#D1D5DB"; }}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth={1.5} style={{ margin: "0 auto 0.375rem" }}><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+                    <span style={{ fontSize: "12px", color: "#717171", display: "block" }}>Click to upload resume</span>
+                    <span style={{ fontSize: "10px", color: "#999", display: "block", marginTop: "0.25rem" }}>PDF, DOC, or DOCX up to 5MB</span>
+                  </button>
+                )}
               </div>
               <div>
                 <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.375rem" }}>Cover Letter (optional)</label>

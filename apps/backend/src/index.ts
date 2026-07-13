@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import cron from "node-cron";
+import path from "path";
 import { healthRouter } from "./routes/health";
 import { configRouter } from "./routes/config";
 import { authRouter } from "./routes/auth";
@@ -19,13 +20,20 @@ import { jobsRouter } from "./routes/jobs";
 import { loansRouter } from "./routes/loans";
 import { circlesRouter } from "./routes/circles";
 import { navigationRouter } from "./routes/navigation";
+import { uploadRouter } from "./routes/upload";
 import { circleInterestJob } from "./jobs/circleInterestJob";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+const LOCAL_UPLOAD_DIR = process.env.LOCAL_UPLOAD_DIR || './uploads';
 
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
+
+app.use("/uploads", express.static(path.resolve(LOCAL_UPLOAD_DIR), {
+  maxAge: "1d",
+  etag: true,
+}));
 
 app.use("/api/health", healthRouter);
 app.use("/api/config", configRouter);
@@ -45,6 +53,7 @@ app.use("/api/jobs", jobsRouter);
 app.use("/api/loans", loansRouter);
 app.use("/api/circles", circlesRouter);
 app.use("/api/navigation", navigationRouter);
+app.use("/api/upload", uploadRouter);
 
 cron.schedule("0 0 * * 0", circleInterestJob);
 

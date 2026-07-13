@@ -103,6 +103,7 @@ export default function MyCirclesPage() {
   const { token } = useAuth();
   const [cfg, setCfg] = useState<BrandConfig>(fallback);
   const [myAccounts, setMyAccounts] = useState<CircleAccount[]>([]);
+  const [stats, setStats] = useState({ total: 0, activeCount: 0, maturedCount: 0, totalInvested: 0, totalInterest: 0, totalMaturityValue: 0 });
   const [walletBalance, setWalletBalance] = useState(0);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -122,17 +123,20 @@ export default function MyCirclesPage() {
   const fetchData = useCallback(async () => {
     if (!token) { setLoading(false); return; }
     try {
-      const res = await fetch(`${API_URL}/api/circles/accounts/my`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${API_URL}/api/circles/accounts/my${statusFilter !== "all" ? `?status=${statusFilter}` : ""}`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
       if (data.success) {
-        setMyAccounts(data.data.accounts);
-        setWalletBalance(data.data.walletBalance);
+        setMyAccounts(data.data.items || []);
+        if (data.data.stats) setStats(data.data.stats);
+        setWalletBalance(data.data.walletBalance || 0);
       }
     } catch {}
     setLoading(false);
-  }, [token, API_URL]);
+  }, [token, API_URL, statusFilter]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  useEffect(() => { if (token) fetchData(); }, [statusFilter, fetchData, token]);
 
   const fetchAccountDetails = useCallback(async (accountId: string) => {
     if (!token) return;
@@ -206,12 +210,7 @@ export default function MyCirclesPage() {
     setClaiming(null);
   };
 
-  const filteredAccounts = myAccounts.filter((a) => statusFilter === "all" || a.status === statusFilter);
-  const activeAccounts = myAccounts.filter((a) => a.status === "active");
-  const maturedAccounts = myAccounts.filter((a) => a.status === "matured");
-  const totalInvested = myAccounts.reduce((sum, a) => sum + a.principalAmount, 0);
-  const totalInterest = myAccounts.reduce((sum, a) => sum + a.interestEarned, 0);
-  const totalMaturityValue = myAccounts.reduce((sum, a) => sum + a.principalAmount + a.interestEarned, 0);
+  const filteredAccounts = myAccounts;
 
   return (
     <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
@@ -227,15 +226,15 @@ export default function MyCirclesPage() {
       )}
 
       <StaggerChildren staggerDelay={100} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.5rem", marginBottom: "2rem" }}>
-        <StatCard label="Total Invested" value={formatNaira(totalInvested)} change={`${myAccounts.length} account${myAccounts.length !== 1 ? "s" : ""}`} positive variant="default" />
-        <StatCard label="Interest Earned" value={formatNaira(totalInterest)} change={activeAccounts.length > 0 ? `${activeAccounts.length} earning` : "No active accounts"} positive variant="warm" />
-        <StatCard label="Maturity Value" value={formatNaira(totalMaturityValue)} change={`${activeAccounts.length + maturedAccounts.length} pending`} positive variant="default" />
-        <StatCard label="Active Accounts" value={String(activeAccounts.length)} change={maturedAccounts.length > 0 ? `${maturedAccounts.length} matured` : "None matured"} positive variant="warm" />
+        <StatCard label="Total Invested" value={formatNaira(stats.totalInvested)} change={`${stats.total} account${stats.total !== 1 ? "s" : ""}`} positive variant="default" />
+        <StatCard label="Interest Earned" value={formatNaira(stats.totalInterest)} change={stats.activeCount > 0 ? `${stats.activeCount} earning` : "No active accounts"} positive variant="warm" />
+        <StatCard label="Maturity Value" value={formatNaira(stats.totalMaturityValue)} change={`${stats.activeCount + stats.maturedCount} pending`} positive variant="default" />
+        <StatCard label="Active Accounts" value={String(stats.activeCount)} change={stats.maturedCount > 0 ? `${stats.maturedCount} matured` : "None matured"} positive variant="warm" />
       </StaggerChildren>
 
       <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.5rem", flexWrap: "wrap" }}>
         {(["all", "active", "matured", "withdrawn"] as StatusFilter[]).map((filter) => {
-          const count = filter === "all" ? myAccounts.length : myAccounts.filter((a) => a.status === filter).length;
+          const count = filter === "all" ? stats.total : myAccounts.filter((a) => a.status === filter).length;
           return (
             <button key={filter} onClick={() => setStatusFilter(filter)}
               style={{ padding: "0.5rem 1.25rem", borderRadius: "9999px", fontSize: "12px", fontWeight: 600, border: "1.5px solid", cursor: "pointer", transition: "all 0.15s ease", backgroundColor: statusFilter === filter ? cfg.colors.primary : "#ffffff", color: statusFilter === filter ? "#ffffff" : "#717171", borderColor: statusFilter === filter ? cfg.colors.primary : "#EAEAEA" }}>
@@ -294,6 +293,9 @@ export default function MyCirclesPage() {
                         {account.status === "active" && (
                           <span style={{ fontSize: "11px", color: "#666", fontFamily: "'JetBrains Mono', monospace" }}>{days}d left</span>
                         )}
+                        <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); window.location.href = `/my-circles/${account.id}`; }}>
+                          View Details
+                        </Button>
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isExpanded ? cfg.colors.primary : "#999"} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ transition: "transform 0.2s", transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)", flexShrink: 0 }}>
                           <path d="M6 9l6 6 6-6" />
                         </svg>
@@ -427,9 +429,6 @@ export default function MyCirclesPage() {
                               {claiming === account.id ? "Claiming..." : "Claim Maturity Payout"}
                             </Button>
                           )}
-                          <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); window.location.href = `/my-circles/${account.id}`; }}>
-                            View Details
-                          </Button>
                         </div>
                       </div>
                     )}

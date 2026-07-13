@@ -45,6 +45,7 @@ export default function DonationsPage() {
     setLoading(true);
     try {
       const params = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE) });
+      if (filter !== "all") params.set("type", filter);
       const res = await fetch(`${API_URL}/api/donations?${params}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -56,11 +57,11 @@ export default function DonationsPage() {
       }
     } catch {}
     setLoading(false);
-  }, [token]);
+  }, [token, filter]);
 
-  useEffect(() => { fetchDonations(1); }, [fetchDonations]);
+  useEffect(() => { fetchDonations(1); }, [fetchDonations, filter]);
 
-  const filtered = donations.filter((d) => filter === "all" || d.type === filter);
+  const filtered = donations;
 
   const statusColor = (status: string) => {
     switch (status) {
@@ -184,7 +185,7 @@ export default function DonationsPage() {
           <DataTable
             columns={columns}
             data={filtered}
-            pagination={{ ...pagination, total: filtered.length, totalPages: Math.ceil(filtered.length / pagination.limit) }}
+            pagination={pagination}
             onPageChange={(page) => fetchDonations(page)}
             loading={loading}
             emptyMessage={filter === "all" ? "No donations yet." : `No ${filter} donations.`}

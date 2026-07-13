@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { authMiddleware } from "../middleware/auth";
+import { upload, uploadFile } from "../utils/upload";
 import {
   getKycByUserId,
   createKycSubmission,
@@ -123,10 +124,15 @@ kycRouter.get("/status", authMiddleware, async (req, res) => {
   }
 });
 
-kycRouter.post("/", authMiddleware, async (req, res) => {
+kycRouter.post("/", authMiddleware, upload.fields([
+  { name: 'idDocument', maxCount: 1 },
+  { name: 'selfie', maxCount: 1 },
+  { name: 'documents', maxCount: 10 },
+]), async (req, res) => {
   try {
-    const { level, idType, idNumber, idDocumentUrl, selfieUrl, documents } = req.body;
+    const { level, idType, idNumber, purpose } = req.body;
     const userId = req.user!.userId;
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
 
     if (!level || !VALID_LEVELS.includes(level)) {
       res.status(400).json({ success: false, error: `Invalid level. Must be one of: ${VALID_LEVELS.join(", ")}` });
@@ -162,13 +168,36 @@ kycRouter.post("/", authMiddleware, async (req, res) => {
       return;
     }
 
-    if (documents && Array.isArray(documents)) {
+    let idDocumentUrl: string | undefined;
+    let selfieUrl: string | undefined;
+    const documents: Array<{ fileUrl: string; fileType: string; fileName: string; fileSize: number; purpose: string }> = [];
+
+    if (files?.idDocument?.[0]) {
+      const result = await uploadFile(files.idDocument[0], 'kyc/id-documents');
+      idDocumentUrl = result.url;
+    }
+
+    if (files?.selfie?.[0]) {
+      const result = await uploadFile(files.selfie[0], 'kyc/selfies');
+      selfieUrl = result.url;
+    }
+
+    if (files?.documents) {
+      for (const file of files.documents) {
+        const result = await uploadFile(file, 'kyc/documents');
+        documents.push({
+          fileUrl: result.url,
+          fileType: file.mimetype,
+          fileName: file.originalname,
+          fileSize: file.size,
+          purpose: purpose || 'id_document',
+        });
+      }
+    }
+
+    if (documents.length > 0) {
       for (const doc of documents) {
-        if (!doc.fileUrl || !doc.fileName) {
-          res.status(400).json({ success: false, error: "Each document must have fileUrl and fileName" });
-          return;
-        }
-        if (doc.fileSize && doc.fileSize > 5 * 1024 * 1024) {
+        if (doc.fileSize > 5 * 1024 * 1024) {
           res.status(400).json({ success: false, error: "File size must be less than 5MB" });
           return;
         }
@@ -180,9 +209,9 @@ kycRouter.post("/", authMiddleware, async (req, res) => {
       level,
       idType,
       idNumber,
-      idDocumentUrl: idDocumentUrl || undefined,
-      selfieUrl: selfieUrl || undefined,
-      documents: documents || undefined,
+      idDocumentUrl,
+      selfieUrl,
+      documents: documents.length > 0 ? documents : undefined,
     });
 
     res.status(201).json({
@@ -207,13 +236,13 @@ kycRouter.post("/", authMiddleware, async (req, res) => {
   }
 });
 
-kycRouter.post("/documents", authMiddleware, async (req, res) => {
+kycRouter.post("/documents", authMiddleware, upload.single('file'), async (req, res) => {
   try {
     const userId = req.user!.userId;
-    const { fileUrl, fileType, fileName, fileSize, purpose } = req.body;
+    const { purpose } = req.body;
 
-    if (!fileUrl || !fileName) {
-      res.status(400).json({ success: false, error: "fileUrl and fileName are required" });
+    if (!req.file) {
+      res.status(400).json({ success: false, error: "No file provided" });
       return;
     }
 
@@ -228,13 +257,15 @@ kycRouter.post("/documents", authMiddleware, async (req, res) => {
       return;
     }
 
+    const result = await uploadFile(req.file, 'kyc/documents');
+
     const { addKycDocument } = await import("@thrift/db");
     const doc = await addKycDocument({
       kycId: kyc.id,
-      fileUrl,
-      fileType: fileType || "application/octet-stream",
-      fileName,
-      fileSize: fileSize || 0,
+      fileUrl: result.url,
+      fileType: req.file.mimetype,
+      fileName: req.file.originalname,
+      fileSize: req.file.size,
       purpose: purpose || "id_document",
     });
 

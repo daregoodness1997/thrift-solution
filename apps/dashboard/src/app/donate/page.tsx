@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { config } from "@thrift/config";
 import { Card, Button, ColorfulBadge, FadeInUp } from "@thrift/ui";
@@ -17,6 +17,11 @@ const itemCategories = [
 ];
 
 const itemConditions = ["New", "Like New", "Good", "Fair"];
+
+interface ItemImageFile {
+  file: File;
+  preview: string;
+}
 
 export default function DonatePage() {
   const { token } = useAuth();
@@ -37,6 +42,9 @@ export default function DonatePage() {
   const [itemCategory, setItemCategory] = useState("");
   const [itemCondition, setItemCondition] = useState("");
   const [itemNotes, setItemNotes] = useState("");
+  const [itemImage, setItemImage] = useState<ItemImageFile | null>(null);
+
+  const itemImageRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -106,6 +114,34 @@ export default function DonatePage() {
     }
   };
 
+  const handleItemImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      setError("Image file size must be less than 10MB");
+      return;
+    }
+    if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) {
+      setError("Only JPEG, PNG, WebP, and GIF files are allowed");
+      return;
+    }
+
+    setError("");
+    const preview = URL.createObjectURL(file);
+    setItemImage({ file, preview });
+  };
+
+  const removeItemImage = () => {
+    if (itemImage?.preview) {
+      URL.revokeObjectURL(itemImage.preview);
+    }
+    setItemImage(null);
+    if (itemImageRef.current) {
+      itemImageRef.current.value = "";
+    }
+  };
+
   const handleItemDonation = async () => {
     if (!itemName.trim()) {
       setError("Item name is required");
@@ -121,19 +157,28 @@ export default function DonatePage() {
     setError("");
 
     try {
+      const formData = new FormData();
+      formData.append("itemName", itemName.trim());
+      if (itemDescription.trim()) {
+        formData.append("itemDescription", itemDescription.trim());
+      }
+      if (itemCategory) {
+        formData.append("itemCategory", itemCategory);
+      }
+      if (itemCondition) {
+        formData.append("itemCondition", itemCondition);
+      }
+      if (itemNotes.trim()) {
+        formData.append("notes", itemNotes.trim());
+      }
+      if (itemImage) {
+        formData.append("itemImage", itemImage.file);
+      }
+
       const res = await fetch(`${API_URL}/api/donations/item`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          itemName: itemName.trim(),
-          itemDescription: itemDescription.trim() || undefined,
-          itemCategory: itemCategory || undefined,
-          itemCondition: itemCondition || undefined,
-          notes: itemNotes.trim() || undefined,
-        }),
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
       });
 
       const data = await res.json();
@@ -399,6 +444,34 @@ export default function DonatePage() {
                 onFocus={(e) => { e.currentTarget.style.borderColor = config.colors.primary; }}
                 onBlur={(e) => { e.currentTarget.style.borderColor = "#EAEAEA"; }}
               />
+            </div>
+
+            <div style={{ marginBottom: "1.25rem" }}>
+              <label style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", display: "block", marginBottom: "0.5rem" }}>
+                Item Image (optional)
+              </label>
+              <input ref={itemImageRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleItemImageSelect} style={{ display: "none" }} />
+              {itemImage ? (
+                <div style={{ padding: "0.75rem", borderRadius: "0.75rem", border: "1px solid #A7F3D0", backgroundColor: "#ECFDF5", display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                  <img src={itemImage.preview} alt="Preview" style={{ width: "64px", height: "64px", borderRadius: "0.5rem", objectFit: "cover" }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ fontSize: "12px", fontWeight: 500, color: "#2D2D2D", display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{itemImage.file.name}</span>
+                    <span style={{ fontSize: "10px", color: "#059669" }}>{(itemImage.file.size / 1024).toFixed(1)} KB</span>
+                  </div>
+                  <button type="button" onClick={removeItemImage} style={{ background: "none", border: "none", cursor: "pointer", padding: "0.25rem", color: "#DC2626" }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M18 6L6 18M6 6l12 12" /></svg>
+                  </button>
+                </div>
+              ) : (
+                <button type="button" onClick={() => itemImageRef.current?.click()} style={{ width: "100%", padding: "1.5rem", borderRadius: "0.75rem", border: "2px dashed #D1D5DB", backgroundColor: "#FAFAFA", cursor: "pointer", textAlign: "center", transition: "all 0.2s ease" }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = config.colors.primary; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#D1D5DB"; }}
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth={1.5} style={{ margin: "0 auto 0.375rem" }}><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+                  <span style={{ fontSize: "12px", color: "#717171", display: "block" }}>Click to upload item image</span>
+                  <span style={{ fontSize: "10px", color: "#999", display: "block", marginTop: "0.25rem" }}>JPEG, PNG, WebP, or GIF up to 10MB</span>
+                </button>
+              )}
             </div>
 
             <div style={{ marginBottom: "1.5rem" }}>

@@ -137,57 +137,39 @@ export default function KycPage() {
     setSubmitting(true);
 
     try {
-      const body: Record<string, unknown> = {
-        level: selectedLevel,
-        idType: idType || "bvn",
-        idNumber: idNumber || "00000000000",
-        documents: [],
-      };
+      const formData = new FormData();
+      formData.append("level", String(selectedLevel));
+      formData.append("idType", idType || "bvn");
+      formData.append("idNumber", idNumber || "00000000000");
 
       if (selectedLevel === 1) {
-        body.idDocumentUrl = "";
-        body.selfieUrl = "";
+        formData.append("purpose", "bvn_verification");
       } else if (selectedLevel === 2) {
-        body.idDocumentUrl = idDocumentFile?.preview || "";
-        body.selfieUrl = selfieFile?.preview || "";
-        body.documents = [
-          {
-            fileUrl: idDocumentFile!.preview,
-            fileType: idDocumentFile!.file.type,
-            fileName: idDocumentFile!.file.name,
-            fileSize: idDocumentFile!.file.size,
-            purpose: "id_document",
-          },
-          ...(selfieFile
-            ? [{
-                fileUrl: selfieFile.preview,
-                fileType: selfieFile.file.type,
-                fileName: selfieFile.file.name,
-                fileSize: selfieFile.file.size,
-                purpose: "selfie",
-              }]
-            : []),
-        ];
+        if (idDocumentFile) {
+          formData.append("idDocument", idDocumentFile.file);
+        }
+        if (selfieFile) {
+          formData.append("selfie", selfieFile.file);
+        }
+        if (idDocumentFile) {
+          formData.append("documents", idDocumentFile.file);
+        }
+        if (selfieFile) {
+          formData.append("documents", selfieFile.file);
+        }
       } else if (selectedLevel === 3) {
-        body.idType = "voter_card";
-        body.idNumber = kycData?.idNumber || "00000000000";
-        body.idDocumentUrl = proofOfAddressFile?.preview || "";
-        body.selfieUrl = "";
-        body.documents = [
-          {
-            fileUrl: proofOfAddressFile!.preview,
-            fileType: proofOfAddressFile!.file.type,
-            fileName: proofOfAddressFile!.file.name,
-            fileSize: proofOfAddressFile!.file.size,
-            purpose: "proof_of_address",
-          },
-        ];
+        formData.append("idType", "voter_card");
+        formData.append("idNumber", kycData?.idNumber || "00000000000");
+        if (proofOfAddressFile) {
+          formData.append("idDocument", proofOfAddressFile.file);
+          formData.append("documents", proofOfAddressFile.file);
+        }
       }
 
       const res = await fetch(`${API_URL}/api/kyc`, {
         method: "POST",
-        headers: { ...authHeaders, "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        headers: authHeaders,
+        body: formData,
       });
 
       const data = await res.json();

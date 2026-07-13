@@ -7,7 +7,8 @@ export const authRouter = Router();
 
 authRouter.post("/register", async (req, res) => {
   try {
-    const { email, name, password, referralCode } = req.body;
+    const { email, name, password, referralCode: rawReferralCode } = req.body;
+    const referralCode = typeof rawReferralCode === "string" ? rawReferralCode.trim() : rawReferralCode;
 
     if (!email || !name || !password) {
       res.status(400).json({ success: false, error: "Email, name, and password are required" });

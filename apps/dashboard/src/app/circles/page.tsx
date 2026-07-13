@@ -78,6 +78,7 @@ export default function CirclesPage() {
   const [page, setPage] = useState(1);
   const LIMIT = 20;
   const [accountsData, setAccountsData] = useState<{ total: number; totalPages: number }>({ total: 0, totalPages: 1 });
+  const [circlesStats, setCirclesStats] = useState({ activeCount: 0, maturedCount: 0, totalInvested: 0, totalInterest: 0 });
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -96,6 +97,7 @@ export default function CirclesPage() {
       if (accountsJson.success) {
         setMyAccounts(accountsJson.data.items);
         setAccountsData({ total: accountsJson.data.total, totalPages: accountsJson.data.totalPages });
+        if (accountsJson.data.stats) setCirclesStats(accountsJson.data.stats);
       }
     } catch {}
     setLoading(false);
@@ -175,8 +177,6 @@ export default function CirclesPage() {
 
   const activeAccounts = myAccounts.filter((a) => a.status === "active");
   const maturedAccounts = myAccounts.filter((a) => a.status === "matured");
-  const totalInvested = myAccounts.reduce((sum, a) => sum + a.principalAmount, 0);
-  const totalInterest = myAccounts.reduce((sum, a) => sum + a.interestEarned, 0);
 
   return (
     <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
@@ -192,9 +192,9 @@ export default function CirclesPage() {
       )}
 
       <StaggerChildren staggerDelay={100} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.5rem", marginBottom: "2rem" }}>
-        <StatCard label="Total Invested" value={formatNaira(totalInvested)} change={`${myAccounts.length} account${myAccounts.length !== 1 ? "s" : ""}`} positive variant="default" />
-        <StatCard label="Interest Earned" value={formatNaira(totalInterest)} change={activeAccounts.length > 0 ? `${activeAccounts.length} earning` : "No active accounts"} positive variant="warm" />
-        <StatCard label="Active Accounts" value={String(activeAccounts.length)} change={maturedAccounts.length > 0 ? `${maturedAccounts.length} matured` : "None matured"} positive variant="default" />
+        <StatCard label="Total Invested" value={formatNaira(circlesStats.totalInvested)} change={`${myAccounts.length} account${myAccounts.length !== 1 ? "s" : ""}`} positive variant="default" />
+        <StatCard label="Interest Earned" value={formatNaira(circlesStats.totalInterest)} change={activeAccounts.length > 0 ? `${activeAccounts.length} earning` : "No active accounts"} positive variant="warm" />
+        <StatCard label="Active Accounts" value={String(circlesStats.activeCount)} change={maturedAccounts.length > 0 ? `${circlesStats.maturedCount} matured` : "None matured"} positive variant="default" />
       </StaggerChildren>
 
       <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.5rem" }}>

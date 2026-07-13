@@ -8,7 +8,7 @@ export async function circleInterestJob() {
     const result = await runWeeklyInterestJob();
     const elapsed = Date.now() - startTime;
     console.log(
-      `[Circle Interest Job] Completed in ${elapsed}ms. Processed: ${result.processed}, Errors: ${result.errors}, Total: ${result.total}`
+      `[Circle Interest Job] Completed in ${elapsed}ms. Processed: ${result.processed}, Errors: ${result.errors}, Total: ${result.total}`,
     );
     return result;
   } catch (err) {

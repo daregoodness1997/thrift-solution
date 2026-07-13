@@ -71,6 +71,9 @@ export default function MyMarketplacePage() {
   const [myOffersPage, setMyOffersPage] = useState(1);
   const [myOffersTotalPages, setMyOffersTotalPages] = useState(1);
   const [myOffersTotal, setMyOffersTotal] = useState(0);
+  const [listingStats, setListingStats] = useState({ total: 0, activeCount: 0 });
+  const [receivedStats, setReceivedStats] = useState({ total: 0, pendingCount: 0 });
+  const [sentStats, setSentStats] = useState({ total: 0, acceptedCount: 0 });
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -98,16 +101,19 @@ export default function MyMarketplacePage() {
         setListings(listingsData.data.items);
         setListingsTotalPages(listingsData.data.totalPages);
         setListingsTotal(listingsData.data.total);
+        if (listingsData.data.stats) setListingStats(listingsData.data.stats);
       }
       if (receivedData.success) {
         setReceivedOffers(receivedData.data.items);
         setReceivedOffersTotalPages(receivedData.data.totalPages);
         setReceivedOffersTotal(receivedData.data.total);
+        if (receivedData.data.stats) setReceivedStats(receivedData.data.stats);
       }
       if (sentData.success) {
         setSentOffers(sentData.data.items);
         setMyOffersTotalPages(sentData.data.totalPages);
         setMyOffersTotal(sentData.data.total);
+        if (sentData.data.stats) setSentStats(sentData.data.stats);
       }
     } catch {}
     setLoading(false);
@@ -127,8 +133,6 @@ export default function MyMarketplacePage() {
     } catch {}
   };
 
-  const activeListings = listings.filter((l) => l.status === "active");
-  const pendingOffers = receivedOffers.filter((o) => o.status === "pending");
 
   return (
     <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
@@ -145,9 +149,9 @@ export default function MyMarketplacePage() {
       />
 
       <StaggerChildren staggerDelay={100} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.5rem", marginBottom: "2rem" }}>
-        <StatCard label="Active Listings" value={String(activeListings.length)} change={`${listings.length} total`} positive variant="default" />
-        <StatCard label="Pending Offers" value={String(pendingOffers.length)} change={`${receivedOffers.length} received`} positive variant="warm" />
-        <StatCard label="My Offers" value={String(sentOffers.length)} change={`${sentOffers.filter((o) => o.status === "accepted").length} accepted`} positive variant="default" />
+        <StatCard label="Active Listings" value={String(listingStats.activeCount)} change={`${listingStats.total} total`} positive variant="default" />
+        <StatCard label="Pending Offers" value={String(receivedStats.pendingCount)} change={`${receivedStats.total} received`} positive variant="warm" />
+        <StatCard label="My Offers" value={String(sentStats.total)} change={`${sentStats.acceptedCount} accepted`} positive variant="default" />
       </StaggerChildren>
 
       {/* Tabs */}

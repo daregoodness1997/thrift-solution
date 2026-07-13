@@ -15,7 +15,8 @@ chatRouter.get("/conversations", authMiddleware, async (req, res) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
-    const result = await getUserConversations(req.user!.userId, { page, limit });
+    const search = req.query.search as string | undefined;
+    const result = await getUserConversations(req.user!.userId, { page, limit, search });
     res.json({ success: true, data: result });
   } catch (err) {
     console.error("Get conversations error:", err);

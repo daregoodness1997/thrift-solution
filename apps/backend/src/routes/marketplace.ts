@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { authMiddleware } from "../middleware/auth";
+import { upload, uploadFile } from "../utils/upload";
 import {
   createMarketplaceListing,
   getMarketplaceListings,
@@ -68,9 +69,9 @@ marketplaceRouter.get("/received-offers", authMiddleware, async (req, res) => {
   }
 });
 
-marketplaceRouter.post("/", authMiddleware, async (req, res) => {
+marketplaceRouter.post("/", authMiddleware, upload.single('image'), async (req, res) => {
   try {
-    const { title, description, price, currency, category, condition, imageUrl } = req.body;
+    const { title, description, price, currency, category, condition } = req.body;
 
     if (!title || !description || !price || !category || !condition) {
       res.status(400).json({ success: false, error: "Title, description, price, category, and condition are required" });
@@ -80,6 +81,13 @@ marketplaceRouter.post("/", authMiddleware, async (req, res) => {
     if (price <= 0) {
       res.status(400).json({ success: false, error: "Price must be greater than 0" });
       return;
+    }
+
+    let imageUrl: string | undefined;
+
+    if (req.file) {
+      const result = await uploadFile(req.file, 'marketplace');
+      imageUrl = result.url;
     }
 
     const listing = await createMarketplaceListing({
@@ -114,7 +122,7 @@ marketplaceRouter.get("/:id", authMiddleware, async (req, res) => {
   }
 });
 
-marketplaceRouter.put("/:id", authMiddleware, async (req, res) => {
+marketplaceRouter.put("/:id", authMiddleware, upload.single('image'), async (req, res) => {
   try {
     const listing = await getMarketplaceListingById(req.params.id);
     if (!listing) {
@@ -126,14 +134,23 @@ marketplaceRouter.put("/:id", authMiddleware, async (req, res) => {
       return;
     }
 
-    const { title, description, price, category, condition, imageUrl, status } = req.body;
+    const { title, description, price, category, condition, status, imageUrl: imageUrlBody } = req.body;
+    
+    let imageUrl: string | null | undefined;
+    if (req.file) {
+      const result = await uploadFile(req.file, 'marketplace');
+      imageUrl = result.url;
+    } else if (imageUrlBody === "") {
+      imageUrl = null;
+    }
+
     const updated = await updateMarketplaceListing(req.params.id, {
       title,
       description,
       price: price ? Number(price) : undefined,
       category,
       condition,
-      imageUrl,
+      imageUrl: imageUrl,
       status,
     });
 

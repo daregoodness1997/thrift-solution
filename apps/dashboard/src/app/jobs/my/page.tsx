@@ -44,6 +44,7 @@ export default function MyJobsPage() {
   const [listingsMeta, setListingsMeta] = useState({ totalPages: 0, total: 0 });
   const [receivedMeta, setReceivedMeta] = useState({ totalPages: 0, total: 0 });
   const [appliedMeta, setAppliedMeta] = useState({ totalPages: 0, total: 0 });
+  const [jobStats, setJobStats] = useState({ listingsTotal: 0, activeCount: 0, receivedTotal: 0, pendingCount: 0, appliedTotal: 0, successfulCount: 0 });
 
   const LIMIT = 20;
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -59,9 +60,9 @@ export default function MyJobsPage() {
         fetch(`${API_URL}/api/jobs/my-applications?page=${applicationsPage}&limit=${LIMIT}`, { headers: { Authorization: `Bearer ${token}` } }),
       ]);
       const [listingsData, receivedData, appliedData] = await Promise.all([listingsRes.json(), receivedRes.json(), appliedRes.json()]);
-      if (listingsData.success) { setListings(listingsData.data.items); setListingsMeta({ totalPages: listingsData.data.totalPages, total: listingsData.data.total }); }
-      if (receivedData.success) { setReceivedApps(receivedData.data.items); setReceivedMeta({ totalPages: receivedData.data.totalPages, total: receivedData.data.total }); }
-      if (appliedData.success) { setMyApps(appliedData.data.items); setAppliedMeta({ totalPages: appliedData.data.totalPages, total: appliedData.data.total }); }
+      if (listingsData.success) { setListings(listingsData.data.items); setListingsMeta({ totalPages: listingsData.data.totalPages, total: listingsData.data.total }); if (listingsData.data.stats) setJobStats((prev) => ({ ...prev, listingsTotal: listingsData.data.stats.total, activeCount: listingsData.data.stats.activeCount })); }
+      if (receivedData.success) { setReceivedApps(receivedData.data.items); setReceivedMeta({ totalPages: receivedData.data.totalPages, total: receivedData.data.total }); if (receivedData.data.stats) setJobStats((prev) => ({ ...prev, receivedTotal: receivedData.data.stats.total, pendingCount: receivedData.data.stats.pendingCount })); }
+      if (appliedData.success) { setMyApps(appliedData.data.items); setAppliedMeta({ totalPages: appliedData.data.totalPages, total: appliedData.data.total }); if (appliedData.data.stats) setJobStats((prev) => ({ ...prev, appliedTotal: appliedData.data.stats.total, successfulCount: appliedData.data.stats.successfulCount })); }
     } catch {}
     setLoading(false);
   }, [token, API_URL, listingsPage, receivedPage, applicationsPage]);
@@ -74,9 +75,9 @@ export default function MyJobsPage() {
         right={<a href="/jobs/new"><Button variant="primary" size="sm">+ Post Job</Button></a>} />
 
       <StaggerChildren staggerDelay={100} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.5rem", marginBottom: "2rem" }}>
-        <StatCard label="Posted Jobs" value={String(listings.length)} change={`${listings.filter((l) => l.status === "active").length} active`} positive variant="default" />
-        <StatCard label="Received Applications" value={String(receivedApps.length)} change={`${receivedApps.filter((a) => a.status === "pending").length} pending`} positive variant="warm" />
-        <StatCard label="My Applications" value={String(myApps.length)} change={`${myApps.filter((a) => a.status === "shortlisted" || a.status === "accepted").length} successful`} positive variant="default" />
+        <StatCard label="Posted Jobs" value={String(jobStats.listingsTotal)} change={`${jobStats.activeCount} active`} positive variant="default" />
+        <StatCard label="Received Applications" value={String(jobStats.receivedTotal)} change={`${jobStats.pendingCount} pending`} positive variant="warm" />
+        <StatCard label="My Applications" value={String(jobStats.appliedTotal)} change={`${jobStats.successfulCount} successful`} positive variant="default" />
       </StaggerChildren>
 
       <FadeInUp delay={200}>

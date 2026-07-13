@@ -217,84 +217,388 @@ export default function AccountDetailPage() {
   }));
 
   return (
-    <div style={{ maxWidth: "1024px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1.5rem" }}>
-        <button onClick={() => router.push("/my-circles")} style={{ background: "none", border: "none", cursor: "pointer", padding: "0.25rem", display: "flex", alignItems: "center", color: "#999" }}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    <div
+      style={{
+        maxWidth: "1024px",
+        margin: "0 auto",
+        padding: "clamp(1rem, 3vw, 2rem)",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "0.75rem",
+          marginBottom: "1.5rem",
+        }}
+      >
+        <button
+          onClick={() => router.push("/my-circles")}
+          style={{
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            padding: "0.25rem",
+            display: "flex",
+            alignItems: "center",
+            color: "#999",
+          }}
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
         </button>
-        <PageHeader badgeLabel="Circle Account" heading={account.circle.name} accentText="" description="Full account details, interest breakdown, and history." />
       </div>
 
+      <PageHeader
+        badgeLabel="Circle Account"
+        heading={account.circle.name}
+        accentText=""
+        description="Full account details, interest breakdown, and history."
+      />
+
       {message && (
-        <div style={{ padding: "0.75rem 1rem", borderRadius: "0.75rem", marginBottom: "1.5rem", fontSize: "13px", fontWeight: 500, backgroundColor: message.type === "success" ? "#ECFDF5" : "#FEF2F2", color: message.type === "success" ? "#059669" : "#DC2626", border: `1px solid ${message.type === "success" ? "#A7F3D0" : "#FECACA"}` }}>
+        <div
+          style={{
+            padding: "0.75rem 1rem",
+            borderRadius: "0.75rem",
+            marginBottom: "1.5rem",
+            fontSize: "13px",
+            fontWeight: 500,
+            backgroundColor: message.type === "success" ? "#ECFDF5" : "#FEF2F2",
+            color: message.type === "success" ? "#059669" : "#DC2626",
+            border: `1px solid ${message.type === "success" ? "#A7F3D0" : "#FECACA"}`,
+          }}
+        >
           {message.text}
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.5rem", marginBottom: "2rem" }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+          gap: "1.5rem",
+          marginBottom: "2rem",
+        }}
+      >
         <Card padding="1.25rem">
-          <span style={{ fontSize: "11px", color: "#999", display: "block", marginBottom: "0.25rem" }}>Principal</span>
-          <span style={{ fontSize: "1.25rem", fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", color: cfg.colors.primary }}>{formatNaira(account.principalAmount)}</span>
+          <span
+            style={{
+              fontSize: "11px",
+              color: "#999",
+              display: "block",
+              marginBottom: "0.25rem",
+            }}
+          >
+            Principal
+          </span>
+          <span
+            style={{
+              fontSize: "1.25rem",
+              fontWeight: 700,
+              fontFamily: "'JetBrains Mono', monospace",
+              color: cfg.colors.primary,
+            }}
+          >
+            {formatNaira(account.principalAmount)}
+          </span>
         </Card>
         <Card padding="1.25rem">
-          <span style={{ fontSize: "11px", color: "#999", display: "block", marginBottom: "0.25rem" }}>Interest Earned</span>
-          <span style={{ fontSize: "1.25rem", fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", color: "#10B981" }}>{formatNaira(account.interestEarned)}</span>
+          <span
+            style={{
+              fontSize: "11px",
+              color: "#999",
+              display: "block",
+              marginBottom: "0.25rem",
+            }}
+          >
+            Interest Earned
+          </span>
+          <span
+            style={{
+              fontSize: "1.25rem",
+              fontWeight: 700,
+              fontFamily: "'JetBrains Mono', monospace",
+              color: "#10B981",
+            }}
+          >
+            {formatNaira(account.interestEarned)}
+          </span>
         </Card>
         <Card padding="1.25rem">
-          <span style={{ fontSize: "11px", color: "#999", display: "block", marginBottom: "0.25rem" }}>Maturity Value</span>
-          <span style={{ fontSize: "1.25rem", fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", color: "#2D2D2D" }}>{formatNaira(account.principalAmount + account.interestEarned)}</span>
+          <span
+            style={{
+              fontSize: "11px",
+              color: "#999",
+              display: "block",
+              marginBottom: "0.25rem",
+            }}
+          >
+            Maturity Value
+          </span>
+          <span
+            style={{
+              fontSize: "1.25rem",
+              fontWeight: 700,
+              fontFamily: "'JetBrains Mono', monospace",
+              color: "#2D2D2D",
+            }}
+          >
+            {formatNaira(account.principalAmount + account.interestEarned)}
+          </span>
         </Card>
         <Card padding="1.25rem">
-          <span style={{ fontSize: "11px", color: "#999", display: "block", marginBottom: "0.25rem" }}>Interest Rate</span>
-          <span style={{ fontSize: "1.25rem", fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", color: "#F59E0B" }}>{account.circle.interestRateAnnual}% p.a.</span>
+          <span
+            style={{
+              fontSize: "11px",
+              color: "#999",
+              display: "block",
+              marginBottom: "0.25rem",
+            }}
+          >
+            Interest Rate
+          </span>
+          <span
+            style={{
+              fontSize: "1.25rem",
+              fontWeight: 700,
+              fontFamily: "'JetBrains Mono', monospace",
+              color: "#F59E0B",
+            }}
+          >
+            {account.circle.interestRateAnnual}% p.a.
+          </span>
         </Card>
       </div>
 
       <Card padding="1.5rem" style={{ marginBottom: "2rem" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", flexWrap: "wrap", gap: "0.75rem" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "1rem",
+            flexWrap: "wrap",
+            gap: "0.75rem",
+          }}
+        >
           <div>
-            <span style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", color: statusStyle.color, backgroundColor: statusStyle.bg, padding: "0.25rem 0.75rem", borderRadius: "9999px", fontFamily: "'JetBrains Mono', monospace" }}>{account.status.replace("_", " ")}</span>
-            <h2 style={{ fontSize: "1rem", fontWeight: 600, color: "#2D2D2D", marginTop: "0.5rem" }}>{account.circle.name}</h2>
-            <span style={{ fontSize: "12px", color: "#999" }}>{formatNaira(account.circle.amount)} &middot; {formatDuration(account.circle.durationMonths)}</span>
+            <span
+              style={{
+                fontSize: "10px",
+                fontWeight: 700,
+                textTransform: "uppercase",
+                color: statusStyle.color,
+                backgroundColor: statusStyle.bg,
+                padding: "0.25rem 0.75rem",
+                borderRadius: "9999px",
+                fontFamily: "'JetBrains Mono', monospace",
+              }}
+            >
+              {account.status.replace("_", " ")}
+            </span>
+            <h2
+              style={{
+                fontSize: "1rem",
+                fontWeight: 600,
+                color: "#2D2D2D",
+                marginTop: "0.5rem",
+              }}
+            >
+              {account.circle.name}
+            </h2>
+            <span style={{ fontSize: "12px", color: "#999" }}>
+              {formatNaira(account.circle.amount)} &middot;{" "}
+              {formatDuration(account.circle.durationMonths)}
+            </span>
           </div>
           <div style={{ textAlign: "right", fontSize: "12px", color: "#666" }}>
-            <div style={{ fontFamily: "'JetBrains Mono', monospace" }}>Started {formatDate(account.startDate)}</div>
-            <div style={{ fontFamily: "'JetBrains Mono', monospace" }}>Matures {formatDate(account.maturityDate)} ({days}d left)</div>
+            <div style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+              Started {formatDate(account.startDate)}
+            </div>
+            <div style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+              Matures {formatDate(account.maturityDate)} ({days}d left)
+            </div>
           </div>
         </div>
 
         <div style={{ marginBottom: "1.5rem" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", color: "#999", marginBottom: "0.375rem" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              fontSize: "10px",
+              color: "#999",
+              marginBottom: "0.375rem",
+            }}
+          >
             <span>Maturity Progress</span>
             <span>{progress}%</span>
           </div>
-          <div style={{ height: "6px", borderRadius: "3px", backgroundColor: "#F0F0F0", overflow: "hidden" }}>
-            <div style={{ width: `${progress}%`, height: "100%", backgroundColor: cfg.colors.primary, transition: "width 0.5s ease", borderRadius: "3px" }} />
+          <div
+            style={{
+              height: "6px",
+              borderRadius: "3px",
+              backgroundColor: "#F0F0F0",
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                width: `${progress}%`,
+                height: "100%",
+                backgroundColor: cfg.colors.primary,
+                transition: "width 0.5s ease",
+                borderRadius: "3px",
+              }}
+            />
           </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "1rem", fontSize: "12px", padding: "1rem", backgroundColor: "#FAFAFA", borderRadius: "0.75rem" }}>
-          <div><span style={{ color: "#999", display: "block", marginBottom: "0.25rem" }}>Deposit Amount</span><span style={{ fontWeight: 600, fontFamily: "'JetBrains Mono', monospace", color: "#2D2D2D" }}>{formatNaira(account.circle.amount)}</span></div>
-          <div><span style={{ color: "#999", display: "block", marginBottom: "0.25rem" }}>Total Withdrawn</span><span style={{ fontWeight: 600, fontFamily: "'JetBrains Mono', monospace", color: account.totalWithdrawn > 0 ? "#DC2626" : "#2D2D2D" }}>{formatNaira(account.totalWithdrawn)}</span></div>
-          <div><span style={{ color: "#999", display: "block", marginBottom: "0.25rem" }}>Weekly Interest</span><span style={{ fontWeight: 600, fontFamily: "'JetBrains Mono', monospace", color: "#10B981" }}>{formatNaira(account.principalAmount * (account.circle.interestRateAnnual / 100) / 52)}</span></div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+            gap: "1rem",
+            fontSize: "12px",
+            padding: "1rem",
+            backgroundColor: "#FAFAFA",
+            borderRadius: "0.75rem",
+          }}
+        >
+          <div>
+            <span
+              style={{
+                color: "#999",
+                display: "block",
+                marginBottom: "0.25rem",
+              }}
+            >
+              Deposit Amount
+            </span>
+            <span
+              style={{
+                fontWeight: 600,
+                fontFamily: "'JetBrains Mono', monospace",
+                color: "#2D2D2D",
+              }}
+            >
+              {formatNaira(account.circle.amount)}
+            </span>
+          </div>
+          <div>
+            <span
+              style={{
+                color: "#999",
+                display: "block",
+                marginBottom: "0.25rem",
+              }}
+            >
+              Total Withdrawn
+            </span>
+            <span
+              style={{
+                fontWeight: 600,
+                fontFamily: "'JetBrains Mono', monospace",
+                color: account.totalWithdrawn > 0 ? "#DC2626" : "#2D2D2D",
+              }}
+            >
+              {formatNaira(account.totalWithdrawn)}
+            </span>
+          </div>
+          <div>
+            <span
+              style={{
+                color: "#999",
+                display: "block",
+                marginBottom: "0.25rem",
+              }}
+            >
+              Weekly Interest
+            </span>
+            <span
+              style={{
+                fontWeight: 600,
+                fontFamily: "'JetBrains Mono', monospace",
+                color: "#10B981",
+              }}
+            >
+              {formatNaira(
+                (account.principalAmount *
+                  (account.circle.interestRateAnnual / 100)) /
+                  52,
+              )}
+            </span>
+          </div>
           {account.lastInterestCalculation && (
-            <div><span style={{ color: "#999", display: "block", marginBottom: "0.25rem" }}>Last Interest Calc</span><span style={{ fontWeight: 500, color: "#2D2D2D" }}>{formatDate(account.lastInterestCalculation)}</span></div>
+            <div>
+              <span
+                style={{
+                  color: "#999",
+                  display: "block",
+                  marginBottom: "0.25rem",
+                }}
+              >
+                Last Interest Calc
+              </span>
+              <span style={{ fontWeight: 500, color: "#2D2D2D" }}>
+                {formatDate(account.lastInterestCalculation)}
+              </span>
+            </div>
           )}
         </div>
 
-        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginTop: "1.5rem" }}>
+        <div
+          style={{
+            display: "flex",
+            gap: "0.5rem",
+            flexWrap: "wrap",
+            marginTop: "1.5rem",
+          }}
+        >
           {account.status === "active" && (
             <>
-              <Button variant="primary" size="sm" disabled={claiming || days > 0} onClick={handleClaim}>
-                {claiming ? "Claiming..." : days > 0 ? `Matures in ${days}d` : "Claim Maturity"}
+              <Button
+                variant="primary"
+                size="sm"
+                disabled={claiming || days > 0}
+                onClick={handleClaim}
+              >
+                {claiming
+                  ? "Claiming..."
+                  : days > 0
+                    ? `Matures in ${days}d`
+                    : "Claim Maturity"}
               </Button>
-              <Button variant="secondary" size="sm" disabled={withdrawing} onClick={handleWithdraw}>
-                {withdrawing ? "Withdrawing..." : "Early Withdraw (Forfeit Interest)"}
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={withdrawing}
+                onClick={handleWithdraw}
+              >
+                {withdrawing
+                  ? "Withdrawing..."
+                  : "Early Withdraw (Forfeit Interest)"}
               </Button>
             </>
           )}
           {account.status === "matured" && (
-            <Button variant="primary" size="sm" disabled={claiming} onClick={handleClaim}>
+            <Button
+              variant="primary"
+              size="sm"
+              disabled={claiming}
+              onClick={handleClaim}
+            >
               {claiming ? "Claiming..." : "Claim Maturity Payout"}
             </Button>
           )}
@@ -302,9 +606,30 @@ export default function AccountDetailPage() {
       </Card>
 
       <div style={{ display: "flex", gap: "0.375rem", marginBottom: "1rem" }}>
-        {([["breakdown", "Interest Breakdown"], ["logs", "Interest Logs"], ["transactions", "Transactions"]] as const).map(([key, label]) => (
-          <button key={key} onClick={() => setActiveTab(key)}
-            style={{ padding: "0.5rem 1.25rem", borderRadius: "9999px", fontSize: "12px", fontWeight: 600, border: "1.5px solid", cursor: "pointer", transition: "all 0.15s ease", backgroundColor: activeTab === key ? cfg.colors.primary : "#ffffff", color: activeTab === key ? "#ffffff" : "#717171", borderColor: activeTab === key ? cfg.colors.primary : "#EAEAEA" }}>
+        {(
+          [
+            ["breakdown", "Interest Breakdown"],
+            ["logs", "Interest Logs"],
+            ["transactions", "Transactions"],
+          ] as const
+        ).map(([key, label]) => (
+          <button
+            key={key}
+            onClick={() => setActiveTab(key)}
+            style={{
+              padding: "0.5rem 1.25rem",
+              borderRadius: "9999px",
+              fontSize: "12px",
+              fontWeight: 600,
+              border: "1.5px solid",
+              cursor: "pointer",
+              transition: "all 0.15s ease",
+              backgroundColor:
+                activeTab === key ? cfg.colors.primary : "#ffffff",
+              color: activeTab === key ? "#ffffff" : "#717171",
+              borderColor: activeTab === key ? cfg.colors.primary : "#EAEAEA",
+            }}
+          >
             {label}
           </button>
         ))}
@@ -313,20 +638,129 @@ export default function AccountDetailPage() {
       {activeTab === "breakdown" && (
         <FadeInUp>
           <Card padding="1.5rem">
-            <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#2D2D2D", marginBottom: "1rem" }}>Weekly Interest Breakdown</h3>
+            <h3
+              style={{
+                fontSize: "14px",
+                fontWeight: 600,
+                color: "#2D2D2D",
+                marginBottom: "1rem",
+              }}
+            >
+              Weekly Interest Breakdown
+            </h3>
             {breakdown.length === 0 ? (
-              <div style={{ padding: "2rem", textAlign: "center", color: "#999", fontSize: "13px" }}>No breakdown available</div>
+              <div
+                style={{
+                  padding: "2rem",
+                  textAlign: "center",
+                  color: "#999",
+                  fontSize: "13px",
+                }}
+              >
+                No breakdown available
+              </div>
             ) : (
-              <div style={{ maxHeight: "480px", overflowY: "auto", borderRadius: "0.5rem", border: "1px solid #F0F0F0" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "11px" }}>
+              <div
+                style={{
+                  maxHeight: "480px",
+                  overflowY: "auto",
+                  borderRadius: "0.5rem",
+                  border: "1px solid #F0F0F0",
+                }}
+              >
+                <table
+                  style={{
+                    width: "100%",
+                    borderCollapse: "collapse",
+                    fontSize: "11px",
+                  }}
+                >
                   <thead style={{ position: "sticky", top: 0, zIndex: 1 }}>
                     <tr style={{ backgroundColor: "#FAFAFA" }}>
-                      <th style={{ padding: "0.625rem 0.75rem", textAlign: "center", fontWeight: 600, color: "#999", borderBottom: "1px solid #F0F0F0", fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Week</th>
-                      <th style={{ padding: "0.625rem 0.75rem", textAlign: "left", fontWeight: 600, color: "#999", borderBottom: "1px solid #F0F0F0", fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Date</th>
-                      <th style={{ padding: "0.625rem 0.75rem", textAlign: "right", fontWeight: 600, color: "#999", borderBottom: "1px solid #F0F0F0", fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Principal</th>
-                      <th style={{ padding: "0.625rem 0.75rem", textAlign: "right", fontWeight: 600, color: "#999", borderBottom: "1px solid #F0F0F0", fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.05em" }}>This Week</th>
-                      <th style={{ padding: "0.625rem 0.75rem", textAlign: "right", fontWeight: 600, color: "#999", borderBottom: "1px solid #F0F0F0", fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Cumulative</th>
-                      <th style={{ padding: "0.625rem 0.75rem", textAlign: "right", fontWeight: 600, color: "#999", borderBottom: "1px solid #F0F0F0", fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Total Value</th>
+                      <th
+                        style={{
+                          padding: "0.625rem 0.75rem",
+                          textAlign: "center",
+                          fontWeight: 600,
+                          color: "#999",
+                          borderBottom: "1px solid #F0F0F0",
+                          fontSize: "9px",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                        }}
+                      >
+                        Week
+                      </th>
+                      <th
+                        style={{
+                          padding: "0.625rem 0.75rem",
+                          textAlign: "left",
+                          fontWeight: 600,
+                          color: "#999",
+                          borderBottom: "1px solid #F0F0F0",
+                          fontSize: "9px",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                        }}
+                      >
+                        Date
+                      </th>
+                      <th
+                        style={{
+                          padding: "0.625rem 0.75rem",
+                          textAlign: "right",
+                          fontWeight: 600,
+                          color: "#999",
+                          borderBottom: "1px solid #F0F0F0",
+                          fontSize: "9px",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                        }}
+                      >
+                        Principal
+                      </th>
+                      <th
+                        style={{
+                          padding: "0.625rem 0.75rem",
+                          textAlign: "right",
+                          fontWeight: 600,
+                          color: "#999",
+                          borderBottom: "1px solid #F0F0F0",
+                          fontSize: "9px",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                        }}
+                      >
+                        This Week
+                      </th>
+                      <th
+                        style={{
+                          padding: "0.625rem 0.75rem",
+                          textAlign: "right",
+                          fontWeight: 600,
+                          color: "#999",
+                          borderBottom: "1px solid #F0F0F0",
+                          fontSize: "9px",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                        }}
+                      >
+                        Cumulative
+                      </th>
+                      <th
+                        style={{
+                          padding: "0.625rem 0.75rem",
+                          textAlign: "right",
+                          fontWeight: 600,
+                          color: "#999",
+                          borderBottom: "1px solid #F0F0F0",
+                          fontSize: "9px",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                        }}
+                      >
+                        Total Value
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -335,16 +769,79 @@ export default function AccountDetailPage() {
                       const isPast = weekDate <= new Date();
                       const isCurrent = idx === weeksSinceStart - 1;
                       return (
-                        <tr key={week.week} style={{
-                          backgroundColor: isCurrent ? "#ECFDF5" : idx % 2 === 0 ? "#ffffff" : "#FAFAFA",
-                          opacity: isPast ? 1 : 0.6,
-                        }}>
-                          <td style={{ padding: "0.5rem 0.75rem", textAlign: "center", fontFamily: "'JetBrains Mono', monospace", fontWeight: isCurrent ? 700 : 400, color: isCurrent ? cfg.colors.primary : "#666" }}>#{week.week}</td>
-                          <td style={{ padding: "0.5rem 0.75rem", fontFamily: "'JetBrains Mono', monospace", color: "#666" }}>{formatDate(week.date)}</td>
-                          <td style={{ padding: "0.5rem 0.75rem", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", color: "#666" }}>{formatNaira(week.principal)}</td>
-                          <td style={{ padding: "0.5rem 0.75rem", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", fontWeight: 500, color: "#10B981" }}>+{formatNaira(week.interestThisWeek)}</td>
-                          <td style={{ padding: "0.5rem 0.75rem", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", color: "#2D2D2D" }}>{formatNaira(week.cumulativeInterest)}</td>
-                          <td style={{ padding: "0.5rem 0.75rem", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: cfg.colors.primary }}>{formatNaira(week.totalValue)}</td>
+                        <tr
+                          key={week.week}
+                          style={{
+                            backgroundColor: isCurrent
+                              ? "#ECFDF5"
+                              : idx % 2 === 0
+                                ? "#ffffff"
+                                : "#FAFAFA",
+                            opacity: isPast ? 1 : 0.6,
+                          }}
+                        >
+                          <td
+                            style={{
+                              padding: "0.5rem 0.75rem",
+                              textAlign: "center",
+                              fontFamily: "'JetBrains Mono', monospace",
+                              fontWeight: isCurrent ? 700 : 400,
+                              color: isCurrent ? cfg.colors.primary : "#666",
+                            }}
+                          >
+                            #{week.week}
+                          </td>
+                          <td
+                            style={{
+                              padding: "0.5rem 0.75rem",
+                              fontFamily: "'JetBrains Mono', monospace",
+                              color: "#666",
+                            }}
+                          >
+                            {formatDate(week.date)}
+                          </td>
+                          <td
+                            style={{
+                              padding: "0.5rem 0.75rem",
+                              textAlign: "right",
+                              fontFamily: "'JetBrains Mono', monospace",
+                              color: "#666",
+                            }}
+                          >
+                            {formatNaira(week.principal)}
+                          </td>
+                          <td
+                            style={{
+                              padding: "0.5rem 0.75rem",
+                              textAlign: "right",
+                              fontFamily: "'JetBrains Mono', monospace",
+                              fontWeight: 500,
+                              color: "#10B981",
+                            }}
+                          >
+                            +{formatNaira(week.interestThisWeek)}
+                          </td>
+                          <td
+                            style={{
+                              padding: "0.5rem 0.75rem",
+                              textAlign: "right",
+                              fontFamily: "'JetBrains Mono', monospace",
+                              color: "#2D2D2D",
+                            }}
+                          >
+                            {formatNaira(week.cumulativeInterest)}
+                          </td>
+                          <td
+                            style={{
+                              padding: "0.5rem 0.75rem",
+                              textAlign: "right",
+                              fontFamily: "'JetBrains Mono', monospace",
+                              fontWeight: 600,
+                              color: cfg.colors.primary,
+                            }}
+                          >
+                            {formatNaira(week.totalValue)}
+                          </td>
                         </tr>
                       );
                     })}
@@ -352,8 +849,22 @@ export default function AccountDetailPage() {
                 </table>
               </div>
             )}
-            <div style={{ marginTop: "1rem", padding: "0.75rem 1rem", backgroundColor: "#FFFBEB", borderRadius: "0.5rem", fontSize: "11px", color: "#92400E" }}>
-              <strong>Note:</strong> Projected interest is calculated at <strong>{account.circle.interestRateAnnual}% p.a.</strong> simple interest on the principal of <strong>{formatNaira(account.principalAmount)}</strong>. Actual accrued interest may differ based on calculation timing. Interest is computed weekly on Sundays.
+            <div
+              style={{
+                marginTop: "1rem",
+                padding: "0.75rem 1rem",
+                backgroundColor: "#FFFBEB",
+                borderRadius: "0.5rem",
+                fontSize: "11px",
+                color: "#92400E",
+              }}
+            >
+              <strong>Note:</strong> Projected interest is calculated at{" "}
+              <strong>{account.circle.interestRateAnnual}% p.a.</strong> simple
+              interest on the principal of{" "}
+              <strong>{formatNaira(account.principalAmount)}</strong>. Actual
+              accrued interest may differ based on calculation timing. Interest
+              is computed weekly on Sundays.
             </div>
           </Card>
         </FadeInUp>
@@ -362,35 +873,192 @@ export default function AccountDetailPage() {
       {activeTab === "logs" && (
         <FadeInUp>
           <Card padding="1.5rem">
-            <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#2D2D2D", marginBottom: "1rem" }}>Interest Calculation History</h3>
+            <h3
+              style={{
+                fontSize: "14px",
+                fontWeight: 600,
+                color: "#2D2D2D",
+                marginBottom: "1rem",
+              }}
+            >
+              Interest Calculation History
+            </h3>
             {account.interestLogs.length === 0 ? (
-              <div style={{ padding: "2rem", textAlign: "center", color: "#999", fontSize: "13px" }}>No interest calculations recorded yet</div>
+              <div
+                style={{
+                  padding: "2rem",
+                  textAlign: "center",
+                  color: "#999",
+                  fontSize: "13px",
+                }}
+              >
+                No interest calculations recorded yet
+              </div>
             ) : (
-              <div style={{ maxHeight: "400px", overflowY: "auto", borderRadius: "0.5rem", border: "1px solid #F0F0F0" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "11px" }}>
+              <div
+                style={{
+                  maxHeight: "400px",
+                  overflowY: "auto",
+                  borderRadius: "0.5rem",
+                  border: "1px solid #F0F0F0",
+                }}
+              >
+                <table
+                  style={{
+                    width: "100%",
+                    borderCollapse: "collapse",
+                    fontSize: "11px",
+                  }}
+                >
                   <thead style={{ position: "sticky", top: 0, zIndex: 1 }}>
                     <tr style={{ backgroundColor: "#FAFAFA" }}>
-                      <th style={{ padding: "0.625rem 0.75rem", textAlign: "left", fontWeight: 600, color: "#999", borderBottom: "1px solid #F0F0F0", fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Date</th>
-                      <th style={{ padding: "0.625rem 0.75rem", textAlign: "right", fontWeight: 600, color: "#999", borderBottom: "1px solid #F0F0F0", fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Principal</th>
-                      <th style={{ padding: "0.625rem 0.75rem", textAlign: "right", fontWeight: 600, color: "#999", borderBottom: "1px solid #F0F0F0", fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Interest</th>
-                      <th style={{ padding: "0.625rem 0.75rem", textAlign: "right", fontWeight: 600, color: "#999", borderBottom: "1px solid #F0F0F0", fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Rate</th>
-                      <th style={{ padding: "0.625rem 0.75rem", textAlign: "right", fontWeight: 600, color: "#999", borderBottom: "1px solid #F0F0F0", fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Cumulative</th>
+                      <th
+                        style={{
+                          padding: "0.625rem 0.75rem",
+                          textAlign: "left",
+                          fontWeight: 600,
+                          color: "#999",
+                          borderBottom: "1px solid #F0F0F0",
+                          fontSize: "9px",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                        }}
+                      >
+                        Date
+                      </th>
+                      <th
+                        style={{
+                          padding: "0.625rem 0.75rem",
+                          textAlign: "right",
+                          fontWeight: 600,
+                          color: "#999",
+                          borderBottom: "1px solid #F0F0F0",
+                          fontSize: "9px",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                        }}
+                      >
+                        Principal
+                      </th>
+                      <th
+                        style={{
+                          padding: "0.625rem 0.75rem",
+                          textAlign: "right",
+                          fontWeight: 600,
+                          color: "#999",
+                          borderBottom: "1px solid #F0F0F0",
+                          fontSize: "9px",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                        }}
+                      >
+                        Interest
+                      </th>
+                      <th
+                        style={{
+                          padding: "0.625rem 0.75rem",
+                          textAlign: "right",
+                          fontWeight: 600,
+                          color: "#999",
+                          borderBottom: "1px solid #F0F0F0",
+                          fontSize: "9px",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                        }}
+                      >
+                        Rate
+                      </th>
+                      <th
+                        style={{
+                          padding: "0.625rem 0.75rem",
+                          textAlign: "right",
+                          fontWeight: 600,
+                          color: "#999",
+                          borderBottom: "1px solid #F0F0F0",
+                          fontSize: "9px",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                        }}
+                      >
+                        Cumulative
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {account.interestLogs.reduce((acc, log) => {
-                      const prevCum = acc.length > 0 ? acc[acc.length - 1].cumulative : 0;
-                      acc.push({ ...log, cumulative: prevCum + log.amount });
-                      return acc;
-                    }, [] as (InterestLog & { cumulative: number })[]).reverse().map((log, idx) => (
-                      <tr key={log.id} style={{ backgroundColor: idx % 2 === 0 ? "#ffffff" : "#FAFAFA" }}>
-                        <td style={{ padding: "0.5rem 0.75rem", fontFamily: "'JetBrains Mono', monospace", color: "#666" }}>{formatDate(log.calculatedAt)}</td>
-                        <td style={{ padding: "0.5rem 0.75rem", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", color: "#666" }}>{formatNaira(log.principalAtCalculation)}</td>
-                        <td style={{ padding: "0.5rem 0.75rem", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", fontWeight: 500, color: "#10B981" }}>+{formatNaira(log.amount)}</td>
-                        <td style={{ padding: "0.5rem 0.75rem", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", color: "#F59E0B" }}>{log.annualRate}%</td>
-                        <td style={{ padding: "0.5rem 0.75rem", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", color: "#2D2D2D" }}>{formatNaira(log.cumulative)}</td>
-                      </tr>
-                    ))}
+                    {account.interestLogs
+                      .reduce(
+                        (acc, log) => {
+                          const prevCum =
+                            acc.length > 0 ? acc[acc.length - 1].cumulative : 0;
+                          acc.push({
+                            ...log,
+                            cumulative: prevCum + log.amount,
+                          });
+                          return acc;
+                        },
+                        [] as (InterestLog & { cumulative: number })[],
+                      )
+                      .reverse()
+                      .map((log, idx) => (
+                        <tr
+                          key={log.id}
+                          style={{
+                            backgroundColor:
+                              idx % 2 === 0 ? "#ffffff" : "#FAFAFA",
+                          }}
+                        >
+                          <td
+                            style={{
+                              padding: "0.5rem 0.75rem",
+                              fontFamily: "'JetBrains Mono', monospace",
+                              color: "#666",
+                            }}
+                          >
+                            {formatDate(log.calculatedAt)}
+                          </td>
+                          <td
+                            style={{
+                              padding: "0.5rem 0.75rem",
+                              textAlign: "right",
+                              fontFamily: "'JetBrains Mono', monospace",
+                              color: "#666",
+                            }}
+                          >
+                            {formatNaira(log.principalAtCalculation)}
+                          </td>
+                          <td
+                            style={{
+                              padding: "0.5rem 0.75rem",
+                              textAlign: "right",
+                              fontFamily: "'JetBrains Mono', monospace",
+                              fontWeight: 500,
+                              color: "#10B981",
+                            }}
+                          >
+                            +{formatNaira(log.amount)}
+                          </td>
+                          <td
+                            style={{
+                              padding: "0.5rem 0.75rem",
+                              textAlign: "right",
+                              fontFamily: "'JetBrains Mono', monospace",
+                              color: "#F59E0B",
+                            }}
+                          >
+                            {log.annualRate}%
+                          </td>
+                          <td
+                            style={{
+                              padding: "0.5rem 0.75rem",
+                              textAlign: "right",
+                              fontFamily: "'JetBrains Mono', monospace",
+                              color: "#2D2D2D",
+                            }}
+                          >
+                            {formatNaira(log.cumulative)}
+                          </td>
+                        </tr>
+                      ))}
                   </tbody>
                 </table>
               </div>
@@ -402,32 +1070,179 @@ export default function AccountDetailPage() {
       {activeTab === "transactions" && (
         <FadeInUp>
           <Card padding="1.5rem">
-            <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#2D2D2D", marginBottom: "1rem" }}>Transaction History</h3>
+            <h3
+              style={{
+                fontSize: "14px",
+                fontWeight: 600,
+                color: "#2D2D2D",
+                marginBottom: "1rem",
+              }}
+            >
+              Transaction History
+            </h3>
             {transactions.length === 0 ? (
-              <div style={{ padding: "2rem", textAlign: "center", color: "#999", fontSize: "13px" }}>No transactions yet</div>
+              <div
+                style={{
+                  padding: "2rem",
+                  textAlign: "center",
+                  color: "#999",
+                  fontSize: "13px",
+                }}
+              >
+                No transactions yet
+              </div>
             ) : (
-              <div style={{ maxHeight: "400px", overflowY: "auto", borderRadius: "0.5rem", border: "1px solid #F0F0F0" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "11px" }}>
+              <div
+                style={{
+                  maxHeight: "400px",
+                  overflowY: "auto",
+                  borderRadius: "0.5rem",
+                  border: "1px solid #F0F0F0",
+                }}
+              >
+                <table
+                  style={{
+                    width: "100%",
+                    borderCollapse: "collapse",
+                    fontSize: "11px",
+                  }}
+                >
                   <thead style={{ position: "sticky", top: 0, zIndex: 1 }}>
                     <tr style={{ backgroundColor: "#FAFAFA" }}>
-                      <th style={{ padding: "0.625rem 0.75rem", textAlign: "left", fontWeight: 600, color: "#999", borderBottom: "1px solid #F0F0F0", fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Date</th>
-                      <th style={{ padding: "0.625rem 0.75rem", textAlign: "left", fontWeight: 600, color: "#999", borderBottom: "1px solid #F0F0F0", fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Type</th>
-                      <th style={{ padding: "0.625rem 0.75rem", textAlign: "right", fontWeight: 600, color: "#999", borderBottom: "1px solid #F0F0F0", fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Amount</th>
-                      <th style={{ padding: "0.625rem 0.75rem", textAlign: "right", fontWeight: 600, color: "#999", borderBottom: "1px solid #F0F0F0", fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Status</th>
+                      <th
+                        style={{
+                          padding: "0.625rem 0.75rem",
+                          textAlign: "left",
+                          fontWeight: 600,
+                          color: "#999",
+                          borderBottom: "1px solid #F0F0F0",
+                          fontSize: "9px",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                        }}
+                      >
+                        Date
+                      </th>
+                      <th
+                        style={{
+                          padding: "0.625rem 0.75rem",
+                          textAlign: "left",
+                          fontWeight: 600,
+                          color: "#999",
+                          borderBottom: "1px solid #F0F0F0",
+                          fontSize: "9px",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                        }}
+                      >
+                        Type
+                      </th>
+                      <th
+                        style={{
+                          padding: "0.625rem 0.75rem",
+                          textAlign: "right",
+                          fontWeight: 600,
+                          color: "#999",
+                          borderBottom: "1px solid #F0F0F0",
+                          fontSize: "9px",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                        }}
+                      >
+                        Amount
+                      </th>
+                      <th
+                        style={{
+                          padding: "0.625rem 0.75rem",
+                          textAlign: "right",
+                          fontWeight: 600,
+                          color: "#999",
+                          borderBottom: "1px solid #F0F0F0",
+                          fontSize: "9px",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                        }}
+                      >
+                        Status
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {transactions.map((tx, idx) => (
-                      <tr key={tx.id} style={{ backgroundColor: idx % 2 === 0 ? "#ffffff" : "#FAFAFA" }}>
-                        <td style={{ padding: "0.5rem 0.75rem", fontFamily: "'JetBrains Mono', monospace", color: "#666" }}>{formatDateTime(tx.createdAt)}</td>
+                      <tr
+                        key={tx.id}
+                        style={{
+                          backgroundColor:
+                            idx % 2 === 0 ? "#ffffff" : "#FAFAFA",
+                        }}
+                      >
+                        <td
+                          style={{
+                            padding: "0.5rem 0.75rem",
+                            fontFamily: "'JetBrains Mono', monospace",
+                            color: "#666",
+                          }}
+                        >
+                          {formatDateTime(tx.createdAt)}
+                        </td>
                         <td style={{ padding: "0.5rem 0.75rem" }}>
-                          <span style={{ fontSize: "9px", fontWeight: 700, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace", color: getTransactionTypeColor(tx.type), backgroundColor: `${getTransactionTypeColor(tx.type)}12`, padding: "0.125rem 0.5rem", borderRadius: "0.375rem" }}>{getTransactionTypeLabel(tx.type)}</span>
+                          <span
+                            style={{
+                              fontSize: "9px",
+                              fontWeight: 700,
+                              textTransform: "uppercase",
+                              fontFamily: "'JetBrains Mono', monospace",
+                              color: getTransactionTypeColor(tx.type),
+                              backgroundColor: `${getTransactionTypeColor(tx.type)}12`,
+                              padding: "0.125rem 0.5rem",
+                              borderRadius: "0.375rem",
+                            }}
+                          >
+                            {getTransactionTypeLabel(tx.type)}
+                          </span>
                         </td>
-                        <td style={{ padding: "0.5rem 0.75rem", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: tx.type === "circle_withdrawal" ? "#DC2626" : tx.type === "circle_interest" ? "#10B981" : cfg.colors.primary }}>
-                          {tx.type === "circle_withdrawal" ? "-" : "+"}{formatNaira(tx.amount)}
+                        <td
+                          style={{
+                            padding: "0.5rem 0.75rem",
+                            textAlign: "right",
+                            fontFamily: "'JetBrains Mono', monospace",
+                            fontWeight: 600,
+                            color:
+                              tx.type === "circle_withdrawal"
+                                ? "#DC2626"
+                                : tx.type === "circle_interest"
+                                  ? "#10B981"
+                                  : cfg.colors.primary,
+                          }}
+                        >
+                          {tx.type === "circle_withdrawal" ? "-" : "+"}
+                          {formatNaira(tx.amount)}
                         </td>
-                        <td style={{ padding: "0.5rem 0.75rem", textAlign: "right" }}>
-                          <span style={{ fontSize: "9px", fontWeight: 600, textTransform: "uppercase", color: tx.status === "completed" ? "#059669" : "#D97706", backgroundColor: tx.status === "completed" ? "#ECFDF5" : "#FFFBEB", padding: "0.125rem 0.5rem", borderRadius: "0.375rem" }}>{tx.status}</span>
+                        <td
+                          style={{
+                            padding: "0.5rem 0.75rem",
+                            textAlign: "right",
+                          }}
+                        >
+                          <span
+                            style={{
+                              fontSize: "9px",
+                              fontWeight: 600,
+                              textTransform: "uppercase",
+                              color:
+                                tx.status === "completed"
+                                  ? "#059669"
+                                  : "#D97706",
+                              backgroundColor:
+                                tx.status === "completed"
+                                  ? "#ECFDF5"
+                                  : "#FFFBEB",
+                              padding: "0.125rem 0.5rem",
+                              borderRadius: "0.375rem",
+                            }}
+                          >
+                            {tx.status}
+                          </span>
                         </td>
                       </tr>
                     ))}

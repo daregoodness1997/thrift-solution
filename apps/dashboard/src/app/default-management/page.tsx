@@ -37,6 +37,7 @@ export default function DefaultManagementPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [defStats, setDefStats] = useState({ totalDefaults: 0, totalOverdue: 0, totalPending: 0 });
 
   const LIMIT = 20;
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -44,16 +45,18 @@ export default function DefaultManagementPage() {
   const fetchDefaults = useCallback(async () => {
     if (!token) { setLoading(false); return; }
     try {
-      const res = await fetch(`${API_URL}/api/defaults?page=${page}&limit=${LIMIT}`, { headers: { Authorization: `Bearer ${token}` } });
+      const statusParam = filter !== "all" ? `&status=${filter}` : "";
+      const res = await fetch(`${API_URL}/api/defaults?page=${page}&limit=${LIMIT}${statusParam}`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
       if (data.success) {
         setDefaults(data.data.items || []);
         setTotalPages(data.data.totalPages || 1);
         setTotal(data.data.total || 0);
+        if (data.data.stats) setDefStats(data.data.stats);
       }
     } catch {}
     setLoading(false);
-  }, [token, API_URL, page, LIMIT]);
+  }, [token, API_URL, page, LIMIT, filter]);
 
   useEffect(() => { fetchDefaults(); }, [fetchDefaults]);
 
@@ -62,9 +65,7 @@ export default function DefaultManagementPage() {
     setPage(1);
   };
 
-  const filtered = filter === "all" ? defaults : defaults.filter((d) => d.status === filter);
-  const totalOverdue = defaults.filter((d) => d.status === "overdue").reduce((sum, d) => sum + d.amount, 0);
-  const totalPending = defaults.filter((d) => d.status === "pending").reduce((sum, d) => sum + d.amount, 0);
+  const filtered = defaults;
 
   const sendReminder = (id: string) => {
     setShowReminder(id);
@@ -105,15 +106,15 @@ export default function DefaultManagementPage() {
       <StaggerChildren staggerDelay={100} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem", marginBottom: "2rem" }}>
         <Card padding="1.25rem">
           <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", fontWeight: 700, display: "block" }}>Total Defaults</span>
-          <span style={{ fontSize: "1.5rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: "#1A1A1A", display: "block", marginTop: "0.25rem" }}>{defaults.length}</span>
+          <span style={{ fontSize: "1.5rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: "#1A1A1A", display: "block", marginTop: "0.25rem" }}>{defStats.totalDefaults}</span>
         </Card>
         <Card padding="1.25rem">
           <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", fontWeight: 700, display: "block" }}>Overdue Amount</span>
-          <span style={{ fontSize: "1.5rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: "#DC2626", display: "block", marginTop: "0.25rem" }}>{formatNaira(totalOverdue)}</span>
+          <span style={{ fontSize: "1.5rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: "#DC2626", display: "block", marginTop: "0.25rem" }}>{formatNaira(defStats.totalOverdue)}</span>
         </Card>
         <Card padding="1.25rem">
           <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", fontWeight: 700, display: "block" }}>Pending Amount</span>
-          <span style={{ fontSize: "1.5rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: "#D97706", display: "block", marginTop: "0.25rem" }}>{formatNaira(totalPending)}</span>
+          <span style={{ fontSize: "1.5rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: "#D97706", display: "block", marginTop: "0.25rem" }}>{formatNaira(defStats.totalPending)}</span>
         </Card>
       </StaggerChildren>
 

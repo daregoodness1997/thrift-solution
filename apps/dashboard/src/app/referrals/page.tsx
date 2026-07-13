@@ -101,7 +101,7 @@ export default function ReferralsPage() {
     } finally {
       setLoading(false);
     }
-  }, [API_URL]);
+  }, [API_URL, token]);
 
   const fetchReferrals = useCallback(async () => {
     try {
@@ -113,7 +113,7 @@ export default function ReferralsPage() {
         setReferralsTotalPages(data.data.totalPages);
       }
     } catch {}
-  }, [API_URL, referralsPage]);
+  }, [API_URL, token, referralsPage]);
 
   const fetchEarnings = useCallback(async () => {
     try {
@@ -125,7 +125,7 @@ export default function ReferralsPage() {
         setEarningsTotalPages(data.data.totalPages);
       }
     } catch {}
-  }, [API_URL, earningsPage]);
+  }, [API_URL, token, earningsPage]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
   useEffect(() => { fetchReferrals(); }, [fetchReferrals]);

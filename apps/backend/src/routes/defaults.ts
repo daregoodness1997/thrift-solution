@@ -8,7 +8,8 @@ defaultsRouter.get("/", authMiddleware, async (req, res) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
-    const result = await getDefaultsForUser(req.user!.userId, { page, limit });
+    const status = req.query.status as string | undefined;
+    const result = await getDefaultsForUser(req.user!.userId, { page, limit, status });
     res.json({ success: true, data: result });
   } catch (err) {
     console.error("Get defaults error:", err);

@@ -14,8 +14,10 @@ whatsappRouter.get("/my", authMiddleware, async (req, res) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
+    const search = req.query.search as string | undefined;
+    const pinned = req.query.pinned === "true" ? true : undefined;
     await seedDefaultWhatsappGroups();
-    const result = await getWhatsappGroups(req.user!.userId, { page, limit });
+    const result = await getWhatsappGroups(req.user!.userId, { page, limit, search, pinned });
     res.json({ success: true, data: result });
   } catch (err) {
     console.error("Get WhatsApp groups error:", err);

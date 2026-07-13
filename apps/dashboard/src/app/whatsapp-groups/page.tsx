@@ -90,7 +90,9 @@ export default function WhatsAppGroupsPage() {
   const fetchMyGroups = useCallback(async () => {
     if (!token) return;
     try {
-      const res = await fetch(`${API_URL}/api/whatsapp/my?page=${myGroupsPage}&limit=${LIMIT}`, { headers: { Authorization: `Bearer ${token}` } });
+      const searchParam = search ? `&search=${encodeURIComponent(search)}` : "";
+      const pinnedParam = filter === "pinned" ? "&pinned=true" : "";
+      const res = await fetch(`${API_URL}/api/whatsapp/my?page=${myGroupsPage}&limit=${LIMIT}${searchParam}${pinnedParam}`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
       if (data.success) {
         setMyGroups(data.data.items || []);
@@ -98,7 +100,7 @@ export default function WhatsAppGroupsPage() {
         setMyGroupsTotalPages(data.data.totalPages || 0);
       }
     } catch {}
-  }, [token, API_URL, myGroupsPage]);
+  }, [token, API_URL, myGroupsPage, search, filter]);
 
   const fetchAllGroups = useCallback(async () => {
     if (!token) return;
@@ -115,16 +117,15 @@ export default function WhatsAppGroupsPage() {
 
   useEffect(() => {
     if (!token) { setLoading(false); return; }
-    Promise.all([fetchMyGroups(), fetchAllGroups()]).then(() => setLoading(false));
-  }, [token, fetchMyGroups, fetchAllGroups, myGroupsPage, allGroupsPage]);
+    const timeout = setTimeout(() => {
+      Promise.all([fetchMyGroups(), fetchAllGroups()]).then(() => setLoading(false));
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [token, fetchMyGroups, fetchAllGroups, myGroupsPage, allGroupsPage, search, filter]);
 
   const totalMembers = myGroups.reduce((sum, g) => sum + g.memberCount, 0);
 
-  const filtered = myGroups.filter((g) => {
-    if (filter === "pinned" && !g.pinned) return false;
-    if (search && !g.name.toLowerCase().includes(search.toLowerCase()) && !(g.circleName || "").toLowerCase().includes(search.toLowerCase())) return false;
-    return true;
-  });
+  const filtered = myGroups;
 
   async function joinGroup(groupId: string) {
     if (!token || joining) return;
@@ -142,7 +143,7 @@ export default function WhatsAppGroupsPage() {
     setJoining(null);
   }
 
-  const availableGroups = allGroups.filter((g) => !g.joined);
+  const availableGroups = allGroups;
 
   return (
     <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>

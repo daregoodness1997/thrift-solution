@@ -37,6 +37,7 @@ export default function ClearanceManagementPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+  const [clearStats, setClearStats] = useState({ totalCleared: 0, totalPending: 0 });
   const LIMIT = 20;
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -47,6 +48,7 @@ export default function ClearanceManagementPage() {
       const res = await fetch(`${API_URL}/api/clearances`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
       if (data.success) setClearances(data.data.clearances || []);
+      if (data.data.stats) setClearStats(data.data.stats);
     } catch {}
     setLoading(false);
   }, [token, API_URL]);
@@ -73,9 +75,7 @@ export default function ClearanceManagementPage() {
   useEffect(() => { fetchClearances(); }, [fetchClearances]);
   useEffect(() => { fetchPaginatedList(); }, [fetchPaginatedList]);
 
-  const filtered = filter === "all" ? clearances : clearances.filter((c) => c.status === filter);
-  const totalCleared = clearances.filter((c) => c.status === "cleared").reduce((sum, c) => sum + c.payoutAmount, 0);
-  const totalPending = clearances.filter((c) => c.status === "pending" || c.status === "partial").reduce((sum, c) => sum + (c.payoutAmount - c.contributed), 0);
+  const filtered = clearances;
 
   const approveClearance = async (id: string) => {
     if (!token) return;
@@ -111,15 +111,15 @@ export default function ClearanceManagementPage() {
       <StaggerChildren staggerDelay={100} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem", marginBottom: "2rem" }}>
         <Card padding="1.25rem">
           <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", fontWeight: 700, display: "block" }}>Total Clearances</span>
-          <span style={{ fontSize: "1.5rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: "#1A1A1A", display: "block", marginTop: "0.25rem" }}>{clearances.length}</span>
+          <span style={{ fontSize: "1.5rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: "#1A1A1A", display: "block", marginTop: "0.25rem" }}>{totalItems}</span>
         </Card>
         <Card padding="1.25rem">
           <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", fontWeight: 700, display: "block" }}>Cleared Amount</span>
-          <span style={{ fontSize: "1.5rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: "#059669", display: "block", marginTop: "0.25rem" }}>{formatNaira(totalCleared)}</span>
+          <span style={{ fontSize: "1.5rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: "#059669", display: "block", marginTop: "0.25rem" }}>{formatNaira(clearStats.totalCleared)}</span>
         </Card>
         <Card padding="1.25rem">
           <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", fontWeight: 700, display: "block" }}>Pending Payout</span>
-          <span style={{ fontSize: "1.5rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: "#D97706", display: "block", marginTop: "0.25rem" }}>{formatNaira(totalPending)}</span>
+          <span style={{ fontSize: "1.5rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: "#D97706", display: "block", marginTop: "0.25rem" }}>{formatNaira(clearStats.totalPending)}</span>
         </Card>
       </StaggerChildren>
 

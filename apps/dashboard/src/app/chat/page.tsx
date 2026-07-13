@@ -74,7 +74,8 @@ export default function ChatPage() {
   const fetchConversations = useCallback(async () => {
     if (!token) { setLoading(false); return; }
     try {
-      const res = await fetch(`${API_URL}/api/chat/conversations?page=${convPage}&limit=${LIMIT}`, { headers: { Authorization: `Bearer ${token}` } });
+      const searchParam = search ? `&search=${encodeURIComponent(search)}` : "";
+      const res = await fetch(`${API_URL}/api/chat/conversations?page=${convPage}&limit=${LIMIT}${searchParam}`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
       if (data.success) {
         setContacts(data.data.items || []);
@@ -83,9 +84,12 @@ export default function ChatPage() {
       }
     } catch {}
     setLoading(false);
-  }, [token, API_URL, convPage]);
+  }, [token, API_URL, convPage, search]);
 
-  useEffect(() => { fetchConversations(); }, [fetchConversations, convPage]);
+  useEffect(() => {
+    const timeout = setTimeout(() => fetchConversations(), 300);
+    return () => clearTimeout(timeout);
+  }, [fetchConversations, convPage, search]);
 
   const fetchMessages = useCallback(async (conversationId: string, page: number) => {
     if (!token) return;
@@ -180,11 +184,9 @@ export default function ChatPage() {
     if (isMobile) setShowSidebar(false);
   }
 
-  const filteredContacts = contacts.filter((c) =>
-    !search || c.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredContacts = contacts;
 
-  const getInitials = (name: string) => name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+  const getInitials = (name: string) => (name || "").split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
 
   const formatTime = (ts: string) => {
     const d = new Date(ts);

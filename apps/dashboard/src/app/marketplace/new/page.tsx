@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { config, BrandConfig } from "@thrift/config";
 import { Card, Button, ColorfulBadge, FadeInUp } from "@thrift/ui";
@@ -28,6 +28,11 @@ const CONDITIONS = [
   { value: "fair", label: "Fair" },
 ];
 
+interface ImageFile {
+  file: File;
+  preview: string;
+}
+
 export default function NewListingPage() {
   const { token } = useAuth();
   const router = useRouter();
@@ -37,9 +42,11 @@ export default function NewListingPage() {
   const [price, setPrice] = useState("");
   const [category, setCategory] = useState("other");
   const [condition, setCondition] = useState("good");
-  const [imageUrl, setImageUrl] = useState("");
+  const [imageFile, setImageFile] = useState<ImageFile | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -49,6 +56,34 @@ export default function NewListingPage() {
       .then((data) => { if (data && data.name) setCfg((prev) => ({ ...prev, ...data })); })
       .catch(() => {});
   }, [API_URL]);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      setError("File size must be less than 10MB");
+      return;
+    }
+    if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) {
+      setError("Only JPEG, PNG, WebP, and GIF files are allowed");
+      return;
+    }
+
+    setError("");
+    const preview = URL.createObjectURL(file);
+    setImageFile({ file, preview });
+  };
+
+  const removeFile = () => {
+    if (imageFile?.preview) {
+      URL.revokeObjectURL(imageFile.preview);
+    }
+    setImageFile(null);
+    if (fileRef.current) {
+      fileRef.current.value = "";
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,17 +100,21 @@ export default function NewListingPage() {
 
     setSubmitting(true);
     try {
+      const formData = new FormData();
+      formData.append("title", title.trim());
+      formData.append("description", description.trim());
+      formData.append("price", String(Number(price)));
+      formData.append("category", category);
+      formData.append("condition", condition);
+
+      if (imageFile) {
+        formData.append("image", imageFile.file);
+      }
+
       const res = await fetch(`${API_URL}/api/marketplace`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          title: title.trim(),
-          description: description.trim(),
-          price: Number(price),
-          category,
-          condition,
-          imageUrl: imageUrl.trim() || undefined,
-        }),
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
       });
       const data = await res.json();
       if (data.success) {
@@ -141,23 +180,40 @@ export default function NewListingPage() {
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.375rem" }}>Condition *</label>
-                  <select value={condition} onChange={(e) => setCondition(e.target.value)}
-                    style={{ width: "100%", padding: "0.625rem 0.75rem", borderRadius: "0.75rem", border: "1px solid #EAEAEA", fontSize: "13px", outline: "none", boxSizing: "border-box", backgroundColor: "#ffffff", cursor: "pointer", transition: "border-color 0.2s ease" }}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = cfg.colors.primary; }}
-                    onBlur={(e) => { e.currentTarget.style.borderColor = "#EAEAEA"; }}>
-                    {CONDITIONS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.375rem" }}>Image URL (optional)</label>
-                  <input type="url" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://..."
-                    style={{ width: "100%", padding: "0.625rem 0.75rem", borderRadius: "0.75rem", border: "1px solid #EAEAEA", fontSize: "13px", outline: "none", boxSizing: "border-box", transition: "border-color 0.2s ease" }}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = cfg.colors.primary; }}
-                    onBlur={(e) => { e.currentTarget.style.borderColor = "#EAEAEA"; }} />
-                </div>
+              <div>
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.375rem" }}>Condition *</label>
+                <select value={condition} onChange={(e) => setCondition(e.target.value)}
+                  style={{ width: "100%", padding: "0.625rem 0.75rem", borderRadius: "0.75rem", border: "1px solid #EAEAEA", fontSize: "13px", outline: "none", boxSizing: "border-box", backgroundColor: "#ffffff", cursor: "pointer", transition: "border-color 0.2s ease" }}
+                  onFocus={(e) => { e.currentTarget.style.borderColor = cfg.colors.primary; }}
+                  onBlur={(e) => { e.currentTarget.style.borderColor = "#EAEAEA"; }}>
+                  {CONDITIONS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.375rem" }}>Product Image (optional)</label>
+                <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleFileSelect} style={{ display: "none" }} />
+                {imageFile ? (
+                  <div style={{ padding: "0.75rem", borderRadius: "0.75rem", border: "1px solid #A7F3D0", backgroundColor: "#ECFDF5", display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                    <img src={imageFile.preview} alt="Preview" style={{ width: "64px", height: "64px", borderRadius: "0.5rem", objectFit: "cover" }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{ fontSize: "12px", fontWeight: 500, color: "#2D2D2D", display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{imageFile.file.name}</span>
+                      <span style={{ fontSize: "10px", color: "#059669" }}>{(imageFile.file.size / 1024).toFixed(1)} KB</span>
+                    </div>
+                    <button type="button" onClick={removeFile} style={{ background: "none", border: "none", cursor: "pointer", padding: "0.25rem", color: "#DC2626" }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M18 6L6 18M6 6l12 12" /></svg>
+                    </button>
+                  </div>
+                ) : (
+                  <button type="button" onClick={() => fileRef.current?.click()} style={{ width: "100%", padding: "2rem", borderRadius: "0.75rem", border: "2px dashed #D1D5DB", backgroundColor: "#FAFAFA", cursor: "pointer", textAlign: "center", transition: "all 0.2s ease" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = cfg.colors.primary; e.currentTarget.style.backgroundColor = `${cfg.colors.primary}05`; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#D1D5DB"; e.currentTarget.style.backgroundColor = "#FAFAFA"; }}
+                  >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth={1.5} style={{ margin: "0 auto 0.5rem" }}><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+                    <span style={{ fontSize: "12px", color: "#717171", display: "block" }}>Click to upload product image</span>
+                    <span style={{ fontSize: "10px", color: "#999", display: "block", marginTop: "0.25rem" }}>JPEG, PNG, WebP, or GIF up to 10MB</span>
+                  </button>
+                )}
               </div>
 
               {error && (

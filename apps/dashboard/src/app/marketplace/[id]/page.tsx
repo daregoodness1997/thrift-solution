@@ -239,8 +239,11 @@ export default function ListingDetailPage() {
 
             {isSeller ? (
               <div style={{ display: "flex", gap: "0.75rem", paddingTop: "0.5rem" }}>
-                <button onClick={handleDelete} disabled={deleting} style={{ flex: 1, padding: "0.625rem", borderRadius: "9999px", fontSize: "13px", fontWeight: 600, cursor: "pointer", backgroundColor: "#ffffff", color: "#DC2626", border: "1px solid #FECACA", transition: "all 0.2s ease", opacity: deleting ? 0.5 : 1 }}>
-                  {deleting ? "Deleting..." : "Delete Listing"}
+                <a href={`/marketplace/${id}/edit`} style={{ flex: 1, padding: "0.625rem", borderRadius: "9999px", fontSize: "13px", fontWeight: 600, cursor: "pointer", backgroundColor: cfg.colors.primary, color: "#ffffff", border: "none", transition: "all 0.2s ease", textAlign: "center", textDecoration: "none", display: "block" }}>
+                  Edit Listing
+                </a>
+                <button onClick={handleDelete} disabled={deleting} style={{ padding: "0.625rem 1.25rem", borderRadius: "9999px", fontSize: "13px", fontWeight: 600, cursor: "pointer", backgroundColor: "#ffffff", color: "#DC2626", border: "1px solid #FECACA", transition: "all 0.2s ease", opacity: deleting ? 0.5 : 1 }}>
+                  {deleting ? "Deleting..." : "Delete"}
                 </button>
               </div>
             ) : listing.status === "active" ? (
