@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
 import { Skeleton, SkeletonCard } from "@/components/Skeleton";
 import { CircleCalculator } from "@/components/CircleCalculator";
+import Pagination from "@/components/Pagination";
 
 const fallback = config;
 
@@ -74,6 +75,9 @@ export default function CirclesPage() {
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [openModalCircle, setOpenModalCircle] = useState<Circle | null>(null);
   const [accountCount, setAccountCount] = useState(1);
+  const [page, setPage] = useState(1);
+  const LIMIT = 20;
+  const [accountsData, setAccountsData] = useState<{ total: number; totalPages: number }>({ total: 0, totalPages: 1 });
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -84,18 +88,18 @@ export default function CirclesPage() {
     try {
       const [circlesRes, accountsRes] = await Promise.all([
         fetch(`${API_URL}/api/circles/active`, { headers: { Authorization: `Bearer ${token}` } }),
-        fetch(`${API_URL}/api/circles/accounts/my`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${API_URL}/api/circles/accounts/my?page=${page}&limit=${LIMIT}`, { headers: { Authorization: `Bearer ${token}` } }),
       ]);
-      const circlesData = await circlesRes.json();
-      const accountsData = await accountsRes.json();
-      if (circlesData.success) setCircles(circlesData.data);
-      if (accountsData.success) {
-        setMyAccounts(accountsData.data.accounts);
-        setWalletBalance(accountsData.data.walletBalance);
+      const circlesJson = await circlesRes.json();
+      const accountsJson = await accountsRes.json();
+      if (circlesJson.success) setCircles(circlesJson.data);
+      if (accountsJson.success) {
+        setMyAccounts(accountsJson.data.items);
+        setAccountsData({ total: accountsJson.data.total, totalPages: accountsJson.data.totalPages });
       }
     } catch {}
     setLoading(false);
-  }, [token, API_URL]);
+  }, [token, API_URL, page]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -321,6 +325,14 @@ export default function CirclesPage() {
                     </div>
                   ))}
                 </div>
+                <Pagination
+                  page={page}
+                  totalPages={accountsData?.totalPages || 1}
+                  total={accountsData?.total || 0}
+                  limit={LIMIT}
+                  onPageChange={setPage}
+                  loading={loading}
+                />
               </Card>
             </FadeInUp>
           )}

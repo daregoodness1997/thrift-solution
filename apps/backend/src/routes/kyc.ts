@@ -259,12 +259,12 @@ kycRouter.get("/admin/stats", adminMiddleware, async (req, res) => {
 
 kycRouter.get("/admin/submissions", adminMiddleware, async (req, res) => {
   try {
-    const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
-    const offset = parseInt(req.query.offset as string) || 0;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);
     const status = req.query.status as string | undefined;
 
-    const submissions = await getAllKycSubmissions({ limit, offset, status });
-    res.json({ success: true, data: submissions });
+    const result = await getAllKycSubmissions({ page, limit, status });
+    res.json({ success: true, data: result });
   } catch (err) {
     console.error("Get KYC submissions error:", err);
     res.status(500).json({ success: false, error: "Failed to fetch submissions" });
@@ -273,11 +273,11 @@ kycRouter.get("/admin/submissions", adminMiddleware, async (req, res) => {
 
 kycRouter.get("/admin/submissions/pending", adminMiddleware, async (req, res) => {
   try {
-    const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
-    const offset = parseInt(req.query.offset as string) || 0;
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = Math.min(parseInt(req.query.limit as string) || 20, 100);
 
-    const submissions = await getPendingKycSubmissions({ limit, offset });
-    res.json({ success: true, data: submissions });
+    const result = await getPendingKycSubmissions({ page, limit });
+    res.json({ success: true, data: result });
   } catch (err) {
     console.error("Get pending KYC submissions error:", err);
     res.status(500).json({ success: false, error: "Failed to fetch pending submissions" });

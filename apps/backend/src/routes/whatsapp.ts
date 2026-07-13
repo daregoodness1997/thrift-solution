@@ -12,20 +12,24 @@ export const whatsappRouter = Router();
 
 whatsappRouter.get("/my", authMiddleware, async (req, res) => {
   try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
     await seedDefaultWhatsappGroups();
-    const groups = await getWhatsappGroups(req.user!.userId);
-    res.json({ success: true, data: groups });
+    const result = await getWhatsappGroups(req.user!.userId, { page, limit });
+    res.json({ success: true, data: result });
   } catch (err) {
     console.error("Get WhatsApp groups error:", err);
     res.status(500).json({ success: false, error: "Failed to fetch WhatsApp groups" });
   }
 });
 
-whatsappRouter.get("/", authMiddleware, async (_req, res) => {
+whatsappRouter.get("/", authMiddleware, async (req, res) => {
   try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
     await seedDefaultWhatsappGroups();
-    const groups = await getAllWhatsappGroups();
-    res.json({ success: true, data: groups });
+    const result = await getAllWhatsappGroups({ page, limit });
+    res.json({ success: true, data: result });
   } catch (err) {
     console.error("Get all WhatsApp groups error:", err);
     res.status(500).json({ success: false, error: "Failed to fetch WhatsApp groups" });

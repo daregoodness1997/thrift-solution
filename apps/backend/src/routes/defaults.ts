@@ -6,8 +6,10 @@ export const defaultsRouter = Router();
 
 defaultsRouter.get("/", authMiddleware, async (req, res) => {
   try {
-    const defaults = await getDefaultsForUser(req.user!.userId);
-    res.json({ success: true, data: defaults });
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const result = await getDefaultsForUser(req.user!.userId, { page, limit });
+    res.json({ success: true, data: result });
   } catch (err) {
     console.error("Get defaults error:", err);
     res.status(500).json({ success: false, error: "Failed to fetch defaults" });

@@ -14,6 +14,18 @@ clearancesRouter.get("/", authMiddleware, async (req, res) => {
   }
 });
 
+clearancesRouter.get("/list", authMiddleware, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const result = await getClearancesForUser(req.user!.userId, { page, limit });
+    res.json({ success: true, data: result });
+  } catch (err) {
+    console.error("Get clearances list error:", err);
+    res.status(500).json({ success: false, error: "Failed to fetch clearances" });
+  }
+});
+
 clearancesRouter.post("/:id/approve", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;

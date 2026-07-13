@@ -5,9 +5,11 @@ import { config, BrandConfig } from "@thrift/config";
 import { Card, Button, StatCard, ColorfulBadge, FadeInUp, StaggerChildren } from "@thrift/ui";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
+import Pagination from "@/components/Pagination";
 
 const WA_GREEN = "#25D366";
 const WA_GREEN_LIGHT = "#DCF8C6";
+const LIMIT = 20;
 
 interface MyGroup {
   id: string;
@@ -74,6 +76,12 @@ export default function WhatsAppGroupsPage() {
   const [filter, setFilter] = useState<Filter>("all");
   const [myGroups, setMyGroups] = useState<MyGroup[]>([]);
   const [allGroups, setAllGroups] = useState<AllGroup[]>([]);
+  const [myGroupsPage, setMyGroupsPage] = useState(1);
+  const [allGroupsPage, setAllGroupsPage] = useState(1);
+  const [myGroupsTotal, setMyGroupsTotal] = useState(0);
+  const [myGroupsTotalPages, setMyGroupsTotalPages] = useState(0);
+  const [allGroupsTotal, setAllGroupsTotal] = useState(0);
+  const [allGroupsTotalPages, setAllGroupsTotalPages] = useState(0);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState<string | null>(null);
@@ -82,25 +90,33 @@ export default function WhatsAppGroupsPage() {
   const fetchMyGroups = useCallback(async () => {
     if (!token) return;
     try {
-      const res = await fetch(`${API_URL}/api/whatsapp/my`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${API_URL}/api/whatsapp/my?page=${myGroupsPage}&limit=${LIMIT}`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
-      if (data.success) setMyGroups(data.data || []);
+      if (data.success) {
+        setMyGroups(data.data.items || []);
+        setMyGroupsTotal(data.data.total || 0);
+        setMyGroupsTotalPages(data.data.totalPages || 0);
+      }
     } catch {}
-  }, [token, API_URL]);
+  }, [token, API_URL, myGroupsPage]);
 
   const fetchAllGroups = useCallback(async () => {
     if (!token) return;
     try {
-      const res = await fetch(`${API_URL}/api/whatsapp/`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${API_URL}/api/whatsapp?page=${allGroupsPage}&limit=${LIMIT}`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
-      if (data.success) setAllGroups(data.data || []);
+      if (data.success) {
+        setAllGroups(data.data.items || []);
+        setAllGroupsTotal(data.data.total || 0);
+        setAllGroupsTotalPages(data.data.totalPages || 0);
+      }
     } catch {}
-  }, [token, API_URL]);
+  }, [token, API_URL, allGroupsPage]);
 
   useEffect(() => {
     if (!token) { setLoading(false); return; }
     Promise.all([fetchMyGroups(), fetchAllGroups()]).then(() => setLoading(false));
-  }, [token, fetchMyGroups, fetchAllGroups]);
+  }, [token, fetchMyGroups, fetchAllGroups, myGroupsPage, allGroupsPage]);
 
   const totalMembers = myGroups.reduce((sum, g) => sum + g.memberCount, 0);
 
@@ -176,7 +192,7 @@ export default function WhatsAppGroupsPage() {
                   {filterTabs.map((f) => (
                     <button
                       key={f}
-                      onClick={() => setFilter(f)}
+                      onClick={() => { setFilter(f); setMyGroupsPage(1); }}
                       style={{
                         padding: "0.375rem 0.75rem",
                         borderRadius: "0.5rem",
@@ -300,6 +316,19 @@ export default function WhatsAppGroupsPage() {
                 ))
               )}
             </div>
+
+            {myGroupsTotalPages > 1 && (
+              <div style={{ padding: "0 1rem 0.5rem" }}>
+                <Pagination
+                  page={myGroupsPage}
+                  totalPages={myGroupsTotalPages}
+                  total={myGroupsTotal}
+                  limit={LIMIT}
+                  onPageChange={setMyGroupsPage}
+                  loading={loading}
+                />
+              </div>
+            )}
           </Card>
         </FadeInUp>
 
@@ -365,6 +394,17 @@ export default function WhatsAppGroupsPage() {
                   </div>
                 ))}
               </div>
+
+              {allGroupsTotalPages > 1 && (
+                <Pagination
+                  page={allGroupsPage}
+                  totalPages={allGroupsTotalPages}
+                  total={allGroupsTotal}
+                  limit={LIMIT}
+                  onPageChange={setAllGroupsPage}
+                  loading={loading}
+                />
+              )}
             </Card>
           </FadeInUp>
         )}

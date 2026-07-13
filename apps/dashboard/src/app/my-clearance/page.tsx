@@ -6,6 +6,7 @@ import { Card, ColorfulBadge, FadeInUp, StaggerChildren } from "@thrift/ui";
 import { formatNaira } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
+import Pagination from "@/components/Pagination";
 
 const fallback = config;
 
@@ -32,6 +33,10 @@ export default function MyClearancePage() {
   const [clearances, setClearances] = useState<ClearanceItem[]>([]);
   const [stats, setStats] = useState({ totalPayouts: 0, totalContributed: 0 });
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const LIMIT = 20;
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -48,7 +53,26 @@ export default function MyClearancePage() {
     setLoading(false);
   }, [token, API_URL]);
 
+  const [paginatedItems, setPaginatedItems] = useState<ClearanceItem[]>([]);
+  const [listLoading, setListLoading] = useState(false);
+
+  const fetchPaginatedList = useCallback(async () => {
+    if (!token) return;
+    setListLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/clearances/list?page=${page}&limit=${LIMIT}`, { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      if (data.success) {
+        setPaginatedItems(data.data.items || []);
+        setTotalPages(data.data.totalPages || 1);
+        setTotalItems(data.data.total || 0);
+      }
+    } catch {}
+    setListLoading(false);
+  }, [token, page, API_URL]);
+
   useEffect(() => { fetchClearances(); }, [fetchClearances]);
+  useEffect(() => { fetchPaginatedList(); }, [fetchPaginatedList]);
 
   const nextPayout = clearances.find((c) => c.status === "pending");
 
@@ -93,13 +117,15 @@ export default function MyClearancePage() {
             <ColorfulBadge label="Clearance History" color={cfg.colors.primary} />
             <h2 style={{ fontSize: "1.125rem", fontWeight: 500, color: "#1A1A1A", marginTop: "0.5rem" }}>My Payout Clearances</h2>
           </div>
-          {clearances.length === 0 ? (
+          {(listLoading && paginatedItems.length === 0) ? (
+            <div style={{ textAlign: "center", padding: "2rem", color: "#999", fontSize: "13px" }}>Loading...</div>
+          ) : paginatedItems.length === 0 ? (
             <div style={{ textAlign: "center", padding: "2rem", color: "#999", fontSize: "13px" }}>
               No clearances yet. Join a circle to start earning payouts.
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              {clearances.map((c) => {
+              {paginatedItems.map((c) => {
                 const st = statusStyles[c.status] || statusStyles.pending;
                 return (
                   <div key={c.id} style={{ padding: "1.25rem", borderRadius: "1rem", border: `1px solid ${st.border}`, backgroundColor: st.bg + "30", transition: "all 0.2s ease" }}
@@ -136,6 +162,7 @@ export default function MyClearancePage() {
               })}
             </div>
           )}
+          <Pagination page={page} totalPages={totalPages} total={totalItems} limit={LIMIT} onPageChange={setPage} loading={listLoading} />
         </Card>
       </FadeInUp>
 

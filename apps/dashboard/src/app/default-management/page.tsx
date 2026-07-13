@@ -6,6 +6,7 @@ import { Card, Button, ColorfulBadge, FadeInUp, StaggerChildren } from "@thrift/
 import { formatNaira } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
+import Pagination from "@/components/Pagination";
 
 const fallback = config;
 
@@ -33,20 +34,33 @@ export default function DefaultManagementPage() {
   const [filter, setFilter] = useState<"all" | "overdue" | "pending" | "resolved">("all");
   const [showReminder, setShowReminder] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
 
+  const LIMIT = 20;
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
   const fetchDefaults = useCallback(async () => {
     if (!token) { setLoading(false); return; }
     try {
-      const res = await fetch(`${API_URL}/api/defaults`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${API_URL}/api/defaults?page=${page}&limit=${LIMIT}`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
-      if (data.success) setDefaults(data.data || []);
+      if (data.success) {
+        setDefaults(data.data.items || []);
+        setTotalPages(data.data.totalPages || 1);
+        setTotal(data.data.total || 0);
+      }
     } catch {}
     setLoading(false);
-  }, [token, API_URL]);
+  }, [token, API_URL, page, LIMIT]);
 
   useEffect(() => { fetchDefaults(); }, [fetchDefaults]);
+
+  const handleFilterChange = (f: typeof filter) => {
+    setFilter(f);
+    setPage(1);
+  };
 
   const filtered = filter === "all" ? defaults : defaults.filter((d) => d.status === filter);
   const totalOverdue = defaults.filter((d) => d.status === "overdue").reduce((sum, d) => sum + d.amount, 0);
@@ -109,7 +123,7 @@ export default function DefaultManagementPage() {
             <ColorfulBadge label="Defaulters" color={cfg.colors.primary} />
             <div style={{ display: "flex", gap: "0.25rem", backgroundColor: "#F5F7F5", borderRadius: "0.5rem", padding: "0.25rem" }}>
               {(["all", "overdue", "pending", "resolved"] as const).map((f) => (
-                <button key={f} onClick={() => setFilter(f)}
+                <button key={f} onClick={() => handleFilterChange(f)}
                   style={{ padding: "0.375rem 0.75rem", borderRadius: "0.375rem", fontSize: "11px", fontWeight: 600, border: "none", cursor: "pointer", transition: "all 0.2s ease", textTransform: "capitalize",
                     backgroundColor: filter === f ? "#ffffff" : "transparent", color: filter === f ? cfg.colors.primary : "#717171",
                     boxShadow: filter === f ? "0 1px 3px rgba(0,0,0,0.08)" : "none" }}>
@@ -186,6 +200,7 @@ export default function DefaultManagementPage() {
               </table>
             </div>
           )}
+          <Pagination page={page} totalPages={totalPages} total={total} limit={LIMIT} onPageChange={setPage} loading={loading} />
         </Card>
       </FadeInUp>
 

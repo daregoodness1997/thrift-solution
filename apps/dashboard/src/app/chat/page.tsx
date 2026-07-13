@@ -4,8 +4,11 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { config, BrandConfig } from "@thrift/config";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
+import Pagination from "@/components/Pagination";
 
 const fallback = config;
+const LIMIT = 20;
+const MESSAGES_LIMIT = 50;
 
 interface Message {
   id: string;
@@ -43,6 +46,12 @@ export default function ChatPage() {
   const [search, setSearch] = useState("");
   const [searchResults, setSearchResults] = useState<{ id: string; name: string; email: string }[]>([]);
   const [showSearch, setShowSearch] = useState(false);
+  const [convPage, setConvPage] = useState(1);
+  const [convTotalPages, setConvTotalPages] = useState(1);
+  const [convTotal, setConvTotal] = useState(0);
+  const [msgPage, setMsgPage] = useState(1);
+  const [msgTotalPages, setMsgTotalPages] = useState(1);
+  const [msgTotal, setMsgTotal] = useState(0);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -65,30 +74,42 @@ export default function ChatPage() {
   const fetchConversations = useCallback(async () => {
     if (!token) { setLoading(false); return; }
     try {
-      const res = await fetch(`${API_URL}/api/chat/conversations`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${API_URL}/api/chat/conversations?page=${convPage}&limit=${LIMIT}`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
-      if (data.success) setContacts(data.data || []);
+      if (data.success) {
+        setContacts(data.data.items || []);
+        setConvTotalPages(data.data.totalPages || 1);
+        setConvTotal(data.data.total || 0);
+      }
     } catch {}
     setLoading(false);
-  }, [token, API_URL]);
+  }, [token, API_URL, convPage]);
 
-  useEffect(() => { fetchConversations(); }, [fetchConversations]);
+  useEffect(() => { fetchConversations(); }, [fetchConversations, convPage]);
 
-  const fetchMessages = useCallback(async (conversationId: string) => {
+  const fetchMessages = useCallback(async (conversationId: string, page: number) => {
     if (!token) return;
     try {
-      const res = await fetch(`${API_URL}/api/chat/conversations/${conversationId}/messages`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${API_URL}/api/chat/conversations/${conversationId}/messages?page=${page}&limit=${MESSAGES_LIMIT}`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
-      if (data.success) setMessages(data.data || []);
+      if (data.success) {
+        setMessages(data.data.items || []);
+        setMsgTotalPages(data.data.totalPages || 1);
+        setMsgTotal(data.data.total || 0);
+      }
     } catch {}
   }, [token, API_URL]);
 
   useEffect(() => {
+    setMsgPage(1);
+  }, [activeContact]);
+
+  useEffect(() => {
     if (!activeContact) return;
-    fetchMessages(activeContact.id);
-    const interval = setInterval(() => fetchMessages(activeContact.id), 5000);
+    fetchMessages(activeContact.id, msgPage);
+    const interval = setInterval(() => fetchMessages(activeContact.id, msgPage), 5000);
     return () => clearInterval(interval);
-  }, [activeContact, fetchMessages]);
+  }, [activeContact, fetchMessages, msgPage]);
 
   const searchUsers = useCallback(async (q: string) => {
     if (!token || q.length < 2) { setSearchResults([]); return; }
@@ -232,6 +253,11 @@ export default function ChatPage() {
                 ))
               )}
             </div>
+            {!loading && filteredContacts.length > 0 && (
+              <div style={{ padding: "0 1rem" }}>
+                <Pagination page={convPage} totalPages={convTotalPages} total={convTotal} limit={LIMIT} onPageChange={setConvPage} loading={loading} />
+              </div>
+            )}
           </div>
         )}
 
@@ -269,6 +295,11 @@ export default function ChatPage() {
               ))}
               <div ref={messagesEnd} />
             </div>
+            {activeContact && msgTotal > 0 && (
+              <div style={{ padding: "0 1rem" }}>
+                <Pagination page={msgPage} totalPages={msgTotalPages} total={msgTotal} limit={MESSAGES_LIMIT} onPageChange={setMsgPage} loading={loading} />
+              </div>
+            )}
 
             <div style={{ padding: "0.75rem 1rem", borderTop: "1px solid #EAEAEA", display: "flex", gap: "0.5rem" }}>
               <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && sendMessage()} placeholder="Type a message..." style={{ flex: 1, backgroundColor: "#F3F4F6", border: "1px solid #EAEAEA", borderRadius: "9999px", padding: "0.5rem 1rem", fontSize: "12px", color: "#2D2D2D", outline: "none", minWidth: 0 }} />

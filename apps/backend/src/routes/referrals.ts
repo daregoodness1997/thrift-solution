@@ -34,8 +34,10 @@ referralsRouter.get("/stats", authMiddleware, async (req, res) => {
 // List user's referrals
 referralsRouter.get("/", authMiddleware, async (req, res) => {
   try {
-    const referrals = await getUserReferrals(req.user!.userId);
-    res.json({ success: true, data: referrals });
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const result = await getUserReferrals(req.user!.userId, { page, limit });
+    res.json({ success: true, data: result });
   } catch (err) {
     console.error("Get referrals error:", err);
     res.status(500).json({ success: false, error: "Failed to fetch referrals" });
@@ -45,8 +47,10 @@ referralsRouter.get("/", authMiddleware, async (req, res) => {
 // List user's referral earnings
 referralsRouter.get("/earnings", authMiddleware, async (req, res) => {
   try {
-    const earnings = await getUserReferralEarnings(req.user!.userId);
-    res.json({ success: true, data: earnings });
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const result = await getUserReferralEarnings(req.user!.userId, { page, limit });
+    res.json({ success: true, data: result });
   } catch (err) {
     console.error("Get referral earnings error:", err);
     res.status(500).json({ success: false, error: "Failed to fetch referral earnings" });

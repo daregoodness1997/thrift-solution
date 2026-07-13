@@ -9,6 +9,8 @@ import {
   openCircleAccount,
   getCircleAccountById,
   getCircleAccountsByUser,
+  getCircleAccountTransactions,
+  getCircleAccountInterestBreakdown,
   earlyWithdrawCircleAccount,
   matureCircleAccount,
   runWeeklyInterestJob,
@@ -63,9 +65,11 @@ circlesRouter.get("/active", authMiddleware, async (_req, res) => {
 
 circlesRouter.get("/accounts/my", authMiddleware, async (req, res) => {
   try {
-    const accounts = await getCircleAccountsByUser(req.user!.userId);
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const result = await getCircleAccountsByUser(req.user!.userId, { page, limit });
     const balance = await getWalletBalance(req.user!.userId);
-    res.json({ success: true, data: { accounts, walletBalance: balance } });
+    res.json({ success: true, data: { ...result, walletBalance: balance } });
   } catch (err) {
     console.error("Get my circle accounts error:", err);
     res.status(500).json({ success: false, error: "Failed to fetch your circle accounts" });
@@ -87,6 +91,54 @@ circlesRouter.get("/accounts/:id", authMiddleware, async (req, res) => {
   } catch (err) {
     console.error("Get circle account error:", err);
     res.status(500).json({ success: false, error: "Failed to fetch circle account" });
+  }
+});
+
+circlesRouter.get("/accounts/:id/transactions", authMiddleware, async (req, res) => {
+  try {
+    const transactions = await getCircleAccountTransactions(req.params.id, req.user!.userId);
+    res.json({ success: true, data: transactions });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to fetch circle account transactions";
+    console.error("Get circle account transactions error:", err);
+    res.status(400).json({ success: false, error: message });
+  }
+});
+
+circlesRouter.get("/accounts/:id/interest-logs", authMiddleware, async (req, res) => {
+  try {
+    const account = await getCircleAccountById(req.params.id);
+    if (!account) {
+      res.status(404).json({ success: false, error: "Circle account not found" });
+      return;
+    }
+    if (account.userId !== req.user!.userId) {
+      res.status(403).json({ success: false, error: "Not your account" });
+      return;
+    }
+    res.json({ success: true, data: account.interestLogs || [] });
+  } catch (err) {
+    console.error("Get circle account interest logs error:", err);
+    res.status(500).json({ success: false, error: "Failed to fetch interest logs" });
+  }
+});
+
+circlesRouter.get("/accounts/:id/interest-breakdown", authMiddleware, async (req, res) => {
+  try {
+    const account = await getCircleAccountById(req.params.id);
+    if (!account) {
+      res.status(404).json({ success: false, error: "Circle account not found" });
+      return;
+    }
+    if (account.userId !== req.user!.userId) {
+      res.status(403).json({ success: false, error: "Not your account" });
+      return;
+    }
+    const breakdown = await getCircleAccountInterestBreakdown(req.params.id);
+    res.json({ success: true, data: breakdown });
+  } catch (err) {
+    console.error("Get circle account interest breakdown error:", err);
+    res.status(500).json({ success: false, error: "Failed to fetch interest breakdown" });
   }
 });
 

@@ -34,8 +34,10 @@ jobsRouter.get("/", authMiddleware, async (req, res) => {
 
 jobsRouter.get("/my", authMiddleware, async (req, res) => {
   try {
-    const listings = await getJobListingsByPoster(req.user!.userId);
-    res.json({ success: true, data: listings });
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const result = await getJobListingsByPoster(req.user!.userId, { page, limit });
+    res.json({ success: true, data: result });
   } catch (err) {
     console.error("Get my jobs error:", err);
     res.status(500).json({ success: false, error: "Failed to fetch your job listings" });
@@ -44,8 +46,10 @@ jobsRouter.get("/my", authMiddleware, async (req, res) => {
 
 jobsRouter.get("/my-applications", authMiddleware, async (req, res) => {
   try {
-    const applications = await getJobApplicationsByApplicant(req.user!.userId);
-    res.json({ success: true, data: applications });
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const result = await getJobApplicationsByApplicant(req.user!.userId, { page, limit });
+    res.json({ success: true, data: result });
   } catch (err) {
     console.error("Get my applications error:", err);
     res.status(500).json({ success: false, error: "Failed to fetch your applications" });
@@ -54,8 +58,10 @@ jobsRouter.get("/my-applications", authMiddleware, async (req, res) => {
 
 jobsRouter.get("/received-applications", authMiddleware, async (req, res) => {
   try {
-    const applications = await getJobApplicationsForPoster(req.user!.userId);
-    res.json({ success: true, data: applications });
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const result = await getJobApplicationsForPoster(req.user!.userId, { page, limit });
+    res.json({ success: true, data: result });
   } catch (err) {
     console.error("Get received applications error:", err);
     res.status(500).json({ success: false, error: "Failed to fetch received applications" });

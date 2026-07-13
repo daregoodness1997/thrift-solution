@@ -34,8 +34,10 @@ marketplaceRouter.get("/", authMiddleware, async (req, res) => {
 
 marketplaceRouter.get("/my", authMiddleware, async (req, res) => {
   try {
-    const listings = await getMarketplaceListingsBySeller(req.user!.userId);
-    res.json({ success: true, data: listings });
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const result = await getMarketplaceListingsBySeller(req.user!.userId, { page, limit });
+    res.json({ success: true, data: result });
   } catch (err) {
     console.error("Get my listings error:", err);
     res.status(500).json({ success: false, error: "Failed to fetch your listings" });
@@ -44,8 +46,10 @@ marketplaceRouter.get("/my", authMiddleware, async (req, res) => {
 
 marketplaceRouter.get("/my-offers", authMiddleware, async (req, res) => {
   try {
-    const offers = await getMarketplaceOffererOffers(req.user!.userId);
-    res.json({ success: true, data: offers });
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const result = await getMarketplaceOffererOffers(req.user!.userId, { page, limit });
+    res.json({ success: true, data: result });
   } catch (err) {
     console.error("Get my offers error:", err);
     res.status(500).json({ success: false, error: "Failed to fetch your offers" });
@@ -54,8 +58,10 @@ marketplaceRouter.get("/my-offers", authMiddleware, async (req, res) => {
 
 marketplaceRouter.get("/received-offers", authMiddleware, async (req, res) => {
   try {
-    const offers = await getMarketplaceOffersForSeller(req.user!.userId);
-    res.json({ success: true, data: offers });
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const result = await getMarketplaceOffersForSeller(req.user!.userId, { page, limit });
+    res.json({ success: true, data: result });
   } catch (err) {
     console.error("Get received offers error:", err);
     res.status(500).json({ success: false, error: "Failed to fetch received offers" });

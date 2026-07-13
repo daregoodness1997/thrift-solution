@@ -27,8 +27,10 @@ loansRouter.get("/", authMiddleware, async (req, res) => {
 
 loansRouter.get("/my", authMiddleware, async (req, res) => {
   try {
-    const loans = await getLoansByBorrower(req.user!.userId);
-    res.json({ success: true, data: loans });
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const result = await getLoansByBorrower(req.user!.userId, { page, limit });
+    res.json({ success: true, data: result });
   } catch (err) {
     console.error("Get my loans error:", err);
     res.status(500).json({ success: false, error: "Failed to fetch your loans" });

@@ -323,11 +323,18 @@ export async function createReferralEarning(data: {
   return prisma.referralEarning.create({ data });
 }
 
-export async function getUserReferrals(userId: string) {
-  const referrals = await prisma.referral.findMany({
-    where: { referrerId: userId },
-    orderBy: { createdAt: "desc" },
-  });
+export async function getUserReferrals(userId: string, opts?: { page?: number; limit?: number }) {
+  const page = opts?.page ?? 1;
+  const limit = opts?.limit ?? 20;
+  const [referrals, total] = await Promise.all([
+    prisma.referral.findMany({
+      where: { referrerId: userId },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.referral.count({ where: { referrerId: userId } }),
+  ]);
 
   const userIds = [...new Set(referrals.map((r) => r.referredUserId))];
   const users = await prisma.user.findMany({
@@ -336,17 +343,27 @@ export async function getUserReferrals(userId: string) {
   });
   const userMap = new Map(users.map((u) => [u.id, u]));
 
-  return referrals.map((r) => ({
+  const items = referrals.map((r) => ({
     ...r,
     referredUser: userMap.get(r.referredUserId) ?? { id: r.referredUserId, name: "Unknown", email: "", createdAt: new Date() },
   }));
+
+  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
 }
 
-export async function getUserReferralEarnings(userId: string) {
-  return prisma.referralEarning.findMany({
-    where: { referrerId: userId },
-    orderBy: { createdAt: "desc" },
-  });
+export async function getUserReferralEarnings(userId: string, opts?: { page?: number; limit?: number }) {
+  const page = opts?.page ?? 1;
+  const limit = opts?.limit ?? 20;
+  const [items, total] = await Promise.all([
+    prisma.referralEarning.findMany({
+      where: { referrerId: userId },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.referralEarning.count({ where: { referrerId: userId } }),
+  ]);
+  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
 }
 
 const TIERS = [
@@ -534,35 +551,47 @@ export async function updateKycStatus(
   });
 }
 
-export async function getPendingKycSubmissions(opts?: { limit?: number; offset?: number }) {
-  return prisma.kyc.findMany({
-    where: { status: { in: ["pending", "under_review"] } },
-    include: {
-      documents: true,
-      user: { select: { id: true, name: true, email: true } },
-    },
-    orderBy: { submittedAt: "asc" },
-    take: opts?.limit ?? 50,
-    skip: opts?.offset ?? 0,
-  });
+export async function getPendingKycSubmissions(opts?: { page?: number; limit?: number }) {
+  const page = opts?.page ?? 1;
+  const limit = opts?.limit ?? 20;
+  const [items, total] = await Promise.all([
+    prisma.kyc.findMany({
+      where: { status: { in: ["pending", "under_review"] } },
+      include: {
+        documents: true,
+        user: { select: { id: true, name: true, email: true } },
+      },
+      orderBy: { submittedAt: "asc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.kyc.count({ where: { status: { in: ["pending", "under_review"] } } }),
+  ]);
+  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
 }
 
-export async function getAllKycSubmissions(opts?: { limit?: number; offset?: number; status?: string }) {
+export async function getAllKycSubmissions(opts?: { page?: number; limit?: number; status?: string }) {
+  const page = opts?.page ?? 1;
+  const limit = opts?.limit ?? 20;
   const where: Record<string, unknown> = {};
   if (opts?.status && opts.status !== "all") {
     where.status = opts.status;
   }
 
-  return prisma.kyc.findMany({
-    where,
-    include: {
-      documents: true,
-      user: { select: { id: true, name: true, email: true } },
-    },
-    orderBy: { createdAt: "desc" },
-    take: opts?.limit ?? 50,
-    skip: opts?.offset ?? 0,
-  });
+  const [items, total] = await Promise.all([
+    prisma.kyc.findMany({
+      where,
+      include: {
+        documents: true,
+        user: { select: { id: true, name: true, email: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.kyc.count({ where }),
+  ]);
+  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
 }
 
 export async function getKycStats() {
@@ -742,9 +771,9 @@ export async function fundWallet(userId: string, amount: number) {
 
 // ── Clearances ──────────────────────────────────────
 
-export async function getClearancesForUser(userId: string) {
+export async function getClearancesForUser(userId: string, opts?: { page?: number; limit?: number }) {
   const user = await prisma.user.findUnique({ where: { id: userId } });
-  if (!user) return [];
+  if (!user) return { items: [], total: 0, page: 1, limit: 20, totalPages: 0 };
 
   const groupMemberships = await prisma.groupMember.findMany({
     where: { userId },
@@ -788,11 +817,16 @@ export async function getClearancesForUser(userId: string) {
     }
   }
 
-  return clearances.sort((a: { createdAt: Date }, b: { createdAt: Date }) => b.createdAt.getTime() - a.createdAt.getTime());
+  const sorted = clearances.sort((a: { createdAt: Date }, b: { createdAt: Date }) => b.createdAt.getTime() - a.createdAt.getTime());
+  const page = opts?.page ?? 1;
+  const limit = opts?.limit ?? 20;
+  const total = sorted.length;
+  const items = sorted.slice((page - 1) * limit, page * limit);
+  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
 }
 
 export async function getClearanceStats(userId: string) {
-  const clearances = await getClearancesForUser(userId);
+  const { items: clearances } = await getClearancesForUser(userId);
   const totalPayouts = clearances
     .filter((c: { status: string }) => c.status === "cleared")
     .reduce((sum: number, c: { payoutAmount: number }) => sum + c.payoutAmount, 0);
@@ -803,16 +837,16 @@ export async function getClearanceStats(userId: string) {
 
 // ── Defaults ──────────────────────────────────────
 
-export async function getDefaultsForUser(userId: string) {
+export async function getDefaultsForUser(userId: string, opts?: { page?: number; limit?: number }) {
   const user = await prisma.user.findUnique({ where: { id: userId } });
-  if (!user) return [];
+  if (!user) return { items: [], total: 0, page: opts?.page ?? 1, limit: opts?.limit ?? 20, totalPages: 0 };
 
   const groupMemberships = await prisma.groupMember.findMany({
     where: { userId },
     include: { group: true },
   });
 
-  const defaults = [];
+  const allDefaults = [];
   for (const gm of groupMemberships) {
     const pendingContributions = await prisma.transaction.findMany({
       where: {
@@ -826,7 +860,7 @@ export async function getDefaultsForUser(userId: string) {
 
     for (const pc of pendingContributions) {
       const daysOverdue = Math.max(0, Math.floor((Date.now() - pc.createdAt.getTime()) / (1000 * 60 * 60 * 24)) - 3);
-      defaults.push({
+      allDefaults.push({
         id: pc.id,
         userId,
         userName: user.name,
@@ -841,34 +875,48 @@ export async function getDefaultsForUser(userId: string) {
     }
   }
 
-  return defaults.sort((a: { createdAt: Date }, b: { createdAt: Date }) => b.createdAt.getTime() - a.createdAt.getTime());
+  const sorted = allDefaults.sort((a: { createdAt: Date }, b: { createdAt: Date }) => b.createdAt.getTime() - a.createdAt.getTime());
+  const page = opts?.page ?? 1;
+  const limit = opts?.limit ?? 20;
+  const total = sorted.length;
+  const items = sorted.slice((page - 1) * limit, page * limit);
+
+  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
 }
 
 // ── Chat ─────────────────────────────────────────────
 
-export async function getUserConversations(userId: string) {
-  const memberships = await prisma.conversationMember.findMany({
-    where: { userId },
-    include: {
-      conversation: {
-        include: {
-          members: {
-            include: {
-              user: { select: { id: true, name: true, email: true } },
+export async function getUserConversations(userId: string, opts?: { page?: number; limit?: number }) {
+  const page = opts?.page ?? 1;
+  const limit = opts?.limit ?? 20;
+
+  const [memberships, total] = await Promise.all([
+    prisma.conversationMember.findMany({
+      where: { userId },
+      include: {
+        conversation: {
+          include: {
+            members: {
+              include: {
+                user: { select: { id: true, name: true, email: true } },
+              },
             },
-          },
-          messages: {
-            orderBy: { createdAt: "desc" },
-            take: 1,
-            include: { sender: { select: { id: true, name: true } } },
+            messages: {
+              orderBy: { createdAt: "desc" },
+              take: 1,
+              include: { sender: { select: { id: true, name: true } } },
+            },
           },
         },
       },
-    },
-    orderBy: { conversation: { updatedAt: "desc" } },
-  });
+      orderBy: { conversation: { updatedAt: "desc" } },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.conversationMember.count({ where: { userId } }),
+  ]);
 
-  return memberships.map((m) => ({
+  const items = memberships.map((m) => ({
     id: m.conversation.id,
     name: m.conversation.name,
     members: m.conversation.members.map((mem) => ({
@@ -886,27 +934,39 @@ export async function getUserConversations(userId: string) {
       : null,
     updatedAt: m.conversation.updatedAt,
   }));
+
+  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
 }
 
-export async function getConversationMessages(conversationId: string, userId: string) {
+export async function getConversationMessages(conversationId: string, userId: string, opts?: { page?: number; limit?: number }) {
   const membership = await prisma.conversationMember.findUnique({
     where: { conversationId_userId: { conversationId, userId } },
   });
   if (!membership) throw new Error("Not a member of this conversation");
 
-  const messages = await prisma.message.findMany({
-    where: { conversationId },
-    include: { sender: { select: { id: true, name: true } } },
-    orderBy: { createdAt: "asc" },
-  });
+  const page = opts?.page ?? 1;
+  const limit = opts?.limit ?? 20;
 
-  return messages.map((m) => ({
+  const [messages, total] = await Promise.all([
+    prisma.message.findMany({
+      where: { conversationId },
+      include: { sender: { select: { id: true, name: true } } },
+      orderBy: { createdAt: "asc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.message.count({ where: { conversationId } }),
+  ]);
+
+  const items = messages.map((m) => ({
     id: m.id,
     senderId: m.senderId,
     senderName: m.sender.name,
     text: m.text,
     timestamp: m.createdAt,
   }));
+
+  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
 }
 
 export async function sendMessage(conversationId: string, senderId: string, text: string) {
@@ -992,14 +1052,22 @@ export async function getOrCreateConversation(userId1: string, userId2: string) 
 
 // ── WhatsApp Groups ─────────────────────────────────
 
-export async function getWhatsappGroups(userId: string) {
-  const memberships = await prisma.whatsappGroupMember.findMany({
-    where: { userId },
-    include: { group: true },
-    orderBy: { group: { updatedAt: "desc" } },
-  });
+export async function getWhatsappGroups(userId: string, opts?: { page?: number; limit?: number }) {
+  const page = opts?.page ?? 1;
+  const limit = opts?.limit ?? 20;
 
-  return memberships.map((m) => ({
+  const [memberships, total] = await Promise.all([
+    prisma.whatsappGroupMember.findMany({
+      where: { userId },
+      include: { group: true },
+      orderBy: { group: { updatedAt: "desc" } },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.whatsappGroupMember.count({ where: { userId } }),
+  ]);
+
+  const items = memberships.map((m) => ({
     id: m.group.id,
     name: m.group.name,
     description: m.group.description,
@@ -1009,13 +1077,22 @@ export async function getWhatsappGroups(userId: string) {
     pinned: m.group.pinned,
     joinedAt: m.joinedAt,
   }));
+
+  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
 }
 
-export async function getAllWhatsappGroups() {
-  const groups = await prisma.whatsappGroup.findMany({
-    orderBy: { memberCount: "desc" },
-  });
-  return groups;
+export async function getAllWhatsappGroups(opts?: { page?: number; limit?: number }) {
+  const page = opts?.page ?? 1;
+  const limit = opts?.limit ?? 20;
+  const [items, total] = await Promise.all([
+    prisma.whatsappGroup.findMany({
+      orderBy: { memberCount: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.whatsappGroup.count(),
+  ]);
+  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
 }
 
 export async function createWhatsappGroup(data: {
@@ -1176,12 +1253,20 @@ export async function deleteMarketplaceListing(id: string) {
   return prisma.marketplaceListing.update({ where: { id }, data: { deletedAt: new Date() } });
 }
 
-export async function getMarketplaceListingsBySeller(sellerId: string) {
-  return prisma.marketplaceListing.findMany({
-    where: { sellerId },
-    include: { _count: { select: { offers: true } } },
-    orderBy: { createdAt: "desc" },
-  });
+export async function getMarketplaceListingsBySeller(sellerId: string, opts?: { page?: number; limit?: number }) {
+  const page = opts?.page ?? 1;
+  const limit = opts?.limit ?? 20;
+  const [items, total] = await Promise.all([
+    prisma.marketplaceListing.findMany({
+      where: { sellerId },
+      include: { _count: { select: { offers: true } } },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.marketplaceListing.count({ where: { sellerId } }),
+  ]);
+  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
 }
 
 export async function createMarketplaceOffer(data: {
@@ -1218,27 +1303,43 @@ export async function getMarketplaceOffersByListing(listingId: string) {
   });
 }
 
-export async function getMarketplaceOffersForSeller(sellerId: string) {
-  return prisma.marketplaceOffer.findMany({
-    where: { listing: { sellerId } },
-    include: {
-      offerer: { select: { id: true, name: true, email: true } },
-      listing: { select: { id: true, title: true, price: true, currency: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+export async function getMarketplaceOffersForSeller(sellerId: string, opts?: { page?: number; limit?: number }) {
+  const page = opts?.page ?? 1;
+  const limit = opts?.limit ?? 20;
+  const [items, total] = await Promise.all([
+    prisma.marketplaceOffer.findMany({
+      where: { listing: { sellerId } },
+      include: {
+        offerer: { select: { id: true, name: true, email: true } },
+        listing: { select: { id: true, title: true, price: true, currency: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.marketplaceOffer.count({ where: { listing: { sellerId } } }),
+  ]);
+  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
 }
 
-export async function getMarketplaceOffererOffers(offererId: string) {
-  return prisma.marketplaceOffer.findMany({
-    where: { offererId },
-    include: {
-      listing: {
-        select: { id: true, title: true, price: true, currency: true, seller: { select: { id: true, name: true } } },
+export async function getMarketplaceOffererOffers(offererId: string, opts?: { page?: number; limit?: number }) {
+  const page = opts?.page ?? 1;
+  const limit = opts?.limit ?? 20;
+  const [items, total] = await Promise.all([
+    prisma.marketplaceOffer.findMany({
+      where: { offererId },
+      include: {
+        listing: {
+          select: { id: true, title: true, price: true, currency: true, seller: { select: { id: true, name: true } } },
+        },
       },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.marketplaceOffer.count({ where: { offererId } }),
+  ]);
+  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
 }
 
 // ── Jobs ───────────────────────────────────────
@@ -1324,12 +1425,20 @@ export async function deleteJobListing(id: string) {
   return prisma.jobListing.update({ where: { id }, data: { deletedAt: new Date() } });
 }
 
-export async function getJobListingsByPoster(posterId: string) {
-  return prisma.jobListing.findMany({
-    where: { posterId },
-    include: { _count: { select: { applications: true } } },
-    orderBy: { createdAt: "desc" },
-  });
+export async function getJobListingsByPoster(posterId: string, opts?: { page?: number; limit?: number }) {
+  const page = opts?.page ?? 1;
+  const limit = opts?.limit ?? 20;
+  const [items, total] = await Promise.all([
+    prisma.jobListing.findMany({
+      where: { posterId },
+      include: { _count: { select: { applications: true } } },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.jobListing.count({ where: { posterId } }),
+  ]);
+  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
 }
 
 export async function createJobApplication(data: {
@@ -1366,27 +1475,43 @@ export async function getJobApplicationsByListing(listingId: string) {
   });
 }
 
-export async function getJobApplicationsByApplicant(applicantId: string) {
-  return prisma.jobApplication.findMany({
-    where: { applicantId },
-    include: {
-      listing: {
-        select: { id: true, title: true, company: true, location: true, jobType: true },
+export async function getJobApplicationsByApplicant(applicantId: string, opts?: { page?: number; limit?: number }) {
+  const page = opts?.page ?? 1;
+  const limit = opts?.limit ?? 20;
+  const [items, total] = await Promise.all([
+    prisma.jobApplication.findMany({
+      where: { applicantId },
+      include: {
+        listing: {
+          select: { id: true, title: true, company: true, location: true, jobType: true },
+        },
       },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.jobApplication.count({ where: { applicantId } }),
+  ]);
+  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
 }
 
-export async function getJobApplicationsForPoster(posterId: string) {
-  return prisma.jobApplication.findMany({
-    where: { listing: { posterId } },
-    include: {
-      applicant: { select: { id: true, name: true, email: true } },
-      listing: { select: { id: true, title: true, company: true, location: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+export async function getJobApplicationsForPoster(posterId: string, opts?: { page?: number; limit?: number }) {
+  const page = opts?.page ?? 1;
+  const limit = opts?.limit ?? 20;
+  const [items, total] = await Promise.all([
+    prisma.jobApplication.findMany({
+      where: { listing: { posterId } },
+      include: {
+        applicant: { select: { id: true, name: true, email: true } },
+        listing: { select: { id: true, title: true, company: true, location: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.jobApplication.count({ where: { listing: { posterId } } }),
+  ]);
+  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
 }
 
 export async function getJobApplicationById(id: string) {
@@ -1427,12 +1552,20 @@ export async function getLoanById(id: string) {
   });
 }
 
-export async function getLoansByBorrower(borrowerId: string) {
-  return prisma.loan.findMany({
-    where: { borrowerId },
-    include: { borrower: { select: { id: true, name: true, email: true } } },
-    orderBy: { createdAt: "desc" },
-  });
+export async function getLoansByBorrower(borrowerId: string, opts?: { page?: number; limit?: number }) {
+  const page = opts?.page ?? 1;
+  const limit = opts?.limit ?? 20;
+  const [items, total] = await Promise.all([
+    prisma.loan.findMany({
+      where: { borrowerId },
+      include: { borrower: { select: { id: true, name: true, email: true } } },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.loan.count({ where: { borrowerId } }),
+  ]);
+  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
 }
 
 export async function getAllLoans(params: {
@@ -1645,11 +1778,37 @@ export async function getCircleAccountById(id: string) {
   });
 }
 
-export async function getCircleAccountsByUser(userId: string) {
-  return prisma.circleAccount.findMany({
-    where: { userId },
-    include: {
-      circle: { select: { id: true, name: true, amount: true, durationMonths: true, interestRateAnnual: true } },
+export async function getCircleAccountsByUser(userId: string, opts?: { page?: number; limit?: number }) {
+  const page = opts?.page ?? 1;
+  const limit = opts?.limit ?? 20;
+  const [items, total] = await Promise.all([
+    prisma.circleAccount.findMany({
+      where: { userId },
+      include: {
+        circle: { select: { id: true, name: true, amount: true, durationMonths: true, interestRateAnnual: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.circleAccount.count({ where: { userId } }),
+  ]);
+  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+}
+
+export async function getCircleAccountTransactions(accountId: string, userId: string) {
+  const account = await prisma.circleAccount.findUnique({ where: { id: accountId } });
+  if (!account) throw new Error("Circle account not found");
+  if (account.userId !== userId) throw new Error("Not your account");
+
+  return prisma.transaction.findMany({
+    where: {
+      userId,
+      type: { in: ["circle_deposit", "circle_withdrawal", "circle_interest"] },
+      OR: [
+        { description: { contains: accountId } },
+        { reference: { contains: accountId } },
+      ],
     },
     orderBy: { createdAt: "desc" },
   });
@@ -1762,6 +1921,55 @@ export async function matureCircleAccount(id: string, userId: string) {
 }
 
 // ── Circle Interest Calculation ────────────────────────
+
+interface InterestWeek {
+  week: number;
+  date: string;
+  daysFromStart: number;
+  interestThisWeek: number;
+  cumulativeInterest: number;
+  totalValue: number;
+  annualRate: number;
+  principal: number;
+}
+
+export async function getCircleAccountInterestBreakdown(accountId: string): Promise<InterestWeek[]> {
+  const account = await prisma.circleAccount.findUnique({
+    where: { id: accountId },
+    include: { circle: true },
+  });
+  if (!account) return [];
+
+  const { principalAmount, startDate, maturityDate, interestEarned, circle } = account;
+  const weeklyRate = circle.interestRateAnnual / 100 / 52;
+  const weeklyInterest = Math.round(principalAmount * weeklyRate * 100) / 100;
+
+  const start = new Date(startDate);
+  const maturity = new Date(maturityDate);
+  const totalWeeks = Math.ceil((maturity.getTime() - start.getTime()) / (7 * 24 * 60 * 60 * 1000));
+
+  const weeks: InterestWeek[] = [];
+  let cumulative = 0;
+
+  for (let w = 1; w <= totalWeeks; w++) {
+    const weekDate = new Date(start.getTime() + w * 7 * 24 * 60 * 60 * 1000);
+    cumulative += weeklyInterest;
+    const roundedCumulative = Math.round(cumulative * 100) / 100;
+
+    weeks.push({
+      week: w,
+      date: weekDate.toISOString(),
+      daysFromStart: w * 7,
+      interestThisWeek: weeklyInterest,
+      cumulativeInterest: roundedCumulative,
+      totalValue: Math.round((principalAmount + roundedCumulative) * 100) / 100,
+      annualRate: circle.interestRateAnnual,
+      principal: principalAmount,
+    });
+  }
+
+  return weeks;
+}
 
 export async function calculateWeeklyInterestForAccount(circleAccountId: string) {
   const account = await prisma.circleAccount.findUnique({

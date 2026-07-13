@@ -7,6 +7,7 @@ import { formatNaira } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
 import { Skeleton, SkeletonCard, SkeletonTable } from "@/components/Skeleton";
+import Pagination from "@/components/Pagination";
 
 const fallback = config;
 
@@ -59,9 +60,16 @@ export default function ReferralsPage() {
   const [earnings, setEarnings] = useState<ReferralEarning[]>([]);
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [referralsPage, setReferralsPage] = useState(1);
+  const [earningsPage, setEarningsPage] = useState(1);
+  const [referralsTotal, setReferralsTotal] = useState(0);
+  const [referralsTotalPages, setReferralsTotalPages] = useState(0);
+  const [earningsTotal, setEarningsTotal] = useState(0);
+  const [earningsTotalPages, setEarningsTotalPages] = useState(0);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
   const authHeaders: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+  const LIMIT = 20;
 
   useEffect(() => {
     fetch(`${API_URL}/api/config`)
@@ -72,24 +80,18 @@ export default function ReferralsPage() {
 
   const fetchData = useCallback(async () => {
     try {
-      const [codeRes, statsRes, referralsRes, earningsRes] = await Promise.all([
+      const [codeRes, statsRes] = await Promise.all([
         fetch(`${API_URL}/api/referrals/code`, { headers: authHeaders }),
         fetch(`${API_URL}/api/referrals/stats`, { headers: authHeaders }),
-        fetch(`${API_URL}/api/referrals`, { headers: authHeaders }),
-        fetch(`${API_URL}/api/referrals/earnings`, { headers: authHeaders }),
       ]);
 
-      const [codeData, statsData, referralsData, earningsData] = await Promise.all([
+      const [codeData, statsData] = await Promise.all([
         codeRes.json(),
         statsRes.json(),
-        referralsRes.json(),
-        earningsRes.json(),
       ]);
 
       if (codeData?.data?.code) setReferralCode(codeData.data.code);
       if (statsData?.data) setStats(statsData.data);
-      if (referralsData?.data) setReferrals(referralsData.data);
-      if (earningsData?.data) setEarnings(earningsData.data);
     } catch {
       setStats({
         totalReferrals: 0, pendingReferrals: 0, completedReferrals: 0,
@@ -101,7 +103,33 @@ export default function ReferralsPage() {
     }
   }, [API_URL]);
 
+  const fetchReferrals = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/referrals?page=${referralsPage}&limit=${LIMIT}`, { headers: authHeaders });
+      const data = await res.json();
+      if (data?.data) {
+        setReferrals(data.data.items);
+        setReferralsTotal(data.data.total);
+        setReferralsTotalPages(data.data.totalPages);
+      }
+    } catch {}
+  }, [API_URL, referralsPage]);
+
+  const fetchEarnings = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/referrals/earnings?page=${earningsPage}&limit=${LIMIT}`, { headers: authHeaders });
+      const data = await res.json();
+      if (data?.data) {
+        setEarnings(data.data.items);
+        setEarningsTotal(data.data.total);
+        setEarningsTotalPages(data.data.totalPages);
+      }
+    } catch {}
+  }, [API_URL, earningsPage]);
+
   useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => { fetchReferrals(); }, [fetchReferrals]);
+  useEffect(() => { fetchEarnings(); }, [fetchEarnings]);
 
   const handleCopy = async () => {
     try {
@@ -262,13 +290,14 @@ export default function ReferralsPage() {
                 <ColorfulBadge label="Referrals" color={cfg.colors.primary} />
                 <h2 style={{ fontSize: "1.125rem", fontWeight: 500, color: "#1A1A1A", marginTop: "0.5rem" }}>Referral History</h2>
               </div>
-              <span style={{ fontSize: "10px", fontFamily: "'JetBrains Mono', monospace", color: "#717171" }}>{referrals.length} entries</span>
+              <span style={{ fontSize: "10px", fontFamily: "'JetBrains Mono', monospace", color: "#717171" }}>{referralsTotal} entries</span>
             </div>
             {referrals.length === 0 ? (
               <div style={{ padding: "2rem", textAlign: "center" }}>
                 <p style={{ fontSize: "12px", color: "#999" }}>No referrals yet. Share your code to get started!</p>
               </div>
             ) : (
+              <>
               <div style={{ overflowX: "auto" }}>
                 <table style={{ width: "100%", fontSize: "12px", borderCollapse: "collapse", minWidth: "300px" }}>
                   <thead>
@@ -297,6 +326,14 @@ export default function ReferralsPage() {
                   </tbody>
                 </table>
               </div>
+              <Pagination
+                page={referralsPage}
+                totalPages={referralsTotalPages}
+                total={referralsTotal}
+                limit={LIMIT}
+                onPageChange={setReferralsPage}
+              />
+              </>
             )}
           </Card>
         </FadeInUp>
@@ -309,13 +346,14 @@ export default function ReferralsPage() {
                 <ColorfulBadge label="Earnings" color="#059669" />
                 <h2 style={{ fontSize: "1.125rem", fontWeight: 500, color: "#1A1A1A", marginTop: "0.5rem" }}>Earnings History</h2>
               </div>
-              <span style={{ fontSize: "10px", fontFamily: "'JetBrains Mono', monospace", color: "#717171" }}>{earnings.length} entries</span>
+              <span style={{ fontSize: "10px", fontFamily: "'JetBrains Mono', monospace", color: "#717171" }}>{earningsTotal} entries</span>
             </div>
             {earnings.length === 0 ? (
               <div style={{ padding: "2rem", textAlign: "center" }}>
                 <p style={{ fontSize: "12px", color: "#999" }}>No earnings yet. Referrals will generate rewards!</p>
               </div>
             ) : (
+              <>
               <div style={{ overflowX: "auto" }}>
                 <table style={{ width: "100%", fontSize: "12px", borderCollapse: "collapse", minWidth: "300px" }}>
                   <thead>
@@ -346,6 +384,14 @@ export default function ReferralsPage() {
                   </tbody>
                 </table>
               </div>
+              <Pagination
+                page={earningsPage}
+                totalPages={earningsTotalPages}
+                total={earningsTotal}
+                limit={LIMIT}
+                onPageChange={setEarningsPage}
+              />
+              </>
             )}
           </Card>
         </FadeInUp>

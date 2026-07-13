@@ -13,8 +13,10 @@ export const chatRouter = Router();
 
 chatRouter.get("/conversations", authMiddleware, async (req, res) => {
   try {
-    const conversations = await getUserConversations(req.user!.userId);
-    res.json({ success: true, data: conversations });
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const result = await getUserConversations(req.user!.userId, { page, limit });
+    res.json({ success: true, data: result });
   } catch (err) {
     console.error("Get conversations error:", err);
     res.status(500).json({ success: false, error: "Failed to fetch conversations" });
@@ -23,8 +25,10 @@ chatRouter.get("/conversations", authMiddleware, async (req, res) => {
 
 chatRouter.get("/conversations/:id/messages", authMiddleware, async (req, res) => {
   try {
-    const messages = await getConversationMessages(req.params.id, req.user!.userId);
-    res.json({ success: true, data: messages });
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const result = await getConversationMessages(req.params.id, req.user!.userId, { page, limit });
+    res.json({ success: true, data: result });
   } catch (err) {
     console.error("Get messages error:", err);
     res.status(500).json({ success: false, error: "Failed to fetch messages" });

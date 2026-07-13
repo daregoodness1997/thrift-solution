@@ -100,7 +100,7 @@ export default function Dashboard() {
         setWalletBalance(profileData.data.stats.walletBalance);
       }
       if (txData.success) setTransactions(txData.data.items || []);
-      if (circlesData.success) setCircleAccounts(circlesData.data?.accounts || []);
+      if (circlesData.success) setCircleAccounts(circlesData.data?.items || []);
       if (referralData?.data?.code) setReferralCode(referralData.data.code);
     } catch {}
     setLoading(false);

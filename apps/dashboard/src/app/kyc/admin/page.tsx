@@ -4,7 +4,9 @@ import { useState, useEffect, useCallback } from "react";
 import { config, BrandConfig } from "@thrift/config";
 import { useAuth } from "@/lib/auth-context";
 import { Card, ColorfulBadge, ColorBar, FadeInUp } from "@thrift/ui";
+import Pagination from "@/components/Pagination";
 
+const LIMIT = 20;
 const fallback = config;
 
 const ID_TYPE_LABELS: Record<string, string> = {
@@ -65,6 +67,9 @@ export default function KycAdminPage() {
   const [rejectReason, setRejectReason] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
   const authHeaders: Record<string, string> = token
@@ -81,15 +86,19 @@ export default function KycAdminPage() {
     } catch {}
   }, []);
 
-  const fetchSubmissions = useCallback(async (status?: string) => {
+  const fetchSubmissions = useCallback(async (status?: string, pageNum?: number) => {
     try {
-      const url =
-        status && status !== "all"
-          ? `${API_URL}/api/kyc/admin/submissions?status=${status}`
-          : `${API_URL}/api/kyc/admin/submissions`;
-      const res = await fetch(url, { headers: authHeaders });
+      const params = new URLSearchParams();
+      params.set("page", String(pageNum ?? 1));
+      params.set("limit", String(LIMIT));
+      if (status && status !== "all") params.set("status", status);
+      const res = await fetch(`${API_URL}/api/kyc/admin/submissions?${params}`, { headers: authHeaders });
       const data = await res.json();
-      if (data.success) setSubmissions(data.data);
+      if (data.success) {
+        setSubmissions(data.data.items);
+        setTotalPages(data.data.totalPages);
+        setTotal(data.data.total);
+      }
     } catch {}
   }, []);
 
@@ -98,15 +107,16 @@ export default function KycAdminPage() {
       setLoading(false);
       return;
     }
-    Promise.all([fetchStats(), fetchSubmissions()]).finally(() =>
+    Promise.all([fetchStats(), fetchSubmissions(undefined, page)]).finally(() =>
       setLoading(false),
     );
-  }, []);
+  }, [page]);
 
   useEffect(() => {
     if (!token) return;
+    setPage(1);
     setLoading(true);
-    fetchSubmissions(activeTab).finally(() => setLoading(false));
+    fetchSubmissions(activeTab, 1).finally(() => setLoading(false));
   }, [activeTab, token, fetchSubmissions]);
 
   const handleAction = async (
@@ -796,6 +806,16 @@ export default function KycAdminPage() {
           </div>
         )}
       </FadeInUp>
+
+      {!loading && submissions.length > 0 && (
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          total={total}
+          limit={LIMIT}
+          onPageChange={setPage}
+        />
+      )}
     </div>
   );
 }

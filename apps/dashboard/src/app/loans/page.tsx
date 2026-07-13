@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
 import { Skeleton, SkeletonCard } from "@/components/Skeleton";
 import { LoanCalculator } from "@/components/LoanCalculator";
+import Pagination from "@/components/Pagination";
 
 const fallback = config;
 
@@ -33,6 +34,11 @@ export default function LoansPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [expandedLoan, setExpandedLoan] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+  const LIMIT = 20;
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -41,15 +47,21 @@ export default function LoansPage() {
   const fetchLoans = useCallback(async () => {
     if (!token) { setLoading(false); return; }
     try {
-      const res = await fetch(`${API_URL}/api/loans/my`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${API_URL}/api/loans/my?page=${page}&limit=${LIMIT}`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
-      if (data.success) setLoans(data.data);
+      if (data.success) {
+        setLoans(data.data.items);
+        setTotalPages(data.data.totalPages || 1);
+        setTotal(data.data.total || 0);
+      }
     } catch {}
     setLoading(false);
-  }, [token, API_URL]);
+  }, [token, API_URL, page, LIMIT]);
 
   useEffect(() => { fetchLoans(); }, [fetchLoans]);
+  useEffect(() => { setPage(1); }, [statusFilter]);
 
+  const filteredLoans = statusFilter === "all" ? loans : loans.filter((l) => l.status === statusFilter);
   const activeLoan = loans.find((l) => l.status === "pending" || l.status === "approved" || l.status === "disbursed");
   const completedCount = loans.filter((l) => l.status === "completed").length;
   const totalBorrowed = loans.filter((l) => l.status === "disbursed" || l.status === "completed").reduce((sum, l) => sum + l.amount, 0);
@@ -165,7 +177,7 @@ export default function LoansPage() {
 
       {loading ? (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1.5rem" }}>{Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)}</div>
-      ) : loans.length === 0 ? (
+      ) : total === 0 ? (
         <FadeInUp delay={400}>
           <Card padding="3rem">
             <div style={{ textAlign: "center" }}>
@@ -180,9 +192,21 @@ export default function LoansPage() {
         <FadeInUp delay={400}>
           <Card padding="1.5rem">
             <ColorfulBadge label="Loan History" color={cfg.colors.primary} />
-            <h2 style={{ fontSize: "1.125rem", fontWeight: 500, color: "#1A1A1A", marginTop: "0.5rem", marginBottom: "1rem" }}>Your Loans ({loans.length})</h2>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "0.5rem", marginBottom: "1rem", flexWrap: "wrap", gap: "0.5rem" }}>
+              <h2 style={{ fontSize: "1.125rem", fontWeight: 500, color: "#1A1A1A" }}>Your Loans ({total})</h2>
+              <div style={{ display: "flex", gap: "0.25rem", backgroundColor: "#F5F7F5", borderRadius: "0.5rem", padding: "0.2rem" }}>
+                {(["all", "pending", "approved", "disbursed", "completed", "rejected"] as const).map((f) => (
+                  <button key={f} onClick={() => setStatusFilter(f)}
+                    style={{ padding: "0.375rem 0.75rem", borderRadius: "0.375rem", fontSize: "11px", fontWeight: 600, border: "none", cursor: "pointer", transition: "all 0.2s ease", textTransform: "capitalize",
+                      backgroundColor: statusFilter === f ? "#ffffff" : "transparent", color: statusFilter === f ? cfg.colors.primary : "#717171",
+                      boxShadow: statusFilter === f ? "0 1px 3px rgba(0,0,0,0.08)" : "none" }}>
+                    {f}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-              {loans.map((loan) => (
+              {filteredLoans.map((loan) => (
                 <div key={loan.id} style={{ padding: "1rem", borderRadius: "0.75rem", border: "1px solid #F0F0F0", backgroundColor: expandedLoan === loan.id ? "#FAF9F5" : "#ffffff", transition: "all 0.2s" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", flexWrap: "wrap", gap: "0.75rem" }} onClick={() => setExpandedLoan(expandedLoan === loan.id ? null : loan.id)}>
                     <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
@@ -211,6 +235,7 @@ export default function LoansPage() {
                 </div>
               ))}
             </div>
+            <Pagination page={page} totalPages={totalPages} total={total} limit={LIMIT} onPageChange={setPage} loading={loading} />
           </Card>
         </FadeInUp>
       )}

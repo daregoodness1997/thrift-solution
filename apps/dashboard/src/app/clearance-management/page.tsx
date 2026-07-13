@@ -6,6 +6,7 @@ import { Card, Button, ColorfulBadge, FadeInUp, StaggerChildren } from "@thrift/
 import { formatNaira } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
+import Pagination from "@/components/Pagination";
 
 const fallback = config;
 
@@ -33,6 +34,10 @@ export default function ClearanceManagementPage() {
   const [clearances, setClearances] = useState<ClearanceItem[]>([]);
   const [filter, setFilter] = useState<"all" | "cleared" | "partial" | "pending">("all");
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const LIMIT = 20;
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -46,7 +51,27 @@ export default function ClearanceManagementPage() {
     setLoading(false);
   }, [token, API_URL]);
 
+  const [paginatedItems, setPaginatedItems] = useState<ClearanceItem[]>([]);
+  const [listLoading, setListLoading] = useState(false);
+
+  const fetchPaginatedList = useCallback(async () => {
+    if (!token) return;
+    setListLoading(true);
+    try {
+      const statusParam = filter === "all" ? "" : `&status=${filter}`;
+      const res = await fetch(`${API_URL}/api/clearances/list?page=${page}&limit=${LIMIT}${statusParam}`, { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      if (data.success) {
+        setPaginatedItems(data.data.items || []);
+        setTotalPages(data.data.totalPages || 1);
+        setTotalItems(data.data.total || 0);
+      }
+    } catch {}
+    setListLoading(false);
+  }, [token, page, filter, API_URL]);
+
   useEffect(() => { fetchClearances(); }, [fetchClearances]);
+  useEffect(() => { fetchPaginatedList(); }, [fetchPaginatedList]);
 
   const filtered = filter === "all" ? clearances : clearances.filter((c) => c.status === filter);
   const totalCleared = clearances.filter((c) => c.status === "cleared").reduce((sum, c) => sum + c.payoutAmount, 0);
@@ -104,7 +129,7 @@ export default function ClearanceManagementPage() {
             <ColorfulBadge label="Clearance Records" color={cfg.colors.primary} />
             <div style={{ display: "flex", gap: "0.25rem", backgroundColor: "#F5F7F5", borderRadius: "0.5rem", padding: "0.25rem" }}>
               {(["all", "cleared", "partial", "pending"] as const).map((f) => (
-                <button key={f} onClick={() => setFilter(f)}
+                <button key={f} onClick={() => { setFilter(f); setPage(1); }}
                   style={{ padding: "0.375rem 0.75rem", borderRadius: "0.375rem", fontSize: "11px", fontWeight: 600, border: "none", cursor: "pointer", transition: "all 0.2s ease", textTransform: "capitalize",
                     backgroundColor: filter === f ? "#ffffff" : "transparent", color: filter === f ? cfg.colors.primary : "#717171",
                     boxShadow: filter === f ? "0 1px 3px rgba(0,0,0,0.08)" : "none" }}>
@@ -114,7 +139,9 @@ export default function ClearanceManagementPage() {
             </div>
           </div>
 
-          {filtered.length === 0 ? (
+          {(listLoading && paginatedItems.length === 0) ? (
+            <div style={{ textAlign: "center", padding: "2rem", color: "#999", fontSize: "13px" }}>Loading...</div>
+          ) : paginatedItems.length === 0 ? (
             <div style={{ textAlign: "center", padding: "2rem", color: "#999", fontSize: "13px" }}>
               No clearance records found.
             </div>
@@ -133,7 +160,7 @@ export default function ClearanceManagementPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((c) => {
+                  {paginatedItems.map((c) => {
                     const st = statusStyles[c.status] || statusStyles.pending;
                     const progress = c.payoutAmount > 0 ? Math.round((c.contributed / c.payoutAmount) * 100) : 0;
                     const initials = c.userName.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
@@ -183,6 +210,7 @@ export default function ClearanceManagementPage() {
               </table>
             </div>
           )}
+          <Pagination page={page} totalPages={totalPages} total={totalItems} limit={LIMIT} onPageChange={setPage} loading={listLoading} />
         </Card>
       </FadeInUp>
 
