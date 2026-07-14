@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Card, FadeInUp } from "@thrift/ui";
-import { formatDate } from "@thrift/utils";
+import { formatDate, formatNaira } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
 import Pagination from "@/components/Pagination";
@@ -19,6 +19,7 @@ interface VAccount {
   accountName?: string;
   bankName?: string;
   status: string;
+  walletBalance?: number;
   createdAt: string;
   user?: { id: string; name: string; email: string };
 }
@@ -139,6 +140,7 @@ export default function AdminVirtualAccountsPage() {
                     <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>User</th>
                     <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Account</th>
                     <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Provider</th>
+                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Wallet</th>
                     <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Status</th>
                     <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Created</th>
                     <th style={{ paddingBottom: "0.75rem", textAlign: "right", fontWeight: 600 }}>Actions</th>
@@ -158,6 +160,9 @@ export default function AdminVirtualAccountsPage() {
                         <span style={{ fontSize: "11px", color: "#999" }}>{va.bankName || "—"}</span>
                       </td>
                       <td style={{ padding: "0.75rem 0", color: "#717171", textTransform: "capitalize" }}>{va.provider}</td>
+                      <td style={{ padding: "0.75rem 0" }}>
+                        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: "#2D2D2D" }}>{formatNaira(va.walletBalance || 0)}</span>
+                      </td>
                       <td style={{ padding: "0.75rem 0" }}><StatusBadge status={va.status} /></td>
                       <td style={{ padding: "0.75rem 0", color: "#717171" }}>{formatDate(new Date(va.createdAt))}</td>
                       <td style={{ padding: "0.75rem 0", textAlign: "right" }}>

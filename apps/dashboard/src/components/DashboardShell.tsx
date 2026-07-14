@@ -20,7 +20,7 @@ interface NavSection {
   items: NavItem[];
 }
 
-const AUTH_ROUTES = ["/login", "/register"];
+const AUTH_ROUTES = ["/login", "/register", "/forgot-password", "/reset-password"];
 
 const STAFF_ROLES = ["admin", "superadmin", "support", "finance", "moderator"];
 

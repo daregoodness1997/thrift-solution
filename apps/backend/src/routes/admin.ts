@@ -17,6 +17,7 @@ import {
   payReferralEarning,
   getAllVirtualAccounts,
   getMembersWithoutVirtualAccount,
+  getWalletBalance,
   updateVirtualAccountStatus,
   createVirtualAccount,
   getAllMarketplaceListingsAdmin,
@@ -247,7 +248,13 @@ adminRouter.get("/virtual-accounts", requireAdmin, async (req, res) => {
     const search = (req.query.search as string) || undefined;
 
     const result = await getAllVirtualAccounts({ page, limit, provider, status, search });
-    res.json({ success: true, data: result });
+    const items = await Promise.all(
+      result.items.map(async (va) => ({
+        ...va,
+        walletBalance: await getWalletBalance(va.userId),
+      })),
+    );
+    res.json({ success: true, data: { ...result, items } });
   } catch (err) {
     console.error("Admin virtual accounts error:", err);
     res.status(500).json({ success: false, error: "Failed to fetch virtual accounts" });
