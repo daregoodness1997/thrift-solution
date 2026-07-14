@@ -9,6 +9,7 @@ export async function createCircle(data: {
   durationMonths: number;
   interestRateAnnual: number;
   maxAccountsPerUser?: number;
+  autoPayout?: boolean;
 }) {
   return prisma.circle.create({ data });
 }
@@ -58,6 +59,7 @@ export async function updateCircle(id: string, data: {
   durationMonths?: number;
   interestRateAnnual?: number;
   maxAccountsPerUser?: number;
+  autoPayout?: boolean;
   status?: string;
 }) {
   return prisma.circle.update({
@@ -251,7 +253,10 @@ export async function earlyWithdrawCircleAccount(id: string, userId: string) {
 }
 
 export async function matureCircleAccount(id: string, userId: string) {
-  const account = await prisma.circleAccount.findUnique({ where: { id } });
+  const account = await prisma.circleAccount.findUnique({
+    where: { id },
+    include: { circle: true },
+  });
   if (!account) throw new Error("Circle account not found");
   if (account.userId !== userId) throw new Error("Not your account");
   if (account.status !== "active") throw new Error("Account is not active");
@@ -259,6 +264,25 @@ export async function matureCircleAccount(id: string, userId: string) {
   const now = new Date();
   if (now < account.maturityDate) {
     throw new Error(`Account matures on ${account.maturityDate.toISOString()}`);
+  }
+
+  if (!account.circle.autoPayout) {
+    const existingPending = await prisma.circlePayoutRequest.findFirst({
+      where: { circleAccountId: id, status: "pending" },
+    });
+    if (existingPending) {
+      throw new Error("A payout request is already pending for this account");
+    }
+
+    const request = await prisma.circlePayoutRequest.create({
+      data: {
+        circleAccountId: id,
+        userId,
+        amount: account.principalAmount + account.interestEarned,
+      },
+    });
+
+    return { type: "payout_request" as const, request };
   }
 
   const totalPayout = account.principalAmount + account.interestEarned;
@@ -408,4 +432,120 @@ export async function runWeeklyInterestJob() {
   }
 
   return { processed, errors, total: activeAccounts.length };
+}
+
+export async function getCirclePayoutRequests(params: {
+  page?: number;
+  limit?: number;
+  status?: string;
+}) {
+  const { page = 1, limit = 20, status } = params;
+  const where: Record<string, unknown> = {};
+  if (status) where.status = status;
+
+  const [items, total] = await Promise.all([
+    prisma.circlePayoutRequest.findMany({
+      where,
+      include: {
+        circleAccount: {
+          include: {
+            circle: { select: { id: true, name: true, amount: true, durationMonths: true, interestRateAnnual: true } },
+          },
+        },
+        user: { select: { id: true, name: true, email: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.circlePayoutRequest.count({ where }),
+  ]);
+
+  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+}
+
+export async function getCirclePayoutRequestsByUser(userId: string, params?: {
+  page?: number;
+  limit?: number;
+  status?: string;
+}) {
+  const page = params?.page ?? 1;
+  const limit = params?.limit ?? 20;
+  const where: Record<string, unknown> = { userId };
+  if (params?.status) where.status = params.status;
+
+  const [items, total] = await Promise.all([
+    prisma.circlePayoutRequest.findMany({
+      where,
+      include: {
+        circleAccount: {
+          include: {
+            circle: { select: { id: true, name: true, amount: true, durationMonths: true, interestRateAnnual: true } },
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.circlePayoutRequest.count({ where }),
+  ]);
+
+  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+}
+
+export async function approveCirclePayoutRequest(requestId: string, reviewerId: string) {
+  const request = await prisma.circlePayoutRequest.findUnique({
+    where: { id: requestId },
+    include: { circleAccount: true },
+  });
+  if (!request) throw new Error("Payout request not found");
+  if (request.status !== "pending") throw new Error("Request is not pending");
+
+  return prisma.$transaction(async (tx) => {
+    const reference = `CIRCLE-PAYOUT-${request.circleAccountId}-${Date.now()}-${nodeCrypto.randomBytes(4).toString("hex")}`;
+    await tx.transaction.create({
+      data: {
+        userId: request.userId,
+        type: "circle_withdrawal",
+        amount: request.amount,
+        reference,
+        status: "completed",
+        description: `Circle maturity payout (approved) [${request.circleAccountId}]`,
+      },
+    });
+
+    await tx.circleAccount.update({
+      where: { id: request.circleAccountId },
+      data: {
+        status: "withdrawn",
+        totalWithdrawn: request.circleAccount.principalAmount + request.circleAccount.interestEarned,
+      },
+    });
+
+    return tx.circlePayoutRequest.update({
+      where: { id: requestId },
+      data: {
+        status: "approved",
+        reviewedById: reviewerId,
+        reviewedAt: new Date(),
+      },
+    });
+  });
+}
+
+export async function declineCirclePayoutRequest(requestId: string, reviewerId: string, note?: string) {
+  const request = await prisma.circlePayoutRequest.findUnique({ where: { id: requestId } });
+  if (!request) throw new Error("Payout request not found");
+  if (request.status !== "pending") throw new Error("Request is not pending");
+
+  return prisma.circlePayoutRequest.update({
+    where: { id: requestId },
+    data: {
+      status: "declined",
+      reviewedById: reviewerId,
+      reviewedAt: new Date(),
+      note: note || undefined,
+    },
+  });
 }

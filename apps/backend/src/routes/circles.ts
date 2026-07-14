@@ -16,6 +16,10 @@ import {
   runWeeklyInterestJob,
   getWalletBalance,
   findUserById,
+  getCirclePayoutRequests,
+  getCirclePayoutRequestsByUser,
+  approveCirclePayoutRequest,
+  declineCirclePayoutRequest,
 } from "@thrift/db";
 
 export const circlesRouter = Router();
@@ -217,7 +221,7 @@ circlesRouter.post("/accounts/:id/mature", authMiddleware, async (req, res) => {
 
 circlesRouter.post("/", adminMiddleware, async (req, res) => {
   try {
-    const { name, description, amount, durationMonths, interestRateAnnual, maxAccountsPerUser } = req.body;
+    const { name, description, amount, durationMonths, interestRateAnnual, maxAccountsPerUser, autoPayout } = req.body;
 
     if (!name || !amount || !durationMonths || !interestRateAnnual) {
       res.status(400).json({ success: false, error: "name, amount, durationMonths, and interestRateAnnual are required" });
@@ -231,6 +235,7 @@ circlesRouter.post("/", adminMiddleware, async (req, res) => {
       durationMonths: Number(durationMonths),
       interestRateAnnual: Number(interestRateAnnual),
       maxAccountsPerUser: maxAccountsPerUser ? Number(maxAccountsPerUser) : undefined,
+      autoPayout: autoPayout === true || autoPayout === "true",
     });
 
     res.status(201).json({ success: true, data: circle });
@@ -242,7 +247,7 @@ circlesRouter.post("/", adminMiddleware, async (req, res) => {
 
 circlesRouter.put("/:id", adminMiddleware, async (req, res) => {
   try {
-    const { name, description, amount, durationMonths, interestRateAnnual, maxAccountsPerUser, status } = req.body;
+    const { name, description, amount, durationMonths, interestRateAnnual, maxAccountsPerUser, autoPayout, status } = req.body;
 
     const circle = await updateCircle(req.params.id, {
       name,
@@ -251,6 +256,7 @@ circlesRouter.put("/:id", adminMiddleware, async (req, res) => {
       durationMonths: durationMonths ? Number(durationMonths) : undefined,
       interestRateAnnual: interestRateAnnual ? Number(interestRateAnnual) : undefined,
       maxAccountsPerUser: maxAccountsPerUser ? Number(maxAccountsPerUser) : undefined,
+      autoPayout: autoPayout !== undefined ? (autoPayout === true || autoPayout === "true") : undefined,
       status,
     });
 
@@ -268,5 +274,54 @@ circlesRouter.post("/admin/run-interest-job", adminMiddleware, async (_req, res)
   } catch (err) {
     console.error("Run interest job error:", err);
     res.status(500).json({ success: false, error: "Failed to run interest job" });
+  }
+});
+
+circlesRouter.get("/payout-requests/my", authMiddleware, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const status = req.query.status as string | undefined;
+    const result = await getCirclePayoutRequestsByUser(req.user!.userId, { page, limit, status });
+    res.json({ success: true, data: result });
+  } catch (err) {
+    console.error("Get my payout requests error:", err);
+    res.status(500).json({ success: false, error: "Failed to fetch payout requests" });
+  }
+});
+
+circlesRouter.get("/admin/payout-requests", adminMiddleware, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const status = req.query.status as string | undefined;
+    const result = await getCirclePayoutRequests({ page, limit, status });
+    res.json({ success: true, data: result });
+  } catch (err) {
+    console.error("Get payout requests error:", err);
+    res.status(500).json({ success: false, error: "Failed to fetch payout requests" });
+  }
+});
+
+circlesRouter.post("/admin/payout-requests/:id/approve", adminMiddleware, async (req, res) => {
+  try {
+    const request = await approveCirclePayoutRequest(req.params.id, req.user!.userId);
+    res.json({ success: true, data: request });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to approve payout request";
+    console.error("Approve payout request error:", err);
+    res.status(400).json({ success: false, error: message });
+  }
+});
+
+circlesRouter.post("/admin/payout-requests/:id/decline", adminMiddleware, async (req, res) => {
+  try {
+    const { note } = req.body;
+    const request = await declineCirclePayoutRequest(req.params.id, req.user!.userId, note);
+    res.json({ success: true, data: request });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to decline payout request";
+    console.error("Decline payout request error:", err);
+    res.status(400).json({ success: false, error: message });
   }
 });

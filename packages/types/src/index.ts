@@ -5,6 +5,7 @@ export interface User {
   role?: string;
   accountNumber: string;
   accountTier: string;
+  phone?: string;
   kycStatus?: string;
   createdAt: Date;
 }

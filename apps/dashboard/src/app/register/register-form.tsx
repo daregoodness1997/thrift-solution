@@ -68,7 +68,7 @@ export default function RegisterForm() {
       toast.error(result.error);
     } else {
       toast.success("Account created successfully!");
-      window.location.href = "/";
+      window.location.href = "/kyc";
     }
   };
 

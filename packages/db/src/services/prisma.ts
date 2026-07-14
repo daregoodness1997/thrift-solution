@@ -33,6 +33,7 @@ const SOFT_DELETE_MODELS = [
   "circleInterestLog",
   "navigationItem",
   "roleNavigation",
+  "notification",
 ];
 
 prisma.$use(async (params, next) => {

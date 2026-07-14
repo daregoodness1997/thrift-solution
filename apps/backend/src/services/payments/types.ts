@@ -17,8 +17,42 @@ export interface PaymentVerificationResult {
   reference: string;
 }
 
+export interface VirtualAccountParams {
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone?: string;
+  bvn?: string;
+  nin?: string;
+  reference: string;
+  narration?: string;
+}
+
+export interface VirtualAccountResult {
+  accountNumber: string;
+  bankName: string;
+  bankCode?: string;
+  reference: string;
+  providerRef?: string;
+}
+
+export interface VirtualAccountTransferParams {
+  accountNumber: string;
+  bankCode: string;
+  amount: number;
+  reference: string;
+}
+
+export interface VirtualAccountTransferResult {
+  status: "pending" | "completed" | "failed";
+  reference: string;
+  providerRef?: string;
+}
+
 export interface PaymentProvider {
   name: string;
   initializePayment(params: PaymentInitParams): Promise<PaymentInitResult>;
   verifyPayment(reference: string): Promise<PaymentVerificationResult>;
+  createVirtualAccount?(params: VirtualAccountParams): Promise<VirtualAccountResult>;
+  initiateTransfer?(params: VirtualAccountTransferParams): Promise<VirtualAccountTransferResult>;
 }

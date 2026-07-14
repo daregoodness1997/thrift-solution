@@ -1,5 +1,5 @@
-import { Router } from "express";
-import { authMiddleware } from "../middleware/auth";
+import { Router, Request } from "express";
+import { authMiddleware, requireAdmin } from "../middleware/auth";
 import {
   createLoan,
   getLoanById,
@@ -7,11 +7,20 @@ import {
   getAllLoans,
   updateLoan,
   calculateLoanTerms,
+  createAuditLog,
 } from "@thrift/db";
 
 export const loansRouter = Router();
 
-loansRouter.get("/", authMiddleware, async (req, res) => {
+function actor(req: Request) {
+  return {
+    actorId: req.user?.userId ?? null,
+    actorEmail: req.user?.email ?? null,
+    ipAddress: (req.headers["x-forwarded-for"] as string) || req.socket.remoteAddress || null,
+  };
+}
+
+loansRouter.get("/", requireAdmin, async (req, res) => {
   try {
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 20;
@@ -102,7 +111,7 @@ loansRouter.get("/:id", authMiddleware, async (req, res) => {
   }
 });
 
-loansRouter.put("/:id/approve", authMiddleware, async (req, res) => {
+loansRouter.put("/:id/approve", requireAdmin, async (req, res) => {
   try {
     const loan = await getLoanById(req.params.id);
     if (!loan) {
@@ -119,6 +128,7 @@ loansRouter.put("/:id/approve", authMiddleware, async (req, res) => {
       approvedAt: new Date(),
     });
 
+    await createAuditLog({ ...actor(req), action: "loan.approve", entity: "loan", entityId: loan.id, metadata: { amount: loan.amount } });
     res.json({ success: true, data: updated });
   } catch (err) {
     console.error("Approve loan error:", err);
@@ -126,7 +136,7 @@ loansRouter.put("/:id/approve", authMiddleware, async (req, res) => {
   }
 });
 
-loansRouter.put("/:id/disburse", authMiddleware, async (req, res) => {
+loansRouter.put("/:id/disburse", requireAdmin, async (req, res) => {
   try {
     const loan = await getLoanById(req.params.id);
     if (!loan) {
@@ -143,6 +153,7 @@ loansRouter.put("/:id/disburse", authMiddleware, async (req, res) => {
       disbursedAt: new Date(),
     });
 
+    await createAuditLog({ ...actor(req), action: "loan.disburse", entity: "loan", entityId: loan.id, metadata: { amount: loan.amount } });
     res.json({ success: true, data: updated });
   } catch (err) {
     console.error("Disburse loan error:", err);
@@ -150,7 +161,7 @@ loansRouter.put("/:id/disburse", authMiddleware, async (req, res) => {
   }
 });
 
-loansRouter.put("/:id/complete", authMiddleware, async (req, res) => {
+loansRouter.put("/:id/complete", requireAdmin, async (req, res) => {
   try {
     const loan = await getLoanById(req.params.id);
     if (!loan) {
@@ -167,6 +178,7 @@ loansRouter.put("/:id/complete", authMiddleware, async (req, res) => {
       completedAt: new Date(),
     });
 
+    await createAuditLog({ ...actor(req), action: "loan.complete", entity: "loan", entityId: loan.id });
     res.json({ success: true, data: updated });
   } catch (err) {
     console.error("Complete loan error:", err);
@@ -174,7 +186,7 @@ loansRouter.put("/:id/complete", authMiddleware, async (req, res) => {
   }
 });
 
-loansRouter.put("/:id/reject", authMiddleware, async (req, res) => {
+loansRouter.put("/:id/reject", requireAdmin, async (req, res) => {
   try {
     const loan = await getLoanById(req.params.id);
     if (!loan) {
@@ -187,6 +199,7 @@ loansRouter.put("/:id/reject", authMiddleware, async (req, res) => {
     }
 
     const updated = await updateLoan(req.params.id, { status: "rejected" });
+    await createAuditLog({ ...actor(req), action: "loan.reject", entity: "loan", entityId: loan.id });
     res.json({ success: true, data: updated });
   } catch (err) {
     console.error("Reject loan error:", err);

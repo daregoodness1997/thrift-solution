@@ -2,7 +2,16 @@ export { prisma, softDelete } from "./services/prisma";
 
 export { getConfig, saveConfig } from "./services/config";
 
-export { findUserByEmail, findUserById, createUser } from "./services/users";
+export { findUserByEmail, findUserById, createUser, setEmailVerified, setPhoneVerified, setTotpSecret, setTwoFactorEnabled, updatePasswordHash } from "./services/users";
+
+export {
+  createVerificationToken,
+  findValidVerificationToken,
+  consumeVerificationToken,
+  deleteVerificationTokens,
+} from "./services/verification-tokens";
+
+export type { VerificationType, VerificationChannel } from "./services/verification-tokens";
 
 export {
   createDonation,
@@ -20,6 +29,8 @@ export {
   getUserTransactions,
   getUserTransactionsFiltered,
   fundWallet,
+  findTransactionByReference,
+  updateTransactionStatus,
 } from "./services/transactions";
 
 export {
@@ -130,6 +141,10 @@ export {
   getCircleAccountInterestBreakdown,
   calculateWeeklyInterestForAccount,
   runWeeklyInterestJob,
+  getCirclePayoutRequests,
+  getCirclePayoutRequestsByUser,
+  approveCirclePayoutRequest,
+  declineCirclePayoutRequest,
 } from "./services/circles";
 
 export {
@@ -142,3 +157,55 @@ export {
   removeNavigationFromRole,
   getRoles,
 } from "./services/navigation";
+
+export {
+  createVirtualAccount,
+  getVirtualAccountsByUser,
+  getVirtualAccountById,
+  getVirtualAccountByAccountNumber,
+  getVirtualAccountByReference,
+  updateVirtualAccountStatus,
+  updateVirtualAccountLastTransfer,
+  deleteVirtualAccount,
+  getUsersWithoutVirtualAccounts,
+  hasVirtualAccountForProvider,
+} from "./services/virtual-accounts";
+
+export { createAuditLog, getAuditLogs } from "./services/audit";
+
+export {
+  ensureNotificationPreference,
+  getNotificationPreferences,
+  updateNotificationPreferences,
+  createNotification,
+  listNotifications,
+  getUnreadCount,
+  markNotificationRead,
+  markAllNotificationsRead,
+  deleteNotification,
+} from "./services/notifications";
+
+export type { NotificationChannel, NotificationStatus, NotificationPreferences, NotificationRecord, CreateNotificationInput, ListNotificationsOptions } from "./services/notifications";
+
+export {
+  getAdminStats,
+  getUserGrowth,
+  listUsers,
+  getUserDetail,
+  updateUserByAdmin,
+  suspendUser,
+  reactivateUser,
+} from "./services/admin";
+
+export {
+  getAllTransactions,
+  getTransactionStats,
+  getAllReferralEarnings,
+  payReferralEarning,
+  getAllVirtualAccounts,
+  getMembersWithoutVirtualAccount,
+  getAllMarketplaceListingsAdmin,
+  getAllJobListingsAdmin,
+  getAllDonationsAdmin,
+  getDonationStatsAdmin,
+} from "./services/admin-oversight";

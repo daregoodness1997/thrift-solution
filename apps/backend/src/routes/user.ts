@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { authMiddleware } from "../middleware/auth";
-import { getUserProfile, updateUserProfile, getUserGroups, fundWallet } from "@thrift/db";
+import { getUserProfile, updateUserProfile, getUserGroups } from "@thrift/db";
 
 export const userRouter = Router();
 
@@ -36,20 +36,5 @@ userRouter.get("/groups", authMiddleware, async (req, res) => {
   } catch (err) {
     console.error("Get user groups error:", err);
     res.status(500).json({ success: false, error: "Failed to fetch groups" });
-  }
-});
-
-userRouter.post("/fund", authMiddleware, async (req, res) => {
-  try {
-    const { amount } = req.body;
-    if (!amount || amount <= 0) {
-      res.status(400).json({ success: false, error: "A valid amount is required" });
-      return;
-    }
-    const tx = await fundWallet(req.user!.userId, parseFloat(amount));
-    res.json({ success: true, data: { transactionId: tx.id, reference: tx.reference, amount: tx.amount } });
-  } catch (err) {
-    console.error("Fund wallet error:", err);
-    res.status(500).json({ success: false, error: "Failed to fund wallet" });
   }
 });

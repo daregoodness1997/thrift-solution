@@ -130,7 +130,8 @@ kycRouter.post("/", authMiddleware, upload.fields([
   { name: 'documents', maxCount: 10 },
 ]), async (req, res) => {
   try {
-    const { level, idType, idNumber, purpose } = req.body;
+    const { level: rawLevel, idType, idNumber, purpose } = req.body;
+    const level = parseInt(rawLevel, 10);
     const userId = req.user!.userId;
     const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
 

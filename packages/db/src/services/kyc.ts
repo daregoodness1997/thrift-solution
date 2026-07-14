@@ -38,7 +38,7 @@ export async function createKycSubmission(data: {
 }) {
   return prisma.$transaction(async (tx) => {
     const existing = await tx.kyc.findUnique({ where: { userId: data.userId } });
-    if (existing && (existing.status === "verified" || existing.status === "pending" || existing.status === "under_review")) {
+    if (existing && (existing.status === "pending" || existing.status === "under_review")) {
       throw new Error("KYC already submitted or verified");
     }
 
@@ -100,6 +100,14 @@ export async function createKycSubmission(data: {
   });
 }
 
+const KYC_LEVEL_TO_TIER: Record<number, string> = {
+  1: "silver",
+  2: "gold",
+  3: "platinum",
+};
+
+const TIER_HIERARCHY = ["basic", "silver", "gold", "platinum", "diamond"];
+
 export async function updateKycStatus(
   userId: string,
   status: string,
@@ -118,6 +126,18 @@ export async function updateKycStatus(
         verifiedAt: status === "verified" ? new Date() : null,
       },
     });
+
+    if (status === "verified" && kyc.level) {
+      const newTier = KYC_LEVEL_TO_TIER[kyc.level];
+      if (newTier) {
+        const user = await tx.user.findUnique({ where: { id: userId }, select: { accountTier: true } });
+        const currentTierIndex = TIER_HIERARCHY.indexOf(user?.accountTier ?? "basic");
+        const newTierIndex = TIER_HIERARCHY.indexOf(newTier);
+        if (newTierIndex > currentTierIndex) {
+          await tx.user.update({ where: { id: userId }, data: { accountTier: newTier } });
+        }
+      }
+    }
 
     await tx.kycAuditLog.create({
       data: {

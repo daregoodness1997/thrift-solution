@@ -22,6 +22,12 @@ interface NavSection {
 
 const AUTH_ROUTES = ["/login", "/register"];
 
+const STAFF_ROLES = ["admin", "superadmin", "support", "finance", "moderator"];
+
+function isStaffRole(role?: string) {
+  return !!role && STAFF_ROLES.includes(role);
+}
+
 const FALLBACK_NAV: NavSection[] = [
   {
     title: "",
@@ -69,6 +75,40 @@ const FALLBACK_NAV: NavSection[] = [
   },
 ];
 
+const FALLBACK_STAFF: NavSection[] = [
+  {
+    title: "Administration",
+    items: [
+      { label: "Admin Overview", href: "/admin", icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1" },
+      { label: "User Management", href: "/admin/users", icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" },
+      { label: "Loan Requests", href: "/admin/loans", icon: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" },
+      { label: "Audit Log", href: "/admin/audit-logs", icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" },
+    ],
+  },
+  {
+    title: "Oversight",
+    items: [
+      { label: "Transactions", href: "/admin/transactions", icon: "M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" },
+      { label: "Referrals", href: "/admin/referrals", icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" },
+      { label: "Virtual Accounts", href: "/admin/virtual-accounts", icon: "M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v9a2 2 0 002 2z" },
+    ],
+  },
+  {
+    title: "Moderation",
+    items: [
+      { label: "Marketplace", href: "/admin/marketplace", icon: "M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" },
+      { label: "Jobs", href: "/admin/jobs", icon: "M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" },
+      { label: "Donations", href: "/admin/donations", icon: "M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" },
+    ],
+  },
+  {
+    title: "Administration",
+    items: [
+      { label: "Configuration", href: "/admin/config", icon: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31 2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z" },
+    ],
+  },
+];
+
 function Icon({ path, size = 20 }: { path: string; size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
@@ -86,6 +126,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const [isMobile, setIsMobile] = useState(false);
   const [navSections, setNavSections] = useState<NavSection[]>(FALLBACK_NAV);
   const [navLoading, setNavLoading] = useState(true);
+  const [virtualAccount, setVirtualAccount] = useState<{ accountNumber: string; bankName: string } | null>(null);
 
   const isAuthPage = AUTH_ROUTES.includes(pathname);
 
@@ -99,12 +140,30 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       const data = await res.json();
       if (data.success && data.data && data.data.length > 0) {
         setNavSections(data.data);
+      } else {
+        setNavSections(isStaffRole(user?.role) ? FALLBACK_STAFF : FALLBACK_NAV);
       }
     } catch {
-      setNavSections(FALLBACK_NAV);
+      setNavSections(isStaffRole(user?.role) ? FALLBACK_STAFF : FALLBACK_NAV);
     } finally {
       setNavLoading(false);
     }
+  }, [token, user]);
+
+  const fetchVirtualAccount = useCallback(async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_URL}/api/virtual-accounts`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.virtualAccounts && data.virtualAccounts.length > 0) {
+        setVirtualAccount({
+          accountNumber: data.virtualAccounts[0].accountNumber,
+          bankName: data.virtualAccounts[0].bankName,
+        });
+      }
+    } catch {}
   }, [token]);
 
   useEffect(() => {
@@ -127,8 +186,9 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (user && token) {
       fetchNavigation();
+      fetchVirtualAccount();
     }
-  }, [user, token, fetchNavigation]);
+  }, [user, token, fetchNavigation, fetchVirtualAccount]);
 
   if (isAuthPage) {
     return <>{children}</>;
@@ -212,7 +272,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               </span>
             </Link>
             <p style={{ fontSize: "10px", color: "#999", fontWeight: 300, marginTop: "0.125rem" }}>
-              {user.role === "admin" ? "Admin Portal" : "Member Portal"}
+              {isStaffRole(user.role) ? "Admin Portal" : "Member Portal"}
             </p>
           </div>
           {isMobile && (
@@ -290,8 +350,10 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             <div style={{ minWidth: 0, flex: 1 }}>
               <span style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{displayName}</span>
               <span style={{ fontSize: "10px", color: "#999", display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.email}</span>
-              {user.accountNumber && (
-                <span style={{ fontSize: "9px", fontFamily: "'JetBrains Mono', monospace", color: config.colors.primary, fontWeight: 600, display: "block", marginTop: "0.125rem", letterSpacing: "0.03em" }}>{user.accountNumber}</span>
+              {user.role === "member" && (virtualAccount?.accountNumber || user.accountNumber) && (
+                <span style={{ fontSize: "9px", fontFamily: "'JetBrains Mono', monospace", color: config.colors.primary, fontWeight: 600, display: "block", marginTop: "0.125rem", letterSpacing: "0.03em" }}>
+                  {virtualAccount?.accountNumber || user.accountNumber}
+                </span>
               )}
             </div>
             <button onClick={handleLogout} title="Sign out"

@@ -105,6 +105,94 @@ body {
   100% { background-position: 0% 50%; }
 }
 
+/* ─── Wallet Animations ─── */
+
+@keyframes wallet-flap-open {
+  0% { transform: rotateX(0deg); transform-origin: top; }
+  100% { transform: rotateX(-20deg); transform-origin: top; }
+}
+
+@keyframes wallet-flap-close {
+  0% { transform: rotateX(-20deg); transform-origin: top; }
+  100% { transform: rotateX(0deg); transform-origin: top; }
+}
+
+@keyframes clasp-glow {
+  0%, 100% { box-shadow: 0 2px 8px rgba(184, 134, 11, 0.4), inset 0 1px 2px rgba(255,255,255,0.3); }
+  50% { box-shadow: 0 2px 20px rgba(184, 134, 11, 0.8), 0 0 40px rgba(184, 134, 11, 0.3), inset 0 1px 2px rgba(255,255,255,0.3); }
+}
+
+@keyframes clasp-spin {
+  0% { transform: translateX(-50%) rotate(0deg); }
+  100% { transform: translateX(-50%) rotate(360deg); }
+}
+
+@keyframes balance-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes balance-count {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+@keyframes wallet-body-reveal {
+  0% { opacity: 0; transform: translateY(20px) scale(0.98); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes card-slide-in {
+  0% { transform: translateX(-100%); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes button-glow-pulse {
+  0%, 100% { box-shadow: 0 4px 12px rgba(45, 90, 61, 0.4); }
+  50% { box-shadow: 0 4px 24px rgba(45, 90, 61, 0.6), 0 0 40px rgba(45, 90, 61, 0.2); }
+}
+
+@keyframes success-burst {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes success-checkmark {
+  0% { stroke-dashoffset: 50; }
+  100% { stroke-dashoffset: 0; }
+}
+
+@keyframes wallet-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+@keyframes confetti-fall {
+  0% { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(60px) rotate(360deg); opacity: 0; }
+}
+
+@keyframes preset-select {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.95); }
+  100% { transform: scale(1.05); }
+}
+
+@keyframes shimmer-sweep {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes subtle-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
 /* ─── Utility classes ─── */
 
 .animate-fade-in { animation: fadeIn 0.6s ease-out both; }
@@ -151,6 +239,79 @@ body {
 .hover-underline:hover::after { width: 100%; }
 
 .hover-bg { transition: background-color 0.2s ease, color 0.2s ease; }
+
+/* ─── Wallet utility classes ─── */
+
+.wallet-container {
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease;
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+.wallet-container:hover {
+  transform: translateY(-6px) rotateX(2deg);
+  box-shadow: 0 20px 60px rgba(45, 90, 61, 0.35), 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.wallet-flap {
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-origin: top center;
+  backface-visibility: hidden;
+}
+
+.wallet-flap-open {
+  animation: wallet-flap-open 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.wallet-clasp {
+  transition: all 0.3s ease;
+}
+
+.wallet-clasp-glow {
+  animation: clasp-glow 2s ease-in-out infinite;
+}
+
+.wallet-clasp-spin {
+  animation: clasp-spin 1s linear infinite;
+}
+
+.wallet-balance-shimmer {
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: balance-shimmer 3s ease-in-out infinite;
+}
+
+.wallet-balance-count {
+  animation: balance-count 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.wallet-body-reveal {
+  animation: wallet-body-reveal 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.wallet-card-slide {
+  animation: card-slide-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.wallet-button-glow {
+  animation: button-glow-pulse 2s ease-in-out infinite;
+}
+
+.wallet-success-burst {
+  animation: success-burst 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.wallet-shake {
+  animation: wallet-shake 0.5s ease-in-out;
+}
+
+.wallet-preset-select {
+  animation: preset-select 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.wallet-subtle-float {
+  animation: subtle-float 4s ease-in-out infinite;
+}
 
 /* ─── Responsive utilities ─── */
 

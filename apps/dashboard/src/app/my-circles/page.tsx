@@ -20,7 +20,7 @@ interface CircleAccount {
   startDate: string;
   maturityDate: string;
   lastInterestCalculation?: string;
-  circle: { id: string; name: string; amount: number; durationMonths: number; interestRateAnnual: number };
+  circle: { id: string; name: string; amount: number; durationMonths: number; interestRateAnnual: number; autoPayout: boolean };
 }
 
 interface InterestLog {
@@ -198,8 +198,12 @@ export default function MyCirclesPage() {
       });
       const data = await res.json();
       if (data.success) {
-        showMessage("success", "Maturity payout credited to wallet!");
-        setWalletBalance(data.data.walletBalance);
+        if (data.data?.type === "payout_request") {
+          showMessage("success", "Payout request submitted. Waiting for admin approval.");
+        } else {
+          showMessage("success", "Maturity payout credited to wallet!");
+          setWalletBalance(data.data.walletBalance);
+        }
         fetchData();
       } else {
         showMessage("error", data.error || "Failed to claim maturity");
@@ -417,7 +421,7 @@ export default function MyCirclesPage() {
                           {account.status === "active" && (
                             <>
                               <Button variant="primary" size="sm" disabled={claiming === account.id || daysUntil(account.maturityDate) > 0} onClick={() => handleClaim(account.id)}>
-                                {claiming === account.id ? "Claiming..." : daysUntil(account.maturityDate) > 0 ? `Matures in ${daysUntil(account.maturityDate)}d` : "Claim Maturity"}
+                                {claiming === account.id ? "Processing..." : daysUntil(account.maturityDate) > 0 ? `Matures in ${daysUntil(account.maturityDate)}d` : account.circle.autoPayout ? "Claim Maturity" : "Request Payout"}
                               </Button>
                               <Button variant="secondary" size="sm" disabled={withdrawing === account.id} onClick={() => handleWithdraw(account.id)}>
                                 {withdrawing === account.id ? "Withdrawing..." : "Early Withdraw (Forfeit Interest)"}
@@ -426,7 +430,7 @@ export default function MyCirclesPage() {
                           )}
                           {account.status === "matured" && (
                             <Button variant="primary" size="sm" disabled={claiming === account.id} onClick={() => handleClaim(account.id)}>
-                              {claiming === account.id ? "Claiming..." : "Claim Maturity Payout"}
+                              {claiming === account.id ? "Processing..." : account.circle.autoPayout ? "Claim Maturity Payout" : "Request Payout"}
                             </Button>
                           )}
                         </div>

@@ -27,6 +27,13 @@ model User {
   accountTier   String    @default("basic") @map("account_tier")
   referralCode  String    @unique @map("referral_code")
   referredBy    String?   @map("referred_by")
+  phone         String?   @map("phone")
+  emailVerified   Boolean   @default(false) @map("email_verified")
+  emailVerifiedAt DateTime? @map("email_verified_at")
+  phoneVerified   Boolean   @default(false) @map("phone_verified")
+  phoneVerifiedAt DateTime? @map("phone_verified_at")
+  totpSecret      String?   @map("totp_secret")
+  twoFactorEnabled Boolean  @default(false) @map("two_factor_enabled")
   deletedAt     DateTime? @map("deleted_at")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at")
@@ -46,8 +53,35 @@ model User {
   jobApplications        JobApplication[]    @relation("Applicant")
   loans                  Loan[]              @relation("Borrower")
   circleAccounts         CircleAccount[]
+  circlePayoutRequests   CirclePayoutRequest[] @relation("CirclePayoutRequestUser")
+  reviewedPayoutRequests CirclePayoutRequest[] @relation("ReviewedBy")
+  virtualAccounts        VirtualAccount[]
+  auditLogs              AuditLog[]          @relation("AuditActor")
+  notifications          Notification[]
+  notificationPreferences NotificationPreference?
+  verificationTokens      VerificationToken[]
 
   @@map("users")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  actorId    String?  @map("actor_id")
+  actorEmail String?  @map("actor_email")
+  action     String
+  entity     String
+  entityId   String?  @map("entity_id")
+  metadata   String?  @db.Text
+  ipAddress  String?  @map("ip_address")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  actor User? @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([actorId])
+  @@index([entity])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
 }
 
 model Group {
@@ -426,6 +460,7 @@ model Circle {
   durationMonths      Int       @map("duration_months")
   interestRateAnnual  Float     @map("interest_rate_annual")
   maxAccountsPerUser  Int       @default(10) @map("max_accounts_per_user")
+  autoPayout          Boolean   @default(false) @map("auto_payout")
   status              String    @default("active")
   deletedAt           DateTime? @map("deleted_at")
   createdAt           DateTime  @default(now()) @map("created_at")
@@ -451,9 +486,10 @@ model CircleAccount {
   createdAt                 DateTime  @default(now()) @map("created_at")
   updatedAt                 DateTime  @default(now()) @updatedAt @map("updated_at")
 
-  circle        Circle              @relation(fields: [circleId], references: [id], onDelete: Restrict)
-  user          User                @relation(fields: [userId], references: [id], onDelete: Restrict)
+  circle        Circle                @relation(fields: [circleId], references: [id], onDelete: Restrict)
+  user          User                  @relation(fields: [userId], references: [id], onDelete: Restrict)
   interestLogs  CircleInterestLog[]
+  payoutRequests CirclePayoutRequest[]
 
   @@index([circleId])
   @@index([userId])
@@ -475,6 +511,28 @@ model CircleInterestLog {
   @@index([circleAccountId])
   @@index([calculatedAt])
   @@map("circle_interest_logs")
+}
+
+model CirclePayoutRequest {
+  id              String    @id @default(uuid())
+  circleAccountId String    @map("circle_account_id")
+  userId          String    @map("user_id")
+  amount          Float
+  status          String    @default("pending")
+  note            String?
+  reviewedById    String?   @map("reviewed_by_id")
+  reviewedAt      DateTime? @map("reviewed_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  circleAccount CircleAccount @relation(fields: [circleAccountId], references: [id], onDelete: Restrict)
+  user          User           @relation("CirclePayoutRequestUser", fields: [userId], references: [id], onDelete: Restrict)
+  reviewedBy    User?          @relation("ReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([circleAccountId])
+  @@index([userId])
+  @@index([status])
+  @@map("circle_payout_requests")
 }
 
 model NavigationItem {
@@ -509,4 +567,84 @@ model RoleNavigation {
   @@unique([role, navigationItemId])
   @@index([role])
   @@map("role_navigation")
+}
+
+model VirtualAccount {
+  id                String    @id @default(uuid())
+  userId            String    @map("user_id")
+  provider          String
+  accountNumber     String    @map("account_number")
+  bankName          String    @map("bank_name")
+  bankCode          String?   @map("bank_code")
+  currency          String    @default("NGN")
+  reference         String    @unique
+  providerRef       String?   @unique @map("provider_ref")
+  isPermanent       Boolean   @default(true) @map("is_permanent")
+  bvn               String?
+  nin               String?
+  status            String    @default("active")
+  lastTransferAt    DateTime? @map("last_transfer_at")
+  deletedAt         DateTime? @map("deleted_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([userId])
+  @@index([provider])
+  @@index([accountNumber])
+  @@map("virtual_accounts")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  type      String
+  title     String
+  body      String   @db.Text
+  data      String?  @db.Text
+  channel   String   @default("in_app") @map("channel")
+  status    String   @default("unread") @map("status")
+  readAt    DateTime? @map("read_at")
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, status])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  id        String   @id @default(uuid())
+  userId    String   @unique @map("user_id")
+  inApp     Boolean  @default(true) @map("in_app")
+  email     Boolean  @default(true)
+  sms       Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_preferences")
+}
+
+model VerificationToken {
+  id          String    @id @default(uuid())
+  userId      String    @map("user_id")
+  type        String
+  channel     String    @map("channel")
+  destination String?   @map("destination")
+  code        String
+  expiresAt   DateTime  @map("expires_at")
+  consumedAt  DateTime? @map("consumed_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([code])
+  @@map("verification_tokens")
 }

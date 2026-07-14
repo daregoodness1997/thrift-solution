@@ -48,7 +48,6 @@ export default function KycPage() {
   const [kycData, setKycData] = useState<KycData | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
 
   const [selectedLevel, setSelectedLevel] = useState<KycLevel>(1);
@@ -81,6 +80,15 @@ export default function KycPage() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [token, API_URL]);
+
+  useEffect(() => {
+    if (!kycData) return;
+    if (kycData.status === "verified" && kycData.level && kycData.level < 3) {
+      setSelectedLevel((kycData.level + 1) as KycLevel);
+    } else if (kycData.level) {
+      setSelectedLevel(kycData.level as KycLevel);
+    }
+  }, [kycData]);
 
   const handleFileSelect = useCallback((
     e: React.ChangeEvent<HTMLInputElement>,
@@ -139,8 +147,8 @@ export default function KycPage() {
     try {
       const formData = new FormData();
       formData.append("level", String(selectedLevel));
-      formData.append("idType", idType || "bvn");
-      formData.append("idNumber", idNumber || "00000000000");
+      formData.append("idType", selectedLevel === 3 ? "voter_card" : (idType || "bvn"));
+      formData.append("idNumber", selectedLevel === 3 ? (kycData?.idNumber || "00000000000") : (idNumber || "00000000000"));
 
       if (selectedLevel === 1) {
         formData.append("purpose", "bvn_verification");
@@ -158,8 +166,6 @@ export default function KycPage() {
           formData.append("documents", selfieFile.file);
         }
       } else if (selectedLevel === 3) {
-        formData.append("idType", "voter_card");
-        formData.append("idNumber", kycData?.idNumber || "00000000000");
         if (proofOfAddressFile) {
           formData.append("idDocument", proofOfAddressFile.file);
           formData.append("documents", proofOfAddressFile.file);
@@ -179,9 +185,17 @@ export default function KycPage() {
         return;
       }
 
-      toast.success(`Level ${selectedLevel} KYC submitted successfully!`);
-      setSubmitted(true);
+      toast.success(`Level ${selectedLevel} KYC submitted successfully! Moving to next level...`);
       setKycData(data.data);
+      if (selectedLevel < 3) {
+        setSelectedLevel((selectedLevel + 1) as KycLevel);
+        setStep(1);
+        setIdType("");
+        setIdNumber("");
+        setIdDocumentFile(null);
+        setSelfieFile(null);
+        setProofOfAddressFile(null);
+      }
     } catch {
       toast.error("Network error. Please try again.");
     } finally {
@@ -212,11 +226,19 @@ export default function KycPage() {
 
   const isLevelAvailable = (level: number): boolean => {
     if (!kycData) return level === 1;
-    if (kycData.status === "pending" || kycData.status === "under_review") return false;
     if (kycData.status === "rejected" && kycData.level === level) return true;
-    if (kycData.level && kycData.level >= level) return false;
+    if (kycData.level && kycData.level > level) return false;
+    if (kycData.level && kycData.level === level) {
+      if (kycData.status === "pending" || kycData.status === "under_review" || kycData.status === "verified") return false;
+      return true;
+    }
     return level === (kycData.level || 0) + 1;
   };
+
+  const waitingForApproval = kycData && kycData.level && selectedLevel > kycData.level &&
+    (kycData.status === "pending" || kycData.status === "under_review");
+  const levelCompleted = kycData && kycData.level === selectedLevel && kycData.status === "verified";
+  const canWorkOnLevel = !waitingForApproval && !levelCompleted;
 
   return (
     <div style={{ maxWidth: "900px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
@@ -228,7 +250,7 @@ export default function KycPage() {
       />
 
       {/* Status Banner */}
-      {kycData && kycData.status !== "none" && !submitted && (
+      {kycData && kycData.status !== "none" && (
         <FadeInUp delay={200}>
           <Card padding="1.5rem" style={{ marginBottom: "2rem" }}>
             {(() => {
@@ -269,25 +291,6 @@ export default function KycPage() {
         </FadeInUp>
       )}
 
-      {/* Success Banner */}
-      {submitted && (
-        <FadeInUp delay={200}>
-          <Card padding="1.5rem" style={{ marginBottom: "2rem" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1rem", borderRadius: "0.75rem", backgroundColor: "#EFF6FF", border: "1px solid #BFDBFE" }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-              <div>
-                <span style={{ fontSize: "13px", fontWeight: 600, color: "#2563EB" }}>Level {selectedLevel} KYC Submitted</span>
-                <span style={{ fontSize: "11px", color: "#717171", display: "block", marginTop: "0.125rem" }}>
-                  Your verification has been submitted. You will be notified once reviewed (usually 1-2 business days).
-                </span>
-              </div>
-            </div>
-          </Card>
-        </FadeInUp>
-      )}
-
       {/* Level Selector Cards */}
       <FadeInUp delay={250}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1rem", marginBottom: "2rem" }}>
@@ -302,7 +305,7 @@ export default function KycPage() {
             return (
               <button
                 key={level}
-                onClick={() => { if (available || isVerified || isPending) { setSelectedLevel(level); setStep(1); setIdType(""); setIdNumber(""); setIdDocumentFile(null); setSelfieFile(null); setProofOfAddressFile(null); setError(""); setSubmitted(false); } }}
+                onClick={() => { if (available || isVerified || isPending) { setSelectedLevel(level); setStep(1); setIdType(""); setIdNumber(""); setIdDocumentFile(null); setSelfieFile(null); setProofOfAddressFile(null); setError(""); } }}
                 disabled={!available && !isVerified && !isPending}
                 style={{
                   padding: "1.25rem",
@@ -336,8 +339,7 @@ export default function KycPage() {
       </FadeInUp>
 
       {/* Level Form */}
-      {!submitted && (
-        <FadeInUp delay={300}>
+      <FadeInUp delay={300}>
           <Card padding="1.5rem" style={{ marginBottom: "2rem" }}>
             <div style={{ marginBottom: "1.5rem" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem" }}>
@@ -382,6 +384,39 @@ export default function KycPage() {
               </div>
             )}
 
+            {waitingForApproval && (
+              <div style={{ padding: "1.25rem", borderRadius: "0.75rem", backgroundColor: "#FFFBEB", border: "1px solid #FDE68A", marginBottom: "1.5rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+                  </svg>
+                  <div>
+                    <span style={{ fontSize: "13px", fontWeight: 600, color: "#92400E" }}>Waiting for Level {kycData!.level} Approval</span>
+                    <span style={{ fontSize: "11px", color: "#A16207", display: "block", marginTop: "0.125rem" }}>
+                      Your Level {kycData!.level} submission is {kycData!.status === "pending" ? "under review" : "being reviewed"}. Level {selectedLevel} will be available after approval.
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {levelCompleted && (
+              <div style={{ padding: "1.25rem", borderRadius: "0.75rem", backgroundColor: "#ECFDF5", border: "1px solid #A7F3D0", marginBottom: "1.5rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
+                  </svg>
+                  <div>
+                    <span style={{ fontSize: "13px", fontWeight: 600, color: "#059669" }}>Level {selectedLevel} Already Verified</span>
+                    <span style={{ fontSize: "11px", color: "#047857", display: "block", marginTop: "0.125rem" }}>
+                      This level has been verified. Proceed to the next level.
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {canWorkOnLevel && (<>
             {/* Level 1 & 2: Step 1 - ID Type */}
             {(selectedLevel === 1 || selectedLevel === 2) && step === 1 && (
               <div>
@@ -608,12 +643,12 @@ export default function KycPage() {
                 </div>
               </div>
             )}
+            </>)}
           </Card>
         </FadeInUp>
-      )}
 
       {/* Audit Trail */}
-      {kycData?.auditLogs && kycData.auditLogs.length > 0 && !submitted && (
+      {kycData?.auditLogs && kycData.auditLogs.length > 0 && (
         <FadeInUp delay={350}>
           <Card padding="1.5rem" style={{ marginBottom: "2rem" }}>
             <ColorfulBadge label="Activity Log" color={cfg.colors.accent} />

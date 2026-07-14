@@ -1,4 +1,11 @@
-import type { PaymentProvider, PaymentInitParams, PaymentInitResult, PaymentVerificationResult } from "./types";
+import type {
+  PaymentProvider,
+  PaymentInitParams,
+  PaymentInitResult,
+  PaymentVerificationResult,
+  VirtualAccountParams,
+  VirtualAccountResult,
+} from "./types";
 
 const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY || "";
 const PAYSTACK_BASE = "https://api.paystack.co";
@@ -62,5 +69,62 @@ export const paystackProvider: PaymentProvider = {
       amount: data.data.amount / 100,
       reference: data.data.reference,
     };
+  },
+
+  async createVirtualAccount(params: VirtualAccountParams): Promise<VirtualAccountResult> {
+    try {
+      // Step 1: Create or get customer
+      const customerResponse = await fetch(`${PAYSTACK_BASE}/customer`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${PAYSTACK_SECRET}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: params.email,
+          first_name: params.firstName,
+          last_name: params.lastName,
+          phone: params.phone,
+        }),
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const customerData: any = await customerResponse.json();
+      if (!customerData.status) {
+        throw new Error(customerData.message || "Failed to create customer");
+      }
+
+      const customerId = customerData.data.id;
+
+      // Step 2: Create dedicated account
+      const dvaResponse = await fetch(`${PAYSTACK_BASE}/dedicated_account`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${PAYSTACK_SECRET}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          customer: customerId,
+          preferred_bank: "wema-bank",
+        }),
+      });
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const dvaData: any = await dvaResponse.json();
+      if (!dvaData.status) {
+        throw new Error(dvaData.message || "Failed to create virtual account");
+      }
+
+      return {
+        accountNumber: dvaData.data.account_number,
+        bankName: dvaData.data.bank.name,
+        bankCode: dvaData.data.bank.id?.toString(),
+        reference: params.reference,
+        providerRef: dvaData.data.id?.toString(),
+      };
+    } catch (err) {
+      const cause = err instanceof Error ? err.message : String(err);
+      throw new Error(`Failed to connect to Paystack API: ${cause}`);
+    }
   },
 };

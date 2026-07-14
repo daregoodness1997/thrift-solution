@@ -63,3 +63,14 @@ export async function fundWallet(userId: string, amount: number) {
     },
   });
 }
+
+export async function findTransactionByReference(reference: string) {
+  return prisma.transaction.findUnique({ where: { reference } });
+}
+
+export async function updateTransactionStatus(id: string, status: string) {
+  return prisma.transaction.update({
+    where: { id },
+    data: { status },
+  });
+}

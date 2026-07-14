@@ -53,3 +53,29 @@ export async function createUser(data: { email: string; name: string; passwordHa
 
   return prisma.user.create({ data: { ...data, referralCode: code, accountNumber, accountTier: "basic" } });
 }
+
+export async function setEmailVerified(userId: string) {
+  return prisma.user.update({
+    where: { id: userId },
+    data: { emailVerified: true, emailVerifiedAt: new Date() },
+  });
+}
+
+export async function setPhoneVerified(userId: string) {
+  return prisma.user.update({
+    where: { id: userId },
+    data: { phoneVerified: true, phoneVerifiedAt: new Date() },
+  });
+}
+
+export async function setTotpSecret(userId: string, secret: string) {
+  return prisma.user.update({ where: { id: userId }, data: { totpSecret: secret } });
+}
+
+export async function setTwoFactorEnabled(userId: string, enabled: boolean) {
+  return prisma.user.update({ where: { id: userId }, data: { twoFactorEnabled: enabled } });
+}
+
+export async function updatePasswordHash(userId: string, passwordHash: string) {
+  return prisma.user.update({ where: { id: userId }, data: { passwordHash } });
+}

@@ -7,7 +7,9 @@ import {
   createConversation,
   getOrCreateConversation,
   findUserById,
+  prisma,
 } from "@thrift/db";
+import { notifyUsers } from "../services/notifications";
 
 export const chatRouter = Router();
 
@@ -44,6 +46,33 @@ chatRouter.post("/conversations/:id/messages", authMiddleware, async (req, res) 
       return;
     }
     const message = await sendMessage(req.params.id, req.user!.userId, text.trim());
+
+    const members = await prisma.conversationMember.findMany({
+      where: { conversationId: req.params.id, userId: { not: req.user!.userId } },
+      select: { userId: true },
+    });
+    const recipientIds = members.map((m) => m.userId);
+
+    if (recipientIds.length > 0) {
+      const dashboardUrl = process.env.DASHBOARD_URL || "http://localhost:3001";
+      await notifyUsers(recipientIds, {
+        type: "chat_message",
+        title: "New message",
+        body: `${req.user!.email} sent you a message: "${text.trim().slice(0, 120)}"`,
+        data: { conversationId: req.params.id, messageId: message.id },
+        email: {
+          subject: "You have a new message",
+          heading: "New message",
+          text: `${req.user!.email} sent you a message:\n\n${text.trim()}`,
+          cta: {
+            label: "View conversation",
+            url: `${dashboardUrl}/chat/${req.params.id}`,
+          },
+        },
+        sms: { message: `Arosco: New message from ${req.user!.email}.` },
+      });
+    }
+
     res.status(201).json({ success: true, data: message });
   } catch (err) {
     console.error("Send message error:", err);

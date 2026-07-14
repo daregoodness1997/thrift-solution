@@ -56,17 +56,28 @@ export default function ProfilePage() {
   const [saved, setSaved] = useState(false);
   const [accountCopied, setAccountCopied] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [virtualAccount, setVirtualAccount] = useState<{ accountNumber: string; bankName: string; provider: string } | null>(null);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
   const fetchProfile = useCallback(async () => {
     if (!token) { setLoading(false); return; }
     try {
-      const res = await fetch(`${API_URL}/api/user/profile`, { headers: { Authorization: `Bearer ${token}` } });
-      const data = await res.json();
-      if (data.success) {
-        setProfile(data.data);
-        setName(data.data.name);
+      const [profileRes, vaRes] = await Promise.all([
+        fetch(`${API_URL}/api/user/profile`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${API_URL}/api/virtual-accounts`, { headers: { Authorization: `Bearer ${token}` } }),
+      ]);
+      const [profileData, vaData] = await Promise.all([profileRes.json(), vaRes.json()]);
+      if (profileData.success) {
+        setProfile(profileData.data);
+        setName(profileData.data.name);
+      }
+      if (vaData?.virtualAccounts && vaData.virtualAccounts.length > 0) {
+        setVirtualAccount({
+          accountNumber: vaData.virtualAccounts[0].accountNumber,
+          bankName: vaData.virtualAccounts[0].bankName,
+          provider: vaData.virtualAccounts[0].provider,
+        });
       }
     } catch {}
     setLoading(false);
@@ -93,9 +104,10 @@ export default function ProfilePage() {
   };
 
   const handleCopyAccount = async () => {
-    if (!profile?.accountNumber) return;
+    const accountToCopy = virtualAccount?.accountNumber || profile?.accountNumber;
+    if (!accountToCopy) return;
     try {
-      await navigator.clipboard.writeText(profile.accountNumber);
+      await navigator.clipboard.writeText(accountToCopy);
       setAccountCopied(true);
       setTimeout(() => setAccountCopied(false), 2000);
     } catch {}
@@ -167,16 +179,23 @@ export default function ProfilePage() {
             </div>
 
             <div style={{ marginBottom: "1.25rem" }}>
-              <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", fontWeight: 700, display: "block", marginBottom: "0.375rem" }}>Account Number</span>
+              <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", fontWeight: 700, display: "block", marginBottom: "0.375rem" }}>
+                {virtualAccount ? "Bank Account Number" : "Account Number"}
+              </span>
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                 <span style={{ fontSize: "1.25rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: "#1A1A1A", letterSpacing: "0.05em" }}>
-                  {profile.accountNumber}
+                  {virtualAccount ? virtualAccount.accountNumber : profile.accountNumber}
                 </span>
                 <button onClick={handleCopyAccount}
                   style={{ padding: "0.25rem 0.5rem", borderRadius: "0.375rem", fontSize: "10px", fontWeight: 600, cursor: "pointer", border: `1px solid ${cfg.colors.primary}`, backgroundColor: accountCopied ? "#ECFDF5" : "transparent", color: accountCopied ? "#059669" : cfg.colors.primary, transition: "all 0.2s ease", whiteSpace: "nowrap" }}>
                   {accountCopied ? "Copied!" : "Copy"}
                 </button>
               </div>
+              {virtualAccount && (
+                <span style={{ fontSize: "11px", color: "#717171", display: "block", marginTop: "0.25rem" }}>
+                  {virtualAccount.bankName}
+                </span>
+              )}
             </div>
 
             <div style={{ marginBottom: "1.25rem" }}>

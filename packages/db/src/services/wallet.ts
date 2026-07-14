@@ -1,7 +1,7 @@
 import nodeCrypto from "node:crypto";
 import { prisma } from "./prisma";
 
-const CREDIT_TYPES = ["funding", "payout", "circle_withdrawal", "circle_interest", "referral_earning"];
+const CREDIT_TYPES = ["funding", "wallet_funding", "payout", "circle_withdrawal", "circle_interest", "referral_earning"];
 const DEBIT_TYPES = ["contribution", "circle_deposit"];
 
 export async function getWalletBalance(userId: string): Promise<number> {

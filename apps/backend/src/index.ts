@@ -1,7 +1,9 @@
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import cron from "node-cron";
 import path from "path";
+import { Router } from "express";
 import { healthRouter } from "./routes/health";
 import { configRouter } from "./routes/config";
 import { authRouter } from "./routes/auth";
@@ -10,6 +12,7 @@ import { groupsRouter } from "./routes/groups";
 import { referralsRouter } from "./routes/referrals";
 import { kycRouter } from "./routes/kyc";
 import { userRouter } from "./routes/user";
+import { walletRouter } from "./routes/wallet";
 import { transactionsRouter } from "./routes/transactions";
 import { clearancesRouter } from "./routes/clearances";
 import { defaultsRouter } from "./routes/defaults";
@@ -21,7 +24,11 @@ import { loansRouter } from "./routes/loans";
 import { circlesRouter } from "./routes/circles";
 import { navigationRouter } from "./routes/navigation";
 import { uploadRouter } from "./routes/upload";
+import { virtualAccountsRouter } from "./routes/virtual-accounts";
+import { notificationsRouter } from "./routes/notifications";
+import { adminRouter } from "./routes/admin";
 import { circleInterestJob } from "./jobs/circleInterestJob";
+import { virtualAccountGenerationJob } from "./jobs/virtualAccountJob";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -43,6 +50,8 @@ app.use("/api/groups", groupsRouter);
 app.use("/api/referrals", referralsRouter);
 app.use("/api/kyc", kycRouter);
 app.use("/api/user", userRouter);
+app.use("/api/wallet", walletRouter);
+app.use("/api/virtual-accounts", virtualAccountsRouter);
 app.use("/api/transactions", transactionsRouter);
 app.use("/api/clearances", clearancesRouter);
 app.use("/api/defaults", defaultsRouter);
@@ -54,8 +63,11 @@ app.use("/api/loans", loansRouter);
 app.use("/api/circles", circlesRouter);
 app.use("/api/navigation", navigationRouter);
 app.use("/api/upload", uploadRouter);
+app.use("/api/notifications", notificationsRouter);
+app.use("/api/admin", adminRouter);
 
 cron.schedule("0 0 * * 0", circleInterestJob);
+cron.schedule("0 2 * * *", virtualAccountGenerationJob);
 
 app.listen(PORT, () => {
   console.log(`Backend server running on http://localhost:${PORT}`);

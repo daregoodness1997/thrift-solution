@@ -13,6 +13,8 @@ import {
   createTransaction,
   findUserById,
   findGroupById,
+  findTransactionByReference,
+  updateTransactionStatus,
 } from "@thrift/db";
 
 export const donationsRouter = Router();
@@ -257,9 +259,16 @@ donationsRouter.post("/webhook/paystack", async (req, res) => {
 
     const { event, data } = req.body;
     if (event === "charge.success") {
+      // Update donation if exists
       const donation = await findDonationByReference(data.reference);
       if (donation) {
         await updateDonationStatus(donation.id, "completed");
+      }
+      
+      // Update wallet funding transaction if exists
+      const transaction = await findTransactionByReference(data.reference);
+      if (transaction && transaction.type === "funding") {
+        await updateTransactionStatus(transaction.id, "completed");
       }
     }
 
@@ -284,9 +293,16 @@ donationsRouter.post("/webhook/flutterwave", async (req, res) => {
 
     const { event, data } = req.body;
     if (event === "charge.completed" && data.status === "successful") {
+      // Update donation if exists
       const donation = await findDonationByReference(data.tx_ref);
       if (donation) {
         await updateDonationStatus(donation.id, "completed");
+      }
+      
+      // Update wallet funding transaction if exists
+      const transaction = await findTransactionByReference(data.tx_ref);
+      if (transaction && transaction.type === "funding") {
+        await updateTransactionStatus(transaction.id, "completed");
       }
     }
 
@@ -301,9 +317,16 @@ donationsRouter.post("/webhook/nomba", async (req, res) => {
   try {
     const { eventType, data } = req.body;
     if (eventType === "PAYMENT_SUCCESS") {
+      // Update donation if exists
       const donation = await findDonationByReference(data.orderId);
       if (donation) {
         await updateDonationStatus(donation.id, "completed");
+      }
+      
+      // Update wallet funding transaction if exists
+      const transaction = await findTransactionByReference(data.orderId);
+      if (transaction && transaction.type === "funding") {
+        await updateTransactionStatus(transaction.id, "completed");
       }
     }
 
