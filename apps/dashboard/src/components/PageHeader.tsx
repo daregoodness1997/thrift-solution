@@ -27,55 +27,19 @@ export function PageHeader({
     <>
       <ColorBar />
       <FadeInUp delay={delay}>
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            gap: "1rem",
-            marginBottom: "2rem",
-            marginTop: "2rem",
-            borderBottom: "1px solid #EAEAEA",
-            paddingBottom: "1.5rem",
-          }}
-        >
+        <div className="mb-8 mt-8 flex flex-wrap items-start justify-between gap-4 border-b border-black/5 pb-6">
           <div>
             <ColorfulBadge label={badgeLabel} color={badgeColor} />
-            <h1
-              style={{
-                fontSize: "clamp(1.25rem, 3vw, 1.75rem)",
-                fontWeight: 300,
-                color: "#1A1A1A",
-                letterSpacing: "-0.025em",
-                marginTop: "0.75rem",
-              }}
-            >
+            <h1 className="mt-3 font-display text-[clamp(1.25rem,3vw,1.75rem)] font-bold tracking-tight text-brand-dark">
               {heading}{" "}
               {accentText && (
-                <span
-                  style={{
-                    fontStyle: "italic",
-                    fontFamily: "'Playfair Display', serif",
-                    color: badgeColor,
-                    fontWeight: 500,
-                  }}
-                >
+                <span className="bg-gradient-to-r from-brand-primary via-brand-sage to-brand-accent bg-clip-text font-display font-bold text-transparent">
                   {accentText}
                 </span>
               )}
             </h1>
             {description && (
-              <p
-                style={{
-                  fontSize: "12px",
-                  color: "#717171",
-                  fontWeight: 300,
-                  marginTop: "0.25rem",
-                }}
-              >
-                {description}
-              </p>
+              <p className="mt-1 text-xs font-light text-gray-500">{description}</p>
             )}
           </div>
           {right && <div>{right}</div>}

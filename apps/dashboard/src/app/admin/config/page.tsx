@@ -78,18 +78,18 @@ export default function AdminConfigPage() {
   if (authLoading || !isAdmin) return null;
 
   return (
-    <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
+    <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
       <PageHeader badgeLabel="Admin" heading="Platform" accentText="Configuration" description="Edit global brand, contact, and platform settings." />
 
       <ActionMessage message={message} />
 
       {loading ? (
-        <div style={{ textAlign: "center", padding: "3rem", color: "#999", fontSize: "13px" }}>Loading config...</div>
+        <div className="p-12 text-center text-[13px] text-gray-500">Loading config...</div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "1rem" }}>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-4">
           <FadeInUp delay={100}>
             <Card padding="1.5rem">
-              <h3 style={{ margin: "0 0 1rem", fontSize: "13px", fontWeight: 700, color: "#2D2D2D" }}>Brand</h3>
+              <h3 className="mb-4 text-[13px] font-bold text-brand-dark">Brand</h3>
               {FIELDS.filter((f) => f.group === "Brand").map((f) => (
                 <Field key={f.key} label={f.label} value={cfg[f.key] as string || ""} placeholder={f.placeholder} onChange={(v) => setField(f.key, v)} />
               ))}
@@ -102,7 +102,7 @@ export default function AdminConfigPage() {
 
           <FadeInUp delay={200}>
             <Card padding="1.5rem">
-              <h3 style={{ margin: "0 0 1rem", fontSize: "13px", fontWeight: 700, color: "#2D2D2D" }}>Contact</h3>
+              <h3 className="mb-4 text-[13px] font-bold text-brand-dark">Contact</h3>
               {FIELDS.filter((f) => f.group === "Contact").map((f) => (
                 <Field key={f.key} label={f.label} value={cfg[f.key] as string || ""} placeholder={f.placeholder} onChange={(v) => setField(f.key, v)} />
               ))}
@@ -112,9 +112,10 @@ export default function AdminConfigPage() {
       )}
 
       <FadeIn delay={300}>
-        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "1.5rem" }}>
+        <div className="mt-6 flex justify-end">
           <button onClick={save} disabled={saving || loading}
-            style={{ padding: "0.6rem 1.25rem", borderRadius: "0.5rem", fontSize: "13px", fontWeight: 600, border: "none", backgroundColor: "#16A34A", color: "#fff", cursor: "pointer", opacity: saving ? 0.5 : 1 }}>
+            className="cursor-pointer rounded-lg bg-[#16A34A] px-5 py-2.5 text-[13px] font-semibold text-white"
+            style={{ opacity: saving ? 0.5 : 1 }}>
             {saving ? "Saving..." : "Save Configuration"}
           </button>
         </div>
@@ -125,13 +126,13 @@ export default function AdminConfigPage() {
 
 function Field({ label, value, placeholder, onChange }: { label: string; value: string; placeholder: string; onChange: (v: string) => void }) {
   return (
-    <div style={{ marginBottom: "0.75rem" }}>
-      <label style={{ display: "block", fontSize: "11px", fontWeight: 600, color: "#717171", marginBottom: "0.25rem" }}>{label}</label>
+    <div className="mb-3">
+      <label className="mb-1 block text-[11px] font-semibold text-gray-500">{label}</label>
       <input
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
-        style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "0.5rem", border: "1px solid #E5E7EB", fontSize: "12px" }}
+        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-[12px] outline-none"
       />
     </div>
   );

@@ -146,7 +146,7 @@ export default function WhatsAppGroupsPage() {
   const availableGroups = allGroups;
 
   return (
-    <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
+    <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
       <PageHeader
         badgeLabel="WhatsApp Groups"
         badgeColor={WA_GREEN}
@@ -155,7 +155,7 @@ export default function WhatsAppGroupsPage() {
         description="Stay connected with your circles through WhatsApp"
       />
 
-      <StaggerChildren staggerDelay={80} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem", marginBottom: "2rem" }}>
+      <StaggerChildren staggerDelay={80} className="mb-8 grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
         <StatCard
           label="My Groups"
           value={myGroups.length.toString()}
@@ -166,7 +166,7 @@ export default function WhatsAppGroupsPage() {
         <StatCard
           label="Available to Join"
           value={availableGroups.length.toString()}
-          icon={<span style={{ color: WA_GREEN, fontSize: "16px" }}>&#128269;</span>}
+          icon={<span className="text-base" style={{ color: WA_GREEN }}>&#128269;</span>}
           variant="primary"
           change="Discover new groups"
           positive={availableGroups.length > 0}
@@ -180,41 +180,30 @@ export default function WhatsAppGroupsPage() {
         />
       </StaggerChildren>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1.5rem" }}>
+      <div className="grid grid-cols-1 gap-6">
         <FadeInUp delay={300}>
-          <Card padding="0" hover={false} style={{ overflow: "hidden" }}>
-            <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid #F0F0F0" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", flexWrap: "wrap", gap: "0.75rem" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <h2 style={{ fontSize: "0.9375rem", fontWeight: 700, color: "#1A1A1A", letterSpacing: "-0.02em" }}>My Groups</h2>
-                  <span style={{ fontSize: "10px", fontWeight: 700, color: "#999", backgroundColor: "#F5F5F5", padding: "0.125rem 0.5rem", borderRadius: "9999px" }}>{filtered.length}</span>
+          <Card padding="0" hover={false} className="overflow-hidden">
+            <div className="border-b border-[#F0F0F0] px-6 py-5">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-[15px] font-bold tracking-[-0.02em] text-brand-dark">My Groups</h2>
+                  <span className="rounded-full bg-[#F5F5F5] px-2 py-0.5 text-[10px] font-bold text-gray-400">{filtered.length}</span>
                 </div>
-                <div style={{ display: "flex", gap: "0.25rem", backgroundColor: "#F5F7F5", borderRadius: "0.625rem", padding: "0.25rem" }}>
+                <div className="flex gap-1 rounded-[10px] bg-[#F5F7F5] p-1">
                   {filterTabs.map((f) => (
                     <button
                       key={f}
                       onClick={() => { setFilter(f); setMyGroupsPage(1); }}
-                      style={{
-                        padding: "0.375rem 0.75rem",
-                        borderRadius: "0.5rem",
-                        fontSize: "11px",
-                        fontWeight: 600,
-                        border: "none",
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
-                        textTransform: "capitalize",
-                        backgroundColor: filter === f ? "#ffffff" : "transparent",
-                        color: filter === f ? WA_GREEN : "#717171",
-                        boxShadow: filter === f ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
-                      }}
+                      className="cursor-pointer rounded-lg border-0 px-3 py-1.5 text-[11px] font-semibold capitalize transition-all"
+                      style={{ backgroundColor: filter === f ? "#ffffff" : "transparent", color: filter === f ? WA_GREEN : "#717171", boxShadow: filter === f ? "0 1px 3px rgba(0,0,0,0.08)" : "none" }}
                     >
                       {f}
                     </button>
                   ))}
                 </div>
               </div>
-              <div style={{ position: "relative" }}>
-                <div style={{ position: "absolute", left: "0.75rem", top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}>
+              <div className="relative">
+                <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2">
                   <SearchIcon />
                 </div>
                 <input
@@ -222,47 +211,30 @@ export default function WhatsAppGroupsPage() {
                   placeholder="Search groups..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "0.625rem 0.75rem 0.625rem 2.25rem",
-                    borderRadius: "0.625rem",
-                    border: "1px solid #EAEAEA",
-                    backgroundColor: "#FAFAFA",
-                    fontSize: "12px",
-                    color: "#2D2D2D",
-                    outline: "none",
-                    transition: "border-color 0.2s ease",
-                    boxSizing: "border-box",
-                  }}
+                  className="w-full rounded-[0.625rem] border border-gray-200 bg-gray-50 px-3 py-2.5 pl-9 text-xs text-[#2D2D2D] outline-none"
                   onFocus={(e) => { e.currentTarget.style.borderColor = `${WA_GREEN}60`; }}
                   onBlur={(e) => { e.currentTarget.style.borderColor = "#EAEAEA"; }}
                 />
               </div>
             </div>
 
-            <div style={{ padding: "0.5rem" }}>
+            <div className="p-2">
               {loading ? (
-                <div style={{ padding: "3rem 1rem", textAlign: "center" }}>
-                  <p style={{ fontSize: "12px", color: "#999" }}>Loading groups...</p>
+                <div className="px-4 py-12 text-center">
+                  <p className="text-xs text-gray-400">Loading groups...</p>
                 </div>
               ) : filtered.length === 0 ? (
-                <div style={{ padding: "3rem 1rem", textAlign: "center" }}>
-                  <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>&#128269;</div>
-                  <p style={{ fontSize: "13px", color: "#999", fontWeight: 500 }}>No groups found</p>
-                  <p style={{ fontSize: "11px", color: "#BBB", marginTop: "0.25rem" }}>{myGroups.length === 0 ? "Join a group below to get started" : "Try adjusting your search or filter"}</p>
+                <div className="px-4 py-12 text-center">
+                  <div className="mb-2 text-[2rem]">&#128269;</div>
+                  <p className="text-[13px] font-medium text-gray-400">No groups found</p>
+                  <p className="mt-1 text-[11px] text-[#BBB]">{myGroups.length === 0 ? "Join a group below to get started" : "Try adjusting your search or filter"}</p>
                 </div>
               ) : (
                 filtered.map((group, idx) => (
                   <div
                     key={group.id}
-                    style={{
-                      padding: "0.875rem 1rem",
-                      borderRadius: "0.875rem",
-                      marginBottom: idx < filtered.length - 1 ? "0.25rem" : 0,
-                      border: "1px solid transparent",
-                      cursor: "pointer",
-                      transition: "all 0.2s ease",
-                    }}
+                    className="cursor-pointer rounded-xl border border-transparent p-4 transition-all"
+                    style={{ marginBottom: idx < filtered.length - 1 ? "0.25rem" : 0 }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.backgroundColor = "#F8F8F8";
                       e.currentTarget.style.transform = "translateX(4px)";
@@ -272,29 +244,29 @@ export default function WhatsAppGroupsPage() {
                       e.currentTarget.style.transform = "translateX(0)";
                     }}
                   >
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                      <div style={{ width: "44px", height: "44px", borderRadius: "0.875rem", backgroundColor: `${WA_GREEN}12`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: `${WA_GREEN}12` }}>
                         <WhatsAppIcon size={22} />
                       </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}>
-                          <span style={{ fontSize: "13px", fontWeight: 600, color: "#1A1A1A", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      <div className="min-w-0 flex-1">
+                        <div className="mt-0.5 flex items-center gap-1.5">
+                          <span className="block truncate text-[13px] font-semibold text-brand-dark">
                             {group.name}
                           </span>
                           {group.pinned && <PinIcon />}
                         </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.375rem", marginTop: "0.125rem" }}>
-                          {group.circleName && <span style={{ fontSize: "11px", color: "#999", flexShrink: 0 }}>{group.circleName}</span>}
-                          {group.circleName && <span style={{ fontSize: "8px", color: "#CCC" }}>&#8226;</span>}
-                          <span style={{ fontSize: "11px", color: "#717171", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{group.description || "WhatsApp group"}</span>
+                        <div className="mt-0.5 flex items-center gap-1.5">
+                          {group.circleName && <span className="flex-shrink-0 text-[11px] text-gray-400">{group.circleName}</span>}
+                          {group.circleName && <span className="text-[8px] text-[#CCC]">&#8226;</span>}
+                          <span className="block truncate text-[11px] text-gray-500">{group.description || "WhatsApp group"}</span>
                         </div>
                       </div>
-                      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.375rem", flexShrink: 0 }}>
-                        <span style={{ fontSize: "10px", color: "#BBB" }}>{group.memberCount} members</span>
+                      <div className="flex flex-shrink-0 flex-col items-end gap-1.5">
+                        <span className="text-[10px] text-[#BBB]">{group.memberCount} members</span>
                       </div>
                     </div>
 
-                    <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.625rem", marginLeft: "calc(44px + 0.75rem)" }}>
+                    <div className="flex gap-2 mt-2.5" style={{ marginLeft: "calc(44px + 0.75rem)" }}>
                       {group.inviteLink && (
                         <Button
                           variant="outline"
@@ -319,7 +291,7 @@ export default function WhatsAppGroupsPage() {
             </div>
 
             {myGroupsTotalPages > 1 && (
-              <div style={{ padding: "0 1rem 0.5rem" }}>
+              <div className="px-4 pb-2">
                 <Pagination
                   page={myGroupsPage}
                   totalPages={myGroupsTotalPages}
@@ -336,25 +308,19 @@ export default function WhatsAppGroupsPage() {
         {availableGroups.length > 0 && (
           <FadeInUp delay={400}>
             <Card padding="1.5rem">
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem" }}>
+              <div className="mb-5 flex items-center justify-between">
                 <div>
-                  <h2 style={{ fontSize: "0.9375rem", fontWeight: 700, color: "#1A1A1A", letterSpacing: "-0.02em" }}>Available Groups</h2>
-                  <p style={{ fontSize: "11px", color: "#999", marginTop: "0.25rem" }}>Join communities and start saving together</p>
+                  <h2 className="text-[15px] font-bold tracking-[-0.02em] text-brand-dark">Available Groups</h2>
+                  <p className="mt-1 text-[11px] text-gray-400">Join communities and start saving together</p>
                 </div>
                 <ColorfulBadge label="Quick Join" color={config.colors.accent} />
               </div>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+              <div className="flex flex-col gap-3">
                 {availableGroups.map((g) => (
                   <div
                     key={g.id}
-                    style={{
-                      padding: "1rem",
-                      borderRadius: "1rem",
-                      border: "1px solid #F0F0F0",
-                      backgroundColor: "#FAFAFA",
-                      transition: "all 0.2s ease",
-                    }}
+                    className="rounded-xl border border-[#F0F0F0] bg-gray-50 p-4 transition-all"
                     onMouseEnter={(e) => {
                       e.currentTarget.style.borderColor = `${WA_GREEN}40`;
                       e.currentTarget.style.backgroundColor = `${WA_GREEN}08`;
@@ -368,19 +334,19 @@ export default function WhatsAppGroupsPage() {
                       e.currentTarget.style.boxShadow = "none";
                     }}
                   >
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                      <div style={{ width: "36px", height: "36px", borderRadius: "0.75rem", backgroundColor: `${WA_GREEN}10`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg" style={{ backgroundColor: `${WA_GREEN}10` }}>
                         <WhatsAppIcon size={18} />
                       </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <span style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", display: "block" }}>{g.name}</span>
-                        <span style={{ fontSize: "10px", color: "#999", display: "block", marginTop: "0.0625rem" }}>{g.description || "Join this community group"}</span>
+                      <div className="min-w-0 flex-1">
+                        <span className="block text-xs font-semibold text-[#2D2D2D]">{g.name}</span>
+                        <span className="mt-0.5 block text-[10px] text-gray-400">{g.description || "Join this community group"}</span>
                       </div>
                     </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "0.75rem", marginLeft: "calc(36px + 0.75rem)" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}>
+                    <div className="mt-3 flex items-center justify-between" style={{ marginLeft: "calc(36px + 0.75rem)" }}>
+                      <div className="mt-0.5 flex items-center gap-1.5">
                         <UsersIcon />
-                        <span style={{ fontSize: "10px", color: "#999" }}>{g.memberCount} members</span>
+                        <span className="text-[10px] text-gray-400">{g.memberCount} members</span>
                       </div>
                       <Button
                         variant="primary"

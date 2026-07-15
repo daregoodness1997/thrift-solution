@@ -21,11 +21,16 @@ interface CircleCalculatorProps {
   circleAmount?: number;
   annualRate?: number;
   circles?: CircleOption[];
-  onSelectConfig?: (amount: number, durationMonths: number, accounts: number) => void;
+  onSelectConfig?: (
+    amount: number,
+    durationMonths: number,
+    accounts: number,
+    circleId?: string | null,
+  ) => void;
 }
 
 function calcWeeklyInterest(principal: number, annualRatePct: number): number {
-  return principal * (annualRatePct / 100) / 52;
+  return (principal * (annualRatePct / 100)) / 52;
 }
 
 function formatDuration(months: number) {
@@ -36,7 +41,12 @@ function formatDuration(months: number) {
   return `${y}y ${m}mo`;
 }
 
-export function CircleCalculator({ circleAmount = 10000, annualRate = 10, circles = [], onSelectConfig }: CircleCalculatorProps) {
+export function CircleCalculator({
+  circleAmount = 10000,
+  annualRate = 10,
+  circles = [],
+  onSelectConfig,
+}: CircleCalculatorProps) {
   const cfg: BrandConfig = config;
   const [selectedCircleId, setSelectedCircleId] = useState<string | null>(null);
   const [duration, setDuration] = useState(12);
@@ -46,13 +56,18 @@ export function CircleCalculator({ circleAmount = 10000, annualRate = 10, circle
 
   const selectedCircle = circles.find((c) => c.id === selectedCircleId) ?? null;
   const activeAmount = selectedCircle ? selectedCircle.amount : circleAmount;
-  const activeRate = selectedCircle ? selectedCircle.interestRateAnnual : annualRate;
+  const activeRate = selectedCircle
+    ? selectedCircle.interestRateAnnual
+    : annualRate;
 
-  const effectiveAccounts = customAccounts ? Math.max(1, Math.min(50, parseInt(customAccounts) || 1)) : accounts;
+  const effectiveAccounts = customAccounts
+    ? Math.max(1, Math.min(50, parseInt(customAccounts) || 1))
+    : accounts;
   const totalInvestment = activeAmount * effectiveAccounts;
 
   const totalWeeks = Math.round((duration / 12) * 52);
-  const effectiveWeek = selectedWeek !== null ? Math.min(selectedWeek, totalWeeks) : null;
+  const effectiveWeek =
+    selectedWeek !== null ? Math.min(selectedWeek, totalWeeks) : null;
 
   const results = useMemo(() => {
     const weeklyPerAccount = calcWeeklyInterest(activeAmount, activeRate);
@@ -80,8 +95,12 @@ export function CircleCalculator({ circleAmount = 10000, annualRate = 10, circle
     };
   }, [activeAmount, activeRate, duration, effectiveAccounts, effectiveWeek]);
 
-  const displayPayout = results.isCycleSelected ? results.cyclePayout : results.totalPayout;
-  const displayInterest = results.isCycleSelected ? results.cycleInterest : results.totalInterest;
+  const displayPayout = results.isCycleSelected
+    ? results.cyclePayout
+    : results.totalPayout;
+  const displayInterest = results.isCycleSelected
+    ? results.cycleInterest
+    : results.totalInterest;
   const principalPct = (totalInvestment / displayPayout) * 100;
   const interestPct = (displayInterest / displayPayout) * 100;
 
@@ -100,129 +119,323 @@ export function CircleCalculator({ circleAmount = 10000, annualRate = 10, circle
   }, [results]);
 
   return (
-    <div style={{ borderRadius: "1rem", backgroundColor: "#111111", border: "1px solid #2A2A2A", overflow: "hidden" }}>
-      <div style={{ padding: "1.5rem 2rem 0.5rem" }}>
-        <div style={{ display: "inline-flex", padding: "0.25rem 0.75rem", borderRadius: "9999px", fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: cfg.colors.primary, backgroundColor: `${cfg.colors.primary}18`, border: `1px solid ${cfg.colors.primary}30` }}>Calculator</div>
-        <h2 style={{ fontSize: "1.125rem", fontWeight: 600, color: "#ffffff", marginTop: "0.5rem", marginBottom: "1.5rem" }}>Circle Interest Calculator</h2>
+    <div className="rounded-2xl bg-[#111111] border border-[#2A2A2A] overflow-hidden">
+      <div className="px-8 pt-6 pb-2">
+        <div
+          className="inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.05em]"
+          style={{
+            color: cfg.colors.primary,
+            backgroundColor: `${cfg.colors.primary}18`,
+            border: `1px solid ${cfg.colors.primary}30`,
+          }}
+        >
+          Calculator
+        </div>
+        <h2 className="font-display tracking-tight text-lg font-semibold text-white mt-2 mb-6">
+          Circle Interest Calculator
+        </h2>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", minHeight: "420px" }}>
-        <div style={{ padding: "0 2rem 2rem" }}>
+      <div className="grid grid-cols-2 min-h-[420px]">
+        <div className="px-8 pb-8">
           {circles.length > 0 && (
-            <div style={{ marginBottom: "1.5rem" }}>
-              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#A0A0A0", marginBottom: "0.5rem" }}>Select Circle</label>
-              <div style={{ display: "flex", gap: "0.375rem", flexWrap: "wrap", marginBottom: "0.5rem" }}>
+            <div className="mb-6">
+              <label className="block text-xs font-semibold text-[#A0A0A0] mb-2">
+                Select Circle
+              </label>
+              <div className="flex gap-1.5 flex-wrap mb-2">
                 {circles.map((c) => (
-                  <button key={c.id} onClick={() => setSelectedCircleId(selectedCircleId === c.id ? null : c.id)}
-                    style={{ padding: "0.5rem 1rem", borderRadius: "9999px", fontSize: "12px", fontWeight: 600, border: "1.5px solid", cursor: "pointer", transition: "all 0.15s ease", backgroundColor: selectedCircleId === c.id ? cfg.colors.primary : "#1A1A1A", color: selectedCircleId === c.id ? "#ffffff" : "#777777", borderColor: selectedCircleId === c.id ? cfg.colors.primary : "#333333", whiteSpace: "nowrap" }}>
+                  <button
+                    key={c.id}
+                    onClick={() =>
+                      setSelectedCircleId(
+                        selectedCircleId === c.id ? null : c.id,
+                      )
+                    }
+                    className="px-4 py-2 rounded-full text-xs font-semibold border-[1.5px] cursor-pointer transition-all duration-150 whitespace-nowrap"
+                    style={{
+                      backgroundColor:
+                        selectedCircleId === c.id
+                          ? cfg.colors.primary
+                          : "#1A1A1A",
+                      color: selectedCircleId === c.id ? "#ffffff" : "#777777",
+                      borderColor:
+                        selectedCircleId === c.id
+                          ? cfg.colors.primary
+                          : "#333333",
+                    }}
+                  >
                     {c.name}
                   </button>
                 ))}
               </div>
-              <span style={{ fontSize: "11px", color: "#555555" }}>Pick a circle to calculate interest for, or use the default</span>
+              <span className="text-[11px] text-[#555555]">
+                Pick a circle to calculate interest for, or use the default
+              </span>
             </div>
           )}
 
-          <div style={{ marginBottom: "1.5rem" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "0.5rem" }}>
-              <label style={{ fontSize: "12px", fontWeight: 600, color: "#A0A0A0" }}>Circle Amount (per account)</label>
-              <span style={{ fontSize: "18px", fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", color: cfg.colors.primary }}>{formatNaira(activeAmount)}</span>
+          <div className="mb-6">
+            <div className="flex justify-between items-baseline mb-2">
+              <label className="text-xs font-semibold text-[#A0A0A0]">
+                Circle Amount (per account)
+              </label>
+              <span
+                className="text-lg font-bold font-mono"
+                style={{ color: cfg.colors.primary }}
+              >
+                {formatNaira(activeAmount)}
+              </span>
             </div>
-            <div style={{ padding: "0.75rem 1rem", borderRadius: "0.75rem", backgroundColor: "#1A1A1A", border: "1px solid #2A2A2A" }}>
-              <span style={{ fontSize: "11px", color: "#666666" }}>{selectedCircle ? `${selectedCircle.name} deposit amount` : "Fixed deposit amount per circle account"}</span>
+            <div className="px-4 py-3 rounded-xl bg-[#1A1A1A] border border-[#2A2A2A]">
+              <span className="text-[11px] text-[#666666]">
+                {selectedCircle
+                  ? `${selectedCircle.name} deposit amount`
+                  : "Fixed deposit amount per circle account"}
+              </span>
             </div>
           </div>
 
-          <div style={{ marginBottom: "1.5rem" }}>
-            <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#A0A0A0", marginBottom: "0.5rem" }}>Duration</label>
-            <div style={{ display: "flex", gap: "0.375rem", flexWrap: "wrap" }}>
+          <div className="mb-6">
+            <label className="block text-xs font-semibold text-[#A0A0A0] mb-2">
+              Duration
+            </label>
+            <div className="flex gap-1.5 flex-wrap">
               {DURATION_PRESETS.map((d) => (
-                <button key={d} onClick={() => setDuration(d)}
-                  style={{ padding: "0.5rem 1.25rem", borderRadius: "9999px", fontSize: "12px", fontWeight: 600, border: "1.5px solid", cursor: "pointer", transition: "all 0.15s ease", backgroundColor: duration === d ? cfg.colors.primary : "#1A1A1A", color: duration === d ? "#ffffff" : "#777777", borderColor: duration === d ? cfg.colors.primary : "#333333" }}>
+                <button
+                  key={d}
+                  onClick={() => setDuration(d)}
+                  className="px-5 py-2 rounded-full text-xs font-semibold border-[1.5px] cursor-pointer transition-all duration-150 whitespace-nowrap"
+                  style={{
+                    backgroundColor:
+                      duration === d ? cfg.colors.primary : "#1A1A1A",
+                    color: duration === d ? "#ffffff" : "#777777",
+                    borderColor:
+                      duration === d ? cfg.colors.primary : "#333333",
+                  }}
+                >
                   {formatDuration(d)}
                 </button>
               ))}
             </div>
           </div>
 
-          <div style={{ marginBottom: "1.5rem" }}>
-            <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#A0A0A0", marginBottom: "0.5rem" }}>Number of Accounts</label>
-            <div style={{ display: "flex", gap: "0.375rem", flexWrap: "wrap", marginBottom: "0.75rem" }}>
+          <div className="mb-6">
+            <label className="block text-xs font-semibold text-[#A0A0A0] mb-2">
+              Number of Accounts
+            </label>
+            <div className="flex gap-1.5 flex-wrap mb-3">
               {ACCOUNT_PRESETS.map((a) => (
-                <button key={a} onClick={() => { setAccounts(a); setCustomAccounts(""); }}
-                  style={{ padding: "0.5rem 1rem", borderRadius: "9999px", fontSize: "12px", fontWeight: 600, border: "1.5px solid", cursor: "pointer", transition: "all 0.15s ease", backgroundColor: !customAccounts && accounts === a ? cfg.colors.primary : "#1A1A1A", color: !customAccounts && accounts === a ? "#ffffff" : "#777777", borderColor: !customAccounts && accounts === a ? cfg.colors.primary : "#333333" }}>
+                <button
+                  key={a}
+                  onClick={() => {
+                    setAccounts(a);
+                    setCustomAccounts("");
+                  }}
+                  className="px-4 py-2 rounded-full text-xs font-semibold border-[1.5px] cursor-pointer transition-all duration-150 whitespace-nowrap"
+                  style={{
+                    backgroundColor:
+                      !customAccounts && accounts === a
+                        ? cfg.colors.primary
+                        : "#1A1A1A",
+                    color:
+                      !customAccounts && accounts === a ? "#ffffff" : "#777777",
+                    borderColor:
+                      !customAccounts && accounts === a
+                        ? cfg.colors.primary
+                        : "#333333",
+                  }}
+                >
                   {a}
                 </button>
               ))}
-              <button onClick={() => setCustomAccounts(customAccounts ? "" : "3")}
-                style={{ padding: "0.5rem 1rem", borderRadius: "9999px", fontSize: "12px", fontWeight: 600, border: "1.5px solid", cursor: "pointer", transition: "all 0.15s ease", backgroundColor: !!customAccounts ? cfg.colors.primary : "#1A1A1A", color: !!customAccounts ? "#ffffff" : "#777777", borderColor: !!customAccounts ? cfg.colors.primary : "#333333" }}>
+              <button
+                onClick={() => setCustomAccounts(customAccounts ? "" : "3")}
+                className="px-4 py-2 rounded-full text-xs font-semibold border-[1.5px] cursor-pointer transition-all duration-150 whitespace-nowrap"
+                style={{
+                  backgroundColor: !!customAccounts
+                    ? cfg.colors.primary
+                    : "#1A1A1A",
+                  color: !!customAccounts ? "#ffffff" : "#777777",
+                  borderColor: !!customAccounts
+                    ? cfg.colors.primary
+                    : "#333333",
+                }}
+              >
                 Custom
               </button>
             </div>
             {customAccounts !== "" && (
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                <input type="number" value={customAccounts} onChange={(e) => setCustomAccounts(e.target.value)} min="1" max="50"
-                  style={{ width: "80px", padding: "0.5rem 0.75rem", borderRadius: "0.75rem", border: "1px solid #333333", backgroundColor: "#1A1A1A", color: "#ffffff", fontSize: "13px", outline: "none", boxSizing: "border-box", textAlign: "center", fontFamily: "'JetBrains Mono', monospace" }} />
-                <span style={{ fontSize: "12px", color: "#666666" }}>accounts (1-50)</span>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  value={customAccounts}
+                  onChange={(e) => setCustomAccounts(e.target.value)}
+                  min="1"
+                  max="50"
+                  className="w-20 px-3 py-2 rounded-xl border border-[#333333] bg-[#1A1A1A] text-white text-[13px] outline-none box-border text-center font-mono"
+                />
+                <span className="text-xs text-[#666666]">accounts (1-50)</span>
               </div>
             )}
           </div>
 
-          <div style={{ marginBottom: "1.5rem" }}>
-            <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#A0A0A0", marginBottom: "0.5rem" }}>Interest Calculation Cycle</label>
-            <div style={{ display: "flex", gap: "0.375rem", flexWrap: "wrap", marginBottom: "0.5rem" }}>
+          <div className="mb-6">
+            <label className="block text-xs font-semibold text-[#A0A0A0] mb-2">
+              Interest Calculation Cycle
+            </label>
+            <div className="flex gap-1.5 flex-wrap mb-2">
               {CYCLE_PRESETS.filter((c) => c <= totalWeeks).map((c) => (
-                <button key={c} onClick={() => setSelectedWeek(selectedWeek === c ? null : c)}
-                  style={{ padding: "0.5rem 1rem", borderRadius: "9999px", fontSize: "12px", fontWeight: 600, border: "1.5px solid", cursor: "pointer", transition: "all 0.15s ease", backgroundColor: selectedWeek === c ? cfg.colors.primary : "#1A1A1A", color: selectedWeek === c ? "#ffffff" : "#777777", borderColor: selectedWeek === c ? cfg.colors.primary : "#333333" }}>
+                <button
+                  key={c}
+                  onClick={() => setSelectedWeek(selectedWeek === c ? null : c)}
+                  className="px-4 py-2 rounded-full text-xs font-semibold border-[1.5px] cursor-pointer transition-all duration-150 whitespace-nowrap"
+                  style={{
+                    backgroundColor:
+                      selectedWeek === c ? cfg.colors.primary : "#1A1A1A",
+                    color: selectedWeek === c ? "#ffffff" : "#777777",
+                    borderColor:
+                      selectedWeek === c ? cfg.colors.primary : "#333333",
+                  }}
+                >
                   Week {c}
                 </button>
               ))}
-              <button onClick={() => setSelectedWeek(null)}
-                style={{ padding: "0.5rem 1rem", borderRadius: "9999px", fontSize: "12px", fontWeight: 600, border: "1.5px solid", cursor: "pointer", transition: "all 0.15s ease", backgroundColor: selectedWeek === null ? cfg.colors.primary : "#1A1A1A", color: selectedWeek === null ? "#ffffff" : "#777777", borderColor: selectedWeek === null ? cfg.colors.primary : "#333333" }}>
+              <button
+                onClick={() => setSelectedWeek(null)}
+                className="px-4 py-2 rounded-full text-xs font-semibold border-[1.5px] cursor-pointer transition-all duration-150 whitespace-nowrap"
+                style={{
+                  backgroundColor:
+                    selectedWeek === null ? cfg.colors.primary : "#1A1A1A",
+                  color: selectedWeek === null ? "#ffffff" : "#777777",
+                  borderColor:
+                    selectedWeek === null ? cfg.colors.primary : "#333333",
+                }}
+              >
                 Full
               </button>
             </div>
-            <span style={{ fontSize: "11px", color: "#555555" }}>Select a cycle to see interest at that point, or view full duration</span>
+            <span className="text-[11px] text-[#555555]">
+              Select a cycle to see interest at that point, or view full
+              duration
+            </span>
           </div>
 
-          <button onClick={() => onSelectConfig?.(activeAmount, duration, effectiveAccounts)}
-            style={{ width: "100%", padding: "0.75rem", borderRadius: "9999px", fontSize: "13px", fontWeight: 600, cursor: "pointer", backgroundColor: cfg.colors.primary, color: "#ffffff", border: "none", transition: "all 0.15s" }}>
-            Open {effectiveAccounts} Circle Account{effectiveAccounts > 1 ? "s" : ""}
+          <button
+            onClick={() => {
+              onSelectConfig?.(activeAmount, duration, effectiveAccounts, selectedCircleId);
+            }}
+            className="w-full py-3 rounded-full text-[13px] font-semibold cursor-pointer border-none transition-all duration-150"
+            style={{ backgroundColor: cfg.colors.primary, color: "#ffffff" }}
+          >
+            Open {effectiveAccounts} Circle Account
+            {effectiveAccounts > 1 ? "s" : ""}
           </button>
         </div>
 
-        <div style={{ padding: "0 2rem 2rem 0", display: "flex", flexDirection: "column" }}>
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-            <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
-              <span style={{ display: "block", fontSize: "10px", fontWeight: 600, color: "#666666", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.375rem" }}>{results.isCycleSelected ? `After ${results.cycleWeeks} Week${results.cycleWeeks !== 1 ? "s" : ""}` : "Maturity Payout"}</span>
-              <span style={{ fontSize: "2rem", fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", color: "#ffffff" }}>{formatNaira(displayPayout)}</span>
+        <div className="px-8 pb-8 flex flex-col">
+          <div className="flex-1 flex flex-col justify-center">
+            <div className="text-center mb-6">
+              <span className="block text-[10px] font-semibold text-[#666666] uppercase tracking-[0.05em] mb-1.5">
+                {results.isCycleSelected
+                  ? `After ${results.cycleWeeks} Week${results.cycleWeeks !== 1 ? "s" : ""}`
+                  : "Maturity Payout"}
+              </span>
+              <span className="text-2xl font-bold font-mono text-white">
+                {formatNaira(displayPayout)}
+              </span>
             </div>
 
-            <div style={{ display: "flex", gap: "1.5rem", justifyContent: "center", marginBottom: "1.5rem" }}>
-              <div style={{ textAlign: "center" }}><span style={{ display: "block", fontSize: "10px", color: "#666666", marginBottom: "0.125rem" }}>You Invest</span><span style={{ fontSize: "14px", fontWeight: 600, fontFamily: "'JetBrains Mono', monospace", color: "#E0E0E0" }}>{formatNaira(totalInvestment)}</span></div>
-              <div style={{ width: "1px", backgroundColor: "#2A2A2A" }} />
-              <div style={{ textAlign: "center" }}><span style={{ display: "block", fontSize: "10px", color: "#666666", marginBottom: "0.125rem" }}>You Earn</span><span style={{ fontSize: "14px", fontWeight: 600, fontFamily: "'JetBrains Mono', monospace", color: "#10B981" }}>{formatNaira(displayInterest)}</span></div>
+            <div className="flex gap-6 justify-center mb-6">
+              <div className="text-center">
+                <span className="block text-[10px] text-[#666666] mb-0.5">
+                  You Invest
+                </span>
+                <span className="text-sm font-semibold font-mono text-[#E0E0E0]">
+                  {formatNaira(totalInvestment)}
+                </span>
+              </div>
+              <div className="w-px bg-[#2A2A2A]" />
+              <div className="text-center">
+                <span className="block text-[10px] text-[#666666] mb-0.5">
+                  You Earn
+                </span>
+                <span className="text-sm font-semibold font-mono text-emerald-500">
+                  {formatNaira(displayInterest)}
+                </span>
+              </div>
             </div>
 
-            <div style={{ height: "8px", borderRadius: "4px", backgroundColor: "#222222", display: "flex", overflow: "hidden", marginBottom: "1.25rem" }}>
-              <div style={{ width: `${principalPct}%`, backgroundColor: cfg.colors.primary, transition: "width 0.3s" }} />
-              <div style={{ width: `${interestPct}%`, backgroundColor: "#10B981", transition: "width 0.3s" }} />
+            <div className="h-2 rounded bg-[#222222] flex overflow-hidden mb-5">
+              <div
+                className="transition-[width] duration-300"
+                style={{
+                  width: `${principalPct}%`,
+                  backgroundColor: cfg.colors.primary,
+                }}
+              />
+              <div
+                className="bg-emerald-500 transition-[width] duration-300"
+                style={{ width: `${interestPct}%` }}
+              />
             </div>
 
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#777777", marginBottom: "1rem" }}>
+            <div className="flex justify-between text-xs text-[#777777] mb-4">
               <span>{principalPct.toFixed(1)}% Principal</span>
               <span>{interestPct.toFixed(1)}% Interest</span>
             </div>
 
-            <div style={{ padding: "1rem", borderRadius: "0.75rem", backgroundColor: "#1A1A1A", border: "1px solid #2A2A2A" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", marginBottom: "0.5rem" }}><span style={{ color: "#666666" }}>Weekly Interest (per account)</span><span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: "#10B981" }}>{formatNaira(results.weeklyPerAccount)}</span></div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", marginBottom: "0.5rem" }}><span style={{ color: "#666666" }}>{results.isCycleSelected ? `Interest (${results.cycleWeeks} weeks)` : "Total Interest (all accounts)"}</span><span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: "#10B981" }}>{formatNaira(results.isCycleSelected ? results.cycleInterest : results.totalInterest)}</span></div>
+            <div className="p-4 rounded-xl bg-[#1A1A1A] border border-[#2A2A2A]">
+              <div className="flex justify-between text-xs mb-2">
+                <span className="text-[#666666]">
+                  Weekly Interest (per account)
+                </span>
+                <span className="font-mono font-semibold text-emerald-500">
+                  {formatNaira(results.weeklyPerAccount)}
+                </span>
+              </div>
+              <div className="flex justify-between text-xs mb-2">
+                <span className="text-[#666666]">
+                  {results.isCycleSelected
+                    ? `Interest (${results.cycleWeeks} weeks)`
+                    : "Total Interest (all accounts)"}
+                </span>
+                <span className="font-mono font-semibold text-emerald-500">
+                  {formatNaira(
+                    results.isCycleSelected
+                      ? results.cycleInterest
+                      : results.totalInterest,
+                  )}
+                </span>
+              </div>
               {results.isCycleSelected && (
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", marginBottom: "0.5rem" }}><span style={{ color: "#666666" }}>At Maturity ({results.totalWeeks} weeks)</span><span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: "#E0E0E0" }}>{formatNaira(results.totalInterest)}</span></div>
+                <div className="flex justify-between text-xs mb-2">
+                  <span className="text-[#666666]">
+                    At Maturity ({results.totalWeeks} weeks)
+                  </span>
+                  <span className="font-mono font-semibold text-[#E0E0E0]">
+                    {formatNaira(results.totalInterest)}
+                  </span>
+                </div>
               )}
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", marginBottom: "0.5rem" }}><span style={{ color: "#666666" }}>Duration</span><span style={{ fontWeight: 600, color: "#E0E0E0" }}>{formatDuration(duration)}</span></div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", marginBottom: "0.5rem" }}><span style={{ color: "#666666" }}>Interest Rate</span><span style={{ fontWeight: 600, color: "#E0E0E0" }}>{activeRate}% p.a.</span></div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px" }}><span style={{ color: "#666666" }}>Accounts</span><span style={{ fontWeight: 600, color: "#E0E0E0" }}>{effectiveAccounts}</span></div>
+              <div className="flex justify-between text-xs mb-2">
+                <span className="text-[#666666]">Duration</span>
+                <span className="font-semibold text-[#E0E0E0]">
+                  {formatDuration(duration)}
+                </span>
+              </div>
+              <div className="flex justify-between text-xs mb-2">
+                <span className="text-[#666666]">Interest Rate</span>
+                <span className="font-semibold text-[#E0E0E0]">
+                  {activeRate}% p.a.
+                </span>
+              </div>
+              <div className="flex justify-between text-xs">
+                <span className="text-[#666666]">Accounts</span>
+                <span className="font-semibold text-[#E0E0E0]">
+                  {effectiveAccounts}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -230,23 +443,44 @@ export function CircleCalculator({ circleAmount = 10000, annualRate = 10, circle
 
       {weeklySchedule.length > 0 && (
         <FadeInUp>
-          <div style={{ borderTop: "1px solid #2A2A2A", padding: "1.5rem 2rem" }}>
-            <h3 style={{ fontSize: "12px", fontWeight: 600, color: "#E0E0E0", marginBottom: "0.75rem" }}>Interest Growth Schedule ({weeklySchedule.length} intervals)</h3>
-            <div style={{ maxHeight: "280px", overflowY: "auto", borderRadius: "0.5rem", border: "1px solid #2A2A2A" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "11px" }}>
-                <thead style={{ position: "sticky", top: 0, zIndex: 1 }}>
-                  <tr style={{ backgroundColor: "#1A1A1A" }}>
-                    {["Week", "Weekly Interest", "Cumulative Interest"].map((h) => (
-                      <th key={h} style={{ padding: "0.625rem 0.75rem", textAlign: "right", fontWeight: 600, color: "#777777", borderBottom: "1px solid #2A2A2A" }}>{h}</th>
-                    ))}
+          <div className="border-t border-[#2A2A2A] px-8 py-6">
+            <h3 className="font-display tracking-tight text-xs font-semibold text-[#E0E0E0] mb-3">
+              Interest Growth Schedule ({weeklySchedule.length} intervals)
+            </h3>
+            <div className="max-h-[280px] overflow-y-auto rounded-lg border border-[#2A2A2A]">
+              <table className="w-full border-collapse text-[11px]">
+                <thead className="sticky top-0 z-[1]">
+                  <tr className="bg-[#1A1A1A]">
+                    {["Week", "Weekly Interest", "Cumulative Interest"].map(
+                      (h) => (
+                        <th
+                          key={h}
+                          className="px-3 py-2.5 text-right font-semibold text-[#777777] border-b border-[#2A2A2A]"
+                        >
+                          {h}
+                        </th>
+                      ),
+                    )}
                   </tr>
                 </thead>
                 <tbody>
                   {weeklySchedule.map((row) => (
-                    <tr key={row.week} style={{ backgroundColor: row.week % 2 === 0 ? "#161616" : "#111111" }}>
-                      <td style={{ padding: "0.5rem 0.75rem", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", color: "#555555" }}>{row.week}</td>
-                      <td style={{ padding: "0.5rem 0.75rem", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", fontWeight: 500, color: "#10B981" }}>{formatNaira(row.interest)}</td>
-                      <td style={{ padding: "0.5rem 0.75rem", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", color: "#E0E0E0" }}>{formatNaira(row.cumulative)}</td>
+                    <tr
+                      key={row.week}
+                      style={{
+                        backgroundColor:
+                          row.week % 2 === 0 ? "#161616" : "#111111",
+                      }}
+                    >
+                      <td className="px-3 py-2 text-right font-mono text-[#555555]">
+                        {row.week}
+                      </td>
+                      <td className="px-3 py-2 text-right font-mono font-medium text-emerald-500">
+                        {formatNaira(row.interest)}
+                      </td>
+                      <td className="px-3 py-2 text-right font-mono text-[#E0E0E0]">
+                        {formatNaira(row.cumulative)}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

@@ -194,7 +194,7 @@ export default function ChatPage() {
   };
 
   return (
-    <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)", height: "100%", display: "flex", flexDirection: "column" }}>
+    <div className="mx-auto flex h-full max-w-[1280px] flex-col p-[clamp(1rem,3vw,2rem)]">
       <PageHeader
         badgeLabel="Circle Chat"
         heading="Member"
@@ -202,53 +202,51 @@ export default function ChatPage() {
         description="Connect with fellow circle members in real time."
       />
 
-      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "280px 1fr", gap: "0", borderRadius: "1.5rem", overflow: "hidden", flex: 1, minHeight: isMobile ? "400px" : "500px" }}>
+      <div className="flex-1 grid gap-0 overflow-hidden rounded-3xl" style={{ gridTemplateColumns: isMobile ? "1fr" : "280px 1fr", minHeight: isMobile ? "400px" : "500px" }}>
         {showSidebar && (
-          <div style={{ borderRight: isMobile ? "none" : "1px solid #EAEAEA", backgroundColor: "#FAFAFA", ...(isMobile ? { position: "absolute", inset: 0, zIndex: 10, borderRadius: "1.5rem" } : {}) }}>
+          <div className="bg-gray-50" style={{ borderRight: isMobile ? "none" : "1px solid #EAEAEA", ...(isMobile ? { position: "absolute", inset: 0, zIndex: 10, borderRadius: "1.5rem" } : {}) }}>
             {isMobile && (
-              <div style={{ padding: "0.75rem 1rem", borderBottom: "1px solid #EAEAEA", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D" }}>Contacts</span>
-                <button onClick={() => setShowSidebar(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "#717171" }}>
+              <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+                <span className="text-xs font-semibold text-[#2D2D2D]">Contacts</span>
+                <button onClick={() => setShowSidebar(false)} className="cursor-pointer border-0 bg-none text-gray-500">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
                 </button>
               </div>
             )}
-            <div style={{ padding: "1rem", borderBottom: "1px solid #EAEAEA" }}>
-              <div style={{ display: "flex", gap: "0.5rem" }}>
+            <div className="border-b border-gray-200 p-4">
+              <div className="flex gap-2">
                 <input placeholder="Search members..." value={search} onChange={(e) => { setSearch(e.target.value); setShowSearch(e.target.value.length >= 2); }}
-                  style={{ flex: 1, backgroundColor: "#ffffff", border: "1px solid #EAEAEA", borderRadius: "9999px", padding: "0.375rem 0.75rem", fontSize: "11px", color: "#2D2D2D", outline: "none", minWidth: 0 }} />
-                <button onClick={() => setShowSearch(!showSearch)} style={{ padding: "0.375rem 0.75rem", borderRadius: "9999px", border: "none", backgroundColor: cfg.colors.primary, color: "#ffffff", fontSize: "10px", fontWeight: 600, cursor: "pointer", flexShrink: 0 }}>New</button>
+                  className="min-w-0 flex-1 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-[11px] text-[#2D2D2D] outline-none" />
+                <button onClick={() => setShowSearch(!showSearch)} className="flex-shrink-0 cursor-pointer rounded-full border-0 px-3 py-1.5 text-[10px] font-semibold text-white" style={{ backgroundColor: cfg.colors.primary }}>New</button>
               </div>
               {showSearch && searchResults.length > 0 && (
-                <div style={{ marginTop: "0.5rem", backgroundColor: "#ffffff", borderRadius: "0.75rem", border: "1px solid #EAEAEA", maxHeight: "150px", overflowY: "auto" }}>
+                <div className="mt-2 max-h-[150px] overflow-y-auto rounded-xl border border-gray-200 bg-white">
                   {searchResults.map((u) => (
-                    <div key={u.id} onClick={() => startConversation(u.id)} style={{ padding: "0.5rem 0.75rem", cursor: "pointer", borderBottom: "1px solid #F5F5F5", transition: "background 0.15s" }}
-                      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#F9FAFB"; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}>
-                      <span style={{ fontSize: "11px", fontWeight: 600, color: "#2D2D2D", display: "block" }}>{u.name}</span>
-                      <span style={{ fontSize: "10px", color: "#999" }}>{u.email}</span>
+                    <div key={u.id} onClick={() => startConversation(u.id)} className="cursor-pointer border-b border-[#F5F5F5] px-3 py-2 transition-colors hover:bg-gray-50">
+                      <span className="block text-[11px] font-semibold text-[#2D2D2D]">{u.name}</span>
+                      <span className="text-[10px] text-gray-400">{u.email}</span>
                     </div>
                   ))}
                 </div>
               )}
             </div>
-            <div style={{ overflowY: "auto" }}>
+            <div className="overflow-y-auto">
               {loading ? (
-                <div style={{ padding: "2rem", textAlign: "center", color: "#999", fontSize: "11px" }}>Loading...</div>
+                <div className="p-8 text-center text-[11px] text-gray-400">Loading...</div>
               ) : filteredContacts.length === 0 ? (
-                <div style={{ padding: "2rem", textAlign: "center", color: "#999", fontSize: "11px" }}>
+                <div className="p-8 text-center text-[11px] text-gray-400">
                   No conversations yet.<br />Click &quot;New&quot; to start chatting.
                 </div>
               ) : (
                 filteredContacts.map((c) => (
-                  <div key={c.id} onClick={() => selectContact(c)} style={{ padding: "0.75rem 1rem", cursor: "pointer", backgroundColor: activeContact?.id === c.id ? "#ffffff" : "transparent", borderRight: activeContact?.id === c.id ? `2px solid ${cfg.colors.primary}` : "2px solid transparent", transition: "all 0.15s" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                      <div style={{ position: "relative" }}>
-                        <div style={{ width: 36, height: 36, borderRadius: "50%", backgroundColor: cfg.colors.primary, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 700 }}>{getInitials(c.name)}</div>
+                  <div key={c.id} onClick={() => selectContact(c)} className="cursor-pointer p-3 transition-all" style={{ backgroundColor: activeContact?.id === c.id ? "#ffffff" : "transparent", borderRight: activeContact?.id === c.id ? `2px solid ${cfg.colors.primary}` : "2px solid transparent" }}>
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full text-[11px] font-bold text-white" style={{ backgroundColor: cfg.colors.primary }}>{getInitials(c.name)}</div>
                       </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <span style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", display: "block" }}>{c.name}</span>
-                        <span style={{ fontSize: "10px", color: "#999", fontWeight: 300, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "block" }}>{c.lastMessage?.text || "Start a conversation"}</span>
+                      <div className="min-w-0 flex-1">
+                        <span className="block text-xs font-semibold text-[#2D2D2D]">{c.name}</span>
+                        <span className="block truncate text-[10px] font-light text-gray-400">{c.lastMessage?.text || "Start a conversation"}</span>
                       </div>
                     </div>
                   </div>
@@ -256,7 +254,7 @@ export default function ChatPage() {
               )}
             </div>
             {!loading && filteredContacts.length > 0 && (
-              <div style={{ padding: "0 1rem" }}>
+              <div className="px-4">
                 <Pagination page={convPage} totalPages={convTotalPages} total={convTotal} limit={LIMIT} onPageChange={setConvPage} loading={loading} />
               </div>
             )}
@@ -264,48 +262,48 @@ export default function ChatPage() {
         )}
 
         {!showSidebar && (
-          <div style={{ display: "flex", flexDirection: "column", backgroundColor: "#ffffff", position: "relative" }}>
-            <div style={{ padding: "0.75rem 1rem", borderBottom: "1px solid #EAEAEA", display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          <div className="relative flex flex-col bg-white">
+            <div className="flex items-center gap-3 border-b border-gray-200 px-4 py-3">
               {isMobile && (
-                <button onClick={() => setShowSidebar(true)} style={{ background: "none", border: "none", cursor: "pointer", color: "#717171", flexShrink: 0 }}>
+                <button onClick={() => setShowSidebar(true)} className="flex-shrink-0 cursor-pointer border-0 bg-none text-gray-500">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M15 19l-7-7 7-7" /></svg>
                 </button>
               )}
-              <div style={{ position: "relative" }}>
-                <div style={{ width: 32, height: 32, borderRadius: "50%", backgroundColor: cfg.colors.primary, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: 700 }}>{activeContact ? getInitials(activeContact.name) : "?"}</div>
+              <div className="relative">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full text-[10px] font-bold text-white" style={{ backgroundColor: cfg.colors.primary }}>{activeContact ? getInitials(activeContact.name) : "?"}</div>
               </div>
               <div>
-                <span style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D" }}>{activeContact?.name || "Select a conversation"}</span>
-                <span style={{ fontSize: "10px", color: "#999", display: "block" }}>Member</span>
+                <span className="text-xs font-semibold text-[#2D2D2D]">{activeContact?.name || "Select a conversation"}</span>
+                <span className="block text-[10px] text-gray-400">Member</span>
               </div>
             </div>
 
-            <div style={{ flex: 1, overflowY: "auto", padding: "1rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+            <div className="flex flex-1 flex-col gap-3 overflow-y-auto p-4">
               {messages.length === 0 && (
-                <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: "#999", fontSize: "12px" }}>
+                <div className="flex flex-1 items-center justify-center text-[12px] text-gray-400">
                   No messages yet. Say hello!
                 </div>
               )}
               {messages.map((m) => (
                 <div key={m.id} style={{ display: "flex", justifyContent: m.senderId === user?.id ? "flex-end" : "flex-start" }}>
-                  <div style={{ maxWidth: "70%" }}>
-                    {m.senderId !== user?.id && <span style={{ fontSize: "9px", color: "#999", fontWeight: 600, display: "block", marginBottom: "0.125rem", paddingLeft: "0.5rem" }}>{m.senderName}</span>}
-                    <div style={{ padding: "0.625rem 0.875rem", borderRadius: m.senderId === user?.id ? "0.875rem 0.875rem 0.125rem 0.875rem" : "0.875rem 0.875rem 0.875rem 0.125rem", backgroundColor: m.senderId === user?.id ? cfg.colors.primary : "#F3F4F6", color: m.senderId === user?.id ? "#ffffff" : "#2D2D2D", fontSize: "12px", lineHeight: 1.6 }}>{m.text}</div>
-                    <span style={{ fontSize: "9px", color: "#999", fontFamily: "'JetBrains Mono', monospace", display: "block", marginTop: "0.125rem", paddingLeft: "0.5rem" }}>{formatTime(m.timestamp)}</span>
+                  <div className="max-w-[70%]">
+                    {m.senderId !== user?.id && <span className="mb-0.5 block pl-2 text-[9px] font-semibold text-gray-400">{m.senderName}</span>}
+                    <div className="px-3.5 py-2.5 text-xs leading-[1.6]" style={{ borderRadius: m.senderId === user?.id ? "0.875rem 0.875rem 0.125rem 0.875rem" : "0.875rem 0.875rem 0.875rem 0.125rem", backgroundColor: m.senderId === user?.id ? cfg.colors.primary : "#F3F4F6", color: m.senderId === user?.id ? "#ffffff" : "#2D2D2D" }}>{m.text}</div>
+                    <span className="mt-0.5 block pl-2 font-mono text-[9px] text-gray-400">{formatTime(m.timestamp)}</span>
                   </div>
                 </div>
               ))}
               <div ref={messagesEnd} />
             </div>
             {activeContact && msgTotal > 0 && (
-              <div style={{ padding: "0 1rem" }}>
+              <div className="px-4">
                 <Pagination page={msgPage} totalPages={msgTotalPages} total={msgTotal} limit={MESSAGES_LIMIT} onPageChange={setMsgPage} loading={loading} />
               </div>
             )}
 
-            <div style={{ padding: "0.75rem 1rem", borderTop: "1px solid #EAEAEA", display: "flex", gap: "0.5rem" }}>
-              <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && sendMessage()} placeholder="Type a message..." style={{ flex: 1, backgroundColor: "#F3F4F6", border: "1px solid #EAEAEA", borderRadius: "9999px", padding: "0.5rem 1rem", fontSize: "12px", color: "#2D2D2D", outline: "none", minWidth: 0 }} />
-              <button onClick={sendMessage} disabled={sending || !input.trim()} style={{ padding: "0.5rem 1.25rem", borderRadius: "9999px", border: "none", backgroundColor: cfg.colors.primary, color: "#ffffff", fontSize: "12px", fontWeight: 600, cursor: sending || !input.trim() ? "not-allowed" : "pointer", opacity: sending || !input.trim() ? 0.5 : 1, flexShrink: 0 }}>{sending ? "..." : "Send"}</button>
+            <div className="flex gap-2 border-t border-gray-200 px-4 py-3">
+              <input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && sendMessage()} placeholder="Type a message..." className="min-w-0 flex-1 rounded-full border border-gray-200 bg-gray-100 px-4 py-2 text-xs text-[#2D2D2D] outline-none" />
+              <button onClick={sendMessage} disabled={sending || !input.trim()} className="flex-shrink-0 cursor-pointer rounded-full border-0 px-5 py-2 text-xs font-semibold text-white" style={{ backgroundColor: cfg.colors.primary, cursor: sending || !input.trim() ? "not-allowed" : "pointer", opacity: sending || !input.trim() ? 0.5 : 1 }}>{sending ? "..." : "Send"}</button>
             </div>
           </div>
         )}

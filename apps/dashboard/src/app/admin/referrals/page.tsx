@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { config } from "@thrift/config";
 import { Card, FadeIn, FadeInUp } from "@thrift/ui";
 import { formatNaira, formatDate } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
@@ -85,78 +84,77 @@ export default function AdminReferralsPage() {
   const statuses = ["all", "pending", "credited", "cancelled"];
 
   return (
-    <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
+    <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
       <PageHeader badgeLabel="Admin" heading="Referral" accentText="Earnings" description="Review referral bonuses and pay out pending earnings to members." />
 
       {message && (
         <FadeIn>
-          <div style={{ padding: "0.75rem 1rem", borderRadius: "0.75rem", marginBottom: "1.5rem", fontSize: "13px", fontWeight: 500, backgroundColor: message.type === "success" ? "#ECFDF5" : "#FEF2F2", color: message.type === "success" ? "#059669" : "#DC2626", border: `1px solid ${message.type === "success" ? "#A7F3D0" : "#FECACA"}` }}>
+          <div className={`mb-6 rounded-xl border px-4 py-3 text-[13px] font-medium ${message.type === "success" ? "bg-emerald-50 text-emerald-600 border-emerald-200" : "bg-red-50 text-red-600 border-red-200"}`}>
             {message.text}
           </div>
         </FadeIn>
       )}
 
       <FadeInUp delay={100}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "0.75rem", marginBottom: "1.5rem" }}>
-          <div style={{ backgroundColor: "#FFFBEB", border: "1px solid #FDE68A", borderRadius: "0.75rem", padding: "1rem" }}>
-            <div style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.08em", color: "#D97706", fontFamily: "'JetBrains Mono', monospace" }}>Pending Payout</div>
-            <div style={{ fontSize: "16px", fontWeight: 700, color: "#D97706", marginTop: "0.25rem" }}>{formatNaira(pending.amount)}</div>
-            <div style={{ fontSize: "10px", color: "#999", marginTop: "0.125rem" }}>{pending.count} earnings</div>
+        <div className="mb-6 grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-3">
+          <div className="rounded-xl border border-[#FDE68A] bg-amber-50 p-4">
+            <div className="font-mono text-[9px] uppercase tracking-[0.08em] text-amber-600">Pending Payout</div>
+            <div className="mt-1 text-base font-bold text-amber-600">{formatNaira(pending.amount)}</div>
+            <div className="mt-0.5 text-[10px] text-gray-500">{pending.count} earnings</div>
           </div>
         </div>
       </FadeInUp>
 
       <FadeInUp delay={200}>
         <Card padding="1.5rem">
-          <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginBottom: "1rem" }}>
+          <div className="mb-4 flex flex-wrap gap-3">
             <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-              style={{ padding: "0.5rem 0.75rem", borderRadius: "0.5rem", border: "1px solid #E5E7EB", fontSize: "12px", backgroundColor: "#fff", textTransform: "capitalize" }}>
+              className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-[12px] capitalize">
               {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
 
           {loading ? (
-            <div style={{ textAlign: "center", padding: "3rem", color: "#999", fontSize: "13px" }}>Loading earnings...</div>
+            <div className="p-12 text-center text-[13px] text-gray-500">Loading earnings...</div>
           ) : items.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "2rem", color: "#999", fontSize: "13px" }}>No referral earnings found.</div>
+            <div className="p-8 text-center text-[13px] text-gray-500">No referral earnings found.</div>
           ) : (
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", fontSize: "12px", borderCollapse: "collapse", minWidth: "820px" }}>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-[12px] min-w-[820px]">
                 <thead>
-                  <tr style={{ borderBottom: "1px solid #F0F0F0", color: "#999", textTransform: "uppercase", letterSpacing: "0.1em", fontSize: "9px", fontFamily: "'JetBrains Mono', monospace" }}>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Referrer</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Referred</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "right", fontWeight: 600 }}>Amount</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Level</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Status</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Date</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "right", fontWeight: 600 }}>Action</th>
+                  <tr className="border-b border-gray-100 font-mono text-[9px] uppercase tracking-[0.1em] text-gray-500">
+                    <th className="pb-3 text-left font-semibold">Referrer</th>
+                    <th className="pb-3 text-left font-semibold">Referred</th>
+                    <th className="pb-3 text-right font-semibold">Amount</th>
+                    <th className="pb-3 text-left font-semibold">Level</th>
+                    <th className="pb-3 text-left font-semibold">Status</th>
+                    <th className="pb-3 text-left font-semibold">Date</th>
+                    <th className="pb-3 text-right font-semibold">Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {items.map((e) => (
-                    <tr key={e.id} style={{ borderBottom: "1px solid #F5F5F5" }}
-                      onMouseEnter={(ev) => { ev.currentTarget.style.backgroundColor = "#F9FAFB"; }}
-                      onMouseLeave={(ev) => { ev.currentTarget.style.backgroundColor = "transparent"; }}>
-                      <td style={{ padding: "0.75rem 0" }}>
-                        <span style={{ fontWeight: 600, color: "#2D2D2D", display: "block" }}>{e.referrer?.name || "—"}</span>
-                        <span style={{ fontSize: "11px", color: "#999" }}>{e.referrer?.email}</span>
+                    <tr key={e.id} className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="py-3">
+                        <span className="block font-semibold text-brand-dark">{e.referrer?.name || "—"}</span>
+                        <span className="text-[11px] text-gray-500">{e.referrer?.email}</span>
                       </td>
-                      <td style={{ padding: "0.75rem 0" }}>
-                        <span style={{ color: "#717171", display: "block" }}>{e.referredUser?.name || "—"}</span>
-                        <span style={{ fontSize: "11px", color: "#999" }}>{e.referredUser?.email}</span>
+                      <td className="py-3">
+                        <span className="block text-gray-500">{e.referredUser?.name || "—"}</span>
+                        <span className="text-[11px] text-gray-500">{e.referredUser?.email}</span>
                       </td>
-                      <td style={{ padding: "0.75rem 0", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: "#2D2D2D" }}>{formatNaira(e.amount)}</td>
-                      <td style={{ padding: "0.75rem 0", color: "#717171" }}>L{e.level}</td>
-                      <td style={{ padding: "0.75rem 0" }}><StatusBadge status={e.status} /></td>
-                      <td style={{ padding: "0.75rem 0", color: "#717171" }}>{formatDate(new Date(e.createdAt))}</td>
-                      <td style={{ padding: "0.75rem 0", textAlign: "right" }}>
+                      <td className="py-3 text-right font-mono font-semibold text-brand-dark">{formatNaira(e.amount)}</td>
+                      <td className="py-3 text-gray-500">L{e.level}</td>
+                      <td className="py-3"><StatusBadge status={e.status} /></td>
+                      <td className="py-3 text-gray-500">{formatDate(new Date(e.createdAt))}</td>
+                      <td className="py-3 text-right">
                         {e.status === "pending" ? (
                           <button onClick={() => pay(e)} disabled={busyId === e.id}
-                            style={{ padding: "0.25rem 0.5rem", borderRadius: "0.375rem", fontSize: "10px", fontWeight: 600, border: "1px solid #05966940", backgroundColor: "#0596690F", color: "#059669", cursor: "pointer", opacity: busyId === e.id ? 0.5 : 1 }}>
+                            className="cursor-pointer rounded-md border border-emerald-600/25 bg-emerald-600/10 px-2 py-1 text-[10px] font-semibold text-emerald-600"
+                            style={{ opacity: busyId === e.id ? 0.5 : 1 }}>
                             {busyId === e.id ? "..." : "Pay"}
                           </button>
-                        ) : <span style={{ fontSize: "10px", color: "#B0B0B0" }}>—</span>}
+                        ) : <span className="text-[10px] text-[#B0B0B0]">—</span>}
                       </td>
                     </tr>
                   ))}
@@ -178,5 +176,5 @@ function StatusBadge({ status }: { status: string }) {
     cancelled: { bg: "#FEF2F2", color: "#DC2626", border: "#FECACA" },
   };
   const s = map[status] || { bg: "#F3F4F6", color: "#4B5563", border: "#E5E7EB" };
-  return <span style={{ fontSize: "9px", fontWeight: 700, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace", padding: "0.125rem 0.5rem", borderRadius: "0.375rem", backgroundColor: s.bg, color: s.color, border: `1px solid ${s.border}` }}>{status}</span>;
+  return <span className="rounded-md px-2 py-0.5 font-mono text-[9px] font-bold uppercase" style={{ backgroundColor: s.bg, color: s.color, border: `1px solid ${s.border}` }}>{status}</span>;
 }

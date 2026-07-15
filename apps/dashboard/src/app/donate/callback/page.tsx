@@ -43,17 +43,17 @@ function CallbackContent() {
   }, [reference, provider]);
 
   return (
-    <div style={{ maxWidth: "480px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)", textAlign: "center" }}>
+    <div className="mx-auto max-w-[480px] p-[clamp(1rem,3vw,2rem)] text-center">
       <ColorBar />
       <FadeInUp>
         <Card padding="2rem">
           {status === "verifying" && (
             <>
-              <div style={{ marginBottom: "1rem", color: config.colors.primary, animation: "spin 1s linear infinite" }}><HourglassIcon size={32} /></div>
-              <h2 style={{ fontSize: "1.25rem", fontWeight: 600, color: "#1A1A1A", marginBottom: "0.5rem" }}>
+              <div className="mb-4" style={{ color: config.colors.primary, animation: "spin 1s linear infinite" }}><HourglassIcon size={32} /></div>
+              <h2 className="mb-2 text-[1.25rem] font-semibold text-brand-dark">
                 Verifying Payment...
               </h2>
-              <p style={{ fontSize: "13px", color: "#717171" }}>
+              <p className="text-[13px] text-gray-500">
                 Please wait while we confirm your donation.
               </p>
             </>
@@ -61,18 +61,18 @@ function CallbackContent() {
 
           {status === "success" && (
             <>
-              <div style={{ marginBottom: "1rem", color: "#059669" }}><CheckIcon size={48} /></div>
+              <div className="mb-4 text-emerald-600"><CheckIcon size={48} /></div>
               <ColorfulBadge label="Payment Confirmed" color="#059669" />
-              <h2 style={{ fontSize: "1.5rem", fontWeight: 600, color: "#1A1A1A", marginTop: "1rem", marginBottom: "0.5rem" }}>
+              <h2 className="mt-4 mb-2 text-[1.5rem] font-semibold text-brand-dark">
                 Donation Successful!
               </h2>
-              <p style={{ fontSize: "13px", color: "#717171", marginBottom: "1rem", lineHeight: 1.6 }}>
+              <p className="mb-4 text-[13px] text-gray-500 leading-[1.6]">
                 Thank you for your generous contribution. Your donation has been recorded.
               </p>
               {details.amount && (
-                <div style={{ padding: "0.75rem 1rem", backgroundColor: "#F0FDF4", borderRadius: "0.75rem", marginBottom: "1.5rem" }}>
-                  <span style={{ fontSize: "10px", color: "#059669", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em" }}>Amount</span>
-                  <span style={{ display: "block", fontSize: "1.25rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: "#059669", marginTop: "0.25rem" }}>
+                <div className="mb-6 rounded-xl bg-green-50 px-4 py-3">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-emerald-600">Amount</span>
+                  <span className="mt-1 block font-mono text-[1.25rem] font-bold text-emerald-600">
                     ₦{(details.amount || 0).toLocaleString()}
                   </span>
                 </div>
@@ -82,21 +82,21 @@ function CallbackContent() {
 
           {status === "failed" && (
             <>
-              <div style={{ marginBottom: "1rem", color: config.colors.accent }}><CrossIcon size={48} /></div>
-              <h2 style={{ fontSize: "1.5rem", fontWeight: 600, color: "#1A1A1A", marginBottom: "0.5rem" }}>
+              <div className="mb-4" style={{ color: config.colors.accent }}><CrossIcon size={48} /></div>
+              <h2 className="mb-2 text-[1.5rem] font-semibold text-brand-dark">
                 Payment Failed
               </h2>
-              <p style={{ fontSize: "13px", color: "#717171", marginBottom: "1.5rem", lineHeight: 1.6 }}>
+              <p className="mb-6 text-[13px] text-gray-500 leading-[1.6]">
                 We couldn&apos;t verify your payment. Please try again or contact support.
               </p>
             </>
           )}
 
-          <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center" }}>
-            <a href="/donate" style={{ padding: "0.75rem 1.5rem", borderRadius: "9999px", fontSize: "14px", fontWeight: 600, backgroundColor: config.colors.primary, color: "#ffffff", textDecoration: "none", transition: "all 0.2s ease", display: "inline-flex", alignItems: "center" }}>
+          <div className="flex justify-center gap-3">
+            <a href="/donate" className="inline-flex items-center rounded-full px-6 py-3 text-[14px] font-semibold text-white no-underline transition-all duration-200" style={{ backgroundColor: config.colors.primary }}>
               {status === "success" ? "Make Another" : "Try Again"}
             </a>
-            <a href="/donations" style={{ padding: "0.75rem 1.5rem", borderRadius: "9999px", fontSize: "14px", fontWeight: 600, border: "1px solid #EAEAEA", backgroundColor: "#ffffff", color: "#717171", textDecoration: "none", transition: "all 0.2s ease", display: "inline-flex", alignItems: "center" }}>
+            <a href="/donations" className="inline-flex items-center rounded-full border border-gray-200 bg-white px-6 py-3 text-[14px] font-semibold text-gray-500 no-underline transition-all duration-200">
               View Donations
             </a>
           </div>
@@ -115,7 +115,7 @@ function CallbackContent() {
 
 export default function DonateCallbackPage() {
   return (
-    <Suspense fallback={<div style={{ textAlign: "center", padding: "4rem", color: "#999" }}>Loading...</div>}>
+    <Suspense fallback={<div className="p-16 text-center text-gray-400">Loading...</div>}>
       <CallbackContent />
     </Suspense>
   );

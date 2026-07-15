@@ -78,7 +78,7 @@ export default function DonationsPage() {
       header: "Date",
       mono: true,
       render: (d) => (
-        <span style={{ color: "#717171" }}>
+        <span className="text-gray-500">
           {new Date(d.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
         </span>
       ),
@@ -87,7 +87,7 @@ export default function DonationsPage() {
       key: "type",
       header: "Type",
       render: (d) => (
-        <span style={{ padding: "0.125rem 0.5rem", borderRadius: "0.375rem", fontSize: "9px", fontWeight: 700, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace", backgroundColor: d.type === "monetary" ? `${config.colors.primary}12` : "#FEF3C7", color: d.type === "monetary" ? config.colors.primary : "#D97706", border: `1px solid ${d.type === "monetary" ? `${config.colors.primary}20` : "#FDE68A"}` }}>
+        <span className="rounded-[0.375rem] border px-2 py-0.5 text-[9px] font-bold uppercase font-mono" style={{ backgroundColor: d.type === "monetary" ? `${config.colors.primary}12` : "#FEF3C7", color: d.type === "monetary" ? config.colors.primary : "#D97706", borderColor: d.type === "monetary" ? `${config.colors.primary}20` : "#FDE68A" }}>
           {d.type === "monetary" ? "Funds" : "Item"}
         </span>
       ),
@@ -96,7 +96,7 @@ export default function DonationsPage() {
       key: "details",
       header: "Details",
       render: (d) => (
-        <span style={{ fontWeight: 500, color: "#2D2D2D" }}>
+        <span className="font-medium text-brand-dark">
           {d.type === "monetary"
             ? `${d.paymentProvider ? d.paymentProvider.charAt(0).toUpperCase() + d.paymentProvider.slice(1) : "Payment"}`
             : d.itemName || "Item donation"}
@@ -107,9 +107,9 @@ export default function DonationsPage() {
       key: "group",
       header: "Circle",
       render: (d) => d.group ? (
-        <span style={{ fontSize: "11px", color: "#717171" }}>{d.group.name}</span>
+        <span className="text-[11px] text-gray-500">{d.group.name}</span>
       ) : (
-        <span style={{ fontSize: "11px", color: "#CCC" }}>—</span>
+        <span className="text-[11px] text-gray-300">—</span>
       ),
     },
     {
@@ -117,7 +117,7 @@ export default function DonationsPage() {
       header: "Status",
       align: "right",
       render: (d) => (
-        <span style={{ fontSize: "9px", fontWeight: 700, color: statusColor(d.status), backgroundColor: `${statusColor(d.status)}12`, padding: "0.125rem 0.5rem", borderRadius: "0.375rem", textTransform: "capitalize" }}>
+        <span className="rounded-[0.375rem] px-2 py-0.5 text-[9px] font-bold capitalize" style={{ color: statusColor(d.status), backgroundColor: `${statusColor(d.status)}12` }}>
           {d.status}
         </span>
       ),
@@ -128,7 +128,7 @@ export default function DonationsPage() {
       align: "right",
       mono: true,
       render: (d) => (
-        <span style={{ fontWeight: 600, color: "#2D2D2D" }}>
+        <span className="font-semibold text-brand-dark">
           {d.type === "monetary" && d.amount ? formatNaira(d.amount) : "—"}
         </span>
       ),
@@ -136,7 +136,7 @@ export default function DonationsPage() {
   ];
 
   return (
-    <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
+    <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
       <PageHeader
         badgeLabel="Donation History"
         badgeColor={config.colors.accent}
@@ -145,7 +145,7 @@ export default function DonationsPage() {
         description="Track all your monetary and item contributions."
       />
 
-      <StaggerChildren staggerDelay={100} style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1.5rem", marginBottom: "2rem" }}>
+      <StaggerChildren staggerDelay={100} className="mb-8 grid grid-cols-3 gap-6">
         <StatCard label="Total Donated" value={formatNaira(stats.totalDonated)} change="All time" positive variant="default" />
         <StatCard label="Total Donations" value={String(stats.totalCount)} change={`${stats.completedCount} completed`} positive variant="warm" />
         <StatCard label="Item Donations" value={String(stats.totalCount - stats.completedCount)} change="Items contributed" positive variant="default" />
@@ -153,27 +153,20 @@ export default function DonationsPage() {
 
       <FadeInUp delay={400}>
         <Card padding="1.5rem">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", paddingBottom: "1rem", borderBottom: "1px solid #F0F0F0" }}>
+          <div className="mb-6 flex items-center justify-between border-b border-gray-100 pb-4">
             <div>
               <ColorfulBadge label="All Donations" color="#8A7D73" />
-              <h2 style={{ fontSize: "1.125rem", fontWeight: 500, color: "#1A1A1A", marginTop: "0.5rem" }}>Donation Records</h2>
+              <h2 className="mt-2 text-[1.125rem] font-medium text-brand-dark">Donation Records</h2>
             </div>
-            <div style={{ display: "flex", gap: "0.25rem", backgroundColor: "#F5F7F5", borderRadius: "0.5rem", padding: "0.2rem" }}>
+            <div className="flex gap-1 rounded-lg bg-[#F5F7F5] p-1">
               {(["all", "monetary", "item"] as const).map((f) => (
                 <button
                   key={f}
                   onClick={() => setFilter(f)}
+                  className="cursor-pointer rounded-[0.375rem] border-0 px-3 py-1.5 text-[11px] font-semibold capitalize transition-all duration-200"
                   style={{
-                    padding: "0.375rem 0.75rem",
-                    borderRadius: "0.375rem",
-                    fontSize: "11px",
-                    fontWeight: 600,
-                    border: "none",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
                     backgroundColor: filter === f ? "#ffffff" : "transparent",
                     color: filter === f ? config.colors.primary : "#717171",
-                    textTransform: "capitalize",
                   }}
                 >
                   {f}
@@ -190,9 +183,9 @@ export default function DonationsPage() {
             loading={loading}
             emptyMessage={filter === "all" ? "No donations yet." : `No ${filter} donations.`}
             emptyAction={
-              <a href="/donate" style={{ color: config.colors.primary, textDecoration: "none", fontWeight: 600, fontSize: "12px" }}>
-                Make your first donation &rarr;
-              </a>
+        <a href="/donate" className="text-[12px] font-semibold no-underline" style={{ color: config.colors.primary }}>
+          Make your first donation &rarr;
+        </a>
             }
             accentColor={config.colors.accent}
           />

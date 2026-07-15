@@ -9,6 +9,7 @@ interface CardProps {
   variant?: "default" | "surface" | "warm";
   hover?: boolean;
   style?: React.CSSProperties;
+  className?: string;
 }
 
 const bgMap = {
@@ -17,11 +18,12 @@ const bgMap = {
   warm: "#FAF7F0",
 };
 
-export function Card({ children, padding = "1.5rem", variant = "default", hover = true, style }: CardProps) {
+export function Card({ children, padding = "1.5rem", variant = "default", hover = true, style, className }: CardProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
     <div
+      className={className}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       style={{

@@ -22,8 +22,8 @@ interface AdminStats {
 function StatCard({ label, value, accent }: { label: string; value: string; accent?: string }) {
   return (
     <Card padding="1.25rem">
-      <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", fontWeight: 700, display: "block" }}>{label}</span>
-      <span style={{ fontSize: "1.5rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: accent || "#1A1A1A", display: "block", marginTop: "0.25rem" }}>{value}</span>
+      <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-500">{label}</span>
+      <span className="mt-1 block font-mono text-2xl font-bold" style={{ color: accent || "#1A1A1A" }}>{value}</span>
     </Card>
   );
 }
@@ -53,7 +53,7 @@ export default function AdminDashboardPage() {
   useEffect(() => { fetchStats(); }, [fetchStats]);
 
   if (authLoading || loading) {
-    return <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}><div style={{ textAlign: "center", padding: "4rem", color: "#999", fontSize: "13px" }}>Loading admin overview...</div></div>;
+    return <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]"><div className="p-16 text-center text-[13px] text-gray-500">Loading admin overview...</div></div>;
   }
 
   if (!isAdmin) return null;
@@ -61,14 +61,14 @@ export default function AdminDashboardPage() {
   const totalPending = stats ? stats.pending.kyc + stats.pending.loans + stats.pending.payoutRequests : 0;
 
   return (
-    <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
+    <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
       <PageHeader
         badgeLabel="Admin"
         heading="Portal"
         accentText="Overview"
         description="Platform-wide metrics and pending actions."
         right={
-          <div style={{ display: "flex", gap: "0.5rem" }}>
+          <div className="flex gap-2">
             <Link href="/admin/users" style={linkBtn(false)}>Users</Link>
             <Link href="/admin/audit-logs" style={linkBtn(false)}>Audit Log</Link>
           </div>
@@ -77,7 +77,7 @@ export default function AdminDashboardPage() {
 
       {stats && (
         <>
-          <StaggerChildren staggerDelay={80} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "1rem", marginBottom: "1.5rem" }}>
+          <StaggerChildren staggerDelay={80} className="mb-6 grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-4">
             <StatCard label="Total Users" value={String(stats.users.total)} />
             <StatCard label="New This Month" value={`+${stats.users.newThisMonth}`} accent={config.colors.primary} />
             <StatCard label="Assets Under Mgmt" value={formatNaira(stats.circles.assetsUnderManagement)} accent={config.colors.primary} />
@@ -85,11 +85,11 @@ export default function AdminDashboardPage() {
           </StaggerChildren>
 
           <FadeInUp delay={200}>
-            <Card padding="1.5rem" style={{ marginBottom: "1.5rem" }}>
-              <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", fontWeight: 700, display: "block", marginBottom: "1rem" }}>
+            <Card padding="1.5rem" className="mb-6">
+              <span className="mb-4 block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-500">
                 Pending Actions ({totalPending})
               </span>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "1rem" }}>
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-4">
                 <PendingItem label="KYC Reviews" count={stats.pending.kyc} href="/kyc/admin" />
                 <PendingItem label="Loan Requests" count={stats.pending.loans} href="/admin/loans" />
                 <PendingItem label="Payout Requests" count={stats.pending.payoutRequests} href="/clearance-management" />
@@ -97,7 +97,7 @@ export default function AdminDashboardPage() {
             </Card>
           </FadeInUp>
 
-          <StaggerChildren staggerDelay={80} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "1rem" }}>
+          <StaggerChildren staggerDelay={80} className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-4">
             <StatCard label="Circle Principal" value={formatNaira(stats.circles.totalPrincipal)} />
             <StatCard label="Interest Accrued" value={formatNaira(stats.circles.totalInterest)} accent={config.colors.primary} />
             <StatCard label="Donations Raised" value={formatNaira(stats.donations.completedAmount)} />
@@ -111,9 +111,9 @@ export default function AdminDashboardPage() {
 
 function PendingItem({ label, count, href }: { label: string; count: number; href: string }) {
   return (
-    <Link href={href} style={{ textDecoration: "none", display: "block", padding: "1rem", borderRadius: "0.75rem", border: `1px solid ${count > 0 ? "#FDE68A" : "#F0F0F0"}`, backgroundColor: count > 0 ? "#FFFBEB" : "#FAFAFA", transition: "all 0.2s ease" }}>
-      <span style={{ fontSize: "1.75rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: count > 0 ? "#D97706" : "#1A1A1A", display: "block" }}>{count}</span>
-      <span style={{ fontSize: "12px", color: "#717171", fontWeight: 500 }}>{label}</span>
+    <Link href={href} className="block rounded-xl p-4 no-underline transition-all duration-200" style={{ border: `1px solid ${count > 0 ? "#FDE68A" : "#F0F0F0"}`, backgroundColor: count > 0 ? "#FFFBEB" : "#FAFAFA" }}>
+      <span className="block font-mono text-[1.75rem] font-bold" style={{ color: count > 0 ? "#D97706" : "#1A1A1A" }}>{count}</span>
+      <span className="text-[12px] font-medium text-gray-500">{label}</span>
     </Link>
   );
 }

@@ -10,19 +10,7 @@ import { KYC_STATUS_CONFIG } from "@thrift/types";
 
 const fallback = config;
 
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  padding: "0.75rem 0.875rem 0.75rem 2.5rem",
-  borderRadius: "0.625rem",
-  border: "1px solid #E5E7EB",
-  fontSize: "14px",
-  outline: "none",
-  transition: "all 0.2s ease",
-  boxSizing: "border-box",
-  color: "#1A1A1A",
-  fontFamily: "'JetBrains Mono', monospace",
-  letterSpacing: "0.05em",
-};
+const inputClass = "box-border w-full rounded-[0.625rem] border border-gray-200 py-3 pl-10 pr-3.5 font-mono text-sm tracking-[0.05em] text-brand-dark outline-none transition-all";
 
 const icons = {
   bvn: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2" /><line x1="2" y1="10" x2="22" y2="10" /></svg>,
@@ -130,10 +118,10 @@ export default function KycPage() {
 
   if (loading) {
     return (
-      <div style={{ maxWidth: "900px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
+      <div className="mx-auto max-w-[900px] p-[clamp(1rem,3vw,2rem)]">
         <ColorBar />
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "400px" }}>
-          <span style={{ fontSize: "12px", color: "#999" }}>Loading verification status...</span>
+        <div className="flex min-h-[400px] items-center justify-center">
+          <span className="text-xs text-gray-400">Loading verification status...</span>
         </div>
       </div>
     );
@@ -151,7 +139,7 @@ export default function KycPage() {
   };
 
   return (
-    <div style={{ maxWidth: "900px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
+    <div className="mx-auto max-w-[900px] p-[clamp(1rem,3vw,2rem)]">
       <PageHeader
         badgeLabel="Identity Verification"
         heading="KYC"
@@ -162,26 +150,26 @@ export default function KycPage() {
       {/* Status Banner */}
       {status !== "none" && (
         <FadeInUp delay={150}>
-          <Card padding="1.5rem" style={{ marginBottom: "2rem" }}>
+          <Card padding="1.5rem" className="mb-8">
             {(() => {
               const sc = KYC_STATUS_CONFIG[status as keyof typeof KYC_STATUS_CONFIG] || KYC_STATUS_CONFIG.pending;
               return (
-                <div style={{ padding: "1rem", borderRadius: "0.75rem", backgroundColor: sc.bg, border: `1px solid ${sc.border}` }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                <div className="rounded-xl p-4" style={{ backgroundColor: sc.bg, border: `1px solid ${sc.border}` }}>
+                  <div className="flex items-center gap-4">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={sc.color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                       <path d={sc.icon} />
                     </svg>
-                    <div style={{ flex: 1 }}>
-                      <span style={{ fontSize: "13px", fontWeight: 600, color: sc.color }}>
+                    <div className="flex-1">
+                      <span className="text-[13px] font-semibold" style={{ color: sc.color }}>
                         {isVerified ? "Identity Verified" : sc.label}
                       </span>
-                      <span style={{ fontSize: "11px", color: "#717171", display: "block", marginTop: "0.125rem" }}>
+                      <span className="mt-0.5 block text-[11px] text-gray-500">
                         {isVerified
                           ? "Your BVN and NIN are verified. Your virtual account is active."
                           : "Your submission is being reviewed. This usually takes 1–2 business days."}
                       </span>
                       {kyc?.hasBvn && kyc?.hasNin && (
-                        <span style={{ fontSize: "11px", color: "#717171", display: "block", marginTop: "0.25rem" }}>
+                        <span className="mt-1 block text-[11px] text-gray-500">
                           Verified with BVN + NIN
                         </span>
                       )}
@@ -196,88 +184,88 @@ export default function KycPage() {
 
       {/* Verification Card */}
       <FadeInUp delay={250}>
-        <Card padding="1.5rem" style={{ marginBottom: "2rem" }}>
+        <Card padding="1.5rem" className="mb-8">
           {isVerified ? (
             <div>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1.25rem" }}>
-                <div style={{ width: "40px", height: "40px", borderRadius: "0.75rem", backgroundColor: "#ECFDF5", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div className="mb-5 flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
                 </div>
                 <div>
-                  <h2 style={{ fontSize: "1.1rem", fontWeight: 600, color: "#1A1A1A" }}>You&apos;re all set!</h2>
-                  <p style={{ fontSize: "12px", color: "#717171", margin: 0 }}>Your identity is verified and your virtual account is ready to receive payments.</p>
+                  <h2 className="font-display text-[1.1rem] font-semibold tracking-tight text-brand-dark">You&apos;re all set!</h2>
+                  <p className="m-0 text-xs text-gray-500">Your identity is verified and your virtual account is ready to receive payments.</p>
                 </div>
               </div>
 
               {account && (
-                <div style={{ padding: "1.25rem", borderRadius: "0.75rem", backgroundColor: "#F9FAFB", border: "1px solid #EEF1EE", marginBottom: "1.25rem" }}>
-                  <span style={{ fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.08em", color: "#9CA3AF", fontWeight: 700 }}>Virtual Account</span>
-                  <div style={{ fontSize: "1.4rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: cfg.colors.primary, marginTop: "0.25rem" }}>
+                <div className="mb-5 rounded-xl border border-[#EEF1EE] bg-gray-50 p-5">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.08em] text-gray-400">Virtual Account</span>
+                  <div className="mt-1 font-mono text-[1.4rem] font-bold" style={{ color: cfg.colors.primary }}>
                     {account.accountNumber}
                   </div>
-                  <div style={{ fontSize: "13px", color: "#374151", marginTop: "0.25rem" }}>{account.bankName}</div>
+                  <div className="mt-1 text-[13px] text-gray-700">{account.bankName}</div>
                 </div>
               )}
 
               {(result?.creditScore != null || (result?.rating)) && (
-                <div style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "1rem", borderRadius: "0.75rem", backgroundColor: "#F9FAFB", border: "1px solid #EEF1EE", marginBottom: "1.25rem" }}>
-                  <div style={{ flex: 1 }}>
-                    <span style={{ fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.08em", color: "#9CA3AF", fontWeight: 700 }}>Credit Score</span>
-                    <div style={{ fontSize: "1.4rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: "#1A1A1A" }}>
+                <div className="mb-5 flex items-center gap-4 rounded-xl border border-[#EEF1EE] bg-gray-50 p-4">
+                  <div className="flex-1">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.08em] text-gray-400">Credit Score</span>
+                    <div className="font-mono text-[1.4rem] font-bold text-brand-dark">
                       {result?.creditScore ?? "—"}
                     </div>
                   </div>
                   {result?.rating && (
-                    <span style={{ fontSize: "11px", fontWeight: 700, color: ratingColor(result.rating), backgroundColor: `${ratingColor(result.rating)}15`, padding: "0.375rem 0.75rem", borderRadius: "9999px" }}>
+                    <span className="rounded-full px-3 py-1.5 text-[11px] font-bold" style={{ color: ratingColor(result.rating), backgroundColor: `${ratingColor(result.rating)}15` }}>
                       {result.rating}
                     </span>
                   )}
                 </div>
               )}
 
-              <a href="/" style={{ display: "block", width: "100%", padding: "0.75rem", borderRadius: "0.625rem", fontSize: "13px", fontWeight: 600, textAlign: "center", textDecoration: "none", backgroundColor: cfg.colors.primary, color: "#ffffff" }}>
+              <a href="/" className="block w-full rounded-[0.625rem] py-3 text-center text-[13px] font-semibold text-white no-underline" style={{ backgroundColor: cfg.colors.primary }}>
                 Go to Dashboard
               </a>
             </div>
           ) : (
             <div>
-              <div style={{ marginBottom: "1.5rem" }}>
-                <h2 style={{ fontSize: "1.1rem", fontWeight: 600, color: "#1A1A1A", marginBottom: "0.25rem" }}>Verify your identity</h2>
-                <p style={{ fontSize: "12px", color: "#717171", margin: 0 }}>
+              <div className="mb-6">
+                <h2 className="mb-1 font-display text-[1.1rem] font-semibold tracking-tight text-brand-dark">Verify your identity</h2>
+                <p className="m-0 text-xs text-gray-500">
                   Enter your BVN and NIN below. We&apos;ll confirm them instantly with CreditChek and create your virtual account.
                 </p>
               </div>
 
               {error && (
-                <div style={{ padding: "0.75rem 1rem", borderRadius: "0.75rem", backgroundColor: "#FEF2F2", border: "1px solid #FECACA", color: "#DC2626", fontSize: "12px", fontWeight: 500, marginBottom: "1.5rem" }}>
+                <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-medium text-red-600">
                   {error}
                 </div>
               )}
 
               {isPending && (
-                <div style={{ padding: "1rem", borderRadius: "0.75rem", backgroundColor: "#FFFBEB", border: "1px solid #FDE68A", marginBottom: "1.5rem", fontSize: "12px", color: "#92400E" }}>
+                <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-800">
                   Your previous submission is still under review. You can re-verify with your BVN and NIN to complete it instantly.
                 </div>
               )}
 
-              <div style={{ marginBottom: "1rem" }}>
-                <label style={{ fontSize: "12px", fontWeight: 500, color: "#374151", display: "block", marginBottom: "0.375rem" }}>BVN (11 digits)</label>
-                <div style={{ position: "relative" }}>
-                  <span style={{ position: "absolute", left: "0.875rem", top: "50%", transform: "translateY(-50%)" }}>{icons.bvn}</span>
+              <div className="mb-4">
+                <label className="mb-1.5 block text-xs font-medium text-gray-700">BVN (11 digits)</label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2">{icons.bvn}</span>
                   <input type="text" inputMode="numeric" value={bvn} onChange={(e) => setBvn(e.target.value.replace(/\D/g, "").slice(0, 11))} placeholder="12345678901"
-                    style={inputStyle}
+                    className={inputClass}
                     onFocus={(e) => { e.currentTarget.style.borderColor = cfg.colors.primary; e.currentTarget.style.boxShadow = `0 0 0 3px ${cfg.colors.primary}15`; }}
                     onBlur={(e) => { e.currentTarget.style.borderColor = "#E5E7EB"; e.currentTarget.style.boxShadow = "none"; }}
                   />
                 </div>
               </div>
 
-              <div style={{ marginBottom: "1.5rem" }}>
-                <label style={{ fontSize: "12px", fontWeight: 500, color: "#374151", display: "block", marginBottom: "0.375rem" }}>NIN (11 digits)</label>
-                <div style={{ position: "relative" }}>
-                  <span style={{ position: "absolute", left: "0.875rem", top: "50%", transform: "translateY(-50%)" }}>{icons.nin}</span>
+              <div className="mb-6">
+                <label className="mb-1.5 block text-xs font-medium text-gray-700">NIN (11 digits)</label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2">{icons.nin}</span>
                   <input type="text" inputMode="numeric" value={nin} onChange={(e) => setNin(e.target.value.replace(/\D/g, "").slice(0, 11))} placeholder="98765432109"
-                    style={inputStyle}
+                    className={inputClass}
                     onFocus={(e) => { e.currentTarget.style.borderColor = cfg.colors.primary; e.currentTarget.style.boxShadow = `0 0 0 3px ${cfg.colors.primary}15`; }}
                     onBlur={(e) => { e.currentTarget.style.borderColor = "#E5E7EB"; e.currentTarget.style.boxShadow = "none"; }}
                   />
@@ -285,7 +273,8 @@ export default function KycPage() {
               </div>
 
               <button onClick={handleVerify} disabled={submitting}
-                style={{ width: "100%", padding: "0.875rem", borderRadius: "0.625rem", fontSize: "13px", fontWeight: 600, cursor: submitting ? "not-allowed" : "pointer", backgroundColor: cfg.colors.primary, color: "#ffffff", border: "none", opacity: submitting ? 0.7 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
+                className="flex w-full items-center justify-center gap-2 rounded-[0.625rem] border-none py-3.5 text-[13px] font-semibold text-white"
+                style={{ cursor: submitting ? "not-allowed" : "pointer", backgroundColor: cfg.colors.primary, opacity: submitting ? 0.7 : 1 }}>
                 {submitting ? (
                   <>
                     <svg width="16" height="16" viewBox="0 0 24 24" style={{ animation: "spin 1s linear infinite" }}><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" fill="none" strokeDasharray="31.4 31.4" /></svg>
@@ -296,7 +285,7 @@ export default function KycPage() {
                 )}
               </button>
 
-              <p style={{ fontSize: "11px", color: "#9CA3AF", textAlign: "center", marginTop: "0.75rem", marginBottom: 0 }}>
+              <p className="mt-3 mb-0 text-center text-[11px] text-gray-400">
                 Secured by CreditChek • BVN & NIN are verified, not stored as plain secrets.
               </p>
             </div>
@@ -308,16 +297,16 @@ export default function KycPage() {
       <FadeInUp delay={350}>
         <Card padding="1.5rem">
           <ColorfulBadge label="Why KYC?" color={cfg.colors.accent} />
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem", marginTop: "1rem" }}>
+          <div className="mt-4 grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
             {[
               { title: "Instant Verification", desc: "Your BVN and NIN are confirmed in seconds via CreditChek — no document uploads." },
               { title: "Virtual Account", desc: "A dedicated account is created automatically so you can receive contributions." },
               { title: "Credit Insight", desc: "We pull a credit report to personalise your limits and trust score." },
               { title: "Build Trust", desc: "A verified identity increases your trust score across savings circles." },
             ].map((item) => (
-              <div key={item.title} style={{ padding: "1rem", borderRadius: "0.75rem", backgroundColor: "#FAFAFA" }}>
-                <h3 style={{ fontSize: "13px", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.25rem" }}>{item.title}</h3>
-                <p style={{ fontSize: "11px", color: "#717171", lineHeight: 1.5 }}>{item.desc}</p>
+              <div key={item.title} className="rounded-xl bg-gray-50 p-4">
+                <h3 className="mb-1 text-[13px] font-semibold text-brand-dark">{item.title}</h3>
+                <p className="text-[11px] leading-normal text-gray-500">{item.desc}</p>
               </div>
             ))}
           </div>

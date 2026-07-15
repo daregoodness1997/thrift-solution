@@ -199,25 +199,25 @@ export default function DonatePage() {
 
   if (success) {
     return (
-      <div style={{ maxWidth: "900px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
+      <div className="mx-auto max-w-[900px] p-[clamp(1rem,3vw,2rem)]">
         <FadeInUp>
-          <Card padding="2rem" style={{ textAlign: "center" }}>
-            <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>
+          <Card padding="2rem" className="text-center">
+            <div className="mb-4 text-5xl">
               {activeTab === "monetary" ? "\uD83C\uDF81" : "\uD83C\uDF8D"}
             </div>
-            <h2 style={{ fontSize: "1.5rem", fontWeight: 600, color: "#1A1A1A", marginBottom: "0.5rem" }}>
+            <h2 className="mb-2 text-2xl font-semibold text-brand-dark">
               {activeTab === "monetary" ? "Thank you for your donation!" : "Item donation submitted!"}
             </h2>
-            <p style={{ fontSize: "14px", color: "#717171", marginBottom: "1.5rem", lineHeight: 1.6 }}>
+            <p className="mb-6 text-[14px] leading-[1.6] text-gray-500">
               {activeTab === "monetary"
                 ? "Your payment is being processed. You will be redirected to complete the transaction."
                 : "Your item donation has been recorded. Our team will review it shortly."}
             </p>
-            <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center" }}>
+            <div className="flex items-center justify-center gap-3">
               <Button onClick={() => { setSuccess(false); setAmount(""); setCustomAmount(""); setItemName(""); }}>
                 Make Another Donation
               </Button>
-              <a href="/donations" style={{ padding: "0.75rem 1.5rem", borderRadius: "9999px", fontSize: "14px", fontWeight: 600, border: "1px solid #EAEAEA", backgroundColor: "#ffffff", color: "#717171", textDecoration: "none", transition: "all 0.2s ease", display: "inline-flex", alignItems: "center" }}>
+              <a href="/donations" className="inline-flex items-center rounded-full border border-gray-100 bg-white px-6 py-3 text-[14px] font-semibold text-gray-500 no-underline transition-all duration-200">
                 View History
               </a>
             </div>
@@ -228,7 +228,7 @@ export default function DonatePage() {
   }
 
   return (
-    <div style={{ maxWidth: "900px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
+    <div className="mx-auto max-w-[900px] p-[clamp(1rem,3vw,2rem)]">
       <PageHeader
         badgeLabel="Support the Community"
         heading="Make a"
@@ -237,7 +237,7 @@ export default function DonatePage() {
       />
 
       <FadeInUp delay={200}>
-        <div style={{ display: "flex", gap: "0.25rem", marginBottom: "1.5rem", backgroundColor: "#F5F7F5", borderRadius: "0.75rem", padding: "0.25rem" }}>
+        <div className="mb-6 flex gap-1 rounded-xl bg-[#F5F7F5] p-1">
           {(["monetary", "item"] as const).map((tab) => (
             <button
               key={tab}
@@ -264,7 +264,7 @@ export default function DonatePage() {
 
       {error && (
         <FadeInUp delay={50}>
-          <div style={{ padding: "0.75rem 1rem", borderRadius: "0.75rem", backgroundColor: "#FEF2F2", border: "1px solid #FECACA", color: "#DC2626", fontSize: "13px", marginBottom: "1rem" }}>
+          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-[13px] text-red-600">
             {error}
           </div>
         </FadeInUp>
@@ -274,14 +274,14 @@ export default function DonatePage() {
         <FadeInUp delay={300}>
           <Card padding="1.5rem">
             {groups.length > 0 && (
-              <div style={{ marginBottom: "1.5rem" }}>
-                <label style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", display: "block", marginBottom: "0.5rem" }}>
+              <div className="mb-6">
+                <label className="mb-2 block text-[12px] font-semibold text-brand-dark">
                   Donate to a Circle (optional)
                 </label>
                 <select
                   value={groupId}
                   onChange={(e) => setGroupId(e.target.value)}
-                  style={{ width: "100%", padding: "0.625rem 0.75rem", borderRadius: "0.75rem", border: "1px solid #EAEAEA", fontSize: "13px", color: "#2D2D2D", backgroundColor: "#ffffff", outline: "none", cursor: "pointer" }}
+                  className="w-full cursor-pointer rounded-xl border border-gray-100 bg-white px-3 py-2.5 text-[13px] text-brand-dark outline-none"
                 >
                   <option value="">General Fund</option>
                   {groups.map((g) => (
@@ -291,11 +291,11 @@ export default function DonatePage() {
               </div>
             )}
 
-            <div style={{ marginBottom: "1.5rem" }}>
-              <label style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", display: "block", marginBottom: "0.5rem" }}>
+            <div className="mb-6">
+              <label className="mb-2 block text-[12px] font-semibold text-brand-dark">
                 Select Amount
               </label>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.5rem", marginBottom: "0.75rem" }}>
+              <div className="mb-3 grid grid-cols-3 gap-2">
                 {presetAmounts.map((preset) => (
                   <button
                     key={preset}
@@ -317,25 +317,25 @@ export default function DonatePage() {
                   </button>
                 ))}
               </div>
-              <div style={{ position: "relative" }}>
-                <span style={{ position: "absolute", left: "0.75rem", top: "50%", transform: "translateY(-50%)", fontSize: "13px", fontWeight: 600, color: "#999" }}>₦</span>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[13px] font-semibold text-gray-400">₦</span>
                 <input
                   type="number"
                   placeholder="Custom amount"
                   value={customAmount}
                   onChange={(e) => { setCustomAmount(e.target.value); setAmount(""); }}
-                  style={{ width: "100%", padding: "0.75rem 0.75rem 0.75rem 1.75rem", borderRadius: "0.75rem", border: "1px solid #EAEAEA", fontSize: "13px", fontFamily: "'JetBrains Mono', monospace", outline: "none", transition: "border-color 0.2s ease", boxSizing: "border-box" }}
+                  className="w-full rounded-xl border border-gray-100 p-3 pl-7 font-mono text-[13px] outline-none transition-colors"
                   onFocus={(e) => { e.currentTarget.style.borderColor = config.colors.primary; }}
                   onBlur={(e) => { e.currentTarget.style.borderColor = "#EAEAEA"; }}
                 />
               </div>
             </div>
 
-            <div style={{ marginBottom: "1.5rem" }}>
-              <label style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", display: "block", marginBottom: "0.5rem" }}>
+            <div className="mb-6">
+              <label className="mb-2 block text-[12px] font-semibold text-brand-dark">
                 Payment Method
               </label>
-              <div style={{ display: "flex", gap: "0.5rem" }}>
+              <div className="flex gap-2">
                 {providers.map((p) => (
                   <button
                     key={p}
@@ -360,8 +360,8 @@ export default function DonatePage() {
               </div>
             </div>
 
-            <div style={{ marginBottom: "1.5rem" }}>
-              <label style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", display: "block", marginBottom: "0.5rem" }}>
+            <div className="mb-6">
+              <label className="mb-2 block text-[12px] font-semibold text-brand-dark">
                 Notes (optional)
               </label>
               <textarea
@@ -369,7 +369,7 @@ export default function DonatePage() {
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
-                style={{ width: "100%", padding: "0.75rem", borderRadius: "0.75rem", border: "1px solid #EAEAEA", fontSize: "13px", outline: "none", resize: "vertical", fontFamily: "inherit", transition: "border-color 0.2s ease", boxSizing: "border-box" }}
+                className="w-full resize-y rounded-xl border border-gray-100 p-3 text-[13px] font-sans outline-none transition-colors"
                 onFocus={(e) => { e.currentTarget.style.borderColor = config.colors.primary; }}
                 onBlur={(e) => { e.currentTarget.style.borderColor = "#EAEAEA"; }}
               />
@@ -378,7 +378,7 @@ export default function DonatePage() {
             <Button
               onClick={handleMonetaryDonation}
               disabled={loading || (!amount && !customAmount)}
-              style={{ width: "100%", justifyContent: "center", opacity: loading || (!amount && !customAmount) ? 0.5 : 1 }}
+              className="w-full justify-center" style={{ opacity: loading || (!amount && !customAmount) ? 0.5 : 1 }}
             >
               {loading ? "Processing..." : "Donate Now"}
             </Button>
@@ -387,8 +387,8 @@ export default function DonatePage() {
       ) : (
         <FadeInUp delay={300}>
           <Card padding="1.5rem">
-            <div style={{ marginBottom: "1.25rem" }}>
-              <label style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", display: "block", marginBottom: "0.5rem" }}>
+              <div className="mb-5">
+              <label className="mb-2 block text-[12px] font-semibold text-brand-dark">
                 Item Name *
               </label>
               <input
@@ -396,34 +396,34 @@ export default function DonatePage() {
                 placeholder="e.g. Winter Jacket, Laptop Bag"
                 value={itemName}
                 onChange={(e) => setItemName(e.target.value)}
-                style={{ width: "100%", padding: "0.75rem", borderRadius: "0.75rem", border: "1px solid #EAEAEA", fontSize: "13px", outline: "none", transition: "border-color 0.2s ease", boxSizing: "border-box" }}
+                className="w-full rounded-xl border border-gray-100 p-3 text-[13px] outline-none transition-colors"
                 onFocus={(e) => { e.currentTarget.style.borderColor = config.colors.primary; }}
                 onBlur={(e) => { e.currentTarget.style.borderColor = "#EAEAEA"; }}
               />
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginBottom: "1.25rem" }}>
+            <div className="mb-5 grid grid-cols-2 gap-4">
               <div>
-                <label style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", display: "block", marginBottom: "0.5rem" }}>
+                <label className="mb-2 block text-[12px] font-semibold text-brand-dark">
                   Category
                 </label>
                 <select
                   value={itemCategory}
                   onChange={(e) => setItemCategory(e.target.value)}
-                  style={{ width: "100%", padding: "0.75rem", borderRadius: "0.75rem", border: "1px solid #EAEAEA", fontSize: "13px", color: "#2D2D2D", backgroundColor: "#ffffff", outline: "none", cursor: "pointer", boxSizing: "border-box" }}
+                  className="w-full cursor-pointer rounded-xl border border-gray-100 bg-white p-3 text-[13px] text-brand-dark outline-none"
                 >
                   <option value="">Select category</option>
                   {itemCategories.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
               <div>
-                <label style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", display: "block", marginBottom: "0.5rem" }}>
+                <label className="mb-2 block text-[12px] font-semibold text-brand-dark">
                   Condition
                 </label>
                 <select
                   value={itemCondition}
                   onChange={(e) => setItemCondition(e.target.value)}
-                  style={{ width: "100%", padding: "0.75rem", borderRadius: "0.75rem", border: "1px solid #EAEAEA", fontSize: "13px", color: "#2D2D2D", backgroundColor: "#ffffff", outline: "none", cursor: "pointer", boxSizing: "border-box" }}
+                  className="w-full cursor-pointer rounded-xl border border-gray-100 bg-white p-3 text-[13px] text-brand-dark outline-none"
                 >
                   <option value="">Select condition</option>
                   {itemConditions.map((c) => <option key={c} value={c}>{c}</option>)}
@@ -431,8 +431,8 @@ export default function DonatePage() {
               </div>
             </div>
 
-            <div style={{ marginBottom: "1.25rem" }}>
-              <label style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", display: "block", marginBottom: "0.5rem" }}>
+              <div className="mb-5">
+              <label className="mb-2 block text-[12px] font-semibold text-brand-dark">
                 Description
               </label>
               <textarea
@@ -440,42 +440,42 @@ export default function DonatePage() {
                 value={itemDescription}
                 onChange={(e) => setItemDescription(e.target.value)}
                 rows={3}
-                style={{ width: "100%", padding: "0.75rem", borderRadius: "0.75rem", border: "1px solid #EAEAEA", fontSize: "13px", outline: "none", resize: "vertical", fontFamily: "inherit", transition: "border-color 0.2s ease", boxSizing: "border-box" }}
+                className="w-full resize-y rounded-xl border border-gray-100 p-3 text-[13px] font-sans outline-none transition-colors"
                 onFocus={(e) => { e.currentTarget.style.borderColor = config.colors.primary; }}
                 onBlur={(e) => { e.currentTarget.style.borderColor = "#EAEAEA"; }}
               />
             </div>
 
-            <div style={{ marginBottom: "1.25rem" }}>
-              <label style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", display: "block", marginBottom: "0.5rem" }}>
+              <div className="mb-5">
+              <label className="mb-2 block text-[12px] font-semibold text-brand-dark">
                 Item Image (optional)
               </label>
-              <input ref={itemImageRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleItemImageSelect} style={{ display: "none" }} />
+               <input ref={itemImageRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleItemImageSelect} className="hidden" />
               {itemImage ? (
-                <div style={{ padding: "0.75rem", borderRadius: "0.75rem", border: "1px solid #A7F3D0", backgroundColor: "#ECFDF5", display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                  <img src={itemImage.preview} alt="Preview" style={{ width: "64px", height: "64px", borderRadius: "0.5rem", objectFit: "cover" }} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ fontSize: "12px", fontWeight: 500, color: "#2D2D2D", display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{itemImage.file.name}</span>
-                    <span style={{ fontSize: "10px", color: "#059669" }}>{(itemImage.file.size / 1024).toFixed(1)} KB</span>
+                <div className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+                  <img src={itemImage.preview} alt="Preview" className="h-16 w-16 rounded-lg object-cover" />
+                  <div className="min-w-0 flex-1">
+                    <span className="block truncate text-[12px] font-medium text-brand-dark">{itemImage.file.name}</span>
+                    <span className="text-[10px] text-emerald-600">{(itemImage.file.size / 1024).toFixed(1)} KB</span>
                   </div>
-                  <button type="button" onClick={removeItemImage} style={{ background: "none", border: "none", cursor: "pointer", padding: "0.25rem", color: "#DC2626" }}>
+                   <button type="button" onClick={removeItemImage} className="cursor-pointer border-0 bg-none p-1 text-red-600">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M18 6L6 18M6 6l12 12" /></svg>
                   </button>
                 </div>
               ) : (
-                <button type="button" onClick={() => itemImageRef.current?.click()} style={{ width: "100%", padding: "1.5rem", borderRadius: "0.75rem", border: "2px dashed #D1D5DB", backgroundColor: "#FAFAFA", cursor: "pointer", textAlign: "center", transition: "all 0.2s ease" }}
+                <button type="button" onClick={() => itemImageRef.current?.click()} className="w-full cursor-pointer rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-6 text-center transition-all duration-200"
                   onMouseEnter={(e) => { e.currentTarget.style.borderColor = config.colors.primary; }}
                   onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#D1D5DB"; }}
                 >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth={1.5} style={{ margin: "0 auto 0.375rem" }}><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-                  <span style={{ fontSize: "12px", color: "#717171", display: "block" }}>Click to upload item image</span>
-                  <span style={{ fontSize: "10px", color: "#999", display: "block", marginTop: "0.25rem" }}>JPEG, PNG, WebP, or GIF up to 10MB</span>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth={1.5} className="mx-auto mb-1.5"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+                  <span className="block text-[12px] text-gray-500">Click to upload item image</span>
+                  <span className="mt-1 block text-[10px] text-gray-400">JPEG, PNG, WebP, or GIF up to 10MB</span>
                 </button>
               )}
             </div>
 
-            <div style={{ marginBottom: "1.5rem" }}>
-              <label style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", display: "block", marginBottom: "0.5rem" }}>
+            <div className="mb-6">
+              <label className="mb-2 block text-[12px] font-semibold text-brand-dark">
                 Additional Notes (optional)
               </label>
               <input
@@ -483,7 +483,7 @@ export default function DonatePage() {
                 placeholder="Any pickup preferences or other details..."
                 value={itemNotes}
                 onChange={(e) => setItemNotes(e.target.value)}
-                style={{ width: "100%", padding: "0.75rem", borderRadius: "0.75rem", border: "1px solid #EAEAEA", fontSize: "13px", outline: "none", transition: "border-color 0.2s ease", boxSizing: "border-box" }}
+                className="w-full rounded-xl border border-gray-100 p-3 text-[13px] outline-none transition-colors"
                 onFocus={(e) => { e.currentTarget.style.borderColor = config.colors.primary; }}
                 onBlur={(e) => { e.currentTarget.style.borderColor = "#EAEAEA"; }}
               />
@@ -492,7 +492,7 @@ export default function DonatePage() {
             <Button
               onClick={handleItemDonation}
               disabled={loading || !itemName.trim()}
-              style={{ width: "100%", justifyContent: "center", opacity: loading || !itemName.trim() ? 0.5 : 1 }}
+              className="w-full justify-center" style={{ opacity: loading || !itemName.trim() ? 0.5 : 1 }}
             >
               {loading ? "Submitting..." : "Submit Item Donation"}
             </Button>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { config, BrandConfig } from "@thrift/config";
@@ -134,24 +135,13 @@ export function NotificationBell({ cfg = fallback }: { cfg?: BrandConfig }) {
   };
 
   return (
-    <div ref={wrapRef} style={{ position: "relative" }}>
+    <div ref={wrapRef} className="relative">
       <button
         onClick={handleOpen}
         aria-label="Notifications"
         title="Notifications"
-        style={{
-          position: "relative",
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          padding: "0.5rem",
-          color: open ? cfg.colors.primary : "#717171",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          borderRadius: "0.5rem",
-          transition: "all 0.2s ease",
-        }}
+        className="relative bg-none border-none cursor-pointer p-2 flex items-center justify-center rounded-lg transition-all duration-200"
+        style={{ color: open ? cfg.colors.primary : "#717171" }}
         onMouseEnter={(e) => { e.currentTarget.style.color = cfg.colors.primary; e.currentTarget.style.backgroundColor = "#F5F7F5"; }}
         onMouseLeave={(e) => { e.currentTarget.style.color = open ? cfg.colors.primary : "#717171"; e.currentTarget.style.backgroundColor = "transparent"; }}
       >
@@ -161,71 +151,46 @@ export function NotificationBell({ cfg = fallback }: { cfg?: BrandConfig }) {
         </svg>
         {count > 0 && (
           <span
-            style={{
-              position: "absolute",
-              top: "2px",
-              right: "2px",
-              minWidth: "16px",
-              height: "16px",
-              padding: "0 4px",
-              borderRadius: "9999px",
-              backgroundColor: "#DC2626",
-              color: "#fff",
-              fontSize: "9px",
-              fontWeight: 700,
-              lineHeight: "16px",
-              textAlign: "center",
-              border: "2px solid #fff",
-            }}
+            className="absolute top-0.5 right-0.5 min-w-4 h-4 px-1 rounded-full bg-red-600 text-white text-[9px] font-bold leading-4 text-center border-2 border-white"
           >
             {count > 99 ? "99+" : count}
           </span>
         )}
       </button>
 
-      {open && (
-        <div
-          style={{
-            position: "absolute",
-            top: "calc(100% + 0.5rem)",
-            right: 0,
-            width: "360px",
-            maxWidth: "calc(100vw - 2rem)",
-            backgroundColor: "#ffffff",
-            borderRadius: "1rem",
-            boxShadow: "0 16px 48px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.04)",
-            zIndex: 50,
-            overflow: "hidden",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.875rem 1rem", borderBottom: "1px solid #F0F0F0" }}>
-            <span style={{ fontSize: "12px", fontWeight: 700, color: "#2D2D2D", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+      {open && typeof document !== "undefined" &&
+        createPortal(
+          <div
+            className="fixed right-3 top-3 w-[360px] max-w-[calc(100vw-1.5rem)] bg-white rounded-2xl shadow-[0_16px_48px_rgba(0,0,0,0.12),0_0_0_1px_rgba(0,0,0,0.04)] z-[100] overflow-hidden"
+          >
+          <div className="flex items-center justify-between px-4 py-3.5 border-b border-gray-100">
+            <span className="text-xs font-bold text-brand-dark uppercase tracking-[0.08em]">
               Notifications
             </span>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <div className="flex items-center gap-2">
               {count > 0 && (
-                <button onClick={handleMarkAll} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "11px", fontWeight: 600, color: cfg.colors.primary }}>
+                <button onClick={handleMarkAll} className="bg-none border-none cursor-pointer text-[11px] font-semibold" style={{ color: cfg.colors.primary }}>
                   Mark all read
                 </button>
               )}
-              <Link href="/notifications" onClick={() => setOpen(false)} style={{ fontSize: "11px", fontWeight: 600, color: "#717171", textDecoration: "none" }}>
+              <Link href="/notifications" onClick={() => setOpen(false)} className="text-[11px] font-semibold text-gray-500 no-underline">
                 View all
               </Link>
             </div>
           </div>
 
-          <div style={{ maxHeight: "380px", overflowY: "auto" }}>
+          <div className="max-h-[380px] overflow-y-auto">
             {loading && items.length === 0 ? (
-              <div style={{ padding: "2rem", textAlign: "center", fontSize: "12px", color: "#999" }}>Loading…</div>
+              <div className="p-8 text-center text-xs text-gray-400">Loading…</div>
             ) : items.length === 0 ? (
-              <div style={{ padding: "2.5rem 1rem", textAlign: "center" }}>
-                <div style={{ color: "#D1D5DB", marginBottom: "0.5rem" }}>
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={{ margin: "0 auto" }}>
+              <div className="px-4 py-10 text-center">
+                <div className="text-[#D1D5DB] mb-2">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" className="mx-auto">
                     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
                     <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                   </svg>
                 </div>
-                <p style={{ fontSize: "12px", color: "#999", margin: 0 }}>You're all caught up.</p>
+                <p className="text-xs text-gray-400">You're all caught up.</p>
               </div>
             ) : (
               items.map((n) => {
@@ -235,32 +200,25 @@ export function NotificationBell({ cfg = fallback }: { cfg?: BrandConfig }) {
                   <div
                     key={n.id}
                     onClick={() => handleItemClick(n)}
-                    style={{
-                      display: "flex",
-                      gap: "0.625rem",
-                      padding: "0.75rem 1rem",
-                      cursor: "pointer",
-                      borderBottom: "1px solid #F6F6F6",
-                      backgroundColor: unread ? `${cfg.colors.primary}08` : "#ffffff",
-                      transition: "background 0.15s ease",
-                    }}
+                    className="flex gap-2.5 px-4 py-3 cursor-pointer border-b border-[#F6F6F6] transition-colors duration-150"
+                    style={{ backgroundColor: unread ? `${cfg.colors.primary}08` : "#ffffff" }}
                     onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = unread ? `${cfg.colors.primary}12` : "#FAFAFA"; }}
                     onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = unread ? `${cfg.colors.primary}08` : "#ffffff"; }}
                   >
                     {unread && (
-                      <span style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: cfg.colors.primary, flexShrink: 0, marginTop: "5px" }} />
+                      <span className="w-2 h-2 rounded-full flex-none mt-[5px]" style={{ backgroundColor: cfg.colors.primary }} />
                     )}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "0.5rem" }}>
-                        <span style={{ fontSize: "12px", fontWeight: unread ? 600 : 500, color: "#2D2D2D" }}>{n.title}</span>
-                        <span style={{ fontSize: "10px", color: "#B0B0B0", flexShrink: 0 }}>{timeAgo(n.createdAt)}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-baseline gap-2">
+                        <span className="text-xs text-brand-dark" style={{ fontWeight: unread ? 600 : 500 }}>{n.title}</span>
+                        <span className="text-[10px] text-[#B0B0B0] flex-none">{timeAgo(n.createdAt)}</span>
                       </div>
-                      <p style={{ fontSize: "11px", color: "#717171", fontWeight: 300, margin: "0.25rem 0 0", lineHeight: 1.4 }}>{n.body}</p>
+                      <p className="text-[11px] text-gray-500 font-light mt-1 leading-[1.4]">{n.body}</p>
                     </div>
                     <button
                       onClick={(e) => handleDelete(e, n.id)}
                       title="Dismiss"
-                      style={{ background: "none", border: "none", cursor: "pointer", color: "#C9C9C9", padding: "0.125rem", alignSelf: "flex-start", flexShrink: 0 }}
+                      className="bg-none border-none cursor-pointer text-[#C9C9C9] p-0.5 self-start flex-none"
                       onMouseEnter={(e) => { e.currentTarget.style.color = "#DC2626"; }}
                       onMouseLeave={(e) => { e.currentTarget.style.color = "#C9C9C9"; }}
                     >
@@ -275,14 +233,17 @@ export function NotificationBell({ cfg = fallback }: { cfg?: BrandConfig }) {
               <button
                 onClick={loadMore}
                 disabled={loading}
-                style={{ width: "100%", padding: "0.75rem", background: "none", border: "none", borderTop: "1px solid #F0F0F0", cursor: "pointer", fontSize: "11px", fontWeight: 600, color: cfg.colors.primary }}
+                className="w-full py-3 bg-none border-none border-t border-gray-100 cursor-pointer text-[11px] font-semibold"
+                style={{ color: cfg.colors.primary }}
               >
                 {loading ? "Loading…" : "Load more"}
               </button>
             )}
           </div>
         </div>
-      )}
+          ,
+          document.body,
+        )}
     </div>
   );
 }

@@ -3,7 +3,6 @@
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { config } from "@thrift/config";
-import { Header, Footer, Card, Button, ColorBar, ColorfulBadge, FadeIn, HourglassIcon, CheckIcon, CrossIcon } from "@thrift/ui";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -19,7 +18,6 @@ function CallbackContent() {
       setStatus("failed");
       return;
     }
-
     fetch(`${API_URL}/api/donations/verify/${reference}?provider=${provider}`)
       .then((r) => r.json())
       .then((data) => {
@@ -34,65 +32,59 @@ function CallbackContent() {
   }, [reference, provider]);
 
   return (
-    <main style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "4rem 2rem" }}>
-        <FadeIn>
-          <div style={{ maxWidth: "480px", width: "100%", textAlign: "center" }}>
-            <Card padding="2.5rem">
-              {status === "verifying" && (
-                <>
-                   <div style={{ fontSize: "2rem", marginBottom: "1rem", color: config.colors.primary, animation: "spin 1s linear infinite" }}>&#8987;</div>
-                  <h2 style={{ fontSize: "1.25rem", fontWeight: 600, color: "#1A1A1A", marginBottom: "0.5rem" }}>Verifying Payment...</h2>
-                  <p style={{ fontSize: "13px", color: "#717171" }}>Please wait while we confirm your donation.</p>
-                </>
-              )}
+    <main className="flex min-h-screen items-center justify-center bg-brand-cream px-6 py-32">
+      <div className="w-full max-w-md rounded-3xl border border-brand-primary/10 bg-white p-10 text-center shadow-sm">
+        {status === "verifying" && (
+          <>
+            <div className="mb-4 text-3xl text-brand-primary animate-spin">⌛</div>
+            <h2 className="text-xl font-semibold text-brand-dark">Verifying Payment...</h2>
+            <p className="mt-2 text-sm text-gray-500">Please wait while we confirm your donation.</p>
+          </>
+        )}
 
-              {status === "success" && (
-                <>
-                   <div style={{ fontSize: "3rem", marginBottom: "1rem", color: "#059669" }}>&#10003;</div>
-                  <ColorfulBadge label="Payment Confirmed" color="#059669" />
-                  <h2 style={{ fontSize: "1.5rem", fontWeight: 600, color: "#1A1A1A", marginTop: "1rem", marginBottom: "0.5rem" }}>Thank You!</h2>
-                  <p style={{ fontSize: "13px", color: "#717171", marginBottom: "1rem", lineHeight: 1.6 }}>
-                    Your generous donation has been successfully processed. A confirmation email will be sent shortly.
-                  </p>
-                  {amount && (
-                    <div style={{ padding: "0.75rem 1rem", backgroundColor: "#F0FDF4", borderRadius: "0.75rem", marginBottom: "1.5rem" }}>
-                      <span style={{ fontSize: "10px", color: "#059669", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em" }}>Amount Donated</span>
-                      <span style={{ display: "block", fontSize: "1.25rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: "#059669", marginTop: "0.25rem" }}>
-                        ₦{amount.toLocaleString()}
-                      </span>
-                    </div>
-                  )}
-                </>
-              )}
-
-              {status === "failed" && (
-                <>
-                   <div style={{ fontSize: "3rem", marginBottom: "1rem", color: config.colors.accent }}>&#10007;</div>
-                  <h2 style={{ fontSize: "1.5rem", fontWeight: 600, color: "#1A1A1A", marginBottom: "0.5rem" }}>Payment Failed</h2>
-                  <p style={{ fontSize: "13px", color: "#717171", marginBottom: "1.5rem", lineHeight: 1.6 }}>
-                    We couldn&apos;t verify your payment. Please try again or contact support.
-                  </p>
-                </>
-              )}
-
-              <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center" }}>
-                <a href="/donate" style={{ padding: "0.75rem 1.5rem", borderRadius: "9999px", fontSize: "14px", fontWeight: 600, backgroundColor: config.colors.primary, color: "#ffffff", textDecoration: "none" }}>
-                  {status === "success" ? "Donate Again" : "Try Again"}
-                </a>
-                <a href="/" style={{ padding: "0.75rem 1.5rem", borderRadius: "9999px", fontSize: "14px", fontWeight: 600, border: "1px solid #EAEAEA", backgroundColor: "#ffffff", color: "#717171", textDecoration: "none" }}>
-                  Back to Home
-                </a>
+        {status === "success" && (
+          <>
+            <div className="mb-4 text-4xl text-green-600">✓</div>
+            <span className="inline-block rounded-full bg-green-100 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-green-700">Payment Confirmed</span>
+            <h2 className="mt-4 text-2xl font-semibold text-brand-dark">Thank You!</h2>
+            <p className="mt-2 text-sm text-gray-500">
+              Your generous donation has been successfully processed. A confirmation email will be sent shortly.
+            </p>
+            {amount && (
+              <div className="mt-4 rounded-xl bg-green-50 p-4">
+                <span className="block text-[10px] font-bold uppercase tracking-widest text-green-700">Amount Donated</span>
+                <span className="mt-1 block font-mono text-xl font-bold text-green-700">₦{amount.toLocaleString()}</span>
               </div>
-            </Card>
-          </div>
-        </FadeIn>
-      </main>
+            )}
+          </>
+        )}
+
+        {status === "failed" && (
+          <>
+            <div className="mb-4 text-4xl text-brand-accent">✕</div>
+            <h2 className="text-2xl font-semibold text-brand-dark">Payment Failed</h2>
+            <p className="mt-2 text-sm text-gray-500">
+              We couldn&apos;t verify your payment. Please try again or contact support.
+            </p>
+          </>
+        )}
+
+        <div className="mt-6 flex justify-center gap-3">
+          <a href="/donate" className="rounded-full bg-brand-primary px-6 py-3 text-sm font-semibold text-white">
+            {status === "success" ? "Donate Again" : "Try Again"}
+          </a>
+          <a href="/" className="rounded-full border border-gray-200 bg-white px-6 py-3 text-sm font-semibold text-gray-500">
+            Back to Home
+          </a>
+        </div>
+      </div>
+    </main>
   );
 }
 
 export default function WebsiteDonateCallbackPage() {
   return (
-    <Suspense fallback={<div style={{ textAlign: "center", padding: "4rem", color: "#999" }}>Loading...</div>}>
+    <Suspense fallback={<div className="py-32 text-center text-gray-400">Loading...</div>}>
       <CallbackContent />
     </Suspense>
   );

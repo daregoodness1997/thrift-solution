@@ -118,58 +118,59 @@ export default function LoansPage() {
   };
 
   return (
-    <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
+    <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
       <PageHeader badgeLabel="Financial" heading="Low Interest" accentText="Loans" description="Access community-funded loans at just 5% annual interest rate."
         right={<Button variant="primary" size="sm" onClick={() => setShowForm(!showForm)} disabled={!!activeLoan}>{showForm ? "Cancel" : "+ Request Loan"}</Button>} />
 
-      <StaggerChildren staggerDelay={100} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.5rem", marginBottom: "2rem" }}>
+      <StaggerChildren staggerDelay={100} className="mb-8 grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-6">
         <StatCard label="Total Borrowed" value={formatNaira(loanStats.totalBorrowed)} change={`${loans.length} total loan${loans.length !== 1 ? "s" : ""}`} positive variant="default" />
         <StatCard label="Active Loan" value={activeLoan ? formatNaira(activeLoan.amount) : "None"} change={activeLoan ? activeLoan.status : "No active loan"} positive variant="warm" />
         <StatCard label="Completed" value={String(loanStats.completedCount)} change={loanStats.completedCount > 0 ? "Successfully repaid" : "No completed loans yet"} positive variant="default" />
       </StaggerChildren>
 
-      <FadeInUp delay={200} style={{ marginBottom: "2rem" }}>
+      <FadeInUp delay={200} className="mb-8">
         <LoanCalculator onRequestLoan={handleRequestFromCalculator} disabled={!!activeLoan} />
       </FadeInUp>
 
       {showForm && (
         <FadeInUp>
-          <Card padding="2rem" style={{ marginBottom: "1.5rem", maxWidth: "700px" }}>
+          <Card padding="2rem" className="mb-6 max-w-[700px]">
             <ColorfulBadge label="Loan Request" color={cfg.colors.primary} />
-            <h2 style={{ fontSize: "1.125rem", fontWeight: 500, color: "#1A1A1A", marginTop: "0.5rem", marginBottom: "1.25rem" }}>Request a Loan</h2>
+            <h2 className="mt-2 mb-5 font-display text-lg font-medium tracking-tight text-brand-dark">Request a Loan</h2>
 
             <form onSubmit={handleApply}>
-              <div style={{ marginBottom: "1rem" }}>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.375rem" }}>Loan Amount</label>
-                <div style={{ position: "relative" }}>
-                  <span style={{ position: "absolute", left: "0.75rem", top: "50%", transform: "translateY(-50%)", fontSize: "13px", color: "#999", fontFamily: "'JetBrains Mono', monospace" }}>&#8358;</span>
-                  <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" step="100" min="100" style={{ width: "100%", padding: "0.625rem 0.75rem 0.625rem 2rem", borderRadius: "0.75rem", border: "1px solid #EAEAEA", fontSize: "13px", outline: "none", boxSizing: "border-box", fontFamily: "'JetBrains Mono', monospace" }} />
+              <div className="mb-4">
+                <label className="mb-1.5 block text-xs font-semibold text-brand-dark">Loan Amount</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 font-mono text-[13px] text-gray-400">&#8358;</span>
+                  <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" step="100" min="100" className="box-border w-full rounded-xl border border-gray-200 py-2.5 pl-8 pr-3 font-mono text-[13px] outline-none" />
                 </div>
               </div>
 
-              <div style={{ marginBottom: "1rem" }}>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.375rem" }}>Repayment Term</label>
-                <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginBottom: "0.5rem" }}>
+              <div className="mb-4">
+                <label className="mb-1.5 block text-xs font-semibold text-brand-dark">Repayment Term</label>
+                <div className="mb-2 flex flex-wrap gap-2">
                   {TERM_PRESETS.map((t) => (
                     <button key={t} type="button" onClick={() => setTermMonths(String(t))}
-                      style={{ padding: "0.5rem 1rem", borderRadius: "9999px", fontSize: "12px", fontWeight: 600, border: "1px solid", cursor: "pointer", transition: "all 0.2s", backgroundColor: termMonths === String(t) ? cfg.colors.primary : "#ffffff", color: termMonths === String(t) ? "#ffffff" : "#717171", borderColor: termMonths === String(t) ? cfg.colors.primary : "#EAEAEA" }}>
+                      className="cursor-pointer rounded-full border px-4 py-2 text-xs font-semibold transition-all"
+                      style={{ backgroundColor: termMonths === String(t) ? cfg.colors.primary : "#ffffff", color: termMonths === String(t) ? "#ffffff" : "#717171", borderColor: termMonths === String(t) ? cfg.colors.primary : "#EAEAEA" }}>
                       {formatTerm(t)}
                     </button>
                   ))}
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <input type="number" value={termMonths} onChange={(e) => setTermMonths(e.target.value)} min="1" max="60" style={{ width: "80px", padding: "0.5rem 0.75rem", borderRadius: "0.75rem", border: "1px solid #EAEAEA", fontSize: "13px", outline: "none", boxSizing: "border-box", textAlign: "center" }} />
-                  <span style={{ fontSize: "12px", color: "#999" }}>months</span>
+                <div className="flex items-center gap-2">
+                  <input type="number" value={termMonths} onChange={(e) => setTermMonths(e.target.value)} min="1" max="60" className="box-border w-20 rounded-xl border border-gray-200 px-3 py-2 text-center text-[13px] outline-none" />
+                  <span className="text-xs text-gray-400">months</span>
                 </div>
               </div>
 
-              <div style={{ marginBottom: "1rem" }}>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.375rem" }}>Purpose (optional)</label>
-                <textarea value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder="e.g. Business expansion, Education, Medical" rows={3} style={{ width: "100%", padding: "0.625rem 0.75rem", borderRadius: "0.75rem", border: "1px solid #EAEAEA", fontSize: "13px", outline: "none", boxSizing: "border-box", resize: "vertical", fontFamily: "inherit" }} />
+              <div className="mb-4">
+                <label className="mb-1.5 block text-xs font-semibold text-brand-dark">Purpose (optional)</label>
+                <textarea value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder="e.g. Business expansion, Education, Medical" rows={3} className="box-border w-full resize-y rounded-xl border border-gray-200 px-3 py-2.5 text-[13px] outline-none" />
               </div>
 
-              {error && <div style={{ fontSize: "12px", color: "#DC2626", marginBottom: "0.75rem" }}>{error}</div>}
-              {success && <div style={{ fontSize: "12px", color: "#059669", marginBottom: "0.75rem" }}>Loan request submitted!</div>}
+              {error && <div className="mb-3 text-xs text-red-600">{error}</div>}
+              {success && <div className="mb-3 text-xs text-emerald-600">Loan request submitted!</div>}
               <Button type="submit" variant="primary" size="md" disabled={submitting || !!activeLoan}>{submitting ? "Submitting..." : "Request Loan"}</Button>
             </form>
           </Card>
@@ -177,14 +178,14 @@ export default function LoansPage() {
       )}
 
       {loading ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1.5rem" }}>{Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)}</div>
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-6">{Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)}</div>
       ) : total === 0 ? (
         <FadeInUp delay={400}>
           <Card padding="3rem">
-            <div style={{ textAlign: "center" }}>
-              <div style={{ width: "48px", height: "48px", borderRadius: "50%", backgroundColor: "#F0F0F0", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", fontSize: "20px" }}>&#8358;</div>
-              <h3 style={{ fontSize: "1rem", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.5rem" }}>No loans yet</h3>
-              <p style={{ fontSize: "13px", color: "#717171", marginBottom: "1rem" }}>Access low-interest loans funded by the community.</p>
+            <div className="text-center">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-xl">&#8358;</div>
+              <h3 className="mb-2 font-display text-base font-semibold tracking-tight text-brand-dark">No loans yet</h3>
+              <p className="mb-4 text-[13px] text-gray-500">Access low-interest loans funded by the community.</p>
               <Button variant="primary" size="sm" onClick={() => setShowForm(true)}>Request Your First Loan</Button>
             </div>
           </Card>
@@ -193,44 +194,44 @@ export default function LoansPage() {
         <FadeInUp delay={400}>
           <Card padding="1.5rem">
             <ColorfulBadge label="Loan History" color={cfg.colors.primary} />
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "0.5rem", marginBottom: "1rem", flexWrap: "wrap", gap: "0.5rem" }}>
-              <h2 style={{ fontSize: "1.125rem", fontWeight: 500, color: "#1A1A1A" }}>Your Loans ({total})</h2>
-              <div style={{ display: "flex", gap: "0.25rem", backgroundColor: "#F5F7F5", borderRadius: "0.5rem", padding: "0.2rem" }}>
+            <div className="mt-2 mb-4 flex flex-wrap items-center justify-between gap-2">
+              <h2 className="font-display text-lg font-medium tracking-tight text-brand-dark">Your Loans ({total})</h2>
+              <div className="flex gap-1 rounded-lg bg-[#F5F7F5] p-[0.2rem]">
                 {(["all", "pending", "approved", "disbursed", "completed", "rejected"] as const).map((f) => (
                   <button key={f} onClick={() => setStatusFilter(f)}
-                    style={{ padding: "0.375rem 0.75rem", borderRadius: "0.375rem", fontSize: "11px", fontWeight: 600, border: "none", cursor: "pointer", transition: "all 0.2s ease", textTransform: "capitalize",
-                      backgroundColor: statusFilter === f ? "#ffffff" : "transparent", color: statusFilter === f ? cfg.colors.primary : "#717171",
+                    className="cursor-pointer rounded-md border-none px-3 py-1.5 text-[11px] font-semibold capitalize transition-all"
+                    style={{ backgroundColor: statusFilter === f ? "#ffffff" : "transparent", color: statusFilter === f ? cfg.colors.primary : "#717171",
                       boxShadow: statusFilter === f ? "0 1px 3px rgba(0,0,0,0.08)" : "none" }}>
                     {f}
                   </button>
                 ))}
               </div>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+            <div className="flex flex-col gap-3">
               {filteredLoans.map((loan) => (
-                <div key={loan.id} style={{ padding: "1rem", borderRadius: "0.75rem", border: "1px solid #F0F0F0", backgroundColor: expandedLoan === loan.id ? "#FAF9F5" : "#ffffff", transition: "all 0.2s" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", flexWrap: "wrap", gap: "0.75rem" }} onClick={() => setExpandedLoan(expandedLoan === loan.id ? null : loan.id)}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                      <div style={{ width: "40px", height: "40px", borderRadius: "0.75rem", backgroundColor: "#F0F0F0", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", fontWeight: 700, color: cfg.colors.primary }}>{formatNaira(loan.amount).split(" ")[0]}</div>
+                <div key={loan.id} className="rounded-xl border border-gray-100 p-4 transition-all" style={{ backgroundColor: expandedLoan === loan.id ? "#FAF9F5" : "#ffffff" }}>
+                  <div className="flex cursor-pointer flex-wrap items-center justify-between gap-3" onClick={() => setExpandedLoan(expandedLoan === loan.id ? null : loan.id)}>
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100 font-mono text-[11px] font-bold" style={{ color: cfg.colors.primary }}>{formatNaira(loan.amount).split(" ")[0]}</div>
                       <div>
-                        <span style={{ fontSize: "14px", fontWeight: 600, fontFamily: "'JetBrains Mono', monospace", color: "#2D2D2D", display: "block" }}>{formatNaira(loan.amount)}</span>
-                        <span style={{ fontSize: "11px", color: "#999" }}>{formatTerm(loan.termMonths)} &middot; 5% APR &middot; {new Date(loan.createdAt).toLocaleDateString("en-US", { month: "short", year: "numeric" })}</span>
+                        <span className="block font-mono text-sm font-semibold text-brand-dark">{formatNaira(loan.amount)}</span>
+                        <span className="text-[11px] text-gray-400">{formatTerm(loan.termMonths)} &middot; 5% APR &middot; {new Date(loan.createdAt).toLocaleDateString("en-US", { month: "short", year: "numeric" })}</span>
                       </div>
                     </div>
-                    <span style={{ fontSize: "9px", fontWeight: 700, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace", color: STATUS_COLORS[loan.status], backgroundColor: `${STATUS_COLORS[loan.status]}12`, padding: "0.125rem 0.5rem", borderRadius: "0.375rem" }}>{loan.status}</span>
+                    <span className="rounded-md px-2 py-0.5 font-mono text-[9px] font-bold uppercase" style={{ color: STATUS_COLORS[loan.status], backgroundColor: `${STATUS_COLORS[loan.status]}12` }}>{loan.status}</span>
                   </div>
 
                   {expandedLoan === loan.id && (
-                    <div style={{ marginTop: "1rem", paddingTop: "1rem", borderTop: "1px solid #F0F0F0" }}>
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: "1rem", fontSize: "12px" }}>
-                        <div><span style={{ color: "#999", display: "block", marginBottom: "0.25rem" }}>Monthly Payment</span><span style={{ fontWeight: 600, fontFamily: "'JetBrains Mono', monospace", color: cfg.colors.primary }}>{formatNaira(loan.monthlyPayment)}</span></div>
-                        <div><span style={{ color: "#999", display: "block", marginBottom: "0.25rem" }}>Total Repayment</span><span style={{ fontWeight: 600, fontFamily: "'JetBrains Mono', monospace", color: "#2D2D2D" }}>{formatNaira(loan.totalRepayment)}</span></div>
-                        <div><span style={{ color: "#999", display: "block", marginBottom: "0.25rem" }}>Interest Rate</span><span style={{ fontWeight: 600, color: "#2D2D2D" }}>5% APR</span></div>
-                        <div><span style={{ color: "#999", display: "block", marginBottom: "0.25rem" }}>Purpose</span><span style={{ fontWeight: 500, color: "#2D2D2D" }}>{loan.purpose || "Not specified"}</span></div>
+                    <div className="mt-4 border-t border-gray-100 pt-4">
+                      <div className="grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-4 text-xs">
+                        <div><span className="mb-1 block text-gray-400">Monthly Payment</span><span className="font-mono font-semibold" style={{ color: cfg.colors.primary }}>{formatNaira(loan.monthlyPayment)}</span></div>
+                        <div><span className="mb-1 block text-gray-400">Total Repayment</span><span className="font-mono font-semibold text-brand-dark">{formatNaira(loan.totalRepayment)}</span></div>
+                        <div><span className="mb-1 block text-gray-400">Interest Rate</span><span className="font-semibold text-brand-dark">5% APR</span></div>
+                        <div><span className="mb-1 block text-gray-400">Purpose</span><span className="font-medium text-brand-dark">{loan.purpose || "Not specified"}</span></div>
                       </div>
-                      {loan.approvedAt && <p style={{ fontSize: "11px", color: "#059669", marginTop: "0.75rem" }}>Approved on {new Date(loan.approvedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</p>}
-                      {loan.disbursedAt && <p style={{ fontSize: "11px", color: "#2563EB", marginTop: "0.25rem" }}>Disbursed on {new Date(loan.disbursedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</p>}
-                      {loan.completedAt && <p style={{ fontSize: "11px", color: "#059669", marginTop: "0.25rem" }}>Completed on {new Date(loan.completedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</p>}
+                      {loan.approvedAt && <p className="mt-3 text-[11px] text-emerald-600">Approved on {new Date(loan.approvedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</p>}
+                      {loan.disbursedAt && <p className="mt-1 text-[11px] text-blue-600">Disbursed on {new Date(loan.disbursedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</p>}
+                      {loan.completedAt && <p className="mt-1 text-[11px] text-emerald-600">Completed on {new Date(loan.completedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</p>}
                     </div>
                   )}
                 </div>

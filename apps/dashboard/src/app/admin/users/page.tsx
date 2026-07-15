@@ -124,12 +124,12 @@ export default function AdminUsersPage() {
   if (!isAdmin) return null;
 
   return (
-    <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
+    <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
       <PageHeader badgeLabel="Admin" heading="User" accentText="Management" description="Search, edit roles, and manage member accounts." />
 
       {message && (
         <FadeIn>
-          <div style={{ padding: "0.75rem 1rem", borderRadius: "0.75rem", marginBottom: "1.5rem", fontSize: "13px", fontWeight: 500, backgroundColor: message.type === "success" ? "#ECFDF5" : "#FEF2F2", color: message.type === "success" ? "#059669" : "#DC2626", border: `1px solid ${message.type === "success" ? "#A7F3D0" : "#FECACA"}` }}>
+          <div className={`mb-6 rounded-xl border px-4 py-3 text-[13px] font-medium ${message.type === "success" ? "bg-emerald-50 text-emerald-600 border-emerald-200" : "bg-red-50 text-red-600 border-red-200"}`}>
             {message.text}
           </div>
         </FadeIn>
@@ -137,20 +137,19 @@ export default function AdminUsersPage() {
 
       <FadeInUp delay={200}>
         <Card padding="1.5rem">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", flexWrap: "wrap", gap: "0.75rem" }}>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <input
               type="text"
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
               placeholder="Search name, email, account no."
-              style={{ padding: "0.5rem 0.75rem", borderRadius: "0.5rem", border: "1px solid #E5E7EB", fontSize: "13px", outline: "none", minWidth: "260px" }}
+              className="min-w-[260px] rounded-lg border border-gray-200 px-3 py-2 text-[13px] outline-none"
             />
-            <div style={{ display: "flex", gap: "0.25rem", backgroundColor: "#F5F7F5", borderRadius: "0.5rem", padding: "0.25rem" }}>
+            <div className="flex gap-1 rounded-lg bg-gray-100 p-1">
               {(["active", "suspended"] as const).map((f) => (
                 <button key={f} onClick={() => { setStatusFilter(f); setPage(1); }}
-                  style={{ padding: "0.375rem 0.75rem", borderRadius: "0.375rem", fontSize: "11px", fontWeight: 600, border: "none", cursor: "pointer", textTransform: "capitalize",
-                    backgroundColor: statusFilter === f ? "#ffffff" : "transparent", color: statusFilter === f ? config.colors.primary : "#717171",
-                    boxShadow: statusFilter === f ? "0 1px 3px rgba(0,0,0,0.08)" : "none" }}>
+                  className="cursor-pointer rounded-md px-3 py-1.5 text-[11px] font-semibold capitalize"
+                  style={{ backgroundColor: statusFilter === f ? "#ffffff" : "transparent", color: statusFilter === f ? config.colors.primary : "#717171", boxShadow: statusFilter === f ? "0 1px 3px rgba(0,0,0,0.08)" : "none" }}>
                   {f}
                 </button>
               ))}
@@ -158,43 +157,43 @@ export default function AdminUsersPage() {
           </div>
 
           {loading ? (
-            <div style={{ textAlign: "center", padding: "3rem", color: "#999", fontSize: "13px" }}>Loading users...</div>
+            <div className="p-12 text-center text-[13px] text-gray-500">Loading users...</div>
           ) : users.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "2rem", color: "#999", fontSize: "13px" }}>No users found.</div>
+            <div className="p-8 text-center text-[13px] text-gray-500">No users found.</div>
           ) : (
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", fontSize: "12px", borderCollapse: "collapse", minWidth: "760px" }}>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-[12px] min-w-[760px]">
                 <thead>
-                  <tr style={{ borderBottom: "1px solid #F0F0F0", color: "#999", textTransform: "uppercase", letterSpacing: "0.1em", fontSize: "9px", fontFamily: "'JetBrains Mono', monospace" }}>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>User</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Account</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Role</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Tier</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "right", fontWeight: 600 }}>Actions</th>
+                  <tr className="border-b border-gray-100 font-mono text-[9px] uppercase tracking-[0.1em] text-gray-500">
+                    <th className="pb-3 text-left font-semibold">User</th>
+                    <th className="pb-3 text-left font-semibold">Account</th>
+                    <th className="pb-3 text-left font-semibold">Role</th>
+                    <th className="pb-3 text-left font-semibold">Tier</th>
+                    <th className="pb-3 text-right font-semibold">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {users.map((u) => (
-                    <tr key={u.id} style={{ borderBottom: "1px solid #F5F5F5" }}
-                      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#F9FAFB"; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}>
-                      <td style={{ padding: "0.75rem 0" }}>
-                        <span style={{ fontWeight: 600, color: "#2D2D2D", display: "block" }}>{u.name}</span>
-                        <span style={{ fontSize: "11px", color: "#999" }}>{u.email}</span>
+                    <tr key={u.id} className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="py-3">
+                        <span className="block font-semibold text-brand-dark">{u.name}</span>
+                        <span className="text-[11px] text-gray-500">{u.email}</span>
                       </td>
-                      <td style={{ padding: "0.75rem 0", fontFamily: "'JetBrains Mono', monospace", color: "#717171" }}>{u.accountNumber}</td>
-                      <td style={{ padding: "0.75rem 0" }}>
-                        <span style={{ fontSize: "9px", fontWeight: 700, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace", padding: "0.125rem 0.5rem", borderRadius: "0.375rem", backgroundColor: `${config.colors.primary}12`, color: config.colors.primary }}>{u.role}</span>
+                      <td className="py-3 font-mono text-gray-500">{u.accountNumber}</td>
+                      <td className="py-3">
+                        <span className="rounded-md px-2 py-0.5 font-mono text-[9px] font-bold uppercase" style={{ backgroundColor: `${config.colors.primary}12`, color: config.colors.primary }}>{u.role}</span>
                       </td>
-                      <td style={{ padding: "0.75rem 0", textTransform: "capitalize", color: "#717171" }}>{u.accountTier}</td>
-                      <td style={{ padding: "0.75rem 0", textAlign: "right" }}>
-                        <div style={{ display: "flex", gap: "0.375rem", justifyContent: "flex-end" }}>
+                      <td className="py-3 capitalize text-gray-500">{u.accountTier}</td>
+                      <td className="py-3 text-right">
+                        <div className="flex justify-end gap-1.5">
                           <button onClick={() => openEdit(u)}
-                            style={{ padding: "0.25rem 0.5rem", borderRadius: "0.375rem", fontSize: "10px", fontWeight: 600, border: `1px solid ${config.colors.primary}30`, backgroundColor: `${config.colors.primary}08`, color: config.colors.primary, cursor: "pointer" }}>
+                            className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold"
+                            style={{ border: `1px solid ${config.colors.primary}30`, backgroundColor: `${config.colors.primary}08`, color: config.colors.primary }}>
                             Edit
                           </button>
                           <button onClick={() => handleToggleSuspend(u)} disabled={busyId === u.id}
-                            style={{ padding: "0.25rem 0.5rem", borderRadius: "0.375rem", fontSize: "10px", fontWeight: 600, border: `1px solid ${u.deletedAt ? "#A7F3D0" : "#FECACA"}`, backgroundColor: u.deletedAt ? "#ECFDF5" : "#FEF2F2", color: u.deletedAt ? "#059669" : "#DC2626", cursor: "pointer", opacity: busyId === u.id ? 0.5 : 1 }}>
+                            className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold"
+                            style={{ border: `1px solid ${u.deletedAt ? "#A7F3D0" : "#FECACA"}`, backgroundColor: u.deletedAt ? "#ECFDF5" : "#FEF2F2", color: u.deletedAt ? "#059669" : "#DC2626", opacity: busyId === u.id ? 0.5 : 1 }}>
                             {busyId === u.id ? "..." : u.deletedAt ? "Reactivate" : "Suspend"}
                           </button>
                         </div>
@@ -210,35 +209,36 @@ export default function AdminUsersPage() {
       </FadeInUp>
 
       {editing && (
-        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem" }} onClick={() => setEditing(null)}>
-          <div style={{ backgroundColor: "#fff", borderRadius: "1rem", padding: "2rem", maxWidth: "440px", width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }} onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 p-4" onClick={() => setEditing(null)}>
+          <div className="w-full max-w-[440px] rounded-2xl bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.15)]" onClick={(e) => e.stopPropagation()}>
             <ColorfulBadge label="Edit User" color={config.colors.primary} />
-            <h3 style={{ fontSize: "16px", fontWeight: 600, color: "#1A1A1A", margin: "0.75rem 0 0.25rem" }}>{editing.email}</h3>
-            <p style={{ fontSize: "12px", color: "#717171", marginBottom: "1.5rem" }}>{editing.accountNumber}</p>
+            <h3 className="mb-1 mt-3 text-base font-semibold text-brand-dark">{editing.email}</h3>
+            <p className="mb-6 text-[12px] text-gray-500">{editing.accountNumber}</p>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            <div className="flex flex-col gap-4">
               <div>
-                <label style={labelStyle}>Name</label>
-                <input type="text" value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} style={inputStyle} />
+                <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Name</label>
+                <input type="text" value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} className={inputClass} />
               </div>
               <div>
-                <label style={labelStyle}>Role</label>
-                <select value={form.role} onChange={(e) => setForm((p) => ({ ...p, role: e.target.value }))} style={inputStyle}>
+                <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Role</label>
+                <select value={form.role} onChange={(e) => setForm((p) => ({ ...p, role: e.target.value }))} className={inputClass}>
                   {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
                 </select>
               </div>
               <div>
-                <label style={labelStyle}>Account Tier</label>
-                <select value={form.accountTier} onChange={(e) => setForm((p) => ({ ...p, accountTier: e.target.value }))} style={inputStyle}>
+                <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Account Tier</label>
+                <select value={form.accountTier} onChange={(e) => setForm((p) => ({ ...p, accountTier: e.target.value }))} className={inputClass}>
                   {TIERS.map((t) => <option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
             </div>
 
-            <div style={{ display: "flex", gap: "0.75rem", marginTop: "1.5rem" }}>
+            <div className="mt-6 flex gap-3">
               <Button variant="secondary" size="sm" onClick={() => setEditing(null)}>Cancel</Button>
               <button onClick={handleSave} disabled={saving}
-                style={{ flex: 1, padding: "0.625rem", borderRadius: "0.5rem", border: "none", backgroundColor: config.colors.primary, color: "#fff", fontSize: "13px", fontWeight: 600, cursor: "pointer", opacity: saving ? 0.5 : 1 }}>
+                className="flex-1 cursor-pointer rounded-lg px-2.5 py-2.5 text-[13px] font-semibold text-white"
+                style={{ backgroundColor: config.colors.primary, opacity: saving ? 0.5 : 1 }}>
                 {saving ? "Saving..." : "Save Changes"}
               </button>
             </div>
@@ -249,5 +249,4 @@ export default function AdminUsersPage() {
   );
 }
 
-const labelStyle: React.CSSProperties = { fontSize: "11px", fontWeight: 600, color: "#2D2D2D", display: "block", marginBottom: "0.375rem" };
-const inputStyle: React.CSSProperties = { width: "100%", padding: "0.5rem 0.75rem", borderRadius: "0.5rem", border: "1px solid #E5E7EB", fontSize: "13px", outline: "none", boxSizing: "border-box", backgroundColor: "#fff" };
+const inputClass = "w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-[13px] outline-none";

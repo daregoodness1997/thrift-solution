@@ -186,18 +186,18 @@ export default function AccountDetailPage() {
 
   if (loading) {
     return (
-      <div style={{ maxWidth: "1024px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
-        <div style={{ display: "grid", gap: "1.5rem" }}>{Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)}</div>
+      <div className="mx-auto max-w-[1024px] p-[clamp(1rem,3vw,2rem)]">
+        <div className="grid gap-6">{Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)}</div>
       </div>
     );
   }
 
   if (!account) {
     return (
-      <div style={{ maxWidth: "1024px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
+      <div className="mx-auto max-w-[1024px] p-[clamp(1rem,3vw,2rem)]">
         <Card padding="3rem">
-          <div style={{ textAlign: "center" }}>
-            <h3 style={{ fontSize: "1rem", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.5rem" }}>Account not found</h3>
+          <div className="text-center">
+            <h3 className="mb-2 text-[1rem] font-semibold text-brand-dark">Account not found</h3>
             <Button variant="primary" size="sm" onClick={() => router.push("/my-circles")}>Back to My Circles</Button>
           </div>
         </Card>
@@ -217,32 +217,11 @@ export default function AccountDetailPage() {
   }));
 
   return (
-    <div
-      style={{
-        maxWidth: "1024px",
-        margin: "0 auto",
-        padding: "clamp(1rem, 3vw, 2rem)",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "0.75rem",
-          marginBottom: "1.5rem",
-        }}
-      >
+    <div className="mx-auto max-w-[1024px] p-[clamp(1rem,3vw,2rem)]">
+      <div className="mb-6 flex items-center gap-3">
         <button
           onClick={() => router.push("/my-circles")}
-          style={{
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            padding: "0.25rem",
-            display: "flex",
-            alignItems: "center",
-            color: "#999",
-          }}
+          className="flex items-center border-0 bg-none p-1 cursor-pointer text-gray-400"
         >
           <svg
             width="20"
@@ -268,12 +247,8 @@ export default function AccountDetailPage() {
 
       {message && (
         <div
+          className="mb-6 rounded-xl px-4 py-3 text-[13px] font-medium"
           style={{
-            padding: "0.75rem 1rem",
-            borderRadius: "0.75rem",
-            marginBottom: "1.5rem",
-            fontSize: "13px",
-            fontWeight: 500,
             backgroundColor: message.type === "success" ? "#ECFDF5" : "#FEF2F2",
             color: message.type === "success" ? "#059669" : "#DC2626",
             border: `1px solid ${message.type === "success" ? "#A7F3D0" : "#FECACA"}`,
@@ -284,255 +259,123 @@ export default function AccountDetailPage() {
       )}
 
       <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-          gap: "1.5rem",
-          marginBottom: "2rem",
-        }}
+        className="mb-8 grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-6"
       >
         <Card padding="1.25rem">
           <span
-            style={{
-              fontSize: "11px",
-              color: "#999",
-              display: "block",
-              marginBottom: "0.25rem",
-            }}
+            className="mb-1 block text-[11px] text-gray-400"
           >
             Principal
           </span>
           <span
-            style={{
-              fontSize: "1.25rem",
-              fontWeight: 700,
-              fontFamily: "'JetBrains Mono', monospace",
-              color: cfg.colors.primary,
-            }}
+            className="font-mono text-[1.25rem] font-bold"
+            style={{ color: cfg.colors.primary }}
           >
             {formatNaira(account.principalAmount)}
           </span>
         </Card>
         <Card padding="1.25rem">
           <span
-            style={{
-              fontSize: "11px",
-              color: "#999",
-              display: "block",
-              marginBottom: "0.25rem",
-            }}
+            className="mb-1 block text-[11px] text-gray-400"
           >
             Interest Earned
           </span>
           <span
-            style={{
-              fontSize: "1.25rem",
-              fontWeight: 700,
-              fontFamily: "'JetBrains Mono', monospace",
-              color: "#10B981",
-            }}
+            className="font-mono text-[1.25rem] font-bold text-emerald-500"
           >
             {formatNaira(account.interestEarned)}
           </span>
         </Card>
         <Card padding="1.25rem">
           <span
-            style={{
-              fontSize: "11px",
-              color: "#999",
-              display: "block",
-              marginBottom: "0.25rem",
-            }}
+            className="mb-1 block text-[11px] text-gray-400"
           >
             Maturity Value
           </span>
           <span
-            style={{
-              fontSize: "1.25rem",
-              fontWeight: 700,
-              fontFamily: "'JetBrains Mono', monospace",
-              color: "#2D2D2D",
-            }}
+            className="font-mono text-[1.25rem] font-bold text-brand-dark"
           >
             {formatNaira(account.principalAmount + account.interestEarned)}
           </span>
         </Card>
         <Card padding="1.25rem">
           <span
-            style={{
-              fontSize: "11px",
-              color: "#999",
-              display: "block",
-              marginBottom: "0.25rem",
-            }}
+            className="mb-1 block text-[11px] text-gray-400"
           >
             Interest Rate
           </span>
           <span
-            style={{
-              fontSize: "1.25rem",
-              fontWeight: 700,
-              fontFamily: "'JetBrains Mono', monospace",
-              color: "#F59E0B",
-            }}
+            className="font-mono text-[1.25rem] font-bold text-amber-500"
           >
             {account.circle.interestRateAnnual}% p.a.
           </span>
         </Card>
       </div>
 
-      <Card padding="1.5rem" style={{ marginBottom: "2rem" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "1rem",
-            flexWrap: "wrap",
-            gap: "0.75rem",
-          }}
-        >
+      <Card padding="1.5rem" className="mb-8">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <div>
             <span
-              style={{
-                fontSize: "10px",
-                fontWeight: 700,
-                textTransform: "uppercase",
-                color: statusStyle.color,
-                backgroundColor: statusStyle.bg,
-                padding: "0.25rem 0.75rem",
-                borderRadius: "9999px",
-                fontFamily: "'JetBrains Mono', monospace",
-              }}
+              className="rounded-full px-3 py-1 text-[10px] font-bold uppercase font-mono"
+              style={{ color: statusStyle.color, backgroundColor: statusStyle.bg }}
             >
               {account.status.replace("_", " ")}
             </span>
             <h2
-              style={{
-                fontSize: "1rem",
-                fontWeight: 600,
-                color: "#2D2D2D",
-                marginTop: "0.5rem",
-              }}
+              className="mt-2 text-[1rem] font-semibold text-brand-dark"
             >
               {account.circle.name}
             </h2>
-            <span style={{ fontSize: "12px", color: "#999" }}>
+            <span className="text-[12px] text-gray-400">
               {formatNaira(account.circle.amount)} &middot;{" "}
               {formatDuration(account.circle.durationMonths)}
             </span>
           </div>
-          <div style={{ textAlign: "right", fontSize: "12px", color: "#666" }}>
-            <div style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+          <div className="text-right text-[12px] text-[#666]">
+            <div className="font-mono">
               Started {formatDate(account.startDate)}
             </div>
-            <div style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+            <div className="font-mono">
               Matures {formatDate(account.maturityDate)} ({days}d left)
             </div>
           </div>
         </div>
 
-        <div style={{ marginBottom: "1.5rem" }}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              fontSize: "10px",
-              color: "#999",
-              marginBottom: "0.375rem",
-            }}
-          >
+        <div className="mb-6">
+          <div className="mb-1.5 flex justify-between text-[10px] text-gray-400">
             <span>Maturity Progress</span>
             <span>{progress}%</span>
           </div>
-          <div
-            style={{
-              height: "6px",
-              borderRadius: "3px",
-              backgroundColor: "#F0F0F0",
-              overflow: "hidden",
-            }}
-          >
+          <div className="h-1.5 overflow-hidden rounded-[3px] bg-gray-100">
             <div
-              style={{
-                width: `${progress}%`,
-                height: "100%",
-                backgroundColor: cfg.colors.primary,
-                transition: "width 0.5s ease",
-                borderRadius: "3px",
-              }}
+              className="h-full rounded-[3px]"
+              style={{ width: `${progress}%`, backgroundColor: cfg.colors.primary, transition: "width 0.5s ease" }}
             />
           </div>
         </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-            gap: "1rem",
-            fontSize: "12px",
-            padding: "1rem",
-            backgroundColor: "#FAFAFA",
-            borderRadius: "0.75rem",
-          }}
-        >
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-4 rounded-xl bg-gray-50 p-4 text-[12px]">
           <div>
-            <span
-              style={{
-                color: "#999",
-                display: "block",
-                marginBottom: "0.25rem",
-              }}
-            >
+            <span className="mb-1 block text-gray-400">
               Deposit Amount
             </span>
-            <span
-              style={{
-                fontWeight: 600,
-                fontFamily: "'JetBrains Mono', monospace",
-                color: "#2D2D2D",
-              }}
-            >
+            <span className="font-mono font-semibold text-brand-dark">
               {formatNaira(account.circle.amount)}
             </span>
           </div>
           <div>
-            <span
-              style={{
-                color: "#999",
-                display: "block",
-                marginBottom: "0.25rem",
-              }}
-            >
+            <span className="mb-1 block text-gray-400">
               Total Withdrawn
             </span>
-            <span
-              style={{
-                fontWeight: 600,
-                fontFamily: "'JetBrains Mono', monospace",
-                color: account.totalWithdrawn > 0 ? "#DC2626" : "#2D2D2D",
-              }}
-            >
+            <span className="font-mono font-semibold" style={{ color: account.totalWithdrawn > 0 ? "#DC2626" : "#2D2D2D" }}>
               {formatNaira(account.totalWithdrawn)}
             </span>
           </div>
           <div>
-            <span
-              style={{
-                color: "#999",
-                display: "block",
-                marginBottom: "0.25rem",
-              }}
-            >
+            <span className="mb-1 block text-gray-400">
               Weekly Interest
             </span>
-            <span
-              style={{
-                fontWeight: 600,
-                fontFamily: "'JetBrains Mono', monospace",
-                color: "#10B981",
-              }}
-            >
+            <span className="font-mono font-semibold text-emerald-500">
               {formatNaira(
                 (account.principalAmount *
                   (account.circle.interestRateAnnual / 100)) /
@@ -542,30 +385,17 @@ export default function AccountDetailPage() {
           </div>
           {account.lastInterestCalculation && (
             <div>
-              <span
-                style={{
-                  color: "#999",
-                  display: "block",
-                  marginBottom: "0.25rem",
-                }}
-              >
+              <span className="mb-1 block text-gray-400">
                 Last Interest Calc
               </span>
-              <span style={{ fontWeight: 500, color: "#2D2D2D" }}>
+              <span className="font-medium text-brand-dark">
                 {formatDate(account.lastInterestCalculation)}
               </span>
             </div>
           )}
         </div>
 
-        <div
-          style={{
-            display: "flex",
-            gap: "0.5rem",
-            flexWrap: "wrap",
-            marginTop: "1.5rem",
-          }}
-        >
+        <div className="mt-6 flex flex-wrap gap-2">
           {account.status === "active" && (
             <>
               <Button
@@ -605,7 +435,7 @@ export default function AccountDetailPage() {
         </div>
       </Card>
 
-      <div style={{ display: "flex", gap: "0.375rem", marginBottom: "1rem" }}>
+      <div className="mb-4 flex gap-1.5">
         {(
           [
             ["breakdown", "Interest Breakdown"],
@@ -616,14 +446,8 @@ export default function AccountDetailPage() {
           <button
             key={key}
             onClick={() => setActiveTab(key)}
+            className="cursor-pointer rounded-full border-[1.5px] px-5 py-2 text-[12px] font-semibold transition-all duration-150"
             style={{
-              padding: "0.5rem 1.25rem",
-              borderRadius: "9999px",
-              fontSize: "12px",
-              fontWeight: 600,
-              border: "1.5px solid",
-              cursor: "pointer",
-              transition: "all 0.15s ease",
               backgroundColor:
                 activeTab === key ? cfg.colors.primary : "#ffffff",
               color: activeTab === key ? "#ffffff" : "#717171",
@@ -638,126 +462,45 @@ export default function AccountDetailPage() {
       {activeTab === "breakdown" && (
         <FadeInUp>
           <Card padding="1.5rem">
-            <h3
-              style={{
-                fontSize: "14px",
-                fontWeight: 600,
-                color: "#2D2D2D",
-                marginBottom: "1rem",
-              }}
-            >
+            <h3 className="mb-4 text-[14px] font-semibold text-brand-dark">
               Weekly Interest Breakdown
             </h3>
             {breakdown.length === 0 ? (
-              <div
-                style={{
-                  padding: "2rem",
-                  textAlign: "center",
-                  color: "#999",
-                  fontSize: "13px",
-                }}
-              >
+              <div className="p-8 text-center text-[13px] text-gray-400">
                 No breakdown available
               </div>
             ) : (
-              <div
-                style={{
-                  maxHeight: "480px",
-                  overflowY: "auto",
-                  borderRadius: "0.5rem",
-                  border: "1px solid #F0F0F0",
-                }}
-              >
-                <table
-                  style={{
-                    width: "100%",
-                    borderCollapse: "collapse",
-                    fontSize: "11px",
-                  }}
-                >
-                  <thead style={{ position: "sticky", top: 0, zIndex: 1 }}>
-                    <tr style={{ backgroundColor: "#FAFAFA" }}>
+              <div className="max-h-[480px] overflow-y-auto rounded-lg border border-gray-100">
+                <table className="w-full border-collapse text-[11px]">
+                  <thead className="sticky top-0 z-[1]">
+                    <tr className="bg-gray-50">
                       <th
-                        style={{
-                          padding: "0.625rem 0.75rem",
-                          textAlign: "center",
-                          fontWeight: 600,
-                          color: "#999",
-                          borderBottom: "1px solid #F0F0F0",
-                          fontSize: "9px",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.05em",
-                        }}
+                        className="px-3 py-2.5 text-center text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400"
                       >
                         Week
                       </th>
                       <th
-                        style={{
-                          padding: "0.625rem 0.75rem",
-                          textAlign: "left",
-                          fontWeight: 600,
-                          color: "#999",
-                          borderBottom: "1px solid #F0F0F0",
-                          fontSize: "9px",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.05em",
-                        }}
+                        className="px-3 py-2.5 text-left text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400"
                       >
                         Date
                       </th>
                       <th
-                        style={{
-                          padding: "0.625rem 0.75rem",
-                          textAlign: "right",
-                          fontWeight: 600,
-                          color: "#999",
-                          borderBottom: "1px solid #F0F0F0",
-                          fontSize: "9px",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.05em",
-                        }}
+                        className="px-3 py-2.5 text-right text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400"
                       >
                         Principal
                       </th>
                       <th
-                        style={{
-                          padding: "0.625rem 0.75rem",
-                          textAlign: "right",
-                          fontWeight: 600,
-                          color: "#999",
-                          borderBottom: "1px solid #F0F0F0",
-                          fontSize: "9px",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.05em",
-                        }}
+                        className="px-3 py-2.5 text-right text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400"
                       >
                         This Week
                       </th>
                       <th
-                        style={{
-                          padding: "0.625rem 0.75rem",
-                          textAlign: "right",
-                          fontWeight: 600,
-                          color: "#999",
-                          borderBottom: "1px solid #F0F0F0",
-                          fontSize: "9px",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.05em",
-                        }}
+                        className="px-3 py-2.5 text-right text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400"
                       >
                         Cumulative
                       </th>
                       <th
-                        style={{
-                          padding: "0.625rem 0.75rem",
-                          textAlign: "right",
-                          fontWeight: 600,
-                          color: "#999",
-                          borderBottom: "1px solid #F0F0F0",
-                          fontSize: "9px",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.05em",
-                        }}
+                        className="px-3 py-2.5 text-right text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400"
                       >
                         Total Value
                       </th>
@@ -771,75 +514,28 @@ export default function AccountDetailPage() {
                       return (
                         <tr
                           key={week.week}
-                          style={{
-                            backgroundColor: isCurrent
-                              ? "#ECFDF5"
-                              : idx % 2 === 0
-                                ? "#ffffff"
-                                : "#FAFAFA",
-                            opacity: isPast ? 1 : 0.6,
-                          }}
+                          className={isCurrent ? "bg-emerald-50" : idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                          style={{ opacity: isPast ? 1 : 0.6 }}
                         >
                           <td
-                            style={{
-                              padding: "0.5rem 0.75rem",
-                              textAlign: "center",
-                              fontFamily: "'JetBrains Mono', monospace",
-                              fontWeight: isCurrent ? 700 : 400,
-                              color: isCurrent ? cfg.colors.primary : "#666",
-                            }}
+                            className="px-3 py-2 text-center font-mono"
+                            style={{ fontWeight: isCurrent ? 700 : 400, color: isCurrent ? cfg.colors.primary : "#666" }}
                           >
                             #{week.week}
                           </td>
-                          <td
-                            style={{
-                              padding: "0.5rem 0.75rem",
-                              fontFamily: "'JetBrains Mono', monospace",
-                              color: "#666",
-                            }}
-                          >
+                          <td className="px-3 py-2 font-mono text-[#666]">
                             {formatDate(week.date)}
                           </td>
-                          <td
-                            style={{
-                              padding: "0.5rem 0.75rem",
-                              textAlign: "right",
-                              fontFamily: "'JetBrains Mono', monospace",
-                              color: "#666",
-                            }}
-                          >
+                          <td className="px-3 py-2 text-right font-mono text-[#666]">
                             {formatNaira(week.principal)}
                           </td>
-                          <td
-                            style={{
-                              padding: "0.5rem 0.75rem",
-                              textAlign: "right",
-                              fontFamily: "'JetBrains Mono', monospace",
-                              fontWeight: 500,
-                              color: "#10B981",
-                            }}
-                          >
+                          <td className="px-3 py-2 text-right font-mono font-medium text-emerald-500">
                             +{formatNaira(week.interestThisWeek)}
                           </td>
-                          <td
-                            style={{
-                              padding: "0.5rem 0.75rem",
-                              textAlign: "right",
-                              fontFamily: "'JetBrains Mono', monospace",
-                              color: "#2D2D2D",
-                            }}
-                          >
+                          <td className="px-3 py-2 text-right font-mono text-brand-dark">
                             {formatNaira(week.cumulativeInterest)}
                           </td>
-                          <td
-                            style={{
-                              padding: "0.5rem 0.75rem",
-                              textAlign: "right",
-                              fontFamily: "'JetBrains Mono', monospace",
-                              fontWeight: 600,
-                              color: cfg.colors.primary,
-                            }}
-                          >
+                          <td className="px-3 py-2 text-right font-mono font-semibold" style={{ color: cfg.colors.primary }}>
                             {formatNaira(week.totalValue)}
                           </td>
                         </tr>
@@ -849,16 +545,7 @@ export default function AccountDetailPage() {
                 </table>
               </div>
             )}
-            <div
-              style={{
-                marginTop: "1rem",
-                padding: "0.75rem 1rem",
-                backgroundColor: "#FFFBEB",
-                borderRadius: "0.5rem",
-                fontSize: "11px",
-                color: "#92400E",
-              }}
-            >
+            <div className="mt-4 rounded-lg bg-amber-50 p-3 text-[11px] text-[#92400E]">
               <strong>Note:</strong> Projected interest is calculated at{" "}
               <strong>{account.circle.interestRateAnnual}% p.a.</strong> simple
               interest on the principal of{" "}
@@ -873,117 +560,45 @@ export default function AccountDetailPage() {
       {activeTab === "logs" && (
         <FadeInUp>
           <Card padding="1.5rem">
-            <h3
-              style={{
-                fontSize: "14px",
-                fontWeight: 600,
-                color: "#2D2D2D",
-                marginBottom: "1rem",
-              }}
-            >
+            <h3 className="mb-4 text-[14px] font-semibold text-brand-dark">
               Interest Calculation History
             </h3>
             {account.interestLogs.length === 0 ? (
-              <div
-                style={{
-                  padding: "2rem",
-                  textAlign: "center",
-                  color: "#999",
-                  fontSize: "13px",
-                }}
-              >
+              <div className="p-8 text-center text-[13px] text-gray-400">
                 No interest calculations recorded yet
               </div>
             ) : (
-              <div
-                style={{
-                  maxHeight: "400px",
-                  overflowY: "auto",
-                  borderRadius: "0.5rem",
-                  border: "1px solid #F0F0F0",
-                }}
-              >
-                <table
-                  style={{
-                    width: "100%",
-                    borderCollapse: "collapse",
-                    fontSize: "11px",
-                  }}
-                >
-                  <thead style={{ position: "sticky", top: 0, zIndex: 1 }}>
-                    <tr style={{ backgroundColor: "#FAFAFA" }}>
-                      <th
-                        style={{
-                          padding: "0.625rem 0.75rem",
-                          textAlign: "left",
-                          fontWeight: 600,
-                          color: "#999",
-                          borderBottom: "1px solid #F0F0F0",
-                          fontSize: "9px",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.05em",
-                        }}
-                      >
-                        Date
-                      </th>
-                      <th
-                        style={{
-                          padding: "0.625rem 0.75rem",
-                          textAlign: "right",
-                          fontWeight: 600,
-                          color: "#999",
-                          borderBottom: "1px solid #F0F0F0",
-                          fontSize: "9px",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.05em",
-                        }}
-                      >
-                        Principal
-                      </th>
-                      <th
-                        style={{
-                          padding: "0.625rem 0.75rem",
-                          textAlign: "right",
-                          fontWeight: 600,
-                          color: "#999",
-                          borderBottom: "1px solid #F0F0F0",
-                          fontSize: "9px",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.05em",
-                        }}
-                      >
-                        Interest
-                      </th>
-                      <th
-                        style={{
-                          padding: "0.625rem 0.75rem",
-                          textAlign: "right",
-                          fontWeight: 600,
-                          color: "#999",
-                          borderBottom: "1px solid #F0F0F0",
-                          fontSize: "9px",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.05em",
-                        }}
-                      >
-                        Rate
-                      </th>
-                      <th
-                        style={{
-                          padding: "0.625rem 0.75rem",
-                          textAlign: "right",
-                          fontWeight: 600,
-                          color: "#999",
-                          borderBottom: "1px solid #F0F0F0",
-                          fontSize: "9px",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.05em",
-                        }}
-                      >
-                        Cumulative
-                      </th>
-                    </tr>
-                  </thead>
+                <div className="max-h-[400px] overflow-y-auto rounded-lg border border-gray-100">
+                  <table className="w-full border-collapse text-[11px]">
+                    <thead className="sticky top-0 z-[1]">
+                      <tr className="bg-gray-50">
+                        <th
+                          className="px-3 py-2.5 text-left text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400"
+                        >
+                          Date
+                        </th>
+                        <th
+                          className="px-3 py-2.5 text-right text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400"
+                        >
+                          Principal
+                        </th>
+                        <th
+                          className="px-3 py-2.5 text-right text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400"
+                        >
+                          This Week
+                        </th>
+                        <th
+                          className="px-3 py-2.5 text-right text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400"
+                        >
+                          Rate
+                        </th>
+                        <th
+                          className="px-3 py-2.5 text-right text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400"
+                        >
+                          Cumulative
+                        </th>
+                      </tr>
+                    </thead>
                   <tbody>
                     {account.interestLogs
                       .reduce(
@@ -1002,59 +617,21 @@ export default function AccountDetailPage() {
                       .map((log, idx) => (
                         <tr
                           key={log.id}
-                          style={{
-                            backgroundColor:
-                              idx % 2 === 0 ? "#ffffff" : "#FAFAFA",
-                          }}
+                          className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
                         >
-                          <td
-                            style={{
-                              padding: "0.5rem 0.75rem",
-                              fontFamily: "'JetBrains Mono', monospace",
-                              color: "#666",
-                            }}
-                          >
+                          <td className="px-3 py-2 font-mono text-[#666]">
                             {formatDate(log.calculatedAt)}
                           </td>
-                          <td
-                            style={{
-                              padding: "0.5rem 0.75rem",
-                              textAlign: "right",
-                              fontFamily: "'JetBrains Mono', monospace",
-                              color: "#666",
-                            }}
-                          >
+                          <td className="px-3 py-2 text-right font-mono text-[#666]">
                             {formatNaira(log.principalAtCalculation)}
                           </td>
-                          <td
-                            style={{
-                              padding: "0.5rem 0.75rem",
-                              textAlign: "right",
-                              fontFamily: "'JetBrains Mono', monospace",
-                              fontWeight: 500,
-                              color: "#10B981",
-                            }}
-                          >
+                          <td className="px-3 py-2 text-right font-mono font-medium text-emerald-500">
                             +{formatNaira(log.amount)}
                           </td>
-                          <td
-                            style={{
-                              padding: "0.5rem 0.75rem",
-                              textAlign: "right",
-                              fontFamily: "'JetBrains Mono', monospace",
-                              color: "#F59E0B",
-                            }}
-                          >
+                          <td className="px-3 py-2 text-right font-mono text-amber-500">
                             {log.annualRate}%
                           </td>
-                          <td
-                            style={{
-                              padding: "0.5rem 0.75rem",
-                              textAlign: "right",
-                              fontFamily: "'JetBrains Mono', monospace",
-                              color: "#2D2D2D",
-                            }}
-                          >
+                          <td className="px-3 py-2 text-right font-mono text-brand-dark">
                             {formatNaira(log.cumulative)}
                           </td>
                         </tr>
@@ -1070,98 +647,35 @@ export default function AccountDetailPage() {
       {activeTab === "transactions" && (
         <FadeInUp>
           <Card padding="1.5rem">
-            <h3
-              style={{
-                fontSize: "14px",
-                fontWeight: 600,
-                color: "#2D2D2D",
-                marginBottom: "1rem",
-              }}
-            >
+            <h3 className="mb-4 text-[14px] font-semibold text-brand-dark">
               Transaction History
             </h3>
             {transactions.length === 0 ? (
-              <div
-                style={{
-                  padding: "2rem",
-                  textAlign: "center",
-                  color: "#999",
-                  fontSize: "13px",
-                }}
-              >
+              <div className="p-8 text-center text-[13px] text-gray-400">
                 No transactions yet
               </div>
             ) : (
-              <div
-                style={{
-                  maxHeight: "400px",
-                  overflowY: "auto",
-                  borderRadius: "0.5rem",
-                  border: "1px solid #F0F0F0",
-                }}
-              >
-                <table
-                  style={{
-                    width: "100%",
-                    borderCollapse: "collapse",
-                    fontSize: "11px",
-                  }}
-                >
-                  <thead style={{ position: "sticky", top: 0, zIndex: 1 }}>
-                    <tr style={{ backgroundColor: "#FAFAFA" }}>
+              <div className="max-h-[400px] overflow-y-auto rounded-lg border border-gray-100">
+                <table className="w-full border-collapse text-[11px]">
+                  <thead className="sticky top-0 z-[1]">
+                    <tr className="bg-gray-50">
                       <th
-                        style={{
-                          padding: "0.625rem 0.75rem",
-                          textAlign: "left",
-                          fontWeight: 600,
-                          color: "#999",
-                          borderBottom: "1px solid #F0F0F0",
-                          fontSize: "9px",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.05em",
-                        }}
+                        className="px-3 py-2.5 text-left text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400"
                       >
                         Date
                       </th>
                       <th
-                        style={{
-                          padding: "0.625rem 0.75rem",
-                          textAlign: "left",
-                          fontWeight: 600,
-                          color: "#999",
-                          borderBottom: "1px solid #F0F0F0",
-                          fontSize: "9px",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.05em",
-                        }}
+                        className="px-3 py-2.5 text-left text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400"
                       >
                         Type
                       </th>
                       <th
-                        style={{
-                          padding: "0.625rem 0.75rem",
-                          textAlign: "right",
-                          fontWeight: 600,
-                          color: "#999",
-                          borderBottom: "1px solid #F0F0F0",
-                          fontSize: "9px",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.05em",
-                        }}
+                        className="px-3 py-2.5 text-right text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400"
                       >
                         Amount
                       </th>
                       <th
-                        style={{
-                          padding: "0.625rem 0.75rem",
-                          textAlign: "right",
-                          fontWeight: 600,
-                          color: "#999",
-                          borderBottom: "1px solid #F0F0F0",
-                          fontSize: "9px",
-                          textTransform: "uppercase",
-                          letterSpacing: "0.05em",
-                        }}
+                        className="px-3 py-2.5 text-right text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400"
                       >
                         Status
                       </th>
@@ -1171,21 +685,12 @@ export default function AccountDetailPage() {
                     {transactions.map((tx, idx) => (
                       <tr
                         key={tx.id}
-                        style={{
-                          backgroundColor:
-                            idx % 2 === 0 ? "#ffffff" : "#FAFAFA",
-                        }}
+                        className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
                       >
-                        <td
-                          style={{
-                            padding: "0.5rem 0.75rem",
-                            fontFamily: "'JetBrains Mono', monospace",
-                            color: "#666",
-                          }}
-                        >
+                        <td className="px-3 py-2 font-mono text-[#666]">
                           {formatDateTime(tx.createdAt)}
                         </td>
-                        <td style={{ padding: "0.5rem 0.75rem" }}>
+                        <td className="px-3 py-2">
                           <span
                             style={{
                               fontSize: "9px",
@@ -1202,11 +707,8 @@ export default function AccountDetailPage() {
                           </span>
                         </td>
                         <td
+                          className="px-3 py-2 text-right font-mono font-semibold"
                           style={{
-                            padding: "0.5rem 0.75rem",
-                            textAlign: "right",
-                            fontFamily: "'JetBrains Mono', monospace",
-                            fontWeight: 600,
                             color:
                               tx.type === "circle_withdrawal"
                                 ? "#DC2626"
@@ -1218,12 +720,7 @@ export default function AccountDetailPage() {
                           {tx.type === "circle_withdrawal" ? "-" : "+"}
                           {formatNaira(tx.amount)}
                         </td>
-                        <td
-                          style={{
-                            padding: "0.5rem 0.75rem",
-                            textAlign: "right",
-                          }}
-                        >
+                        <td className="px-3 py-2 text-right">
                           <span
                             style={{
                               fontSize: "9px",

@@ -88,14 +88,14 @@ export default function DefaultManagementPage() {
 
   if (loading) {
     return (
-      <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
-        <div style={{ textAlign: "center", padding: "4rem", color: "#999", fontSize: "13px" }}>Loading defaults...</div>
+      <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
+        <div className="p-16 text-center text-[13px] text-gray-500">Loading defaults...</div>
       </div>
     );
   }
 
   return (
-    <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
+    <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
       <PageHeader
         badgeLabel="Member Management"
         heading="Default"
@@ -103,31 +103,30 @@ export default function DefaultManagementPage() {
         description="Track and manage missed contributions across your circles."
       />
 
-      <StaggerChildren staggerDelay={100} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem", marginBottom: "2rem" }}>
+      <StaggerChildren staggerDelay={100} className="mb-8 grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
         <Card padding="1.25rem">
-          <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", fontWeight: 700, display: "block" }}>Total Defaults</span>
-          <span style={{ fontSize: "1.5rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: "#1A1A1A", display: "block", marginTop: "0.25rem" }}>{defStats.totalDefaults}</span>
+          <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-500">Total Defaults</span>
+          <span className="mt-1 block font-mono text-2xl font-bold text-brand-dark">{defStats.totalDefaults}</span>
         </Card>
         <Card padding="1.25rem">
-          <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", fontWeight: 700, display: "block" }}>Overdue Amount</span>
-          <span style={{ fontSize: "1.5rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: "#DC2626", display: "block", marginTop: "0.25rem" }}>{formatNaira(defStats.totalOverdue)}</span>
+          <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-500">Overdue Amount</span>
+          <span className="mt-1 block font-mono text-2xl font-bold text-red-600">{formatNaira(defStats.totalOverdue)}</span>
         </Card>
         <Card padding="1.25rem">
-          <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", fontWeight: 700, display: "block" }}>Pending Amount</span>
-          <span style={{ fontSize: "1.5rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: "#D97706", display: "block", marginTop: "0.25rem" }}>{formatNaira(defStats.totalPending)}</span>
+          <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-500">Pending Amount</span>
+          <span className="mt-1 block font-mono text-2xl font-bold text-amber-600">{formatNaira(defStats.totalPending)}</span>
         </Card>
       </StaggerChildren>
 
       <FadeInUp delay={300}>
-        <Card padding="1.5rem" style={{ marginBottom: "1.5rem" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+        <Card padding="1.5rem" className="mb-6">
+          <div className="mb-4 flex items-center justify-between">
             <ColorfulBadge label="Defaulters" color={cfg.colors.primary} />
-            <div style={{ display: "flex", gap: "0.25rem", backgroundColor: "#F5F7F5", borderRadius: "0.5rem", padding: "0.25rem" }}>
+            <div className="flex gap-1 rounded-lg bg-gray-100 p-1">
               {(["all", "overdue", "pending", "resolved"] as const).map((f) => (
                 <button key={f} onClick={() => handleFilterChange(f)}
-                  style={{ padding: "0.375rem 0.75rem", borderRadius: "0.375rem", fontSize: "11px", fontWeight: 600, border: "none", cursor: "pointer", transition: "all 0.2s ease", textTransform: "capitalize",
-                    backgroundColor: filter === f ? "#ffffff" : "transparent", color: filter === f ? cfg.colors.primary : "#717171",
-                    boxShadow: filter === f ? "0 1px 3px rgba(0,0,0,0.08)" : "none" }}>
+                  className="cursor-pointer rounded-md px-3 py-1.5 text-[11px] font-semibold capitalize"
+                  style={{ backgroundColor: filter === f ? "#ffffff" : "transparent", color: filter === f ? cfg.colors.primary : "#717171", boxShadow: filter === f ? "0 1px 3px rgba(0,0,0,0.08)" : "none" }}>
                   {f}
                 </button>
               ))}
@@ -135,20 +134,20 @@ export default function DefaultManagementPage() {
           </div>
 
           {filtered.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "2rem", color: "#999", fontSize: "13px" }}>
+            <div className="p-8 text-center text-[13px] text-gray-500">
               No default records found.
             </div>
           ) : (
-            <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
-              <table style={{ width: "100%", fontSize: "12px", borderCollapse: "collapse", minWidth: "600px" }}>
+            <div className="overflow-x-auto [-webkit-overflow-scrolling:touch]">
+              <table className="w-full border-collapse text-[12px] min-w-[600px]">
                 <thead>
-                  <tr style={{ borderBottom: "1px solid #F0F0F0", color: "#999", textTransform: "uppercase", letterSpacing: "0.1em", fontSize: "9px", fontFamily: "'JetBrains Mono', monospace" }}>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Member</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Circle</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "right", fontWeight: 600 }}>Amount</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Due Date</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "right", fontWeight: 600 }}>Status</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "right", fontWeight: 600 }}>Actions</th>
+                  <tr className="border-b border-gray-100 font-mono text-[9px] uppercase tracking-[0.1em] text-gray-500">
+                    <th className="pb-3 text-left font-semibold">Member</th>
+                    <th className="pb-3 text-left font-semibold">Circle</th>
+                    <th className="pb-3 text-right font-semibold">Amount</th>
+                    <th className="pb-3 text-left font-semibold">Due Date</th>
+                    <th className="pb-3 text-right font-semibold">Status</th>
+                    <th className="pb-3 text-right font-semibold">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -156,38 +155,37 @@ export default function DefaultManagementPage() {
                     const st = statusStyles[d.status] || statusStyles.pending;
                     const initials = d.userName.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
                     return (
-                      <tr key={d.id} style={{ borderBottom: "1px solid #F5F5F5", transition: "background-color 0.2s ease" }}
-                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#F9FAFB"; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}>
-                        <td style={{ padding: "0.75rem 0" }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                            <div style={{ width: "28px", height: "28px", borderRadius: "50%", backgroundColor: `${cfg.colors.primary}15`, color: cfg.colors.primary, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: 700, flexShrink: 0 }}>
+                      <tr key={d.id} className="border-b border-gray-100 transition-colors hover:bg-gray-50">
+                        <td className="py-3">
+                          <div className="flex items-center gap-2">
+                            <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold" style={{ backgroundColor: `${cfg.colors.primary}15`, color: cfg.colors.primary }}>
                               {initials}
                             </div>
-                            <span style={{ fontWeight: 500, color: "#2D2D2D" }}>{d.userName}</span>
+                            <span className="font-medium text-brand-dark">{d.userName}</span>
                           </div>
                         </td>
-                        <td style={{ padding: "0.75rem 0" }}>
-                          <span style={{ padding: "0.125rem 0.5rem", borderRadius: "0.375rem", fontSize: "9px", fontWeight: 700, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace", backgroundColor: `${cfg.colors.primary}12`, color: cfg.colors.primary, border: `1px solid ${cfg.colors.primary}20` }}>{d.groupName}</span>
+                        <td className="py-3">
+                          <span className="rounded-md px-2 py-0.5 font-mono text-[9px] font-bold uppercase" style={{ backgroundColor: `${cfg.colors.primary}12`, color: cfg.colors.primary, border: `1px solid ${cfg.colors.primary}20` }}>{d.groupName}</span>
                         </td>
-                        <td style={{ padding: "0.75rem 0", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: "#2D2D2D" }}>{formatNaira(d.amount)}</td>
-                        <td style={{ padding: "0.75rem 0", fontFamily: "'JetBrains Mono', monospace", color: "#717171" }}>
+                        <td className="py-3 text-right font-mono font-semibold text-brand-dark">{formatNaira(d.amount)}</td>
+                        <td className="py-3 font-mono text-gray-500">
                           {new Date(d.dueDate).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
-                          {d.daysOverdue > 0 && <span style={{ fontSize: "9px", color: "#DC2626", marginLeft: "0.375rem" }}>({d.daysOverdue}d late)</span>}
+                          {d.daysOverdue > 0 && <span className="ml-1.5 text-[9px] text-red-600">({d.daysOverdue}d late)</span>}
                         </td>
-                        <td style={{ padding: "0.75rem 0", textAlign: "right" }}>
-                          <span style={{ fontSize: "9px", fontWeight: 700, padding: "0.125rem 0.5rem", borderRadius: "0.375rem", backgroundColor: st.bg, color: st.color, border: `1px solid ${st.border}`, textTransform: "capitalize" }}>{d.status}</span>
+                        <td className="py-3 text-right">
+                          <span className="rounded-md px-2 py-0.5 font-bold uppercase" style={{ backgroundColor: st.bg, color: st.color, border: `1px solid ${st.border}` }}>{d.status}</span>
                         </td>
-                        <td style={{ padding: "0.75rem 0", textAlign: "right" }}>
-                          <div style={{ display: "flex", gap: "0.375rem", justifyContent: "flex-end" }}>
+                        <td className="py-3 text-right">
+                          <div className="flex justify-end gap-1.5">
                             {d.status !== "resolved" && (
                               <>
                                 <button onClick={() => sendReminder(d.id)}
-                                  style={{ padding: "0.25rem 0.5rem", borderRadius: "0.375rem", fontSize: "10px", fontWeight: 600, border: `1px solid ${cfg.colors.primary}30`, backgroundColor: showReminder === d.id ? "#ECFDF5" : `${cfg.colors.primary}08`, color: cfg.colors.primary, cursor: "pointer", transition: "all 0.2s ease" }}>
+                                  className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold"
+                                  style={{ border: `1px solid ${cfg.colors.primary}30`, backgroundColor: showReminder === d.id ? "#ECFDF5" : `${cfg.colors.primary}08`, color: cfg.colors.primary }}>
                                   {showReminder === d.id ? "Sent!" : "Remind"}
                                 </button>
                                 <button onClick={() => markResolved(d.id)}
-                                  style={{ padding: "0.25rem 0.5rem", borderRadius: "0.375rem", fontSize: "10px", fontWeight: 600, border: "1px solid #A7F3D0", backgroundColor: "#ECFDF5", color: "#059669", cursor: "pointer", transition: "all 0.2s ease" }}>
+                                  className="cursor-pointer rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-semibold text-emerald-600">
                                   Resolve
                                 </button>
                               </>
@@ -207,31 +205,31 @@ export default function DefaultManagementPage() {
 
       <FadeInUp delay={400}>
         <Card padding="1.5rem">
-          <div style={{ marginBottom: "1rem" }}>
+          <div className="mb-4">
             <ColorfulBadge label="Policy" color={cfg.colors.accent} />
-            <h2 style={{ fontSize: "1.125rem", fontWeight: 500, color: "#1A1A1A", marginTop: "0.5rem" }}>Default Policy Settings</h2>
+            <h2 className="mt-2 text-[1.125rem] font-medium text-brand-dark">Default Policy Settings</h2>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.75rem 0", borderBottom: "1px solid #F0F0F0" }}>
+          <div className="flex flex-col gap-0">
+            <div className="flex items-center justify-between border-b border-gray-100 py-3">
               <div>
-                <span style={{ fontSize: "12px", fontWeight: 500, color: "#2D2D2D", display: "block" }}>Grace Period</span>
-                <span style={{ fontSize: "11px", color: "#717171", fontWeight: 300 }}>Days after due date before marking as default</span>
+                <span className="block text-[12px] font-medium text-brand-dark">Grace Period</span>
+                <span className="text-[11px] font-light text-gray-500">Days after due date before marking as default</span>
               </div>
-              <span style={{ fontSize: "12px", fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: cfg.colors.primary }}>3 days</span>
+              <span className="font-mono text-[12px] font-semibold" style={{ color: cfg.colors.primary }}>3 days</span>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.75rem 0", borderBottom: "1px solid #F0F0F0" }}>
+            <div className="flex items-center justify-between border-b border-gray-100 py-3">
               <div>
-                <span style={{ fontSize: "12px", fontWeight: 500, color: "#2D2D2D", display: "block" }}>Auto-reminders</span>
-                <span style={{ fontSize: "11px", color: "#717171", fontWeight: 300 }}>Send automatic reminders to defaulting members</span>
+                <span className="block text-[12px] font-medium text-brand-dark">Auto-reminders</span>
+                <span className="text-[11px] font-light text-gray-500">Send automatic reminders to defaulting members</span>
               </div>
-              <span style={{ fontSize: "12px", fontWeight: 600, color: "#059669" }}>Enabled</span>
+              <span className="text-[12px] font-semibold text-emerald-600">Enabled</span>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.75rem 0" }}>
+            <div className="flex items-center justify-between py-3">
               <div>
-                <span style={{ fontSize: "12px", fontWeight: 500, color: "#2D2D2D", display: "block" }}>Maximum Defaults</span>
-                <span style={{ fontSize: "11px", color: "#717171", fontWeight: 300 }}>Consecutive defaults before member review</span>
+                <span className="block text-[12px] font-medium text-brand-dark">Maximum Defaults</span>
+                <span className="text-[11px] font-light text-gray-500">Consecutive defaults before member review</span>
               </div>
-              <span style={{ fontSize: "12px", fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: cfg.colors.primary }}>2</span>
+              <span className="font-mono text-[12px] font-semibold" style={{ color: cfg.colors.primary }}>2</span>
             </div>
           </div>
         </Card>

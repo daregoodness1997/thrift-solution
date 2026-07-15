@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { config } from "@thrift/config";
-import { ThemeProvider, CookieConsent, Footer } from "@thrift/ui";
+import { CookieConsent } from "@thrift/ui";
 import { Toaster } from "sonner";
 import { SiteHeader } from "@/components/SiteHeader";
+import { SiteFooter } from "@/components/SiteFooter";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import "./globals.css";
 
@@ -27,20 +28,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <ThemeProvider>
-          <ScrollToTop />
-          <SiteHeader />
-          {children}
-          <Footer
-            links={[
-              { label: "Terms of Use", href: "#" },
-              { label: "Privacy Policy", href: "#" },
-              { label: "Contact", href: `mailto:${config.contact.email}` },
-            ]}
-          />
-          <CookieConsent />
-          <Toaster position="top-right" richColors />
-        </ThemeProvider>
+        <ScrollToTop />
+        <SiteHeader />
+        {children}
+        <SiteFooter />
+        <CookieConsent />
+        <Toaster position="top-right" richColors />
       </body>
     </html>
   );

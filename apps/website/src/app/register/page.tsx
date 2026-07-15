@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { config } from "@thrift/config";
+import { clsx } from "@/lib/clsx";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const REG_FEE = parseInt(process.env.NEXT_PUBLIC_REGISTRATION_FEE || "4200", 10);
@@ -12,24 +13,28 @@ const STEPS = ["Basic", "Payment", "KYC"];
 
 function StepIndicator({ step }: { step: number }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", marginBottom: "2rem" }}>
+    <div className="mb-8 flex items-center justify-center gap-2">
       {STEPS.map((label, i) => {
         const num = i + 1;
         const isActive = step === num;
         const isDone = step > num;
         return (
-          <div key={label} style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <div style={{
-              width: "28px", height: "28px", borderRadius: "50%",
-              backgroundColor: isDone ? "#059669" : isActive ? config.colors.primary : "#F0F0F0",
-              color: isDone || isActive ? "#fff" : "#999", fontSize: "11px", fontWeight: 700,
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
+          <div key={label} className="flex items-center gap-2">
+            <div
+              className={clsx(
+                "flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-bold transition-colors",
+                isDone && "bg-green-600 text-white",
+                isActive && "bg-brand-primary text-white",
+                !isDone && !isActive && "bg-gray-100 text-gray-400"
+              )}
+            >
               {isDone ? "✓" : num}
             </div>
-            <span style={{ fontSize: "11px", fontWeight: isActive ? 600 : 400, color: isActive ? "#2D2D2D" : "#999" }}>{label}</span>
+            <span className={clsx("text-[11px]", isActive ? "font-semibold text-brand-dark" : "font-normal text-gray-400")}>
+              {label}
+            </span>
             {i < STEPS.length - 1 && (
-              <div style={{ width: "24px", height: "1px", backgroundColor: isDone ? "#059669" : "#E5E7EB" }} />
+              <div className={clsx("h-px w-6", isDone ? "bg-green-600" : "bg-gray-200")} />
             )}
           </div>
         );
@@ -38,11 +43,8 @@ function StepIndicator({ step }: { step: number }) {
   );
 }
 
-const inputStyle: React.CSSProperties = {
-  width: "100%", padding: "0.6875rem 0.875rem",
-  borderRadius: "0.625rem", border: "1px solid #E5E7EB", fontSize: "14px",
-  outline: "none", transition: "all 0.2s ease", boxSizing: "border-box", color: "#1A1A1A",
-};
+const inputBase =
+  "w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-brand-dark outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20";
 
 function TextField({
   label,
@@ -57,38 +59,15 @@ function TextField({
   invalid?: boolean;
 } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
-    <div style={{ marginBottom: "1rem" }}>
-      <label style={{ fontSize: "12px", fontWeight: 500, color: "#374151", display: "block", marginBottom: "0.375rem" }}>{label}</label>
-      <div style={{ position: "relative" }}>
-        {icon && (
-          <span style={{ position: "absolute", left: "0.875rem", top: "50%", transform: "translateY(-50%)", color: "#9CA3AF", display: "flex" }}>
-            {icon}
-          </span>
-        )}
+    <div className="mb-4">
+      <label className="mb-1.5 block text-xs font-medium text-gray-700">{label}</label>
+      <div className="relative">
+        {icon && <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">{icon}</span>}
         <input
           {...props}
-          style={{
-            ...inputStyle,
-            paddingLeft: icon ? "2.5rem" : "0.875rem",
-            paddingRight: rightSlot ? "2.5rem" : "0.875rem",
-            border: `1px solid ${invalid ? "#FECACA" : "#E5E7EB"}`,
-          }}
-          onFocus={(e) => {
-            e.currentTarget.style.borderColor = config.colors.primary;
-            e.currentTarget.style.boxShadow = `0 0 0 3px ${config.colors.primary}15`;
-            props.onFocus?.(e);
-          }}
-          onBlur={(e) => {
-            e.currentTarget.style.borderColor = invalid ? "#FECACA" : "#E5E7EB";
-            e.currentTarget.style.boxShadow = "none";
-            props.onBlur?.(e);
-          }}
+          className={clsx(inputBase, icon ? "pl-10" : "", rightSlot ? "pr-10" : "", invalid ? "border-red-300" : "border-gray-200")}
         />
-        {rightSlot && (
-          <span style={{ position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)", display: "flex", alignItems: "center" }}>
-            {rightSlot}
-          </span>
-        )}
+        {rightSlot && <span className="absolute right-3 top-1/2 -translate-y-1/2">{rightSlot}</span>}
       </div>
     </div>
   );
@@ -106,7 +85,7 @@ const icons = {
   eyeOff: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" /></svg>,
 };
 
-export default function WebsiteRegisterPage() {
+function WebsiteRegisterPage() {
   const searchParams = useSearchParams();
   const [step, setStep] = useState(1);
   const [token, setToken] = useState<string | null>(null);
@@ -283,44 +262,36 @@ export default function WebsiteRegisterPage() {
     setLoading(false);
   };
 
+  const btnClass =
+    "w-full rounded-xl bg-brand-primary px-4 py-3 text-sm font-semibold text-white transition disabled:opacity-60";
+
   return (
-    <div style={{ minHeight: "100vh", display: "flex", backgroundColor: "#FDFDFC" }}>
-      <div style={{
-        flex: "0 0 45%",
-        background: `linear-gradient(160deg, ${config.colors.secondary} 0%, ${config.colors.primary} 50%, #1a4a30 100%)`,
-        display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center",
-        padding: "3rem", position: "relative", overflow: "hidden",
-      }}>
-        <a href="/" style={{ position: "absolute", top: "2rem", left: "2rem", textDecoration: "none" }}>
-          <span style={{ fontSize: "1.5rem", fontWeight: 800, letterSpacing: "-0.05em", color: "#ffffff" }}>
-            {config.name.toUpperCase().replace(/\s+/g, "")}
-          </span>
-        </a>
-        <div style={{ position: "relative", zIndex: 1, textAlign: "center", maxWidth: "320px" }}>
-          <h1 style={{ fontSize: "clamp(1.5rem, 3vw, 2rem)", fontWeight: 300, color: "#ffffff", lineHeight: 1.3, marginBottom: "1rem" }}>
-            Join {config.name}<br />
-            <span style={{ fontStyle: "italic", fontFamily: "'Playfair Display', serif", fontWeight: 500, color: config.colors.accent }}>
-              in three easy steps
-            </span>
+    <div className="flex min-h-screen flex-col bg-brand-cream pt-20 lg:flex-row">
+      <div className="flex flex-col justify-center bg-gradient-to-br from-brand-secondary via-brand-primary to-[#1a4a30] p-10 text-center lg:flex-[0_0_42%] lg:p-16">
+        <div className="mx-auto max-w-sm">
+          <h1 className="font-display text-3xl font-light text-white">
+            Join Arosco<br />
+            <span className="italic text-brand-accent">in three easy steps</span>
           </h1>
-          <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.6)", lineHeight: 1.6 }}>
-            Create your account, pay the one-time ₦{REG_FEE.toLocaleString()} registration fee, and verify your BVN & NIN to unlock your virtual account.
+          <p className="mt-4 text-sm text-white/60">
+            Create your account, pay the one-time ₦{REG_FEE.toLocaleString()} registration fee,
+            and verify your BVN &amp; NIN to unlock your virtual account.
           </p>
         </div>
       </div>
 
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem", overflowY: "auto" }}>
-        <div style={{ width: "100%", maxWidth: "420px" }}>
+      <div className="flex flex-1 items-center justify-center p-6 lg:p-12">
+        <div className="w-full max-w-md">
           {step <= 3 && <StepIndicator step={step} />}
 
-          <div style={{ marginBottom: "1.5rem" }}>
-            <h2 style={{ fontSize: "1.5rem", fontWeight: 600, color: "#1A1A1A", letterSpacing: "-0.025em" }}>
+          <div className="mb-6">
+            <h2 className="font-display text-2xl font-semibold tracking-tight text-brand-dark">
               {step === 1 && "Create Account"}
               {step === 2 && "Registration Fee"}
               {step === 3 && "Verify Your Identity"}
               {step === 4 && "You're All Set!"}
             </h2>
-            <p style={{ fontSize: "13px", color: "#717171", marginTop: "0.375rem" }}>
+            <p className="mt-1 text-sm text-gray-500">
               {step === 1 && "Fill in your details to get started"}
               {step === 2 && `Pay the one-time ₦${REG_FEE.toLocaleString()} fee to continue`}
               {step === 3 && "Enter your BVN & NIN — we verify instantly via CreditChek"}
@@ -329,7 +300,7 @@ export default function WebsiteRegisterPage() {
           </div>
 
           {error && (
-            <div style={{ padding: "0.75rem 1rem", borderRadius: "0.75rem", backgroundColor: "#FEF2F2", border: "1px solid #FECACA", color: "#DC2626", fontSize: "12px", fontWeight: 500, marginBottom: "1.25rem" }}>
+            <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-medium text-red-600">
               {error}
             </div>
           )}
@@ -340,28 +311,30 @@ export default function WebsiteRegisterPage() {
               <TextField label="Email Address" icon={icons.mail} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="adaeze@email.com" />
               <TextField label="Phone (optional)" icon={icons.phone} type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+234..." />
 
-              <div style={{ marginBottom: "1rem" }}>
-                <label style={{ fontSize: "12px", fontWeight: 500, color: "#374151", display: "block", marginBottom: "0.375rem" }}>Password</label>
-                <div style={{ position: "relative" }}>
-                  <span style={{ position: "absolute", left: "0.875rem", top: "50%", transform: "translateY(-50%)", color: "#9CA3AF", display: "flex" }}>{icons.lock}</span>
-                  <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Min. 6 characters" autoComplete="new-password"
-                    style={{ ...inputStyle, paddingLeft: "2.5rem", paddingRight: "2.5rem" }}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = config.colors.primary; e.currentTarget.style.boxShadow = `0 0 0 3px ${config.colors.primary}15`; }}
-                    onBlur={(e) => { e.currentTarget.style.borderColor = "#E5E7EB"; e.currentTarget.style.boxShadow = "none"; }}
+              <div className="mb-4">
+                <label className="mb-1.5 block text-xs font-medium text-gray-700">Password</label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">{icons.lock}</span>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Min. 6 characters"
+                    autoComplete="new-password"
+                    className={clsx(inputBase, "pl-10 pr-10")}
                   />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)}
-                    style={{ position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", padding: "0.25rem", color: "#9CA3AF", display: "flex" }}>
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
                     {showPassword ? icons.eyeOff : icons.eyeOpen}
                   </button>
                 </div>
                 {password && (
-                  <div style={{ marginTop: "0.5rem" }}>
-                    <div style={{ display: "flex", gap: "0.25rem", marginBottom: "0.25rem" }}>
+                  <div className="mt-2">
+                    <div className="mb-1 flex gap-1">
                       {[1, 2, 3, 4].map((i) => (
-                        <div key={i} style={{ flex: 1, height: "3px", borderRadius: "9999px", backgroundColor: i <= passwordStrength.level ? passwordStrength.color : "#E5E7EB", transition: "background-color 0.2s ease" }} />
+                        <div key={i} className="h-1 flex-1 rounded-full" style={{ backgroundColor: i <= passwordStrength.level ? passwordStrength.color : "#E5E7EB" }} />
                       ))}
                     </div>
-                    <span style={{ fontSize: "10px", color: passwordStrength.color, fontWeight: 500 }}>{passwordStrength.label}</span>
+                    <span className="text-[10px] font-medium" style={{ color: passwordStrength.color }}>{passwordStrength.label}</span>
                   </div>
                 )}
               </div>
@@ -377,30 +350,27 @@ export default function WebsiteRegisterPage() {
                 rightSlot={confirmPassword && password === confirmPassword ? icons.check : undefined}
               />
 
-              <div style={{ marginBottom: "1.5rem", padding: "0.875rem", borderRadius: "0.625rem", backgroundColor: referralCode ? `${config.colors.primary}06` : "#FAFAFA", border: `1px solid ${referralCode ? `${config.colors.primary}20` : "#F3F4F6"}` }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: referralCode ? "0.5rem" : 0 }}>
-                  <span style={{ fontSize: "12px", fontWeight: 500, color: "#374151", display: "flex", alignItems: "center", gap: "0.375rem" }}>
-                    {icons.gift}
-                    Have a referral code?
-                  </span>
+              <div className={clsx("mb-6 rounded-xl border p-3.5", referralCode ? "border-brand-primary/30 bg-brand-primary/[0.04]" : "border-gray-200 bg-gray-50")}>
+                <div className={clsx("flex items-center justify-between", referralCode && "mb-2")}>
+                  <span className="flex items-center gap-1.5 text-xs font-medium text-gray-700">{icons.gift} Have a referral code?</span>
                   {!referralCode && (
-                    <button type="button" onClick={() => setReferralCode(" ")}
-                      style={{ fontSize: "11px", fontWeight: 600, color: config.colors.primary, background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+                    <button type="button" onClick={() => setReferralCode(" ")} className="bg-none border-0 p-0 text-xs font-semibold text-brand-primary">
                       Enter code
                     </button>
                   )}
                 </div>
                 {referralCode && (
-                  <input type="text" value={referralCode} onChange={(e) => setReferralCode(e.target.value)} placeholder="e.g. ADAEZE-8K3M"
-                    style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "0.5rem", border: "1px solid #E5E7EB", fontSize: "12px", fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, letterSpacing: "0.05em", outline: "none", boxSizing: "border-box", color: config.colors.primary, backgroundColor: "#ffffff" }}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = config.colors.primary; }}
-                    onBlur={(e) => { e.currentTarget.style.borderColor = "#E5E7EB"; }}
+                  <input
+                    type="text"
+                    value={referralCode}
+                    onChange={(e) => setReferralCode(e.target.value)}
+                    placeholder="e.g. ADAEZE-8K3M"
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 font-mono text-xs font-semibold tracking-wider text-brand-primary outline-none focus:border-brand-primary"
                   />
                 )}
               </div>
 
-              <button type="submit" disabled={loading}
-                style={{ width: "100%", padding: "0.75rem", borderRadius: "0.625rem", fontSize: "14px", fontWeight: 600, cursor: loading ? "not-allowed" : "pointer", backgroundColor: config.colors.primary, color: "#ffffff", border: "none", opacity: loading ? 0.6 : 1 }}>
+              <button type="submit" disabled={loading} className={btnClass}>
                 {loading ? "Creating account..." : "Continue"}
               </button>
             </form>
@@ -409,8 +379,7 @@ export default function WebsiteRegisterPage() {
           {step === 1 && otpSent && (
             <div>
               <TextField label="Verification Code" type="text" value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="6-digit code from email" />
-              <button onClick={handleVerifyEmail} disabled={loading}
-                style={{ width: "100%", padding: "0.75rem", borderRadius: "0.625rem", fontSize: "14px", fontWeight: 600, cursor: loading ? "not-allowed" : "pointer", backgroundColor: config.colors.primary, color: "#ffffff", border: "none", opacity: loading ? 0.6 : 1 }}>
+              <button onClick={handleVerifyEmail} disabled={loading} className={btnClass}>
                 {loading ? "Verifying..." : "Verify Email & Continue"}
               </button>
             </div>
@@ -418,15 +387,12 @@ export default function WebsiteRegisterPage() {
 
           {step === 2 && (
             <div>
-              <div style={{ padding: "1.25rem", backgroundColor: "#F9FAFB", borderRadius: "12px", marginBottom: "1.5rem", textAlign: "center" }}>
-                <span style={{ fontSize: "10px", color: "#9CA3AF", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em" }}>Registration Fee</span>
-                <div style={{ fontSize: "1.75rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: config.colors.primary, marginTop: "0.25rem" }}>
-                  ₦{REG_FEE.toLocaleString()}
-                </div>
-                <p style={{ fontSize: "11px", color: "#6B7280", marginTop: "0.5rem" }}>One-time fee. Secured by Flutterwave.</p>
+              <div className="mb-6 rounded-xl bg-gray-50 p-6 text-center">
+                <span className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">Registration Fee</span>
+                <div className="mt-1 font-mono text-2xl font-bold text-brand-primary">₦{REG_FEE.toLocaleString()}</div>
+                <p className="mt-2 text-[11px] text-gray-500">One-time fee. Secured by Flutterwave.</p>
               </div>
-              <button onClick={handlePay} disabled={loading}
-                style={{ width: "100%", padding: "0.75rem", borderRadius: "0.625rem", fontSize: "14px", fontWeight: 600, cursor: loading ? "not-allowed" : "pointer", backgroundColor: config.colors.primary, color: "#ffffff", border: "none", opacity: loading ? 0.6 : 1 }}>
+              <button onClick={handlePay} disabled={loading} className={btnClass}>
                 {loading ? "Redirecting..." : `Pay ₦${REG_FEE.toLocaleString()}`}
               </button>
             </div>
@@ -436,8 +402,7 @@ export default function WebsiteRegisterPage() {
             <div>
               <TextField label="BVN (11 digits)" type="text" value={bvn} onChange={(e) => setBvn(e.target.value.replace(/\D/g, "").slice(0, 11))} placeholder="12345678901" inputMode="numeric" />
               <TextField label="NIN (11 digits)" type="text" value={nin} onChange={(e) => setNin(e.target.value.replace(/\D/g, "").slice(0, 11))} placeholder="98765432109" inputMode="numeric" />
-              <button onClick={handleKyc} disabled={loading}
-                style={{ width: "100%", padding: "0.75rem", borderRadius: "0.625rem", fontSize: "14px", fontWeight: 600, cursor: loading ? "not-allowed" : "pointer", backgroundColor: config.colors.primary, color: "#ffffff", border: "none", opacity: loading ? 0.6 : 1 }}>
+              <button onClick={handleKyc} disabled={loading} className={btnClass}>
                 {loading ? "Verifying with CreditChek..." : "Verify & Finish"}
               </button>
             </div>
@@ -445,30 +410,32 @@ export default function WebsiteRegisterPage() {
 
           {step === 4 && (
             <div>
-              <div style={{ padding: "1.5rem", backgroundColor: "#ECFDF5", borderRadius: "12px", marginBottom: "1.5rem", border: "1px solid #A7F3D0" }}>
-                <div style={{ fontSize: "13px", fontWeight: 600, color: "#059669", marginBottom: "0.75rem" }}>✓ Identity verified & KYC approved</div>
+              <div className="mb-6 rounded-xl border border-green-200 bg-green-50 p-6">
+                <div className="text-sm font-semibold text-green-600">✓ Identity verified &amp; KYC approved</div>
                 {virtualAccount ? (
-                  <div style={{ fontSize: "12px", color: "#065F46" }}>
-                    <div style={{ marginBottom: "0.5rem" }}><span style={{ color: "#6B7280" }}>Virtual Account: </span><strong style={{ fontFamily: "'JetBrains Mono', monospace" }}>{virtualAccount.accountNumber}</strong></div>
-                    <div><span style={{ color: "#6B7280" }}>Bank: </span><strong>{virtualAccount.bankName}</strong></div>
+                  <div className="mt-3 text-xs text-green-700">
+                    <div className="mb-1"><span className="text-gray-500">Virtual Account: </span><strong className="font-mono">{virtualAccount.accountNumber}</strong></div>
+                    <div><span className="text-gray-500">Bank: </span><strong>{virtualAccount.bankName}</strong></div>
                   </div>
                 ) : (
-                  <div style={{ fontSize: "12px", color: "#065F46" }}>Your virtual account will be created shortly.</div>
+                  <div className="mt-2 text-xs text-green-700">Your virtual account will be created shortly.</div>
                 )}
               </div>
-              <a href="/dashboard" style={{ display: "block", width: "100%", padding: "0.75rem", borderRadius: "0.625rem", fontSize: "14px", fontWeight: 600, textAlign: "center", textDecoration: "none", backgroundColor: config.colors.primary, color: "#ffffff" }}>
+              <a href="/dashboard" className="block w-full rounded-xl bg-brand-primary py-3 text-center text-sm font-semibold text-white">
                 Go to Dashboard
               </a>
             </div>
           )}
         </div>
       </div>
-
-      <style jsx global>{`
-        @media (max-width: 768px) {
-          div[style*="flex: 0 0 45%"] { display: none !important; }
-        }
-      `}</style>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="py-32 text-center text-gray-400">Loading...</div>}>
+      <WebsiteRegisterPage />
+    </Suspense>
   );
 }

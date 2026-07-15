@@ -64,51 +64,50 @@ export default function AdminAuditLogsPage() {
   const entities = ["", "user", "loan", "kyc", "circle"];
 
   return (
-    <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
+    <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
       <PageHeader badgeLabel="Admin" heading="Audit" accentText="Log" description="System-wide record of administrative actions." />
 
       <FadeInUp delay={200}>
         <Card padding="1.5rem">
-          <div style={{ display: "flex", gap: "0.25rem", backgroundColor: "#F5F7F5", borderRadius: "0.5rem", padding: "0.25rem", marginBottom: "1rem", width: "fit-content", flexWrap: "wrap" }}>
+          <div className="mb-4 flex w-fit flex-wrap gap-1 rounded-lg bg-gray-100 p-1">
             {entities.map((e) => (
               <button key={e || "all"} onClick={() => { setEntity(e); setPage(1); }}
-                style={{ padding: "0.375rem 0.75rem", borderRadius: "0.375rem", fontSize: "11px", fontWeight: 600, border: "none", cursor: "pointer", textTransform: "capitalize",
-                  backgroundColor: entity === e ? "#ffffff" : "transparent", color: entity === e ? config.colors.primary : "#717171",
-                  boxShadow: entity === e ? "0 1px 3px rgba(0,0,0,0.08)" : "none" }}>
+                className="cursor-pointer rounded-md px-3 py-1.5 text-[11px] font-semibold capitalize"
+                style={{ backgroundColor: entity === e ? "#ffffff" : "transparent", color: entity === e ? config.colors.primary : "#717171", boxShadow: entity === e ? "0 1px 3px rgba(0,0,0,0.08)" : "none" }}>
                 {e || "all"}
               </button>
             ))}
           </div>
 
           {loading ? (
-            <div style={{ textAlign: "center", padding: "3rem", color: "#999", fontSize: "13px" }}>Loading logs...</div>
+            <div className="p-12 text-center text-[13px] text-gray-500">Loading logs...</div>
           ) : logs.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "2rem", color: "#999", fontSize: "13px" }}>No audit logs found.</div>
+            <div className="p-8 text-center text-[13px] text-gray-500">No audit logs found.</div>
           ) : (
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", fontSize: "12px", borderCollapse: "collapse", minWidth: "760px" }}>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-[12px] min-w-[760px]">
                 <thead>
-                  <tr style={{ borderBottom: "1px solid #F0F0F0", color: "#999", textTransform: "uppercase", letterSpacing: "0.1em", fontSize: "9px", fontFamily: "'JetBrains Mono', monospace" }}>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>When</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Actor</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Action</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Entity</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Details</th>
+                  <tr className="border-b border-gray-100 font-mono text-[9px] uppercase tracking-[0.1em] text-gray-500">
+                    <th className="pb-3 text-left font-semibold">When</th>
+                    <th className="pb-3 text-left font-semibold">Actor</th>
+                    <th className="pb-3 text-left font-semibold">Action</th>
+                    <th className="pb-3 text-left font-semibold">Entity</th>
+                    <th className="pb-3 text-left font-semibold">Details</th>
                   </tr>
                 </thead>
                 <tbody>
                   {logs.map((log) => (
-                    <tr key={log.id} style={{ borderBottom: "1px solid #F5F5F5" }}>
-                      <td style={{ padding: "0.75rem 0", color: "#717171", whiteSpace: "nowrap" }}>{formatDate(new Date(log.createdAt))}</td>
-                      <td style={{ padding: "0.75rem 0", color: "#2D2D2D" }}>{log.actor?.email || log.actorEmail || "—"}</td>
-                      <td style={{ padding: "0.75rem 0" }}>
-                        <span style={{ fontSize: "9px", fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", padding: "0.125rem 0.5rem", borderRadius: "0.375rem", backgroundColor: `${config.colors.primary}12`, color: config.colors.primary }}>{log.action}</span>
+                    <tr key={log.id} className="border-b border-gray-100">
+                      <td className="whitespace-nowrap py-3 text-gray-500">{formatDate(new Date(log.createdAt))}</td>
+                      <td className="py-3 text-brand-dark">{log.actor?.email || log.actorEmail || "—"}</td>
+                      <td className="py-3">
+                        <span className="rounded-md px-2 py-0.5 font-mono text-[9px] font-bold" style={{ backgroundColor: `${config.colors.primary}12`, color: config.colors.primary }}>{log.action}</span>
                       </td>
-                      <td style={{ padding: "0.75rem 0", color: "#717171" }}>
+                      <td className="py-3 text-gray-500">
                         {log.entity}
-                        {log.entityId && <span style={{ fontSize: "10px", color: "#B0B0B0", fontFamily: "'JetBrains Mono', monospace", display: "block" }}>{log.entityId.slice(0, 8)}</span>}
+                        {log.entityId && <span className="block font-mono text-[10px] text-[#B0B0B0]">{log.entityId.slice(0, 8)}</span>}
                       </td>
-                      <td style={{ padding: "0.75rem 0", color: "#999", fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", maxWidth: "260px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{log.metadata || "—"}</td>
+                      <td className="max-w-[260px] truncate py-3 font-mono text-[11px] text-gray-500">{log.metadata || "—"}</td>
                     </tr>
                   ))}
                 </tbody>

@@ -122,7 +122,6 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, token, loading, logout } = useAuth();
-  const [hoveredNav, setHoveredNav] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [navSections, setNavSections] = useState<NavSection[]>(FALLBACK_NAV);
@@ -197,24 +196,24 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   if (loading || navLoading) {
     return (
-      <div style={{ display: "flex", minHeight: "100vh", backgroundColor: "#FDFDFC" }}>
-        <aside style={{ width: "240px", backgroundColor: "#ffffff", borderRight: "1px solid #EAEAEA", padding: "1.25rem", flexShrink: 0 }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-            <div style={{ background: "linear-gradient(90deg, #F0F0F0 25%, #E8E8E8 50%, #F0F0F0 75%)", backgroundSize: "200% 100%", animation: "shimmer 1.5s ease-in-out infinite", borderRadius: "0.375rem", width: "80px", height: "20px" }} />
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "1rem" }}>
+      <div className="flex min-h-screen bg-brand-cream">
+        <aside className="w-60 flex-shrink-0 border-r border-black/5 bg-white p-5">
+          <div className="flex flex-col gap-4">
+            <div className="h-5 w-20 animate-pulse rounded-md bg-gray-200" />
+            <div className="mt-4 flex flex-col gap-2">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: "0.625rem", padding: "0.5rem 0.75rem", borderRadius: "0.5rem" }}>
-                  <div style={{ background: "linear-gradient(90deg, #F0F0F0 25%, #E8E8E8 50%, #F0F0F0 75%)", backgroundSize: "200% 100%", animation: "shimmer 1.5s ease-in-out infinite", borderRadius: "0.375rem", width: "18px", height: "18px" }} />
-                  <div style={{ background: "linear-gradient(90deg, #F0F0F0 25%, #E8E8E8 50%, #F0F0F0 75%)", backgroundSize: "200% 100%", animation: "shimmer 1.5s ease-in-out infinite", borderRadius: "0.375rem", width: `${60 + Math.random() * 40}px`, height: "12px" }} />
+                <div key={i} className="flex items-center gap-2.5 rounded-lg px-3 py-2">
+                  <div className="h-[18px] w-[18px] animate-pulse rounded-md bg-gray-200" />
+                  <div className="h-3 flex-1 animate-pulse rounded-md bg-gray-200" />
                 </div>
               ))}
             </div>
           </div>
         </aside>
-        <main style={{ flex: 1, marginLeft: "240px", padding: "clamp(1rem, 3vw, 2rem)" }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-            <div style={{ background: "linear-gradient(90deg, #F0F0F0 25%, #E8E8E8 50%, #F0F0F0 75%)", backgroundSize: "200% 100%", animation: "shimmer 1.5s ease-in-out infinite", borderRadius: "0.375rem", width: "200px", height: "12px" }} />
-            <div style={{ background: "linear-gradient(90deg, #F0F0F0 25%, #E8E8E8 50%, #F0F0F0 75%)", backgroundSize: "200% 100%", animation: "shimmer 1.5s ease-in-out infinite", borderRadius: "0.375rem", width: "300px", height: "28px" }} />
+        <main className="ml-60 flex-1 p-[clamp(1rem,3vw,2rem)]">
+          <div className="flex flex-col gap-6">
+            <div className="h-3 w-52 animate-pulse rounded-md bg-gray-200" />
+            <div className="h-7 w-72 animate-pulse rounded-md bg-gray-200" />
           </div>
         </main>
       </div>
@@ -238,90 +237,62 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", backgroundColor: "#FDFDFC" }}>
+    <div className="flex min-h-screen bg-brand-cream">
       {isMobile && sidebarOpen && (
-        <div onClick={() => setSidebarOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 29 }} />
+        <div onClick={() => setSidebarOpen(false)} className="fixed inset-0 z-[29] bg-black/40" />
       )}
 
       <aside
-        style={{
-          width: "240px",
-          backgroundColor: "#ffffff",
-          borderRight: "1px solid #EAEAEA",
-          display: "flex",
-          flexDirection: "column",
-          flexShrink: 0,
-          position: "fixed",
-          top: 0,
-          left: 0,
-          bottom: 0,
-          zIndex: 30,
-          transform: isMobile && !sidebarOpen ? "translateX(-100%)" : "translateX(0)",
-          transition: "transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-          overflowY: "auto",
-        }}
+        className={`fixed inset-y-0 left-0 z-30 flex w-60 flex-shrink-0 flex-col overflow-y-auto border-r border-black/5 bg-white transition-transform duration-300 ${
+          isMobile && !sidebarOpen ? "-translate-x-full" : "translate-x-0"
+        }`}
       >
-        <div style={{ padding: "1.25rem 1.25rem 1rem", borderBottom: "1px solid #F0F0F0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div className="flex items-center justify-between border-b border-gray-100 px-5 pb-4 pt-5">
           <div>
-            <Link href="/" style={{ textDecoration: "none" }}>
-              <span
-                style={{ fontSize: "1.125rem", fontWeight: 800, letterSpacing: "-0.05em", color: config.colors.primary, transition: "transform 0.2s ease", display: "inline-block" }}
-                onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.05)"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
-              >
+            <Link href="/" className="inline-block">
+              <span className="font-display text-lg font-bold tracking-tight text-brand-primary transition-transform duration-200 hover:scale-105">
                 {config.name.toUpperCase().replace(/\s+/g, "")}
               </span>
             </Link>
-            <p style={{ fontSize: "10px", color: "#999", fontWeight: 300, marginTop: "0.125rem" }}>
+            <p className="mt-0.5 text-[10px] font-light text-gray-400">
               {isStaffRole(user.role) ? "Admin Portal" : "Member Portal"}
             </p>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+          <div className="flex items-center gap-1">
             <NotificationBell />
             {isMobile && (
-              <button onClick={() => setSidebarOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", padding: "0.25rem", color: "#717171" }}>
+              <button onClick={() => setSidebarOpen(false)} className="cursor-pointer p-1 text-gray-500">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
               </button>
             )}
           </div>
         </div>
 
-        <nav style={{ flex: 1, padding: "0.75rem" }}>
+        <nav className="flex-1 p-3">
           {navSections.map((section, sIdx) => (
-            <div key={sIdx} style={{ marginBottom: sIdx < navSections.length - 1 ? "0.75rem" : 0 }}>
+            <div key={sIdx} className={sIdx < navSections.length - 1 ? "mb-3" : ""}>
               {section.title && (
-                <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#B0B0B0", fontWeight: 700, display: "block", padding: "0.375rem 0.75rem 0.25rem" }}>
+                <span className="block px-3 pb-1 pt-1.5 text-[9px] font-bold uppercase tracking-wider text-gray-400">
                   {section.title}
                 </span>
               )}
-              <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+              <div className="flex flex-col gap-0.5">
                 {section.items.map((item) => {
                   const isActive = pathname === item.href;
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
-                      onMouseEnter={() => setHoveredNav(item.href)}
-                      onMouseLeave={() => setHoveredNav(null)}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.625rem",
-                        padding: "0.5rem 0.75rem",
-                        borderRadius: "0.5rem",
-                        fontSize: "13px",
-                        fontWeight: isActive ? 600 : 400,
-                        color: isActive ? config.colors.primary : hoveredNav === item.href ? "#1A1A1A" : "#717171",
-                        backgroundColor: isActive ? `${config.colors.primary}0A` : hoveredNav === item.href && !isActive ? "#F5F7F5" : "transparent",
-                        textDecoration: "none",
-                        transition: "all 0.2s ease",
-                        transform: hoveredNav === item.href && !isActive ? "translateX(4px)" : "translateX(0)",
-                      }}
+                      className={`group flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] transition-all duration-200 ${
+                        isActive
+                          ? "bg-brand-primary/5 font-semibold text-brand-primary"
+                          : "font-normal text-gray-500 hover:translate-x-1 hover:bg-brand-primary/5 hover:text-brand-dark"
+                      }`}
                     >
                       <Icon path={item.icon} size={18} />
                       <span>{item.label}</span>
                       {item.badge && (
-                        <span style={{ marginLeft: "auto", fontSize: "9px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", padding: "0.125rem 0.375rem", borderRadius: "9999px", background: "linear-gradient(135deg, #D4A017 0%, #B8860B 100%)", color: "#fff", lineHeight: "1.4" }}>
+                        <span className="ml-auto rounded-full bg-gradient-to-br from-brand-gold to-brand-accent px-1.5 py-0.5 text-[9px] font-bold uppercase leading-[1.4] tracking-wide text-white">
                           {item.badge}
                         </span>
                       )}
@@ -333,37 +304,28 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           ))}
         </nav>
 
-        <div style={{ padding: "0.75rem", borderTop: "1px solid #F0F0F0" }}>
+        <div className="border-t border-gray-100 p-3">
           <Link
             href="/profile"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "0.625rem",
-              padding: "0.5rem 0.75rem",
-              borderRadius: "0.5rem",
-              backgroundColor: pathname === "/profile" ? `${config.colors.primary}0A` : "#FAFAFA",
-              cursor: "pointer",
-              transition: "all 0.2s ease",
-              textDecoration: "none",
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = pathname === "/profile" ? `${config.colors.primary}0A` : "#F0F0F0"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = pathname === "/profile" ? `${config.colors.primary}0A` : "#FAFAFA"; }}
+            className={`flex items-center gap-2.5 rounded-lg px-3 py-2 transition-all duration-200 ${
+              pathname === "/profile" ? "bg-brand-primary/5" : "bg-gray-50 hover:bg-gray-100"
+            }`}
           >
-            <div style={{ width: "32px", height: "32px", borderRadius: "50%", backgroundColor: config.colors.primary, color: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 700, flexShrink: 0 }}>{initials}</div>
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <span style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{displayName}</span>
-              <span style={{ fontSize: "10px", color: "#999", display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.email}</span>
+            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand-primary text-[11px] font-bold text-white">{initials}</div>
+            <div className="min-w-0 flex-1">
+              <span className="block truncate text-xs font-semibold text-brand-dark">{displayName}</span>
+              <span className="block truncate text-[10px] text-gray-400">{user.email}</span>
               {user.role === "member" && (virtualAccount?.accountNumber || user.accountNumber) && (
-                <span style={{ fontSize: "9px", fontFamily: "'JetBrains Mono', monospace", color: config.colors.primary, fontWeight: 600, display: "block", marginTop: "0.125rem", letterSpacing: "0.03em" }}>
+                <span className="mt-0.5 block font-mono text-[9px] font-semibold tracking-wide text-brand-primary">
                   {virtualAccount?.accountNumber || user.accountNumber}
                 </span>
               )}
             </div>
-            <button onClick={handleLogout} title="Sign out"
-              style={{ background: "none", border: "none", cursor: "pointer", padding: "0.25rem", color: "#999", flexShrink: 0, transition: "color 0.2s ease" }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = "#DC2626"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = "#999"; }}>
+            <button
+              onClick={handleLogout}
+              title="Sign out"
+              className="flex-shrink-0 cursor-pointer p-1 text-gray-400 transition-colors hover:text-red-600"
+            >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
               </svg>
@@ -372,14 +334,14 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      <main style={{ flex: 1, marginLeft: isMobile ? 0 : "240px", minWidth: 0, animation: "fadeIn 0.5s ease-out both" }}>
+      <main className={`min-w-0 flex-1 animate-fade-in ${isMobile ? "ml-0" : "ml-60"}`}>
         {isMobile && (
-          <div style={{ position: "sticky", top: 0, zIndex: 20, backgroundColor: "#ffffff", borderBottom: "1px solid #EAEAEA", padding: "0.75rem 1rem", display: "flex", alignItems: "center", gap: "0.75rem" }}>
-            <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ background: "none", border: "none", cursor: "pointer", padding: "0.25rem", color: "#2D2D2D" }}>
+          <div className="sticky top-0 z-20 flex items-center gap-3 border-b border-black/5 bg-white px-4 py-3">
+            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="cursor-pointer p-1 text-brand-dark">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
             </button>
-            <span style={{ fontSize: "1rem", fontWeight: 800, letterSpacing: "-0.05em", color: config.colors.primary }}>{config.name.toUpperCase().replace(/\s+/g, "")}</span>
-            <div style={{ marginLeft: "auto" }}>
+            <span className="font-display text-base font-bold tracking-tight text-brand-primary">{config.name.toUpperCase().replace(/\s+/g, "")}</span>
+            <div className="ml-auto">
               <NotificationBell />
             </div>
           </div>

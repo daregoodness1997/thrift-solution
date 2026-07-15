@@ -136,62 +136,51 @@ export default function NotificationsPage() {
 
   function Toggle({ on }: { on: boolean }) {
     return (
-      <div style={{ width: "40px", height: "22px", borderRadius: "11px", border: "none", backgroundColor: on ? cfg.colors.primary : "#E5E7EB", cursor: "pointer", position: "relative", transition: "background 0.2s" }}>
-        <div style={{ width: "18px", height: "18px", borderRadius: "50%", backgroundColor: "#ffffff", position: "absolute", top: "2px", left: on ? "20px" : "2px", transition: "left 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }} />
+      <div className="relative h-[22px] w-10 cursor-pointer rounded-[11px] border-0 transition-colors" style={{ backgroundColor: on ? cfg.colors.primary : "#E5E7EB" }}>
+        <div className="absolute top-0.5 h-[18px] w-[18px] rounded-full bg-white shadow transition-[left]" style={{ left: on ? "20px" : "2px" }} />
       </div>
     );
   }
 
   return (
-    <div style={{ maxWidth: "1000px", margin: "0 auto", padding: "0 clamp(1rem, 3vw, 2rem) 3rem" }}>
+    <div className="mx-auto max-w-[1000px] px-[clamp(1rem,3vw,2rem)] pb-12">
       <PageHeader
         badgeLabel="Activity"
         heading="Notifications"
         description={`You have ${count} unread ${count === 1 ? "notification" : "notifications"}.`}
         right={
           count > 0 ? (
-            <Button onClick={handleMarkAll} style={{ fontSize: "12px" }}>Mark all as read</Button>
+            <Button onClick={handleMarkAll} className="text-xs">Mark all as read</Button>
           ) : undefined
         }
       />
 
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 2fr) minmax(0, 1fr)", gap: "1.5rem", alignItems: "start" }}>
+      <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,1fr)] items-start gap-6">
         <div>
-          <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
+          <div className="mb-4 flex gap-2">
             {(["all", "unread"] as const).map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
-                style={{
-                  padding: "0.4rem 1rem",
-                  borderRadius: "9999px",
-                  fontSize: "11px",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  border: "1px solid",
-                  borderColor: filter === f ? cfg.colors.primary : "#EAEAEA",
-                  backgroundColor: filter === f ? cfg.colors.primary : "#ffffff",
-                  color: filter === f ? "#ffffff" : "#717171",
-                  transition: "all 0.2s ease",
-                }}
+                className="cursor-pointer rounded-full border border-gray-200 text-[11px] font-semibold transition-all" style={{ borderColor: filter === f ? cfg.colors.primary : "#EAEAEA", backgroundColor: filter === f ? cfg.colors.primary : "#ffffff", color: filter === f ? "#ffffff" : "#717171" }}
               >
                 {f === "all" ? "All" : "Unread"}
               </button>
             ))}
           </div>
 
-          <Card padding="0.5rem" style={{ minHeight: "200px" }}>
+          <Card padding="0.5rem" className="min-h-[200px]">
             {loading ? (
-              <div style={{ padding: "3rem", textAlign: "center", fontSize: "13px", color: "#999" }}>Loading notifications…</div>
+              <div className="p-12 text-center text-[13px] text-gray-400">Loading notifications…</div>
             ) : items.length === 0 ? (
-              <div style={{ padding: "3rem 1rem", textAlign: "center" }}>
-                <div style={{ color: "#D1D5DB", marginBottom: "0.5rem" }}>
-                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={{ margin: "0 auto" }}>
+              <div className="px-4 py-12 text-center">
+                <div className="mb-2 text-[#D1D5DB]">
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" className="mx-auto">
                     <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
                     <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                   </svg>
                 </div>
-                <p style={{ fontSize: "13px", color: "#999", margin: 0 }}>
+                <p className="m-0 text-[13px] text-gray-400">
                   {filter === "unread" ? "No unread notifications." : "You have no notifications yet."}
                 </p>
               </div>
@@ -202,41 +191,31 @@ export default function NotificationsPage() {
                   const unread = n.status === "unread";
                   const Row = (
                     <div
-                      style={{
-                        display: "flex",
-                        gap: "0.75rem",
-                        padding: "1rem",
-                        cursor: unread ? "pointer" : "default",
-                        borderBottom: "1px solid #F4F4F4",
-                        backgroundColor: unread ? `${cfg.colors.primary}08` : "#ffffff",
-                        transition: "background 0.15s ease",
-                      }}
+                      className="flex gap-3 border-b border-[#F4F4F4] p-4 transition-colors" style={{ cursor: unread ? "pointer" : "default", backgroundColor: unread ? `${cfg.colors.primary}08` : "#ffffff" }}
                       onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = unread ? `${cfg.colors.primary}12` : "#FAFAFA"; }}
                       onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = unread ? `${cfg.colors.primary}08` : "#ffffff"; }}
                     >
                       {unread && (
-                        <span style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: cfg.colors.primary, flexShrink: 0, marginTop: "6px" }} />
+                        <span className="mt-1.5 h-2 w-2 flex-shrink-0 rounded-full" style={{ backgroundColor: cfg.colors.primary }} />
                       )}
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "0.5rem" }}>
-                          <span style={{ fontSize: "13px", fontWeight: unread ? 600 : 500, color: "#2D2D2D" }}>{n.title}</span>
-                          <span style={{ fontSize: "10px", color: "#B0B0B0", flexShrink: 0 }}>{timeAgo(n.createdAt)}</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-baseline justify-between gap-2">
+                          <span className="text-[13px] text-[#2D2D2D]" style={{ fontWeight: unread ? 600 : 500 }}>{n.title}</span>
+                          <span className="flex-shrink-0 text-[10px] text-[#B0B0B0]">{timeAgo(n.createdAt)}</span>
                         </div>
-                        <p style={{ fontSize: "12px", color: "#717171", fontWeight: 300, margin: "0.35rem 0 0", lineHeight: 1.45 }}>{n.body}</p>
+                        <p className="mt-1.5 text-xs font-light leading-[1.45] text-gray-500">{n.body}</p>
                       </div>
                       <button
                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDelete(n.id); }}
                         title="Delete"
-                        style={{ background: "none", border: "none", cursor: "pointer", color: "#C9C9C9", padding: "0.25rem", alignSelf: "flex-start", flexShrink: 0 }}
-                        onMouseEnter={(e) => { e.currentTarget.style.color = "#DC2626"; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.color = "#C9C9C9"; }}
+                        className="flex-shrink-0 cursor-pointer self-start border-0 bg-none p-1 text-[#C9C9C9] hover:text-red-600"
                       >
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
                       </button>
                     </div>
                   );
                   return href && unread ? (
-                    <Link key={n.id} href={href} style={{ textDecoration: "none", display: "block" }} onClick={() => handleRead(n)}>
+                    <Link key={n.id} href={href} className="block no-underline" onClick={() => handleRead(n)}>
                       {Row}
                     </Link>
                   ) : (
@@ -247,19 +226,19 @@ export default function NotificationsPage() {
             )}
 
             {totalPages > 1 && (
-              <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "0.75rem", padding: "1rem" }}>
+              <div className="flex items-center justify-center gap-3 p-4">
                 <button
                   disabled={page <= 1}
                   onClick={() => loadList(page - 1)}
-                  style={{ padding: "0.4rem 1rem", borderRadius: "9999px", fontSize: "11px", fontWeight: 600, cursor: page <= 1 ? "default" : "pointer", border: "1px solid #EAEAEA", backgroundColor: "#fff", color: page <= 1 ? "#CCC" : "#717171" }}
+                  className="rounded-full border border-gray-200 bg-white px-4 py-1.5 text-[11px] font-semibold" style={{ cursor: page <= 1 ? "default" : "pointer", color: page <= 1 ? "#CCC" : "#717171" }}
                 >
                   Previous
                 </button>
-                <span style={{ fontSize: "11px", color: "#999" }}>Page {page} of {totalPages}</span>
+                <span className="text-[11px] text-gray-400">Page {page} of {totalPages}</span>
                 <button
                   disabled={page >= totalPages}
                   onClick={() => loadList(page + 1)}
-                  style={{ padding: "0.4rem 1rem", borderRadius: "9999px", fontSize: "11px", fontWeight: 600, cursor: page >= totalPages ? "default" : "pointer", border: "1px solid #EAEAEA", backgroundColor: "#fff", color: page >= totalPages ? "#CCC" : "#717171" }}
+                  className="rounded-full border border-gray-200 bg-white px-4 py-1.5 text-[11px] font-semibold" style={{ cursor: page >= totalPages ? "default" : "pointer", color: page >= totalPages ? "#CCC" : "#717171" }}
                 >
                   Next
                 </button>
@@ -269,28 +248,28 @@ export default function NotificationsPage() {
         </div>
 
         <Card padding="1.5rem">
-          <h3 style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", fontWeight: 700, marginBottom: "1rem" }}>Notification Preferences</h3>
+          <h3 className="mb-4 text-[9px] font-bold uppercase tracking-[0.1em] text-gray-400">Notification Preferences</h3>
           {prefs ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+            <div className="flex flex-col gap-1">
               {([
                 { key: "inApp" as const, label: "In-App", desc: "See notifications in your dashboard." },
                 { key: "email" as const, label: "Email", desc: "Receive notifications by email." },
                 { key: "sms" as const, label: "SMS", desc: "Receive critical alerts by text." },
               ]).map((row) => (
-                <div key={row.key} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.75rem 0", borderBottom: "1px solid #F0F0F0" }}>
-                  <div style={{ paddingRight: "1rem" }}>
-                    <span style={{ fontSize: "12px", fontWeight: 500, color: "#2D2D2D", display: "block" }}>{row.label}</span>
-                    <span style={{ fontSize: "11px", color: "#717171", fontWeight: 300 }}>{row.desc}</span>
+                <div key={row.key} className="flex items-center justify-between border-b border-[#F0F0F0] py-3">
+                  <div className="pr-4">
+                    <span className="block text-xs font-medium text-[#2D2D2D]">{row.label}</span>
+                    <span className="text-[11px] font-light text-gray-500">{row.desc}</span>
                   </div>
-                  <button onClick={() => handlePrefToggle(row.key, !prefs[row.key])} aria-label={`Toggle ${row.label}`} style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
+                  <button onClick={() => handlePrefToggle(row.key, !prefs[row.key])} aria-label={`Toggle ${row.label}`} className="cursor-pointer border-0 bg-none p-0">
                     <Toggle on={prefs[row.key]} />
                   </button>
                 </div>
               ))}
-              {prefsSaved && <span style={{ fontSize: "11px", color: "#059669", fontWeight: 600, marginTop: "0.5rem" }}>Preferences saved!</span>}
+              {prefsSaved && <span className="mt-2 text-[11px] font-semibold text-emerald-600">Preferences saved!</span>}
             </div>
           ) : (
-            <div style={{ padding: "1rem", textAlign: "center", fontSize: "12px", color: "#999" }}>Loading preferences…</div>
+            <div className="p-4 text-center text-xs text-gray-400">Loading preferences…</div>
           )}
         </Card>
       </div>

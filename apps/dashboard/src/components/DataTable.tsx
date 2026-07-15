@@ -66,7 +66,7 @@ export function DataTable<T>({
 
   if (loading) {
     return (
-      <div style={{ textAlign: "center", padding: "3rem", color: "#999", fontSize: "13px" }}>
+      <div className="text-center p-12 text-gray-400 text-[13px]">
         Loading...
       </div>
     );
@@ -74,28 +74,24 @@ export function DataTable<T>({
 
   if (data.length === 0) {
     return (
-      <div style={{ textAlign: "center", padding: "3rem", color: "#999", fontSize: "13px" }}>
+      <div className="text-center p-12 text-gray-400 text-[13px]">
         {emptyMessage}
-        {emptyAction && <div style={{ marginTop: "0.75rem" }}>{emptyAction}</div>}
+        {emptyAction && <div className="mt-3">{emptyAction}</div>}
       </div>
     );
   }
 
   return (
     <div>
-      <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", fontSize: "12px", borderCollapse: "collapse", ...(minWidth ? { minWidth } : {}) }}>
+      <div className="overflow-x-auto">
+        <table className="w-full text-xs border-collapse" style={minWidth ? { minWidth } : undefined}>
           <thead>
-            <tr style={{ borderBottom: "1px solid #F0F0F0", color: "#999", textTransform: "uppercase", letterSpacing: "0.1em", fontSize: "9px", fontFamily: "'JetBrains Mono', monospace" }}>
+            <tr className="border-b border-gray-100 text-gray-400 uppercase tracking-[0.1em] text-[9px] font-mono">
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  style={{
-                    padding: "1rem 1.5rem",
-                    textAlign: col.align || "left",
-                    fontWeight: 600,
-                    ...(col.width ? { width: col.width } : {}),
-                  }}
+                  className="px-6 py-4 font-semibold"
+                  style={{ textAlign: col.align || "left", ...(col.width ? { width: col.width } : {}) }}
                 >
                   {col.header}
                 </th>
@@ -106,23 +102,15 @@ export function DataTable<T>({
             {data.map((item, idx) => (
               <tr
                 key={idx}
-                style={{
-                  borderBottom: "1px solid #F5F5F5",
-                  transition: "background 0.15s",
-                  cursor: onRowClick ? "pointer" : "default",
-                }}
+                className="border-b border-[#F5F5F5] transition-colors duration-150 hover:bg-gray-50"
+                style={{ cursor: onRowClick ? "pointer" : "default" }}
                 onClick={() => onRowClick?.(item)}
-                onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#F9FAFB"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
               >
                 {columns.map((col) => (
                   <td
                     key={col.key}
-                    style={{
-                      padding: "0.875rem 1.5rem",
-                      textAlign: col.align || "left",
-                      ...(col.mono ? { fontFamily: "'JetBrains Mono', monospace" } : {}),
-                    }}
+                    className={`px-6 py-3.5 ${col.mono ? "font-mono" : ""}`}
+                    style={{ textAlign: col.align || "left" }}
                   >
                     {col.render(item, idx)}
                   </td>
@@ -134,47 +122,33 @@ export function DataTable<T>({
       </div>
 
       {totalPages > 1 && (
-        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", padding: "1rem 1.5rem", borderTop: "1px solid #F0F0F0", gap: "0.75rem" }}>
-          <span style={{ fontSize: "11px", color: "#999", fontFamily: "'JetBrains Mono', monospace" }}>
+        <div className="flex flex-wrap justify-between items-center px-6 py-4 border-t border-gray-100 gap-3">
+          <span className="text-[11px] text-gray-400 font-mono">
             Showing {startItem}–{endItem} of {total}
           </span>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+          <div className="flex items-center gap-1">
             <button
               onClick={() => onPageChange(page - 1)}
               disabled={page <= 1}
-              style={{
-                padding: "0.375rem 0.625rem",
-                borderRadius: "0.375rem",
-                fontSize: "11px",
-                fontWeight: 600,
-                cursor: page <= 1 ? "not-allowed" : "pointer",
-                border: "1px solid #EAEAEA",
-                backgroundColor: "#ffffff",
-                color: page <= 1 ? "#D1D5DB" : "#717171",
-                transition: "all 0.15s",
-              }}
+              className="px-2.5 py-1.5 rounded-md text-[11px] font-semibold border border-[#EAEAEA] bg-white transition-all duration-150"
+              style={{ cursor: page <= 1 ? "not-allowed" : "pointer", color: page <= 1 ? "#D1D5DB" : "#717171" }}
             >
               Prev
             </button>
             {getVisiblePages().map((p, i) =>
               p === "..." ? (
-                <span key={`dots-${i}`} style={{ padding: "0.375rem 0.375rem", fontSize: "11px", color: "#D1D5DB" }}>
+                <span key={`dots-${i}`} className="px-1.5 py-1.5 text-[11px] text-[#D1D5DB]">
                   ...
                 </span>
               ) : (
                 <button
                   key={p}
                   onClick={() => onPageChange(p as number)}
+                  className="px-2.5 py-1.5 rounded-md text-[11px] font-semibold cursor-pointer transition-all duration-150"
                   style={{
-                    padding: "0.375rem 0.625rem",
-                    borderRadius: "0.375rem",
-                    fontSize: "11px",
-                    fontWeight: 600,
-                    cursor: "pointer",
                     border: `1px solid ${p === page ? accentColor : "#EAEAEA"}`,
                     backgroundColor: p === page ? accentColor : "#ffffff",
                     color: p === page ? "#ffffff" : "#717171",
-                    transition: "all 0.15s",
                   }}
                 >
                   {p}
@@ -184,17 +158,8 @@ export function DataTable<T>({
             <button
               onClick={() => onPageChange(page + 1)}
               disabled={page >= totalPages}
-              style={{
-                padding: "0.375rem 0.625rem",
-                borderRadius: "0.375rem",
-                fontSize: "11px",
-                fontWeight: 600,
-                cursor: page >= totalPages ? "not-allowed" : "pointer",
-                border: "1px solid #EAEAEA",
-                backgroundColor: "#ffffff",
-                color: page >= totalPages ? "#D1D5DB" : "#717171",
-                transition: "all 0.15s",
-              }}
+              className="px-2.5 py-1.5 rounded-md text-[11px] font-semibold border border-[#EAEAEA] bg-white transition-all duration-150"
+              style={{ cursor: page >= totalPages ? "not-allowed" : "pointer", color: page >= totalPages ? "#D1D5DB" : "#717171" }}
             >
               Next
             </button>

@@ -1,10 +1,11 @@
-import { config } from "@thrift/config";
-import { Card, Button } from "@thrift/ui";
+import { Check } from "lucide-react";
+import { Container, SectionHeading, Badge } from "@/components/ui/Section";
+import { Button } from "@/components/ui/Button";
 
 const steps = [
   { step: "01", title: "Create or Join a Circle", description: "Start a thrift group with people you trust, or join an existing circle in your community. Set your contribution amount and cycle frequency.", details: ["Flexible contribution amounts", "Daily, weekly, or monthly cycles", "Invite members by link or code"] },
   { step: "02", title: "Contribute Each Cycle", description: "Pay your fixed amount every cycle. Contributions are held securely and tracked transparently for all members to see.", details: ["Secure escrow protection", "Real-time contribution tracking", "Automated payment reminders"] },
-  { step: "03", title: "Collect Your Pot", description: "When your turn comes, receive the full collected amount from all members. Build your savings systematically over time.", details: ["Guaranteed payout schedule", "Trust score builds with each cycle", "No delays or manual coordination"] },
+  { step: "03", title: "Collect Your Pot", description: "When your turn comes, receive the full collected amount from all members. Build your savings systematically over time.", details: ["Guaranteed payout schedule", "Trust score builds each cycle", "No manual coordination"] },
 ];
 
 const faqs = [
@@ -16,66 +17,68 @@ const faqs = [
 
 export default function HowItWorks() {
   return (
-    <>
-      <main style={{ flex: 1 }}>
-        <div style={{ background: `linear-gradient(135deg, ${config.colors.primary}0A 0%, ${config.colors.surface} 50%, ${config.colors.accent}08 100%)`, borderBottom: `1px solid ${config.colors.primary}10`, padding: "clamp(2rem, 6vw, 4rem) clamp(1rem, 4vw, 2rem)" }}>
-          <div style={{ maxWidth: "800px", margin: "0 auto", textAlign: "center" }}>
-            <span style={{ color: config.colors.primary, textTransform: "uppercase", letterSpacing: "0.15em", fontSize: "10px", fontWeight: 700 }}>Simple Process</span>
-            <h1 style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", fontWeight: 300, color: "#1A1A1A", marginTop: "0.5rem", letterSpacing: "-0.025em" }}>
-              How <span style={{ fontStyle: "italic", fontFamily: "'Playfair Display', serif", color: config.colors.primary, fontWeight: 500 }}>Arosco</span> works
+    <main className="min-h-screen bg-brand-cream pt-32">
+      <section className="border-b border-brand-primary/10 bg-gradient-to-b from-brand-primary/[0.06] to-brand-cream px-6 pb-16 pt-10">
+        <Container>
+          <div className="mx-auto max-w-2xl text-center">
+            <Badge>Simple Process</Badge>
+            <h1 className="mt-4 font-display text-4xl font-bold tracking-tight text-brand-dark sm:text-5xl">
+              How <span className="bg-gradient-to-r from-brand-primary to-brand-accent bg-clip-text text-transparent italic">Arosco</span> works
             </h1>
-            <p style={{ fontSize: "14px", color: "#666", fontWeight: 300, marginTop: "0.75rem", lineHeight: 1.7 }}>
+            <p className="mt-4 text-base font-light text-brand-muted">
               Three simple steps to start saving with your community.
             </p>
           </div>
+        </Container>
+      </section>
+
+      <Container className="py-16">
+        <div className="flex flex-col gap-6">
+          {steps.map((s, i) => (
+            <div key={s.step} className="overflow-hidden rounded-2xl border-t-[3px] border-brand-primary/30 bg-white p-8 shadow-sm">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div>
+                  <span className="font-mono text-4xl font-bold text-brand-primary opacity-20">{s.step}</span>
+                  <h2 className="mt-2 text-xl font-semibold text-brand-dark">{s.title}</h2>
+                  <p className="mt-2 text-sm font-light leading-relaxed text-brand-muted">{s.description}</p>
+                </div>
+                <div className="flex flex-col justify-center gap-3">
+                  {s.details.map((d, j) => (
+                    <div key={j} className="flex items-center gap-3 text-sm text-brand-dark">
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-brand-primary/15 text-brand-primary">
+                        <Check className="h-3 w-3" />
+                      </span>
+                      {d}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
 
-        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(1.5rem, 4vw, 3rem) clamp(1rem, 4vw, 2rem)" }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-            {steps.map((s, i) => (
-              <Card key={s.step} padding="2rem" style={{ borderTop: `3px solid ${config.colors.primary}${["20", "35", "50"][i]}` }}>
-                <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-                  <span style={{ fontSize: "2.5rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: config.colors.primary, opacity: 0.2 }}>{s.step}</span>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "2rem" }}>
-                    <div>
-                      <h2 style={{ fontSize: "1.125rem", fontWeight: 500, color: "#1A1A1A", marginBottom: "0.5rem" }}>{s.title}</h2>
-                      <p style={{ fontSize: "13px", color: "#5A5A5A", fontWeight: 300, lineHeight: 1.7 }}>{s.description}</p>
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                    {s.details.map((d, j) => (
-                      <div key={j} style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "12px", color: "#2D2D2D" }}>
-                        <div style={{ width: 16, height: 16, borderRadius: "50%", backgroundColor: `${config.colors.primary}15`, color: config.colors.primary, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", flexShrink: 0 }}>&#10003;</div>
-                        <span>{d}</span>
-                      </div>
-                    ))}
-                    </div>
-                  </div>
-                </div>
-              </Card>
+        <div className="mt-16">
+          <h2 className="mb-6 text-xl font-semibold text-brand-dark">Frequently Asked Questions</h2>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {faqs.map((faq, i) => (
+              <div key={i} className="rounded-2xl border border-brand-primary/10 bg-white p-6 shadow-sm">
+                <h3 className="text-sm font-semibold text-brand-dark">{faq.q}</h3>
+                <p className="mt-2 text-sm font-light leading-relaxed text-brand-muted">{faq.a}</p>
+              </div>
             ))}
           </div>
         </div>
 
-        <div style={{ background: `linear-gradient(135deg, ${config.colors.primary}0A 0%, ${config.colors.surface} 50%, ${config.colors.accent}08 100%)`, borderTop: `1px solid ${config.colors.primary}10`, padding: "3rem 2rem" }}>
-          <div style={{ maxWidth: "800px", margin: "0 auto" }}>
-            <h2 style={{ fontSize: "1.125rem", fontWeight: 500, color: "#1A1A1A", marginBottom: "1.5rem" }}>Frequently Asked Questions</h2>
-            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              {faqs.map((faq, i) => (
-                <Card key={i} padding="1.25rem">
-                  <h3 style={{ fontSize: "13px", fontWeight: 600, color: "#1A1A1A", marginBottom: "0.375rem" }}>{faq.q}</h3>
-                  <p style={{ fontSize: "12px", color: "#5A5A5A", fontWeight: 300, lineHeight: 1.7 }}>{faq.a}</p>
-                </Card>
-              ))}
-            </div>
+        <div className="mt-16 rounded-3xl border border-brand-primary/10 bg-gradient-to-br from-brand-primary/5 to-brand-accent/5 p-10 text-center">
+          <h2 className="font-display text-2xl font-semibold text-brand-dark">Ready to start saving?</h2>
+          <p className="mx-auto mt-2 max-w-md text-sm font-light text-brand-muted">
+            Create a free circle or join an existing one today.
+          </p>
+          <div className="mt-6 flex justify-center">
+            <Button href="/register" size="lg">Get Started Free</Button>
           </div>
         </div>
-
-        <div style={{ padding: "clamp(1.5rem, 4vw, 3rem) clamp(1rem, 4vw, 2rem)", textAlign: "center" }}>
-          <h2 style={{ fontSize: "1.5rem", fontWeight: 300, color: "#1A1A1A", marginBottom: "0.75rem" }}>Ready to start saving?</h2>
-          <p style={{ fontSize: "13px", color: "#717171", fontWeight: 300, marginBottom: "1.5rem" }}>Create a free circle or join an existing one today.</p>
-          <Button size="lg">Get Started Free</Button>
-        </div>
-      </main>
-    </>
+      </Container>
+    </main>
   );
 }

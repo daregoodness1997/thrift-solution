@@ -171,21 +171,8 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div
-        style={{
-          maxWidth: "900px",
-          margin: "0 auto",
-          padding: "clamp(1rem, 3vw, 2rem)",
-        }}
-      >
-        <div
-          style={{
-            textAlign: "center",
-            padding: "4rem",
-            color: "#999",
-            fontSize: "13px",
-          }}
-        >
+      <div className="max-w-[900px] mx-auto p-[clamp(1rem,3vw,2rem)]">
+        <div className="text-center p-16 text-gray-400 text-[13px]">
           Loading profile...
         </div>
       </div>
@@ -194,21 +181,8 @@ export default function ProfilePage() {
 
   if (!profile) {
     return (
-      <div
-        style={{
-          maxWidth: "900px",
-          margin: "0 auto",
-          padding: "clamp(1rem, 3vw, 2rem)",
-        }}
-      >
-        <div
-          style={{
-            textAlign: "center",
-            padding: "4rem",
-            color: "#999",
-            fontSize: "13px",
-          }}
-        >
+      <div className="max-w-[900px] mx-auto p-[clamp(1rem,3vw,2rem)]">
+        <div className="text-center p-16 text-gray-400 text-[13px]">
           Failed to load profile.
         </div>
       </div>
@@ -227,81 +201,30 @@ export default function ProfilePage() {
   });
 
   return (
-    <div
-      style={{
-        maxWidth: "900px",
-        margin: "0 auto",
-        padding: "clamp(1rem, 3vw, 2rem)",
-      }}
-    >
+    <div className="max-w-[900px] mx-auto p-[clamp(1rem,3vw,2rem)]">
       <PageHeader badgeLabel="Account" heading="My" accentText="Profile" />
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-          gap: "1.5rem",
-          marginBottom: "2rem",
-        }}
-      >
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-6 mb-8">
         <FadeInUp delay={200}>
           <Card padding="1.5rem">
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "1rem",
-                marginBottom: "1.5rem",
-              }}
-            >
+            <div className="flex items-center gap-4 mb-6">
               <div
-                style={{
-                  width: "64px",
-                  height: "64px",
-                  borderRadius: "50%",
-                  background: `linear-gradient(135deg, ${cfg.colors.primary}, ${cfg.colors.accent})`,
-                  color: "#ffffff",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "24px",
-                  fontWeight: 700,
-                  flexShrink: 0,
-                }}
+                className="w-16 h-16 rounded-full text-white flex items-center justify-center text-2xl font-bold flex-shrink-0"
+                style={{ background: `linear-gradient(135deg, ${cfg.colors.primary}, ${cfg.colors.accent})` }}
               >
                 {initials}
               </div>
               <div>
-                <h2
-                  style={{
-                    fontSize: "1.125rem",
-                    fontWeight: 600,
-                    color: "#1A1A1A",
-                  }}
-                >
+                <h2 className="text-lg font-semibold text-brand-dark">
                   {profile.name}
                 </h2>
-                <p style={{ fontSize: "12px", color: "#717171" }}>
+                <p className="text-xs text-gray-500">
                   {profile.email}
                 </p>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.375rem",
-                    marginTop: "0.25rem",
-                  }}
-                >
+                <div className="flex items-center gap-1.5 mt-1">
                   <div
-                    style={{
-                      width: "16px",
-                      height: "16px",
-                      borderRadius: "50%",
-                      background: `linear-gradient(135deg, ${cfg.colors.primary}, ${cfg.colors.accent})`,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
+                    className="w-4 h-4 rounded-full flex items-center justify-center"
+                    style={{ background: `linear-gradient(135deg, ${cfg.colors.primary}, ${cfg.colors.accent})` }}
                   >
                     <svg
                       width="10"
@@ -313,11 +236,8 @@ export default function ProfilePage() {
                     </svg>
                   </div>
                   <span
-                    style={{
-                      fontSize: "10px",
-                      fontWeight: 700,
-                      color: cfg.colors.accent,
-                    }}
+                    className="text-[10px] font-bold"
+                    style={{ color: cfg.colors.accent }}
                   >
                     {profile.stats.trustLevel}
                   </span>
@@ -325,13 +245,7 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "0.75rem",
-              }}
-            >
+            <div className="grid grid-cols-2 gap-3">
               {[
                 { label: "Member Since", value: memberSince },
                 {
@@ -349,33 +263,12 @@ export default function ProfilePage() {
               ].map((item) => (
                 <div
                   key={item.label}
-                  style={{
-                    padding: "0.625rem",
-                    borderRadius: "0.5rem",
-                    backgroundColor: "#FAFAFA",
-                  }}
+                  className="p-2.5 rounded-lg bg-gray-50"
                 >
-                  <span
-                    style={{
-                      fontSize: "9px",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.1em",
-                      color: "#999",
-                      fontWeight: 700,
-                      display: "block",
-                    }}
-                  >
+                  <span className="block text-[9px] uppercase tracking-[0.1em] text-gray-400 font-bold">
                     {item.label}
                   </span>
-                  <span
-                    style={{
-                      fontSize: "13px",
-                      fontWeight: 600,
-                      color: "#2D2D2D",
-                      display: "block",
-                      marginTop: "0.125rem",
-                    }}
-                  >
+                  <span className="block text-[13px] font-semibold text-brand-dark mt-0.5">
                     {item.value}
                   </span>
                 </div>
@@ -386,108 +279,49 @@ export default function ProfilePage() {
 
         <FadeInUp delay={250}>
           <Card padding="1.5rem">
-            <div style={{ marginBottom: "1.25rem" }}>
+            <div className="mb-5">
               <ColorfulBadge label="Account" color={cfg.colors.primary} />
-              <h3
-                style={{
-                  fontSize: "1rem",
-                  fontWeight: 500,
-                  color: "#1A1A1A",
-                  marginTop: "0.5rem",
-                }}
-              >
+              <h3 className="text-base font-medium text-brand-dark mt-2">
                 Account Details
               </h3>
             </div>
 
-            <div style={{ marginBottom: "1.25rem" }}>
-              <span
-                style={{
-                  fontSize: "9px",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.1em",
-                  color: "#999",
-                  fontWeight: 700,
-                  display: "block",
-                  marginBottom: "0.375rem",
-                }}
-              >
+            <div className="mb-5">
+              <span className="block text-[9px] uppercase tracking-[0.1em] text-gray-400 font-bold mb-1.5">
                 {virtualAccount ? "Bank Account Number" : "Account Number"}
               </span>
-              <div
-                style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
-              >
-                <span
-                  style={{
-                    fontSize: "1.25rem",
-                    fontFamily: "'JetBrains Mono', monospace",
-                    fontWeight: 700,
-                    color: "#1A1A1A",
-                    letterSpacing: "0.05em",
-                  }}
-                >
+              <div className="flex items-center gap-2">
+                <span className="text-[1.25rem] font-mono font-bold text-brand-dark tracking-[0.05em]">
                   {virtualAccount
                     ? virtualAccount.accountNumber
                     : profile.accountNumber}
                 </span>
                 <button
                   onClick={handleCopyAccount}
+                  className="px-2 py-1 rounded-md text-[10px] font-semibold cursor-pointer transition whitespace-nowrap border"
                   style={{
-                    padding: "0.25rem 0.5rem",
-                    borderRadius: "0.375rem",
-                    fontSize: "10px",
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    border: `1px solid ${cfg.colors.primary}`,
+                    borderColor: cfg.colors.primary,
                     backgroundColor: accountCopied ? "#ECFDF5" : "transparent",
                     color: accountCopied ? "#059669" : cfg.colors.primary,
-                    transition: "all 0.2s ease",
-                    whiteSpace: "nowrap",
                   }}
                 >
                   {accountCopied ? "Copied!" : "Copy"}
                 </button>
               </div>
               {virtualAccount && (
-                <span
-                  style={{
-                    fontSize: "11px",
-                    color: "#717171",
-                    display: "block",
-                    marginTop: "0.25rem",
-                  }}
-                >
+                <span className="block text-[11px] text-gray-500 mt-1">
                   {virtualAccount.bankName}
                 </span>
               )}
               {virtualAccount && (
-                <span
-                  style={{
-                    fontSize: "13px",
-                    color: "#717171",
-                    display: "block",
-                    marginTop: "0.25rem",
-                    textTransform: "uppercase",
-                    fontWeight: 700,
-                  }}
-                >
+                <span className="block text-[13px] text-gray-500 mt-1 uppercase font-bold">
                   {virtualAccount.accountName}
                 </span>
               )}
             </div>
 
-            <div style={{ marginBottom: "1.25rem" }}>
-              <span
-                style={{
-                  fontSize: "9px",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.1em",
-                  color: "#999",
-                  fontWeight: 700,
-                  display: "block",
-                  marginBottom: "0.375rem",
-                }}
-              >
+            <div className="mb-5">
+              <span className="block text-[9px] uppercase tracking-[0.1em] text-gray-400 font-bold mb-1.5">
                 Account Tier
               </span>
               {(() => {
@@ -495,12 +329,8 @@ export default function ProfilePage() {
                   tierConfig[profile.accountTier] || tierConfig.basic;
                 return (
                   <div
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full"
                     style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "0.5rem",
-                      padding: "0.375rem 0.75rem",
-                      borderRadius: "9999px",
                       backgroundColor: tier.bg,
                       border: `1px solid ${tier.color}20`,
                     }}
@@ -518,11 +348,8 @@ export default function ProfilePage() {
                       <path d={tier.icon} />
                     </svg>
                     <span
-                      style={{
-                        fontSize: "12px",
-                        fontWeight: 700,
-                        color: tier.color,
-                      }}
+                      className="text-xs font-bold"
+                      style={{ color: tier.color }}
                     >
                       {tier.label}
                     </span>
@@ -531,34 +358,11 @@ export default function ProfilePage() {
               })()}
             </div>
 
-            <div
-              style={{
-                padding: "0.75rem",
-                borderRadius: "0.5rem",
-                backgroundColor: "#FAFAFA",
-              }}
-            >
-              <span
-                style={{
-                  fontSize: "9px",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.1em",
-                  color: "#999",
-                  fontWeight: 700,
-                  display: "block",
-                  marginBottom: "0.25rem",
-                }}
-              >
+            <div className="p-3 rounded-lg bg-gray-50">
+              <span className="block text-[9px] uppercase tracking-[0.1em] text-gray-400 font-bold mb-1">
                 Role
               </span>
-              <span
-                style={{
-                  fontSize: "13px",
-                  fontWeight: 600,
-                  color: "#2D2D2D",
-                  textTransform: "capitalize",
-                }}
-              >
+              <span className="text-[13px] font-semibold text-brand-dark capitalize">
                 {profile.role}
               </span>
             </div>
@@ -567,49 +371,24 @@ export default function ProfilePage() {
 
         <FadeInUp delay={300}>
           <Card padding="1.5rem">
-            <div style={{ marginBottom: "1.25rem" }}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
+            <div className="mb-5">
+              <div className="flex justify-between items-center">
                 <ColorfulBadge label="Financial" color={cfg.colors.primary} />
                 {!editing && (
                   <button
                     onClick={() => setEditing(true)}
-                    style={{
-                      fontSize: "11px",
-                      fontWeight: 600,
-                      color: cfg.colors.primary,
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                    }}
+                    className="text-[11px] font-semibold bg-none border-none cursor-pointer"
+                    style={{ color: cfg.colors.primary }}
                   >
                     Edit
                   </button>
                 )}
               </div>
-              <h3
-                style={{
-                  fontSize: "1rem",
-                  fontWeight: 500,
-                  color: "#1A1A1A",
-                  marginTop: "0.5rem",
-                }}
-              >
+              <h3 className="text-base font-medium text-brand-dark mt-2">
                 Financial Summary
               </h3>
             </div>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "0.75rem",
-              }}
-            >
+            <div className="flex flex-col gap-3">
               {[
                 {
                   label: "Total Saved",
@@ -632,24 +411,14 @@ export default function ProfilePage() {
               ].map((item) => (
                 <div
                   key={item.label}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "0.625rem 0",
-                    borderBottom: "1px solid #F0F0F0",
-                  }}
+                  className="flex justify-between items-center py-2.5 border-b border-gray-100"
                 >
-                  <span style={{ fontSize: "12px", color: "#717171" }}>
+                  <span className="text-xs text-gray-500">
                     {item.label}
                   </span>
                   <span
-                    style={{
-                      fontSize: "14px",
-                      fontFamily: "'JetBrains Mono', monospace",
-                      fontWeight: 700,
-                      color: item.color,
-                    }}
+                    className="text-[14px] font-mono font-bold"
+                    style={{ color: item.color }}
                   >
                     {item.value}
                   </span>
@@ -657,31 +426,16 @@ export default function ProfilePage() {
               ))}
             </div>
 
-            <div style={{ marginTop: "1.25rem" }}>
-              <span
-                style={{
-                  fontSize: "9px",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.1em",
-                  color: "#999",
-                  fontWeight: 700,
-                  display: "block",
-                  marginBottom: "0.5rem",
-                }}
-              >
+            <div className="mt-5">
+              <span className="block text-[9px] uppercase tracking-[0.1em] text-gray-400 font-bold mb-2">
                 Trust Score
               </span>
-              <div style={{ display: "flex", gap: "0.25rem" }}>
+              <div className="flex gap-1">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <div
                     key={star}
+                    className="w-6 h-6 rounded-full flex items-center justify-center"
                     style={{
-                      width: "24px",
-                      height: "24px",
-                      borderRadius: "50%",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
                       backgroundColor:
                         star <= profile.stats.trustScore
                           ? `${cfg.colors.primary}15`
@@ -709,115 +463,47 @@ export default function ProfilePage() {
       </div>
 
       <FadeInUp delay={400}>
-        <Card padding="1.5rem" style={{ marginBottom: "1.5rem" }}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "1rem",
-            }}
-          >
+        <Card padding="1.5rem" className="mb-6">
+          <div className="flex justify-between items-center mb-4">
             <ColorfulBadge label="Contact" color={cfg.colors.primary} />
             {saved && (
-              <span
-                style={{ fontSize: "11px", color: "#059669", fontWeight: 500 }}
-              >
+              <span className="text-[11px] text-emerald-600 font-medium">
                 Saved!
               </span>
             )}
           </div>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-              gap: "1rem",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "0.375rem",
-              }}
-            >
-              <label
-                style={{
-                  fontSize: "10px",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.1em",
-                  color: "#999",
-                  fontWeight: 700,
-                }}
-              >
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] uppercase tracking-[0.1em] text-gray-400 font-bold">
                 Full Name
               </label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 disabled={!editing}
+                className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-brand-dark outline-none font-sans transition-colors"
                 style={{
                   backgroundColor: editing ? "#ffffff" : "#FAFAFA",
                   border: `1px solid ${editing ? cfg.colors.primary : "#EAEAEA"}`,
-                  borderRadius: "0.75rem",
-                  padding: "0.5rem 0.75rem",
-                  fontSize: "12px",
-                  color: "#2D2D2D",
-                  outline: "none",
-                  fontFamily: "inherit",
-                  transition: "border-color 0.2s",
                 }}
               />
             </div>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "0.375rem",
-              }}
-            >
-              <label
-                style={{
-                  fontSize: "10px",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.1em",
-                  color: "#999",
-                  fontWeight: 700,
-                }}
-              >
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] uppercase tracking-[0.1em] text-gray-400 font-bold">
                 Email
               </label>
               <input
                 value={profile.email}
                 disabled
+                className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-400 outline-none font-sans"
                 style={{
                   backgroundColor: "#FAFAFA",
                   border: "1px solid #EAEAEA",
-                  borderRadius: "0.75rem",
-                  padding: "0.5rem 0.75rem",
-                  fontSize: "12px",
-                  color: "#999",
-                  outline: "none",
-                  fontFamily: "inherit",
                 }}
               />
             </div>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "0.375rem",
-              }}
-            >
-              <label
-                style={{
-                  fontSize: "10px",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.1em",
-                  color: "#999",
-                  fontWeight: 700,
-                }}
-              >
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] uppercase tracking-[0.1em] text-gray-400 font-bold">
                 Phone Number
               </label>
               <input
@@ -825,44 +511,22 @@ export default function ProfilePage() {
                 onChange={(e) => setPhone(e.target.value)}
                 disabled={!editing}
                 placeholder="Not set"
+                className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-brand-dark outline-none font-sans transition-colors"
                 style={{
                   backgroundColor: editing ? "#ffffff" : "#FAFAFA",
                   border: `1px solid ${editing ? cfg.colors.primary : "#EAEAEA"}`,
-                  borderRadius: "0.75rem",
-                  padding: "0.5rem 0.75rem",
-                  fontSize: "12px",
-                  color: "#2D2D2D",
-                  outline: "none",
-                  fontFamily: "inherit",
-                  transition: "border-color 0.2s",
                 }}
               />
             </div>
           </div>
           {editing && (
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                gap: "0.5rem",
-                marginTop: "1rem",
-              }}
-            >
+            <div className="flex justify-end gap-2 mt-4">
               <button
                 onClick={() => {
                   setEditing(false);
                   setName(profile.name);
                 }}
-                style={{
-                  padding: "0.5rem 1rem",
-                  borderRadius: "9999px",
-                  fontSize: "12px",
-                  fontWeight: 600,
-                  border: "1px solid #EAEAEA",
-                  backgroundColor: "#ffffff",
-                  color: "#717171",
-                  cursor: "pointer",
-                }}
+                className="px-4 py-2 rounded-full text-xs font-semibold border border-gray-200 bg-white text-gray-500 cursor-pointer"
               >
                 Cancel
               </button>

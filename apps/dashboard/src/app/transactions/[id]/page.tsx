@@ -97,22 +97,22 @@ export default function TransactionDetailPage() {
 
   if (loading) {
     return (
-      <div style={{ maxWidth: "800px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
-        <div style={{ textAlign: "center", padding: "4rem", color: "#999", fontSize: "13px" }}>Loading transaction details...</div>
-      </div>
+    <div className="mx-auto max-w-[800px] p-[clamp(1rem,3vw,2rem)]">
+      <div className="p-16 text-center text-[13px] text-gray-400">Loading transaction details...</div>
+    </div>
     );
   }
 
   if (error || !transaction) {
     return (
-      <div style={{ maxWidth: "800px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
-        <div style={{ textAlign: "center", padding: "4rem" }}>
-          <div style={{ fontSize: "14px", color: "#717171", marginBottom: "1rem" }}>{error || "Transaction not found"}</div>
-          <button onClick={() => router.push("/transactions")} style={{ padding: "0.5rem 1.25rem", borderRadius: "9999px", fontSize: "12px", fontWeight: 600, cursor: "pointer", backgroundColor: cfg.colors.primary, color: "#ffffff", border: "none" }}>
-            Back to Transactions
-          </button>
-        </div>
+    <div className="mx-auto max-w-[800px] p-[clamp(1rem,3vw,2rem)]">
+      <div className="p-16 text-center">
+        <div className="mb-4 text-[14px] text-gray-500">{error || "Transaction not found"}</div>
+        <button onClick={() => router.push("/transactions")} className="cursor-pointer rounded-full border-0 px-5 py-2 text-[12px] font-semibold text-white" style={{ backgroundColor: cfg.colors.primary }}>
+          Back to Transactions
+        </button>
       </div>
+    </div>
     );
   }
 
@@ -154,23 +154,23 @@ export default function TransactionDetailPage() {
   };
 
   return (
-    <div style={{ maxWidth: "800px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
+    <div className="mx-auto max-w-[800px] p-[clamp(1rem,3vw,2rem)]">
       <PageHeader
         badgeLabel="Transaction Details"
         heading="Transaction"
         accentText="Details"
         description="Full details for this transaction."
         right={
-          <button onClick={() => router.push("/transactions")} style={{ padding: "0.5rem 1rem", borderRadius: "9999px", fontSize: "11px", fontWeight: 600, cursor: "pointer", border: `1px solid ${cfg.colors.primary}`, backgroundColor: "transparent", color: cfg.colors.primary, transition: "all 0.2s ease" }}>
+          <button onClick={() => router.push("/transactions")} className="cursor-pointer rounded-full border border-transparent bg-transparent px-4 py-2 text-[11px] font-semibold transition-all duration-200" style={{ borderColor: cfg.colors.primary, color: cfg.colors.primary }}>
             &larr; All Transactions
           </button>
         }
       />
 
       <Card padding="0">
-        <div style={{ padding: "2rem 2rem 1.5rem", borderBottom: "1px solid #F0F0F0" }}>
-          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "1rem", marginBottom: "1.25rem" }}>
-            <div style={{ width: "48px", height: "48px", borderRadius: "0.75rem", backgroundColor: `${typeColor}12`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <div className="border-b border-gray-100 px-8 pb-6 pt-8">
+            <div className="mb-5 flex flex-wrap items-center gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: `${typeColor}12` }}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={typeColor} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                 {transaction.type === "contribution" && <path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />}
                 {transaction.type === "payout" && <><path d="M21 12V7H5a2 2 0 010-4h14v4" /><path d="M3 5v14a2 2 0 002 2h16v-5" /><path d="M18 12a2 2 0 000 4h4v-4z" /></>}
@@ -184,48 +184,48 @@ export default function TransactionDetailPage() {
               </svg>
             </div>
             <div>
-              <h2 style={{ fontSize: "1.5rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: "#1A1A1A", margin: 0 }}>
+              <h2 className="m-0 font-mono text-[1.5rem] font-bold text-brand-dark">
                 {formatNaira(transaction.amount)}
               </h2>
-              <span style={{ fontSize: "11px", color: "#717171" }}>{getTypeLabel(transaction.type)}</span>
+              <span className="text-[11px] text-gray-500">{getTypeLabel(transaction.type)}</span>
             </div>
-          </div>
-          <div style={{ display: "flex", gap: "0.5rem" }}>
-            <span style={{ padding: "0.25rem 0.75rem", borderRadius: "9999px", fontSize: "10px", fontWeight: 700, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace", backgroundColor: `${typeColor}12`, color: typeColor, border: `1px solid ${typeColor}20` }}>
+            <div className="flex gap-2">
+              <span className="rounded-full border px-3 py-1 text-[10px] font-bold uppercase font-mono" style={{ backgroundColor: `${typeColor}12`, color: typeColor, borderColor: `${typeColor}20` }}>
               {getTypeLabel(transaction.type)}
             </span>
-            <span style={{ padding: "0.25rem 0.75rem", borderRadius: "9999px", fontSize: "10px", fontWeight: 700, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace", backgroundColor: sConfig.bg, color: sConfig.color }}>
+              <span className="rounded-full px-3 py-1 text-[10px] font-bold uppercase font-mono" style={{ backgroundColor: sConfig.bg, color: sConfig.color }}>
               {transaction.status}
             </span>
+            </div>
           </div>
-        </div>
+          </div>
 
-        <div style={{ padding: "1.5rem 2rem 2rem" }}>
-          {detailRows.map((row, idx) => (
-            <div key={idx} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "0.875rem 0", borderBottom: idx < detailRows.length - 1 ? "1px solid #F5F5F5" : "none", gap: "1rem" }}>
-              <span style={{ fontSize: "11px", color: "#999", fontWeight: 500, flexShrink: 0, textTransform: "uppercase", letterSpacing: "0.05em", minWidth: "120px" }}>{row.label}</span>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", textAlign: "right" }}>
-                {row.badge ? (
-                  <span style={{ padding: "0.25rem 0.75rem", borderRadius: "9999px", fontSize: "10px", fontWeight: 700, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace", backgroundColor: row.badgeBg || `${row.badgeColor}12`, color: row.badgeColor }}>
+          <div className="px-8 pb-8 pt-6">
+            {detailRows.map((row, idx) => (
+              <div key={idx} className={`flex items-start justify-between gap-4 py-[0.875rem] ${idx < detailRows.length - 1 ? "border-b border-gray-100" : ""}`}>
+                <span className="min-w-[120px] shrink-0 text-[11px] font-medium uppercase tracking-[0.05em] text-gray-400">{row.label}</span>
+                <div className="flex items-center gap-2 text-right">
+                  {row.badge ? (
+                    <span className="rounded-full px-3 py-1 text-[10px] font-bold uppercase font-mono" style={{ backgroundColor: row.badgeBg || `${row.badgeColor}12`, color: row.badgeColor }}>
                     {row.value}
                   </span>
-                ) : (
-                  <span style={{
-                    fontSize: row.large ? "16px" : "12px",
-                    fontWeight: row.large ? 700 : 500,
-                    color: row.amountColor || row.mono ? "#717171" : "#2D2D2D",
-                    fontFamily: row.mono ? "'JetBrains Mono', monospace" : "inherit",
-                    wordBreak: "break-all",
-                  }}>
-                    {row.value}
-                  </span>
-                )}
-                {row.copyable && (
-                  <button
-                    onClick={() => copyToClipboard(row.value)}
-                    style={{ padding: "0.25rem", borderRadius: "0.25rem", border: "none", background: "none", cursor: "pointer", color: "#999", flexShrink: 0 }}
-                    title="Copy to clipboard"
-                  >
+                  ) : (
+                    <span
+                      className={`block break-all ${row.mono ? "font-mono" : ""} ${row.amountColor || row.mono ? "text-gray-500" : "text-brand-dark"}`}
+                      style={{
+                        fontSize: row.large ? "16px" : "12px",
+                        fontWeight: row.large ? 700 : 500,
+                      }}
+                    >
+                      {row.value}
+                    </span>
+                  )}
+                  {row.copyable && (
+                    <button
+                      onClick={() => copyToClipboard(row.value)}
+                      className="shrink-0 cursor-pointer rounded-[0.25rem] border-0 bg-transparent p-1 text-gray-400"
+                      title="Copy to clipboard"
+                    >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                       <rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
                     </svg>

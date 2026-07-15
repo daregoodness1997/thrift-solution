@@ -12,24 +12,33 @@ const STEPS = ["Basic", "Payment", "KYC"];
 
 function StepIndicator({ step }: { step: number }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", marginBottom: "2rem" }}>
+    <div className="flex items-center justify-center gap-2 mb-8">
       {STEPS.map((label, i) => {
         const num = i + 1;
         const isActive = step === num;
         const isDone = step > num;
         return (
-          <div key={label} style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <div style={{
-              width: "28px", height: "28px", borderRadius: "50%",
-              backgroundColor: isDone ? "#059669" : isActive ? config.colors.primary : "#F0F0F0",
-              color: isDone || isActive ? "#fff" : "#999", fontSize: "11px", fontWeight: 700,
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
+          <div key={label} className="flex items-center gap-2">
+            <div
+              className="w-7 h-7 rounded-full text-[11px] font-bold flex items-center justify-center"
+              style={{
+                backgroundColor: isDone ? "#059669" : isActive ? config.colors.primary : "#F0F0F0",
+                color: isDone || isActive ? "#fff" : "#999",
+              }}
+            >
               {isDone ? "✓" : num}
             </div>
-            <span style={{ fontSize: "11px", fontWeight: isActive ? 600 : 400, color: isActive ? "#2D2D2D" : "#999" }}>{label}</span>
+            <span
+              className="text-[11px]"
+              style={{ fontWeight: isActive ? 600 : 400, color: isActive ? "#2D2D2D" : "#999" }}
+            >
+              {label}
+            </span>
             {i < STEPS.length - 1 && (
-              <div style={{ width: "24px", height: "1px", backgroundColor: isDone ? "#059669" : "#E5E7EB" }} />
+              <div
+                className="w-6 h-px"
+                style={{ backgroundColor: isDone ? "#059669" : "#E5E7EB" }}
+              />
             )}
           </div>
         );
@@ -38,11 +47,8 @@ function StepIndicator({ step }: { step: number }) {
   );
 }
 
-const inputStyle: React.CSSProperties = {
-  width: "100%", padding: "0.6875rem 0.875rem",
-  borderRadius: "0.625rem", border: "1px solid #E5E7EB", fontSize: "13px",
-  outline: "none", transition: "all 0.2s ease", boxSizing: "border-box", color: "#1A1A1A",
-};
+const inputClass =
+  "w-full py-[0.6875rem] rounded-[0.625rem] border border-gray-200 text-[13px] text-brand-dark outline-none transition";
 
 function TextField({
   label,
@@ -57,22 +63,18 @@ function TextField({
   invalid?: boolean;
 } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
-    <div style={{ marginBottom: "1rem" }}>
-      <label style={{ fontSize: "12px", fontWeight: 500, color: "#374151", display: "block", marginBottom: "0.375rem" }}>{label}</label>
-      <div style={{ position: "relative" }}>
+    <div className="mb-4">
+      <label className="block text-xs font-medium text-gray-700 mb-1.5">{label}</label>
+      <div className="relative">
         {icon && (
-          <span style={{ position: "absolute", left: "0.875rem", top: "50%", transform: "translateY(-50%)", color: "#9CA3AF", display: "flex" }}>
+          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 flex">
             {icon}
           </span>
         )}
         <input
           {...props}
-          style={{
-            ...inputStyle,
-            paddingLeft: icon ? "2.5rem" : "0.875rem",
-            paddingRight: rightSlot ? "2.5rem" : "0.875rem",
-            border: `1px solid ${invalid ? "#FECACA" : "#E5E7EB"}`,
-          }}
+          className={`${inputClass} ${icon ? "pl-10" : "pl-[0.875rem]"} ${rightSlot ? "pr-10" : "pr-[0.875rem]"}`}
+          style={{ border: `1px solid ${invalid ? "#FECACA" : "#E5E7EB"}` }}
           onFocus={(e) => {
             e.currentTarget.style.borderColor = config.colors.primary;
             e.currentTarget.style.boxShadow = `0 0 0 3px ${config.colors.primary}15`;
@@ -85,7 +87,7 @@ function TextField({
           }}
         />
         {rightSlot && (
-          <span style={{ position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)", display: "flex", alignItems: "center" }}>
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center">
             {rightSlot}
           </span>
         )}
@@ -292,47 +294,47 @@ export default function RegisterForm() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", backgroundColor: "#FDFDFC" }}>
+    <div className="min-h-screen flex bg-brand-cream">
       {/* Left Panel */}
-      <div style={{
-        flex: "0 0 45%",
-        background: `linear-gradient(160deg, ${config.colors.secondary} 0%, ${config.colors.primary} 50%, #1a4a30 100%)`,
-        display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center",
-        padding: "3rem", position: "relative", overflow: "hidden",
-      }}>
-        <div style={{ position: "absolute", top: "-10%", right: "-10%", width: "300px", height: "300px", borderRadius: "50%", border: "1px solid rgba(255,255,255,0.06)" }} />
-        <div style={{ position: "absolute", bottom: "-15%", left: "-10%", width: "400px", height: "400px", borderRadius: "50%", border: "1px solid rgba(255,255,255,0.04)" }} />
-        <div style={{ position: "relative", zIndex: 1, textAlign: "center", maxWidth: "320px" }}>
-          <a href="/" style={{ textDecoration: "none", display: "block", marginBottom: "3rem" }}>
-            <span style={{ fontSize: "2rem", fontWeight: 800, letterSpacing: "-0.05em", color: "#ffffff" }}>
+      <div
+        className="hidden md:flex flex-col justify-center items-center p-12 relative overflow-hidden"
+        style={{
+          background: `linear-gradient(160deg, ${config.colors.secondary} 0%, ${config.colors.primary} 50%, #1a4a30 100%)`,
+        }}
+      >
+        <div className="absolute -top-[10%] -right-[10%] w-[300px] h-[300px] rounded-full border border-[rgba(255,255,255,0.06)]" />
+        <div className="absolute -bottom-[15%] -left-[10%] w-[400px] h-[400px] rounded-full border border-[rgba(255,255,255,0.04)]" />
+        <div className="relative z-10 text-center max-w-[320px]">
+          <a href="/" className="block mb-12 no-underline">
+            <span className="text-2xl font-extrabold tracking-[-0.05em] text-white">
               {config.name.toUpperCase().replace(/\s+/g, "")}
             </span>
           </a>
-          <h1 style={{ fontSize: "clamp(1.5rem, 3vw, 2rem)", fontWeight: 300, color: "#ffffff", lineHeight: 1.3, marginBottom: "1rem" }}>
+          <h1 className="text-[clamp(1.5rem,3vw,2rem)] font-light text-white leading-[1.3] mb-4">
             Start your<br />
-            <span style={{ fontStyle: "italic", fontFamily: "'Playfair Display', serif", fontWeight: 500, color: config.colors.accent }}>
+            <span className="font-display font-medium" style={{ color: config.colors.accent }}>
               savings journey
             </span>
           </h1>
-          <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.6)", lineHeight: 1.6 }}>
+          <p className="text-[13px] text-white/60 leading-[1.6]">
             Three quick steps: create your account, pay the one-time ₦{REG_FEE.toLocaleString()} registration fee, and verify your identity to unlock your virtual account.
           </p>
         </div>
       </div>
 
       {/* Right Panel */}
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem", overflowY: "auto" }}>
-        <div style={{ width: "100%", maxWidth: "420px" }}>
+      <div className="flex-1 flex items-center justify-center p-8 overflow-y-auto">
+        <div className="w-full max-w-[420px]">
           {step <= 3 && <StepIndicator step={step} />}
 
-          <div style={{ marginBottom: "1.5rem" }}>
-            <h2 style={{ fontSize: "1.5rem", fontWeight: 600, color: "#1A1A1A", letterSpacing: "-0.025em" }}>
+          <div className="mb-6">
+            <h2 className="text-[1.5rem] font-semibold text-brand-dark tracking-[-0.025em]">
               {step === 1 && "Create Account"}
               {step === 2 && "Registration Fee"}
               {step === 3 && "Verify Your Identity"}
               {step === 4 && "You're All Set!"}
             </h2>
-            <p style={{ fontSize: "13px", color: "#717171", marginTop: "0.375rem" }}>
+            <p className="text-[13px] text-gray-500 mt-1.5">
               {step === 1 && "Fill in your details to get started"}
               {step === 2 && `Pay the one-time ₦${REG_FEE.toLocaleString()} fee to continue`}
               {step === 3 && "Enter your BVN & NIN — we verify instantly via CreditChek"}
@@ -341,7 +343,7 @@ export default function RegisterForm() {
           </div>
 
           {error && (
-            <div style={{ padding: "0.75rem 1rem", borderRadius: "0.75rem", backgroundColor: "#FEF2F2", border: "1px solid #FECACA", color: "#DC2626", fontSize: "12px", fontWeight: 500, marginBottom: "1.25rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-xs font-medium mb-5">
               {error}
             </div>
           )}
@@ -353,28 +355,28 @@ export default function RegisterForm() {
               <TextField label="Email Address" icon={icons.mail} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="adaeze@email.com" autoComplete="email" />
               <TextField label="Phone (optional)" icon={icons.phone} type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+234..." />
 
-              <div style={{ marginBottom: "1rem" }}>
-                <label style={{ fontSize: "12px", fontWeight: 500, color: "#374151", display: "block", marginBottom: "0.375rem" }}>Password</label>
-                <div style={{ position: "relative" }}>
-                  <span style={{ position: "absolute", left: "0.875rem", top: "50%", transform: "translateY(-50%)", color: "#9CA3AF", display: "flex" }}>{icons.lock}</span>
+              <div className="mb-4">
+                <label className="block text-xs font-medium text-gray-700 mb-1.5">Password</label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 flex">{icons.lock}</span>
                   <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Min. 6 characters" autoComplete="new-password"
-                    style={{ ...inputStyle, paddingLeft: "2.5rem", paddingRight: "2.5rem" }}
+                    className={`${inputClass} pl-10 pr-10`}
                     onFocus={(e) => { e.currentTarget.style.borderColor = config.colors.primary; e.currentTarget.style.boxShadow = `0 0 0 3px ${config.colors.primary}15`; }}
                     onBlur={(e) => { e.currentTarget.style.borderColor = "#E5E7EB"; e.currentTarget.style.boxShadow = "none"; }}
                   />
                   <button type="button" onClick={() => setShowPassword(!showPassword)}
-                    style={{ position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", padding: "0.25rem", color: "#9CA3AF", display: "flex" }}>
+                    className="absolute right-3 top-1/2 -translate-y-1/2 bg-none border-none cursor-pointer p-1 text-gray-400 flex">
                     {showPassword ? icons.eyeOff : icons.eyeOpen}
                   </button>
                 </div>
                 {password && (
-                  <div style={{ marginTop: "0.5rem" }}>
-                    <div style={{ display: "flex", gap: "0.25rem", marginBottom: "0.25rem" }}>
+                  <div className="mt-2">
+                    <div className="flex gap-1 mb-1">
                       {[1, 2, 3, 4].map((i) => (
-                        <div key={i} style={{ flex: 1, height: "3px", borderRadius: "9999px", backgroundColor: i <= passwordStrength.level ? passwordStrength.color : "#E5E7EB", transition: "background-color 0.2s ease" }} />
+                        <div key={i} className="flex-1 h-[3px] rounded-full transition-colors" style={{ backgroundColor: i <= passwordStrength.level ? passwordStrength.color : "#E5E7EB" }} />
                       ))}
                     </div>
-                    <span style={{ fontSize: "10px", color: passwordStrength.color, fontWeight: 500 }}>{passwordStrength.label}</span>
+                    <span className="text-[10px] font-medium" style={{ color: passwordStrength.color }}>{passwordStrength.label}</span>
                   </div>
                 )}
               </div>
@@ -392,23 +394,31 @@ export default function RegisterForm() {
               />
 
               {/* Referral Code */}
-              <div style={{ marginBottom: "1.5rem", padding: "0.875rem", borderRadius: "0.625rem", backgroundColor: referralCode ? `${config.colors.primary}06` : "#FAFAFA", border: `1px solid ${referralCode ? `${config.colors.primary}20` : "#F3F4F6"}`, transition: "all 0.2s ease" }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: referralCode ? "0.5rem" : 0 }}>
-                  <span style={{ fontSize: "12px", fontWeight: 500, color: "#374151", display: "flex", alignItems: "center", gap: "0.375rem" }}>
+              <div
+                className="mb-6 p-[0.875rem] rounded-[0.625rem] transition"
+                style={{
+                  backgroundColor: referralCode ? `${config.colors.primary}06` : "#FAFAFA",
+                  border: `1px solid ${referralCode ? `${config.colors.primary}20` : "#F3F4F6"}`,
+                }}
+              >
+                <div className="flex items-center justify-between mb-2" style={{ marginBottom: referralCode ? "0.5rem" : 0 }}>
+                  <span className="text-xs font-medium text-gray-700 flex items-center gap-1.5">
                     {icons.gift}
                     Have a referral code?
                   </span>
                   {!referralCode && (
                     <button type="button" onClick={() => setReferralCode(" ")}
-                      style={{ fontSize: "11px", fontWeight: 600, color: config.colors.primary, background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+                      className="text-[11px] font-semibold bg-none border-none cursor-pointer p-0 no-underline"
+                      style={{ color: config.colors.primary }}>
                       Enter code
                     </button>
                   )}
                 </div>
                 {referralCode && (
-                  <div style={{ position: "relative" }}>
+                  <div className="relative">
                     <input type="text" value={referralCode} onChange={(e) => setReferralCode(e.target.value)} placeholder="e.g. ADAEZE-8K3M"
-                      style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "0.5rem", border: "1px solid #E5E7EB", fontSize: "12px", fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, letterSpacing: "0.05em", outline: "none", boxSizing: "border-box", color: config.colors.primary, backgroundColor: "#ffffff" }}
+                      className="w-full py-2 px-3 rounded-lg border border-gray-200 text-xs font-mono font-semibold tracking-[0.05em] outline-none"
+                      style={{ color: config.colors.primary, backgroundColor: "#ffffff" }}
                       onFocus={(e) => { e.currentTarget.style.borderColor = config.colors.primary; }}
                       onBlur={(e) => { e.currentTarget.style.borderColor = "#E5E7EB"; }}
                     />
@@ -417,7 +427,13 @@ export default function RegisterForm() {
               </div>
 
               <button type="submit" disabled={loading}
-                style={{ width: "100%", padding: "0.75rem", borderRadius: "0.625rem", fontSize: "13px", fontWeight: 600, cursor: loading ? "not-allowed" : "pointer", backgroundColor: config.colors.primary, color: "#ffffff", border: "none", opacity: loading ? 0.6 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
+                className="w-full py-3 rounded-[0.625rem] text-[13px] font-semibold text-white border-none flex items-center justify-center gap-2 transition"
+                style={{
+                  backgroundColor: config.colors.primary,
+                  color: "#ffffff",
+                  opacity: loading ? 0.6 : 1,
+                  cursor: loading ? "not-allowed" : "pointer",
+                }}>
                 {loading ? "Creating account..." : "Continue"}
               </button>
             </form>
@@ -427,10 +443,16 @@ export default function RegisterForm() {
             <div>
               <TextField label="Verification Code" type="text" value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="6-digit code from email" />
               <button onClick={handleVerifyEmail} disabled={loading}
-                style={{ width: "100%", padding: "0.75rem", borderRadius: "0.625rem", fontSize: "13px", fontWeight: 600, cursor: loading ? "not-allowed" : "pointer", backgroundColor: config.colors.primary, color: "#ffffff", border: "none", opacity: loading ? 0.6 : 1 }}>
+                className="w-full py-3 rounded-[0.625rem] text-[13px] font-semibold text-white border-none transition"
+                style={{
+                  backgroundColor: config.colors.primary,
+                  color: "#ffffff",
+                  opacity: loading ? 0.6 : 1,
+                  cursor: loading ? "not-allowed" : "pointer",
+                }}>
                 {loading ? "Verifying..." : "Verify Email & Continue"}
               </button>
-              <p style={{ fontSize: "11px", color: "#9CA3AF", marginTop: "0.75rem", textAlign: "center" }}>
+              <p className="text-[11px] text-gray-400 mt-3 text-center">
                 Didn't get it? Check spam or contact support.
               </p>
             </div>
@@ -439,17 +461,23 @@ export default function RegisterForm() {
           {/* Step 2 */}
           {step === 2 && (
             <div>
-              <div style={{ padding: "1.25rem", backgroundColor: "#F9FAFB", borderRadius: "12px", marginBottom: "1.5rem", textAlign: "center" }}>
-                <span style={{ fontSize: "10px", color: "#9CA3AF", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em" }}>Registration Fee</span>
-                <div style={{ fontSize: "1.75rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: config.colors.primary, marginTop: "0.25rem" }}>
+              <div className="p-5 bg-gray-50 rounded-xl mb-6 text-center">
+                <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-[0.1em]">Registration Fee</span>
+                <div className="text-[1.75rem] font-mono font-bold mt-1" style={{ color: config.colors.primary }}>
                   ₦{REG_FEE.toLocaleString()}
                 </div>
-                <p style={{ fontSize: "11px", color: "#6B7280", marginTop: "0.5rem" }}>
+                <p className="text-[11px] text-gray-500 mt-2">
                   One-time fee. Secured by Flutterwave (card, bank transfer, USSD).
                 </p>
               </div>
               <button onClick={handlePay} disabled={loading}
-                style={{ width: "100%", padding: "0.75rem", borderRadius: "0.625rem", fontSize: "13px", fontWeight: 600, cursor: loading ? "not-allowed" : "pointer", backgroundColor: config.colors.primary, color: "#ffffff", border: "none", opacity: loading ? 0.6 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
+                className="w-full py-3 rounded-[0.625rem] text-[13px] font-semibold text-white border-none flex items-center justify-center gap-2 transition"
+                style={{
+                  backgroundColor: config.colors.primary,
+                  color: "#ffffff",
+                  opacity: loading ? 0.6 : 1,
+                  cursor: loading ? "not-allowed" : "pointer",
+                }}>
                 {loading ? "Redirecting..." : `Pay ₦${REG_FEE.toLocaleString()}`}
               </button>
             </div>
@@ -461,7 +489,13 @@ export default function RegisterForm() {
               <TextField label="BVN (11 digits)" type="text" value={bvn} onChange={(e) => setBvn(e.target.value.replace(/\D/g, "").slice(0, 11))} placeholder="12345678901" inputMode="numeric" />
               <TextField label="NIN (11 digits)" type="text" value={nin} onChange={(e) => setNin(e.target.value.replace(/\D/g, "").slice(0, 11))} placeholder="98765432109" inputMode="numeric" />
               <button onClick={handleKyc} disabled={loading}
-                style={{ width: "100%", padding: "0.75rem", borderRadius: "0.625rem", fontSize: "13px", fontWeight: 600, cursor: loading ? "not-allowed" : "pointer", backgroundColor: config.colors.primary, color: "#ffffff", border: "none", opacity: loading ? 0.6 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
+                className="w-full py-3 rounded-[0.625rem] text-[13px] font-semibold text-white border-none flex items-center justify-center gap-2 transition"
+                style={{
+                  backgroundColor: config.colors.primary,
+                  color: "#ffffff",
+                  opacity: loading ? 0.6 : 1,
+                  cursor: loading ? "not-allowed" : "pointer",
+                }}>
                 {loading ? "Verifying with CreditChek..." : "Verify & Finish"}
               </button>
             </div>
@@ -470,43 +504,38 @@ export default function RegisterForm() {
           {/* Step 4 — success */}
           {step === 4 && (
             <div>
-              <div style={{ padding: "1.5rem", backgroundColor: "#ECFDF5", borderRadius: "12px", marginBottom: "1.5rem", border: "1px solid #A7F3D0" }}>
-                <div style={{ fontSize: "13px", fontWeight: 600, color: "#059669", marginBottom: "0.75rem" }}>✓ Identity verified & KYC approved</div>
+              <div className="p-6 bg-emerald-50 rounded-xl mb-6 border border-emerald-200">
+                <div className="text-[13px] font-semibold text-emerald-600 mb-3">✓ Identity verified & KYC approved</div>
                 {virtualAccount ? (
-                  <div style={{ fontSize: "12px", color: "#065F46" }}>
-                    <div style={{ marginBottom: "0.5rem" }}>
-                      <span style={{ color: "#6B7280" }}>Virtual Account: </span>
-                      <strong style={{ fontFamily: "'JetBrains Mono', monospace" }}>{virtualAccount.accountNumber}</strong>
+                  <div className="text-xs text-emerald-800">
+                    <div className="mb-2">
+                      <span className="text-gray-500">Virtual Account: </span>
+                      <strong className="font-mono">{virtualAccount.accountNumber}</strong>
                     </div>
-                    <div><span style={{ color: "#6B7280" }}>Bank: </span><strong>{virtualAccount.bankName}</strong></div>
+                    <div><span className="text-gray-500">Bank: </span><strong>{virtualAccount.bankName}</strong></div>
                   </div>
                 ) : (
-                  <div style={{ fontSize: "12px", color: "#065F46" }}>Your virtual account will be created shortly.</div>
+                  <div className="text-xs text-emerald-800">Your virtual account will be created shortly.</div>
                 )}
               </div>
               <button onClick={() => { window.location.href = "/"; }}
-                style={{ width: "100%", padding: "0.75rem", borderRadius: "0.625rem", fontSize: "13px", fontWeight: 600, cursor: "pointer", backgroundColor: config.colors.primary, color: "#ffffff", border: "none" }}>
+                className="w-full py-3 rounded-[0.625rem] text-[13px] font-semibold text-white border-none"
+                style={{ backgroundColor: config.colors.primary, color: "#ffffff", cursor: "pointer" }}>
                 Go to Dashboard
               </button>
             </div>
           )}
 
           {step <= 3 && (
-            <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
-              <span style={{ fontSize: "13px", color: "#717171" }}>
+            <div className="text-center mt-6">
+              <span className="text-[13px] text-gray-500">
                 Already have an account?{" "}
-                <a href="/login" style={{ color: config.colors.primary, fontWeight: 600, textDecoration: "none" }}>Sign in</a>
+                <a href="/login" className="font-semibold no-underline" style={{ color: config.colors.primary }}>Sign in</a>
               </span>
             </div>
           )}
         </div>
       </div>
-
-      <style jsx global>{`
-        @media (max-width: 768px) {
-          div[style*="flex: 0 0 45%"] { display: none !important; }
-        }
-      `}</style>
     </div>
   );
 }

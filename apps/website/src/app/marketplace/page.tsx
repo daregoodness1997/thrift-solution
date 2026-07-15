@@ -1,13 +1,13 @@
-import { config } from "@thrift/config";
-import { Card, HandshakeIcon, MoneyIcon, BellIcon, ShieldIcon, ChartIcon, MegaphoneIcon } from "@thrift/ui";
+import { Handshake, Wallet, Bell, ShieldCheck, Award, Megaphone } from "lucide-react";
+import { Container, SectionHeading, Badge } from "@/components/ui/Section";
 
 const features = [
-  { icon: <HandshakeIcon size={24} />, title: "Ajo Circles", desc: "Create or join thrift groups with people you trust. Each circle has a fixed contribution amount and cycle schedule.", highlight: "Flexible group sizes" },
-  { icon: <MoneyIcon size={24} />, title: "Contribution Tracking", desc: "Transparent ledgers show every payment in real time. No more chasing people for money.", highlight: "Real-time updates" },
-  { icon: <BellIcon size={24} />, title: "Smart Reminders", desc: "Automated alerts before contribution deadlines. Members never miss a payment.", highlight: "Never miss a cycle" },
-  { icon: <ShieldIcon size={24} />, title: "Secure Escrow", desc: "Funds are held safely until payout time. Both the circle and individual members are protected.", highlight: "Protected funds" },
-  { icon: <ChartIcon size={24} />, title: "Trust Scoring", desc: "Build your reputation through consistent contributions. Higher trust scores unlock larger circles.", highlight: "Build credibility" },
-  { icon: <MegaphoneIcon size={24} />, title: "Payout Notifications", desc: "Get notified when it's your turn to collect, when contributions are due, and circle milestones.", highlight: "Stay informed" },
+  { icon: Handshake, title: "Ajo Circles", desc: "Create or join thrift groups with people you trust. Each circle has a fixed contribution amount and cycle schedule.", highlight: "Flexible group sizes" },
+  { icon: Wallet, title: "Contribution Tracking", desc: "Transparent ledgers show every payment in real time. No more chasing people for money.", highlight: "Real-time updates" },
+  { icon: Bell, title: "Smart Reminders", desc: "Automated alerts before contribution deadlines. Members never miss a payment.", highlight: "Never miss a cycle" },
+  { icon: ShieldCheck, title: "Secure Escrow", desc: "Funds are held safely until payout time. Both the circle and individual members are protected.", highlight: "Protected funds" },
+  { icon: Award, title: "Trust Scoring", desc: "Build your reputation through consistent contributions. Higher trust scores unlock larger circles.", highlight: "Build credibility" },
+  { icon: Megaphone, title: "Payout Notifications", desc: "Get notified when it's your turn to collect, when contributions are due, and circle milestones.", highlight: "Stay informed" },
 ];
 
 const circles = [
@@ -19,51 +19,54 @@ const circles = [
 
 export default function Marketplace() {
   return (
-    <>
-      <main style={{ flex: 1 }}>
-        <div style={{ background: `linear-gradient(135deg, ${config.colors.primary}0A 0%, ${config.colors.surface} 50%, ${config.colors.accent}08 100%)`, borderBottom: `1px solid ${config.colors.primary}10`, padding: "clamp(2rem, 6vw, 4rem) clamp(1rem, 4vw, 2rem)" }}>
-          <div style={{ maxWidth: "800px", margin: "0 auto", textAlign: "center" }}>
-            <span style={{ color: config.colors.primary, textTransform: "uppercase", letterSpacing: "0.15em", fontSize: "10px", fontWeight: 700 }}>Platform Features</span>
-            <h1 style={{ fontSize: "clamp(1.75rem, 4vw, 2.5rem)", fontWeight: 300, color: "#1A1A1A", marginTop: "0.5rem", letterSpacing: "-0.025em" }}>
-              Built for <span style={{ fontStyle: "italic", fontFamily: "'Playfair Display', serif", color: config.colors.primary, fontWeight: 500 }}>communal thrift</span>
-            </h1>
-            <p style={{ fontSize: "14px", color: "#666", fontWeight: 300, marginTop: "0.75rem", lineHeight: 1.7, maxWidth: "520px", margin: "0.75rem auto 0" }}>
-              Everything you need to manage Ajo circles — from contribution tracking to secure payouts.
-            </p>
-          </div>
+    <main className="min-h-screen bg-brand-cream pt-32">
+      <section className="border-b border-brand-primary/10 bg-gradient-to-b from-brand-primary/[0.06] to-brand-cream px-6 pb-16 pt-10">
+        <Container>
+          <SectionHeading
+            eyebrow="Platform Features"
+            title={
+              <>
+                Built for{" "}
+                <span className="bg-gradient-to-r from-brand-primary to-brand-accent bg-clip-text text-transparent italic">communal thrift</span>
+              </>
+            }
+            description="Everything you need to manage Ajo circles — from contribution tracking to secure payouts."
+          />
+        </Container>
+      </section>
+
+      <Container className="py-16">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {features.map((f) => {
+            const Icon = f.icon;
+            return (
+              <div key={f.title} className="group rounded-2xl border border-white/70 bg-white p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+                <div className="mb-4 inline-flex rounded-xl bg-brand-primary/10 p-3 text-brand-primary transition-transform duration-300 group-hover:scale-110">
+                  <Icon className="h-6 w-6" />
+                </div>
+                <h3 className="text-base font-semibold text-brand-dark">{f.title}</h3>
+                <p className="mt-2 text-sm font-light leading-relaxed text-brand-muted">{f.desc}</p>
+                <span className="mt-4 inline-block rounded-md bg-brand-primary/[0.06] px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-brand-primary">
+                  {f.highlight}
+                </span>
+              </div>
+            );
+          })}
         </div>
 
-        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(1.5rem, 4vw, 3rem) clamp(1rem, 4vw, 2rem)" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "1.5rem" }}>
-            {features.map((f) => (
-              <Card key={f.title} padding="1.5rem">
-                <div style={{ display: "block", marginBottom: "0.75rem", color: config.colors.primary }}>{f.icon}</div>
-                <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#1A1A1A", marginBottom: "0.375rem" }}>{f.title}</h3>
-                <p style={{ fontSize: "12px", color: "#5A5A5A", fontWeight: 300, lineHeight: 1.7, marginBottom: "0.75rem" }}>{f.desc}</p>
-                <span style={{ fontSize: "9px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: config.colors.primary, backgroundColor: `${config.colors.primary}0A`, padding: "0.125rem 0.5rem", borderRadius: "0.375rem" }}>{f.highlight}</span>
-              </Card>
+        <div className="mt-16 rounded-3xl border border-brand-primary/10 bg-gradient-to-br from-brand-primary/[0.05] to-brand-accent/[0.05] p-10">
+          <h2 className="text-xl font-semibold text-brand-dark">Popular Circle Types</h2>
+          <p className="mt-1 text-sm font-light text-brand-muted">Communities already saving together on Arosco.</p>
+          <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {circles.map((c, i) => (
+              <div key={c.name} className="rounded-2xl border-t-[3px] border-brand-primary/30 bg-white p-6 shadow-sm">
+                <h4 className="text-sm font-semibold text-brand-dark">{c.name}</h4>
+                <p className="mt-2 text-xs font-light leading-relaxed text-brand-muted">{c.desc}</p>
+              </div>
             ))}
           </div>
         </div>
-
-        {/* Circle Types */}
-        <div style={{ background: `linear-gradient(135deg, ${config.colors.primary}0A 0%, ${config.colors.surface} 50%, ${config.colors.accent}08 100%)`, borderTop: `1px solid ${config.colors.primary}10`, borderBottom: `1px solid ${config.colors.primary}10`, padding: "clamp(1.5rem, 4vw, 3rem) clamp(1rem, 4vw, 2rem)" }}>
-          <div style={{ maxWidth: "1280px", margin: "0 auto" }}>
-            <div style={{ marginBottom: "2rem" }}>
-              <h2 style={{ fontSize: "1.125rem", fontWeight: 500, color: "#1A1A1A" }}>Popular Circle Types</h2>
-              <p style={{ fontSize: "12px", color: "#7A7A7A", fontWeight: 300 }}>Communities already saving together on Arosco.</p>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.5rem" }}>
-              {circles.map((c, i) => (
-                <div key={c.name} style={{ background: `linear-gradient(135deg, #FFFFFF 0%, #FAFAF5 100%)`, borderRadius: "1rem", padding: "1.5rem", borderTop: `3px solid ${config.colors.primary}${["15", "25", "35", "45"][i]}`, boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
-                  <h4 style={{ fontSize: "13px", fontWeight: 600, color: "#1A1A1A", marginBottom: "0.375rem" }}>{c.name}</h4>
-                  <p style={{ fontSize: "11px", color: "#5A5A5A", fontWeight: 300, lineHeight: 1.6 }}>{c.desc}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </main>
-    </>
+      </Container>
+    </main>
   );
 }

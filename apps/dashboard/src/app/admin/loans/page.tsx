@@ -100,12 +100,12 @@ export default function AdminLoansPage() {
   const filters = ["all", "pending", "approved", "disbursed", "completed", "rejected"];
 
   return (
-    <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
+    <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
       <PageHeader badgeLabel="Admin" heading="Loan" accentText="Requests" description="Review, approve, and disburse member loan requests." />
 
       {message && (
         <FadeIn>
-          <div style={{ padding: "0.75rem 1rem", borderRadius: "0.75rem", marginBottom: "1.5rem", fontSize: "13px", fontWeight: 500, backgroundColor: message.type === "success" ? "#ECFDF5" : "#FEF2F2", color: message.type === "success" ? "#059669" : "#DC2626", border: `1px solid ${message.type === "success" ? "#A7F3D0" : "#FECACA"}` }}>
+          <div className={`mb-6 rounded-xl border px-4 py-3 text-[13px] font-medium ${message.type === "success" ? "bg-emerald-50 text-emerald-600 border-emerald-200" : "bg-red-50 text-red-600 border-red-200"}`}>
             {message.text}
           </div>
         </FadeIn>
@@ -113,53 +113,50 @@ export default function AdminLoansPage() {
 
       <FadeInUp delay={200}>
         <Card padding="1.5rem">
-          <div style={{ display: "flex", gap: "0.25rem", backgroundColor: "#F5F7F5", borderRadius: "0.5rem", padding: "0.25rem", marginBottom: "1rem", width: "fit-content", flexWrap: "wrap" }}>
+          <div className="mb-4 flex w-fit flex-wrap gap-1 rounded-lg bg-gray-100 p-1">
             {filters.map((f) => (
               <button key={f} onClick={() => { setFilter(f); setPage(1); }}
-                style={{ padding: "0.375rem 0.75rem", borderRadius: "0.375rem", fontSize: "11px", fontWeight: 600, border: "none", cursor: "pointer", textTransform: "capitalize",
-                  backgroundColor: filter === f ? "#ffffff" : "transparent", color: filter === f ? config.colors.primary : "#717171",
-                  boxShadow: filter === f ? "0 1px 3px rgba(0,0,0,0.08)" : "none" }}>
+                className="cursor-pointer rounded-md px-3 py-1.5 text-[11px] font-semibold capitalize"
+                style={{ backgroundColor: filter === f ? "#ffffff" : "transparent", color: filter === f ? config.colors.primary : "#717171", boxShadow: filter === f ? "0 1px 3px rgba(0,0,0,0.08)" : "none" }}>
                 {f}
               </button>
             ))}
           </div>
 
           {loading ? (
-            <div style={{ textAlign: "center", padding: "3rem", color: "#999", fontSize: "13px" }}>Loading loans...</div>
+            <div className="p-12 text-center text-[13px] text-gray-500">Loading loans...</div>
           ) : loans.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "2rem", color: "#999", fontSize: "13px" }}>No loans found.</div>
+            <div className="p-8 text-center text-[13px] text-gray-500">No loans found.</div>
           ) : (
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", fontSize: "12px", borderCollapse: "collapse", minWidth: "820px" }}>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-[12px] min-w-[820px]">
                 <thead>
-                  <tr style={{ borderBottom: "1px solid #F0F0F0", color: "#999", textTransform: "uppercase", letterSpacing: "0.1em", fontSize: "9px", fontFamily: "'JetBrains Mono', monospace" }}>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Borrower</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "right", fontWeight: 600 }}>Amount</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Term</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "right", fontWeight: 600 }}>Repayment</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Status</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "right", fontWeight: 600 }}>Actions</th>
+                  <tr className="border-b border-gray-100 font-mono text-[9px] uppercase tracking-[0.1em] text-gray-500">
+                    <th className="pb-3 text-left font-semibold">Borrower</th>
+                    <th className="pb-3 text-right font-semibold">Amount</th>
+                    <th className="pb-3 text-left font-semibold">Term</th>
+                    <th className="pb-3 text-right font-semibold">Repayment</th>
+                    <th className="pb-3 text-left font-semibold">Status</th>
+                    <th className="pb-3 text-right font-semibold">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {loans.map((loan) => {
                     const sc = STATUS_COLORS[loan.status] || STATUS_COLORS.completed;
                     return (
-                      <tr key={loan.id} style={{ borderBottom: "1px solid #F5F5F5" }}
-                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#F9FAFB"; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}>
-                        <td style={{ padding: "0.75rem 0" }}>
-                          <span style={{ fontWeight: 600, color: "#2D2D2D", display: "block" }}>{loan.borrower?.name || "—"}</span>
-                          <span style={{ fontSize: "11px", color: "#999" }}>{loan.borrower?.email}</span>
+                      <tr key={loan.id} className="border-b border-gray-100 hover:bg-gray-50">
+                        <td className="py-3">
+                          <span className="block font-semibold text-brand-dark">{loan.borrower?.name || "—"}</span>
+                          <span className="text-[11px] text-gray-500">{loan.borrower?.email}</span>
                         </td>
-                        <td style={{ padding: "0.75rem 0", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: "#2D2D2D" }}>{formatNaira(loan.amount)}</td>
-                        <td style={{ padding: "0.75rem 0", color: "#717171" }}>{loan.termMonths}mo @ {loan.interestRate}%</td>
-                        <td style={{ padding: "0.75rem 0", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", color: "#717171" }}>{formatNaira(loan.totalRepayment)}</td>
-                        <td style={{ padding: "0.75rem 0" }}>
-                          <span style={{ fontSize: "9px", fontWeight: 700, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace", padding: "0.125rem 0.5rem", borderRadius: "0.375rem", backgroundColor: sc.bg, color: sc.color, border: `1px solid ${sc.border}` }}>{loan.status}</span>
+                        <td className="py-3 text-right font-mono font-semibold text-brand-dark">{formatNaira(loan.amount)}</td>
+                        <td className="py-3 text-gray-500">{loan.termMonths}mo @ {loan.interestRate}%</td>
+                        <td className="py-3 text-right font-mono text-gray-500">{formatNaira(loan.totalRepayment)}</td>
+                        <td className="py-3">
+                          <span className="rounded-md px-2 py-0.5 font-mono text-[9px] font-bold uppercase" style={{ backgroundColor: sc.bg, color: sc.color, border: `1px solid ${sc.border}` }}>{loan.status}</span>
                         </td>
-                        <td style={{ padding: "0.75rem 0", textAlign: "right" }}>
-                          <div style={{ display: "flex", gap: "0.375rem", justifyContent: "flex-end" }}>
+                        <td className="py-3 text-right">
+                          <div className="flex justify-end gap-1.5">
                             {loan.status === "pending" && (
                               <>
                                 <ActionBtn label="Approve" color="#059669" onClick={() => act(loan, "approve")} disabled={busyId === loan.id} />
@@ -168,7 +165,7 @@ export default function AdminLoansPage() {
                             )}
                             {loan.status === "approved" && <ActionBtn label="Disburse" color="#2563EB" onClick={() => act(loan, "disburse")} disabled={busyId === loan.id} />}
                             {loan.status === "disbursed" && <ActionBtn label="Complete" color="#4B5563" onClick={() => act(loan, "complete")} disabled={busyId === loan.id} />}
-                            {(loan.status === "completed" || loan.status === "rejected") && <span style={{ fontSize: "10px", color: "#B0B0B0" }}>—</span>}
+                            {(loan.status === "completed" || loan.status === "rejected") && <span className="text-[10px] text-[#B0B0B0]">—</span>}
                           </div>
                         </td>
                       </tr>
@@ -188,7 +185,8 @@ export default function AdminLoansPage() {
 function ActionBtn({ label, color, onClick, disabled }: { label: string; color: string; onClick: () => void; disabled: boolean }) {
   return (
     <button onClick={onClick} disabled={disabled}
-      style={{ padding: "0.25rem 0.5rem", borderRadius: "0.375rem", fontSize: "10px", fontWeight: 600, border: `1px solid ${color}40`, backgroundColor: `${color}0F`, color, cursor: "pointer", opacity: disabled ? 0.5 : 1 }}>
+      className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold"
+      style={{ border: `1px solid ${color}40`, backgroundColor: `${color}0F`, color, opacity: disabled ? 0.5 : 1 }}>
       {disabled ? "..." : label}
     </button>
   );

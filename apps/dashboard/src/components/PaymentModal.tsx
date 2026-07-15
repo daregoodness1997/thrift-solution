@@ -117,57 +117,19 @@ export function PaymentModal({ isOpen, onClose, amount, onSuccess }: PaymentModa
 
   return (
     <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        backgroundColor: "rgba(0,0,0,0.5)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 1000,
-        padding: "1rem",
-        backdropFilter: "blur(4px)",
-      }}
+      className="fixed inset-0 flex items-center justify-center z-[1000] p-4 bg-black/50 backdrop-blur-sm"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <FadeIn>
         <div
-          style={{
-            backgroundColor: "#FFFFFF",
-            borderRadius: "20px",
-            padding: "2rem",
-            maxWidth: "420px",
-            width: "100%",
-            boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)",
-            position: "relative",
-          }}
+          className="bg-white rounded-[20px] p-8 max-w-[420px] w-full shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] relative"
         >
           {/* Close Button */}
           <button
             onClick={onClose}
-            style={{
-              position: "absolute",
-              top: "1rem",
-              right: "1rem",
-              width: "32px",
-              height: "32px",
-              borderRadius: "50%",
-              border: "none",
-              backgroundColor: "#F3F4F6",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              transition: "all 0.2s ease",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#E5E7EB";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#F3F4F6";
-            }}
+            className="absolute top-4 right-4 w-8 h-8 rounded-full border-none bg-gray-100 cursor-pointer flex items-center justify-center transition-all duration-200 hover:bg-gray-200"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth={2} strokeLinecap="round">
               <path d="M18 6L6 18M6 6l12 12" />
@@ -175,80 +137,53 @@ export function PaymentModal({ isOpen, onClose, amount, onSuccess }: PaymentModa
           </button>
 
           {/* Header */}
-          <div style={{ marginBottom: "1.5rem" }}>
+          <div className="mb-6">
             <div
-              style={{
-                width: "48px",
-                height: "48px",
-                borderRadius: "12px",
-                background: `linear-gradient(135deg, ${config.colors.primary}15, ${config.colors.primary}08)`,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                marginBottom: "1rem",
-              }}
+              className="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
+              style={{ background: `linear-gradient(135deg, ${config.colors.primary}15, ${config.colors.primary}08)` }}
             >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={config.colors.primary} strokeWidth={2} strokeLinecap="round">
                 <rect x="2" y="5" width="20" height="14" rx="2" />
                 <path d="M2 10h20" />
               </svg>
             </div>
-            <h2 style={{ fontSize: "1.25rem", fontWeight: 600, color: "#1A1A1A", marginBottom: "0.25rem" }}>
+            <h2 className="font-display tracking-tight text-xl font-semibold text-brand-dark mb-1">
               Fund Your Wallet
             </h2>
-            <p style={{ fontSize: "13px", color: "#6B7280" }}>
+            <p className="text-[13px] text-gray-500">
               Select a payment provider to continue
             </p>
           </div>
 
           {/* Amount Display */}
           <div
-            style={{
-              padding: "1rem",
-              backgroundColor: "#F9FAFB",
-              borderRadius: "12px",
-              marginBottom: "1.5rem",
-              textAlign: "center",
-            }}
+            className="p-4 bg-gray-50 rounded-xl mb-6 text-center"
           >
-            <span style={{ fontSize: "10px", color: "#9CA3AF", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em" }}>
+            <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-[0.1em]">
               Amount
             </span>
             <div
-              style={{
-                fontSize: "1.75rem",
-                fontFamily: "'JetBrains Mono', monospace",
-                fontWeight: 700,
-                color: config.colors.primary,
-                marginTop: "0.25rem",
-              }}
+              className="text-[1.75rem] font-mono font-bold mt-1"
+              style={{ color: config.colors.primary }}
             >
               {formatNaira(amount)}
             </div>
           </div>
 
           {/* Provider Selection */}
-          <div style={{ marginBottom: "1.5rem" }}>
-            <span style={{ fontSize: "12px", fontWeight: 600, color: "#374151", marginBottom: "0.75rem", display: "block" }}>
+          <div className="mb-6">
+            <span className="text-xs font-semibold text-gray-700 mb-3 block">
               Payment Method
             </span>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+            <div className="flex flex-col gap-2">
               {providers.map((provider) => (
                 <button
                   key={provider.id}
                   onClick={() => setSelectedProvider(provider.id)}
+                  className="flex items-center gap-3 p-4 rounded-xl cursor-pointer transition-all duration-200 w-full text-left"
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.75rem",
-                    padding: "1rem",
-                    borderRadius: "12px",
                     border: `2px solid ${selectedProvider === provider.id ? provider.color : "#E5E7EB"}`,
                     backgroundColor: selectedProvider === provider.id ? `${provider.color}08` : "#FFFFFF",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                    width: "100%",
-                    textAlign: "left",
                   }}
                   onMouseEnter={(e) => {
                     if (selectedProvider !== provider.id) {
@@ -262,37 +197,24 @@ export function PaymentModal({ isOpen, onClose, amount, onSuccess }: PaymentModa
                   }}
                 >
                   <div
-                    style={{
-                      width: "40px",
-                      height: "40px",
-                      borderRadius: "10px",
-                      backgroundColor: `${provider.color}15`,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: "20px",
-                    }}
+                    className="w-10 h-10 rounded-[10px] flex items-center justify-center text-[20px]"
+                    style={{ backgroundColor: `${provider.color}15` }}
                   >
                     {provider.icon}
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: "14px", fontWeight: 600, color: "#1A1A1A" }}>
+                  <div className="flex-1">
+                    <div className="text-sm font-semibold text-brand-dark">
                       {provider.name}
                     </div>
-                    <div style={{ fontSize: "11px", color: "#6B7280" }}>
+                    <div className="text-[11px] text-gray-500">
                       Pay with card, bank transfer, or USSD
                     </div>
                   </div>
                   <div
+                    className="w-5 h-5 rounded-full flex items-center justify-center"
                     style={{
-                      width: "20px",
-                      height: "20px",
-                      borderRadius: "50%",
                       border: `2px solid ${selectedProvider === provider.id ? provider.color : "#D1D5DB"}`,
                       backgroundColor: selectedProvider === provider.id ? provider.color : "transparent",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
                     }}
                   >
                     {selectedProvider === provider.id && (
@@ -309,19 +231,7 @@ export function PaymentModal({ isOpen, onClose, amount, onSuccess }: PaymentModa
           {/* Error Message */}
           {error && (
             <div
-              style={{
-                padding: "0.75rem 1rem",
-                borderRadius: "8px",
-                backgroundColor: "#FEF2F2",
-                border: "1px solid #FECACA",
-                color: "#DC2626",
-                fontSize: "12px",
-                fontWeight: 500,
-                marginBottom: "1rem",
-                display: "flex",
-                alignItems: "center",
-                gap: "0.5rem",
-              }}
+              className="px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-xs font-medium mb-4 flex items-center gap-2"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
                 <circle cx="12" cy="12" r="10" />
@@ -335,22 +245,11 @@ export function PaymentModal({ isOpen, onClose, amount, onSuccess }: PaymentModa
           <button
             onClick={handlePayment}
             disabled={loading}
+            className="w-full p-4 rounded-xl text-sm font-semibold border-none text-white flex items-center justify-center gap-2 transition-all duration-200"
             style={{
-              width: "100%",
-              padding: "1rem",
-              borderRadius: "12px",
-              fontSize: "14px",
-              fontWeight: 600,
-              cursor: loading ? "not-allowed" : "pointer",
               backgroundColor: config.colors.primary,
-              color: "#ffffff",
-              border: "none",
-              transition: "all 0.2s ease",
+              cursor: loading ? "not-allowed" : "pointer",
               opacity: loading ? 0.7 : 1,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "0.5rem",
             }}
             onMouseEnter={(e) => {
               if (!loading) {
@@ -389,15 +288,7 @@ export function PaymentModal({ isOpen, onClose, amount, onSuccess }: PaymentModa
 
           {/* Security Note */}
           <div
-            style={{
-              marginTop: "1rem",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "0.5rem",
-              fontSize: "11px",
-              color: "#9CA3AF",
-            }}
+            className="mt-4 flex items-center justify-center gap-2 text-[11px] text-gray-400"
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />

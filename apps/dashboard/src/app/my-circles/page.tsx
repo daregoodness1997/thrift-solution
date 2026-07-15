@@ -217,31 +217,32 @@ export default function MyCirclesPage() {
   const filteredAccounts = myAccounts;
 
   return (
-    <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
+    <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
       <PageHeader badgeLabel="Savings" heading="My" accentText="Circles" description="Detailed view of all your circle savings accounts, interest earnings, and transaction history."
-        right={<span style={{ fontSize: "12px", color: "#717171" }}>Wallet: <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: cfg.colors.primary }}>{formatNaira(walletBalance)}</span></span>} />
+        right={<span className="text-[12px] text-gray-500">Wallet: <span className="font-mono font-semibold" style={{ color: cfg.colors.primary }}>{formatNaira(walletBalance)}</span></span>} />
 
       {message && (
         <FadeIn>
-          <div style={{ padding: "0.75rem 1rem", borderRadius: "0.75rem", marginBottom: "1.5rem", fontSize: "13px", fontWeight: 500, backgroundColor: message.type === "success" ? "#ECFDF5" : "#FEF2F2", color: message.type === "success" ? "#059669" : "#DC2626", border: `1px solid ${message.type === "success" ? "#A7F3D0" : "#FECACA"}` }}>
+          <div className="mb-6 rounded-xl px-4 py-3 text-[13px] font-medium" style={{ backgroundColor: message.type === "success" ? "#ECFDF5" : "#FEF2F2", color: message.type === "success" ? "#059669" : "#DC2626", border: `1px solid ${message.type === "success" ? "#A7F3D0" : "#FECACA"}` }}>
             {message.text}
           </div>
         </FadeIn>
       )}
 
-      <StaggerChildren staggerDelay={100} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.5rem", marginBottom: "2rem" }}>
+      <StaggerChildren staggerDelay={100} className="mb-8 grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-6">
         <StatCard label="Total Invested" value={formatNaira(stats.totalInvested)} change={`${stats.total} account${stats.total !== 1 ? "s" : ""}`} positive variant="default" />
         <StatCard label="Interest Earned" value={formatNaira(stats.totalInterest)} change={stats.activeCount > 0 ? `${stats.activeCount} earning` : "No active accounts"} positive variant="warm" />
         <StatCard label="Maturity Value" value={formatNaira(stats.totalMaturityValue)} change={`${stats.activeCount + stats.maturedCount} pending`} positive variant="default" />
         <StatCard label="Active Accounts" value={String(stats.activeCount)} change={stats.maturedCount > 0 ? `${stats.maturedCount} matured` : "None matured"} positive variant="warm" />
       </StaggerChildren>
 
-      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.5rem", flexWrap: "wrap" }}>
+      <div className="mb-6 flex flex-wrap gap-2">
         {(["all", "active", "matured", "withdrawn"] as StatusFilter[]).map((filter) => {
           const count = filter === "all" ? stats.total : myAccounts.filter((a) => a.status === filter).length;
           return (
             <button key={filter} onClick={() => setStatusFilter(filter)}
-              style={{ padding: "0.5rem 1.25rem", borderRadius: "9999px", fontSize: "12px", fontWeight: 600, border: "1.5px solid", cursor: "pointer", transition: "all 0.15s ease", backgroundColor: statusFilter === filter ? cfg.colors.primary : "#ffffff", color: statusFilter === filter ? "#ffffff" : "#717171", borderColor: statusFilter === filter ? cfg.colors.primary : "#EAEAEA" }}>
+              className="cursor-pointer rounded-full border-[1.5px] px-5 py-2 text-[12px] font-semibold transition-all duration-150"
+              style={{ backgroundColor: statusFilter === filter ? cfg.colors.primary : "#ffffff", color: statusFilter === filter ? "#ffffff" : "#717171", borderColor: statusFilter === filter ? cfg.colors.primary : "#EAEAEA" }}>
               {filter.charAt(0).toUpperCase() + filter.slice(1)} ({count})
             </button>
           );
@@ -249,18 +250,18 @@ export default function MyCirclesPage() {
       </div>
 
       {loading ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1.5rem" }}>{Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)}</div>
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-6">{Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)}</div>
       ) : filteredAccounts.length === 0 ? (
         <FadeInUp delay={200}>
           <Card padding="3rem">
-            <div style={{ textAlign: "center" }}>
-              <div style={{ width: "48px", height: "48px", borderRadius: "50%", backgroundColor: "#F0F0F0", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", fontSize: "20px" }}>&#8358;</div>
-              <h3 style={{ fontSize: "1rem", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.5rem" }}>
-                {statusFilter === "all" ? "No circle accounts yet" : `No ${statusFilter} accounts`}
-              </h3>
-              <p style={{ fontSize: "13px", color: "#717171", marginBottom: "1rem" }}>
-                {statusFilter === "all" ? "Open a circle account to start earning weekly interest." : "Try a different filter."}
-              </p>
+              <div className="text-center">
+                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-[20px]">&#8358;</div>
+                <h3 className="mb-2 text-[1rem] font-semibold text-brand-dark">
+                  {statusFilter === "all" ? "No circle accounts yet" : `No ${statusFilter} accounts`}
+                </h3>
+                <p className="mb-4 text-[13px] text-gray-500">
+                  {statusFilter === "all" ? "Open a circle account to start earning weekly interest." : "Try a different filter."}
+                </p>
               {statusFilter === "all" && <Button variant="primary" size="sm" onClick={() => window.location.href = "/circles"}>Browse Circles</Button>}
             </div>
           </Card>
@@ -269,69 +270,69 @@ export default function MyCirclesPage() {
         <FadeInUp delay={200}>
           <Card padding="1.5rem">
             <ColorfulBadge label="My Accounts" color={cfg.colors.primary} />
-            <h2 style={{ fontSize: "1.125rem", fontWeight: 500, color: "#1A1A1A", marginTop: "0.5rem", marginBottom: "1rem" }}>
-              Circle Accounts ({filteredAccounts.length})
-            </h2>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+              <h2 className="mt-2 mb-4 text-[1.125rem] font-medium text-brand-dark">
+                Circle Accounts ({filteredAccounts.length})
+              </h2>
+              <div className="flex flex-col gap-3">
               {filteredAccounts.map((account) => {
                 const progress = getMaturityProgress(account.startDate, account.maturityDate);
                 const days = daysUntil(account.maturityDate);
                 const isExpanded = expandedAccount === account.id;
 
                 return (
-                  <div key={account.id} style={{ padding: "1rem", borderRadius: "0.75rem", border: "1px solid #F0F0F0", backgroundColor: isExpanded ? "#FAF9F5" : "#ffffff", transition: "all 0.2s" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", flexWrap: "wrap", gap: "0.75rem" }} onClick={() => setExpandedAccount(isExpanded ? null : account.id)}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "1rem", flex: 1, minWidth: 0 }}>
-                        <div style={{ width: "44px", height: "44px", borderRadius: "0.75rem", backgroundColor: ACCOUNT_STATUS_BG[account.status], display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", fontWeight: 700, color: ACCOUNT_STATUS_COLORS[account.status], flexShrink: 0 }}>
+                  <div key={account.id} className="rounded-xl border border-gray-100 p-4 transition-all duration-200" style={{ backgroundColor: isExpanded ? "#FAF9F5" : "#ffffff" }}>
+                    <div className="flex flex-wrap items-center justify-between gap-3" onClick={() => setExpandedAccount(isExpanded ? null : account.id)}>
+                      <div className="flex flex-1 items-center gap-4 min-w-0">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl font-mono text-[11px] font-bold" style={{ backgroundColor: ACCOUNT_STATUS_BG[account.status], color: ACCOUNT_STATUS_COLORS[account.status] }}>
                           {formatNaira(account.principalAmount).split(" ")[0]}
                         </div>
-                        <div style={{ minWidth: 0 }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.125rem" }}>
-                            <span style={{ fontSize: "14px", fontWeight: 600, color: "#2D2D2D", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{account.circle.name}</span>
-                            <span style={{ fontSize: "9px", fontWeight: 700, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace", color: ACCOUNT_STATUS_COLORS[account.status], backgroundColor: `${ACCOUNT_STATUS_COLORS[account.status]}12`, padding: "0.125rem 0.5rem", borderRadius: "0.375rem", flexShrink: 0 }}>{account.status.replace("_", " ")}</span>
+                        <div className="min-w-0">
+                          <div className="mb-0.5 flex items-center gap-2">
+                            <span className="truncate text-[14px] font-semibold text-brand-dark">{account.circle.name}</span>
+                            <span className="shrink-0 rounded-[0.375rem] px-2 py-0.5 text-[9px] font-bold uppercase font-mono" style={{ color: ACCOUNT_STATUS_COLORS[account.status], backgroundColor: `${ACCOUNT_STATUS_COLORS[account.status]}12` }}>{account.status.replace("_", " ")}</span>
                           </div>
-                          <span style={{ fontSize: "11px", color: "#999" }}>{formatNaira(account.principalAmount)} &middot; {account.circle.interestRateAnnual}% p.a. &middot; {formatDuration(account.circle.durationMonths)}</span>
+                          <span className="text-[11px] text-gray-400">{formatNaira(account.principalAmount)} &middot; {account.circle.interestRateAnnual}% p.a. &middot; {formatDuration(account.circle.durationMonths)}</span>
                         </div>
                       </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                      <div className="flex items-center gap-3">
                         {account.status === "active" && (
-                          <span style={{ fontSize: "11px", color: "#666", fontFamily: "'JetBrains Mono', monospace" }}>{days}d left</span>
+                          <span className="font-mono text-[11px] text-[#666]">{days}d left</span>
                         )}
                         <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); window.location.href = `/my-circles/${account.id}`; }}>
                           View Details
                         </Button>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isExpanded ? cfg.colors.primary : "#999"} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ transition: "transform 0.2s", transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)", flexShrink: 0 }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isExpanded ? cfg.colors.primary : "#999"} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="shrink-0" style={{ transition: "transform 0.2s", transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)" }}>
                           <path d="M6 9l6 6 6-6" />
                         </svg>
                       </div>
                     </div>
 
                     {account.status === "active" && (
-                      <div style={{ marginTop: "0.75rem" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", color: "#999", marginBottom: "0.375rem" }}>
+                      <div className="mt-3">
+                        <div className="mb-1.5 flex justify-between text-[10px] text-gray-400">
                           <span>Maturity Progress</span>
                           <span>{progress}%</span>
                         </div>
-                        <div style={{ height: "4px", borderRadius: "2px", backgroundColor: "#F0F0F0", overflow: "hidden" }}>
-                          <div style={{ width: `${progress}%`, height: "100%", backgroundColor: cfg.colors.primary, transition: "width 0.5s ease", borderRadius: "2px" }} />
+                        <div className="h-1 overflow-hidden rounded-[2px] bg-gray-100">
+                          <div className="h-full rounded-[2px]" style={{ width: `${progress}%`, backgroundColor: cfg.colors.primary, transition: "width 0.5s ease" }} />
                         </div>
                       </div>
                     )}
 
                     {isExpanded && (
-                      <div style={{ marginTop: "1rem", paddingTop: "1rem", borderTop: "1px solid #F0F0F0" }}>
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: "1rem", fontSize: "12px", marginBottom: "1rem" }}>
-                          <div><span style={{ color: "#999", display: "block", marginBottom: "0.25rem" }}>Principal</span><span style={{ fontWeight: 600, fontFamily: "'JetBrains Mono', monospace", color: cfg.colors.primary }}>{formatNaira(account.principalAmount)}</span></div>
-                          <div><span style={{ color: "#999", display: "block", marginBottom: "0.25rem" }}>Interest Earned</span><span style={{ fontWeight: 600, fontFamily: "'JetBrains Mono', monospace", color: "#10B981" }}>{formatNaira(account.interestEarned)}</span></div>
-                          <div><span style={{ color: "#999", display: "block", marginBottom: "0.25rem" }}>Maturity Payout</span><span style={{ fontWeight: 600, fontFamily: "'JetBrains Mono', monospace", color: "#2D2D2D" }}>{formatNaira(account.principalAmount + account.interestEarned)}</span></div>
-                          <div><span style={{ color: "#999", display: "block", marginBottom: "0.25rem" }}>Start Date</span><span style={{ fontWeight: 500, color: "#2D2D2D" }}>{formatDate(account.startDate)}</span></div>
-                          <div><span style={{ color: "#999", display: "block", marginBottom: "0.25rem" }}>Maturity Date</span><span style={{ fontWeight: 500, color: "#2D2D2D" }}>{formatDate(account.maturityDate)}</span></div>
-                          {account.lastInterestCalculation && (
-                            <div><span style={{ color: "#999", display: "block", marginBottom: "0.25rem" }}>Last Interest</span><span style={{ fontWeight: 500, color: "#2D2D2D" }}>{formatDate(account.lastInterestCalculation)}</span></div>
-                          )}
-                        </div>
+                        <div className="mt-4 border-t border-gray-100 pt-4">
+                          <div className="mb-4 grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-4 text-[12px]">
+                            <div><span className="mb-1 block text-gray-400">Principal</span><span className="font-mono font-semibold" style={{ color: cfg.colors.primary }}>{formatNaira(account.principalAmount)}</span></div>
+                            <div><span className="mb-1 block text-gray-400">Interest Earned</span><span className="font-mono font-semibold text-emerald-500">{formatNaira(account.interestEarned)}</span></div>
+                            <div><span className="mb-1 block text-gray-400">Maturity Payout</span><span className="font-mono font-semibold text-brand-dark">{formatNaira(account.principalAmount + account.interestEarned)}</span></div>
+                            <div><span className="mb-1 block text-gray-400">Start Date</span><span className="font-medium text-brand-dark">{formatDate(account.startDate)}</span></div>
+                            <div><span className="mb-1 block text-gray-400">Maturity Date</span><span className="font-medium text-brand-dark">{formatDate(account.maturityDate)}</span></div>
+                            {account.lastInterestCalculation && (
+                              <div><span className="mb-1 block text-gray-400">Last Interest</span><span className="font-medium text-brand-dark">{formatDate(account.lastInterestCalculation)}</span></div>
+                            )}
+                          </div>
 
-                        <div style={{ display: "flex", gap: "0.375rem", marginBottom: "1rem" }}>
+                          <div className="mb-4 flex gap-1.5">
                           <button onClick={() => setAccountSubTab("interest")}
                             style={{ padding: "0.375rem 1rem", borderRadius: "9999px", fontSize: "11px", fontWeight: 600, border: "1.5px solid", cursor: "pointer", transition: "all 0.15s ease", backgroundColor: accountSubTab === "interest" ? cfg.colors.primary : "#ffffff", color: accountSubTab === "interest" ? "#ffffff" : "#717171", borderColor: accountSubTab === "interest" ? cfg.colors.primary : "#EAEAEA" }}>
                             Interest Logs
@@ -343,19 +344,19 @@ export default function MyCirclesPage() {
                         </div>
 
                         {loadingDetails ? (
-                          <div style={{ padding: "1.5rem", textAlign: "center", color: "#999", fontSize: "12px" }}>Loading details...</div>
+                          <div className="p-6 text-center text-[12px] text-gray-400">Loading details...</div>
                         ) : accountSubTab === "interest" ? (
-                          <div style={{ maxHeight: "280px", overflowY: "auto", borderRadius: "0.5rem", border: "1px solid #F0F0F0" }}>
+                          <div className="max-h-[280px] overflow-y-auto rounded-lg border border-gray-100">
                             {interestLogs.length === 0 ? (
-                              <div style={{ padding: "1.5rem", textAlign: "center", color: "#999", fontSize: "12px" }}>No interest calculations yet</div>
+                              <div className="p-6 text-center text-[12px] text-gray-400">No interest calculations yet</div>
                             ) : (
-                              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "11px" }}>
-                                <thead style={{ position: "sticky", top: 0, zIndex: 1 }}>
-                                  <tr style={{ backgroundColor: "#FAFAFA" }}>
-                                    <th style={{ padding: "0.625rem 0.75rem", textAlign: "left", fontWeight: 600, color: "#999", borderBottom: "1px solid #F0F0F0", fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Date</th>
-                                    <th style={{ padding: "0.625rem 0.75rem", textAlign: "right", fontWeight: 600, color: "#999", borderBottom: "1px solid #F0F0F0", fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Principal</th>
-                                    <th style={{ padding: "0.625rem 0.75rem", textAlign: "right", fontWeight: 600, color: "#999", borderBottom: "1px solid #F0F0F0", fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Interest</th>
-                                    <th style={{ padding: "0.625rem 0.75rem", textAlign: "right", fontWeight: 600, color: "#999", borderBottom: "1px solid #F0F0F0", fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Cumulative</th>
+                              <table className="w-full border-collapse text-[11px]">
+                                <thead className="sticky top-0 z-[1]">
+                                  <tr className="bg-gray-50">
+                                    <th className="border-b border-gray-100 px-3 py-2.5 text-left text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400">Date</th>
+                                    <th className="border-b border-gray-100 px-3 py-2.5 text-right text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400">Principal</th>
+                                    <th className="border-b border-gray-100 px-3 py-2.5 text-right text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400">Interest</th>
+                                    <th className="border-b border-gray-100 px-3 py-2.5 text-right text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400">Cumulative</th>
                                   </tr>
                                 </thead>
                                 <tbody>
@@ -364,11 +365,11 @@ export default function MyCirclesPage() {
                                     acc.push({ ...log, cumulative: prevCum + log.amount });
                                     return acc;
                                   }, [] as (InterestLog & { cumulative: number })[]).map((log, idx) => (
-                                    <tr key={log.id} style={{ backgroundColor: idx % 2 === 0 ? "#ffffff" : "#FAFAFA" }}>
-                                      <td style={{ padding: "0.5rem 0.75rem", fontFamily: "'JetBrains Mono', monospace", color: "#666" }}>{formatDate(log.calculatedAt)}</td>
-                                      <td style={{ padding: "0.5rem 0.75rem", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", color: "#666" }}>{formatNaira(log.principalAtCalculation)}</td>
-                                      <td style={{ padding: "0.5rem 0.75rem", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", fontWeight: 500, color: "#10B981" }}>+{formatNaira(log.amount)}</td>
-                                      <td style={{ padding: "0.5rem 0.75rem", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", color: "#2D2D2D" }}>{formatNaira(log.cumulative)}</td>
+                                    <tr key={log.id} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                                      <td className="px-3 py-2 font-mono text-[#666]">{formatDate(log.calculatedAt)}</td>
+                                      <td className="px-3 py-2 text-right font-mono text-[#666]">{formatNaira(log.principalAtCalculation)}</td>
+                                      <td className="px-3 py-2 text-right font-mono font-medium text-emerald-500">+{formatNaira(log.amount)}</td>
+                                      <td className="px-3 py-2 text-right font-mono text-brand-dark">{formatNaira(log.cumulative)}</td>
                                     </tr>
                                   ))}
                                 </tbody>
@@ -376,35 +377,35 @@ export default function MyCirclesPage() {
                             )}
                           </div>
                         ) : (
-                          <div style={{ maxHeight: "280px", overflowY: "auto", borderRadius: "0.5rem", border: "1px solid #F0F0F0" }}>
+                          <div className="max-h-[280px] overflow-y-auto rounded-lg border border-gray-100">
                             {accountTransactions.length === 0 ? (
-                              <div style={{ padding: "1.5rem", textAlign: "center", color: "#999", fontSize: "12px" }}>No transactions yet</div>
+                              <div className="p-6 text-center text-[12px] text-gray-400">No transactions yet</div>
                             ) : (
-                              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "11px" }}>
-                                <thead style={{ position: "sticky", top: 0, zIndex: 1 }}>
-                                  <tr style={{ backgroundColor: "#FAFAFA" }}>
-                                    <th style={{ padding: "0.625rem 0.75rem", textAlign: "left", fontWeight: 600, color: "#999", borderBottom: "1px solid #F0F0F0", fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Date</th>
-                                    <th style={{ padding: "0.625rem 0.75rem", textAlign: "left", fontWeight: 600, color: "#999", borderBottom: "1px solid #F0F0F0", fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Type</th>
-                                    <th style={{ padding: "0.625rem 0.75rem", textAlign: "right", fontWeight: 600, color: "#999", borderBottom: "1px solid #F0F0F0", fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Amount</th>
-                                    <th style={{ padding: "0.625rem 0.75rem", textAlign: "left", fontWeight: 600, color: "#999", borderBottom: "1px solid #F0F0F0", fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Status</th>
+                              <table className="w-full border-collapse text-[11px]">
+                                <thead className="sticky top-0 z-[1]">
+                                  <tr className="bg-gray-50">
+                                    <th className="border-b border-gray-100 px-3 py-2.5 text-left text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400">Date</th>
+                                    <th className="border-b border-gray-100 px-3 py-2.5 text-left text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400">Type</th>
+                                    <th className="border-b border-gray-100 px-3 py-2.5 text-right text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400">Amount</th>
+                                    <th className="border-b border-gray-100 px-3 py-2.5 text-left text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400">Status</th>
                                   </tr>
                                 </thead>
                                 <tbody>
                                   {accountTransactions.map((tx, idx) => {
                                     const color = getTransactionTypeColor(tx.type);
                                     return (
-                                      <tr key={tx.id} style={{ backgroundColor: idx % 2 === 0 ? "#ffffff" : "#FAFAFA" }}>
-                                        <td style={{ padding: "0.5rem 0.75rem", fontFamily: "'JetBrains Mono', monospace", color: "#666" }}>{formatDateTime(tx.createdAt)}</td>
-                                        <td style={{ padding: "0.5rem 0.75rem" }}>
-                                          <span style={{ fontSize: "9px", fontWeight: 700, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace", color, backgroundColor: `${color}12`, padding: "0.125rem 0.5rem", borderRadius: "0.375rem" }}>
+                                      <tr key={tx.id} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                                        <td className="px-3 py-2 font-mono text-[#666]">{formatDateTime(tx.createdAt)}</td>
+                                        <td className="px-3 py-2">
+                                          <span className="rounded-[0.375rem] px-2 py-0.5 text-[9px] font-bold uppercase font-mono" style={{ color, backgroundColor: `${color}12` }}>
                                             {getTransactionTypeLabel(tx.type)}
                                           </span>
                                         </td>
-                                        <td style={{ padding: "0.5rem 0.75rem", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: tx.type === "circle_withdrawal" ? "#DC2626" : tx.type === "circle_interest" ? "#10B981" : cfg.colors.primary }}>
+                                        <td className="px-3 py-2 text-right font-mono font-semibold" style={{ color: tx.type === "circle_withdrawal" ? "#DC2626" : tx.type === "circle_interest" ? "#10B981" : cfg.colors.primary }}>
                                           {tx.type === "circle_withdrawal" ? "-" : "+"}{formatNaira(tx.amount)}
                                         </td>
-                                        <td style={{ padding: "0.5rem 0.75rem" }}>
-                                          <span style={{ fontSize: "9px", fontWeight: 600, textTransform: "uppercase", color: tx.status === "completed" ? "#059669" : "#D97706", backgroundColor: tx.status === "completed" ? "#ECFDF5" : "#FFFBEB", padding: "0.125rem 0.5rem", borderRadius: "0.375rem" }}>
+                                        <td className="px-3 py-2">
+                                          <span className="rounded-[0.375rem] px-2 py-0.5 text-[9px] font-semibold uppercase" style={{ color: tx.status === "completed" ? "#059669" : "#D97706", backgroundColor: tx.status === "completed" ? "#ECFDF5" : "#FFFBEB" }}>
                                             {tx.status}
                                           </span>
                                         </td>
@@ -417,7 +418,7 @@ export default function MyCirclesPage() {
                           </div>
                         )}
 
-                        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginTop: "1rem" }}>
+                        <div className="mt-4 flex flex-wrap gap-2">
                           {account.status === "active" && (
                             <>
                               <Button variant="primary" size="sm" disabled={claiming === account.id || daysUntil(account.maturityDate) > 0} onClick={() => handleClaim(account.id)}>

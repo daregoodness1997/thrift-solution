@@ -1,0 +1,6 @@
+{
+  "name": "Flutterwave US",
+  "description": "A highly polished clone of the Flutterwave US landing page, featuring interactive payment checkout simulators, live currency converters, and beautiful developer code block switchers with smooth motion animations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

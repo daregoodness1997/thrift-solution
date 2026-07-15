@@ -209,21 +209,21 @@ export default function CircleManagementPage() {
 
   if (loading) {
     return (
-      <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
-        <div style={{ textAlign: "center", padding: "4rem", color: "#999", fontSize: "13px" }}>Loading circles...</div>
+      <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
+        <div className="p-16 text-center text-[13px] text-gray-500">Loading circles...</div>
       </div>
     );
   }
 
   return (
-    <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
+    <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
       <PageHeader
         badgeLabel="Admin"
         heading="Circle"
         accentText="Management"
         description="Create, configure, and manage circle savings products."
         right={
-          <div style={{ display: "flex", gap: "0.5rem" }}>
+          <div className="flex gap-2">
             <Button variant="secondary" size="sm" disabled={runningJob} onClick={handleRunInterestJob}>
               {runningJob ? "Running..." : "Run Interest Job"}
             </Button>
@@ -236,41 +236,40 @@ export default function CircleManagementPage() {
 
       {message && (
         <FadeIn>
-          <div style={{ padding: "0.75rem 1rem", borderRadius: "0.75rem", marginBottom: "1.5rem", fontSize: "13px", fontWeight: 500, backgroundColor: message.type === "success" ? "#ECFDF5" : "#FEF2F2", color: message.type === "success" ? "#059669" : "#DC2626", border: `1px solid ${message.type === "success" ? "#A7F3D0" : "#FECACA"}` }}>
+          <div className={`mb-6 rounded-xl border px-4 py-3 text-[13px] font-medium ${message.type === "success" ? "bg-emerald-50 text-emerald-600 border-emerald-200" : "bg-red-50 text-red-600 border-red-200"}`}>
             {message.text}
           </div>
         </FadeIn>
       )}
 
-      <StaggerChildren staggerDelay={100} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "1rem", marginBottom: "2rem" }}>
+      <StaggerChildren staggerDelay={100} className="mb-8 grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-4">
         <Card padding="1.25rem">
-          <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", fontWeight: 700, display: "block" }}>Total Circles</span>
-          <span style={{ fontSize: "1.5rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: "#1A1A1A", display: "block", marginTop: "0.25rem" }}>{stats.total}</span>
+          <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-500">Total Circles</span>
+          <span className="mt-1 block font-mono text-2xl font-bold text-brand-dark">{stats.total}</span>
         </Card>
         <Card padding="1.25rem">
-          <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", fontWeight: 700, display: "block" }}>Active</span>
-          <span style={{ fontSize: "1.5rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: "#059669", display: "block", marginTop: "0.25rem" }}>{stats.active}</span>
+          <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-500">Active</span>
+          <span className="mt-1 block font-mono text-2xl font-bold text-emerald-600">{stats.active}</span>
         </Card>
         <Card padding="1.25rem">
-          <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", fontWeight: 700, display: "block" }}>Inactive</span>
-          <span style={{ fontSize: "1.5rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: "#D97706", display: "block", marginTop: "0.25rem" }}>{stats.inactive}</span>
+          <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-500">Inactive</span>
+          <span className="mt-1 block font-mono text-2xl font-bold text-amber-600">{stats.inactive}</span>
         </Card>
         <Card padding="1.25rem">
-          <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", fontWeight: 700, display: "block" }}>Total Accounts</span>
-          <span style={{ fontSize: "1.5rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: "#1A1A1A", display: "block", marginTop: "0.25rem" }}>{stats.totalAccounts}</span>
+          <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-500">Total Accounts</span>
+          <span className="mt-1 block font-mono text-2xl font-bold text-brand-dark">{stats.totalAccounts}</span>
         </Card>
       </StaggerChildren>
 
       <FadeInUp delay={300}>
         <Card padding="1.5rem">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", flexWrap: "wrap", gap: "0.75rem" }}>
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <ColorfulBadge label="Circles" color={cfg.colors.primary} />
-            <div style={{ display: "flex", gap: "0.25rem", backgroundColor: "#F5F7F5", borderRadius: "0.5rem", padding: "0.25rem" }}>
+            <div className="flex gap-1 rounded-lg bg-gray-100 p-1">
               {(["all", "active", "inactive"] as const).map((f) => (
                 <button key={f} onClick={() => handleFilterChange(f)}
-                  style={{ padding: "0.375rem 0.75rem", borderRadius: "0.375rem", fontSize: "11px", fontWeight: 600, border: "none", cursor: "pointer", transition: "all 0.2s ease", textTransform: "capitalize",
-                    backgroundColor: filter === f ? "#ffffff" : "transparent", color: filter === f ? cfg.colors.primary : "#717171",
-                    boxShadow: filter === f ? "0 1px 3px rgba(0,0,0,0.08)" : "none" }}>
+                  className="cursor-pointer rounded-md px-3 py-1.5 text-[11px] font-semibold capitalize"
+                  style={{ backgroundColor: filter === f ? "#ffffff" : "transparent", color: filter === f ? cfg.colors.primary : "#717171", boxShadow: filter === f ? "0 1px 3px rgba(0,0,0,0.08)" : "none" }}>
                   {f}
                 </button>
               ))}
@@ -278,67 +277,61 @@ export default function CircleManagementPage() {
           </div>
 
           {circles.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "2rem", color: "#999", fontSize: "13px" }}>
+            <div className="p-8 text-center text-[13px] text-gray-500">
               No circles found. Click "+ New Circle" to create one.
             </div>
           ) : (
-            <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
-              <table style={{ width: "100%", fontSize: "12px", borderCollapse: "collapse", minWidth: "800px" }}>
+            <div className="overflow-x-auto [-webkit-overflow-scrolling:touch]">
+              <table className="w-full border-collapse text-[12px] min-w-[800px]">
                 <thead>
-                  <tr style={{ borderBottom: "1px solid #F0F0F0", color: "#999", textTransform: "uppercase", letterSpacing: "0.1em", fontSize: "9px", fontFamily: "'JetBrains Mono', monospace" }}>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Name</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "right", fontWeight: 600 }}>Amount</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Duration</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Interest Rate</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Payout</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Max Accounts</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Accounts</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "right", fontWeight: 600 }}>Status</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "right", fontWeight: 600 }}>Actions</th>
+                  <tr className="border-b border-gray-100 font-mono text-[9px] uppercase tracking-[0.1em] text-gray-500">
+                    <th className="pb-3 text-left font-semibold">Name</th>
+                    <th className="pb-3 text-right font-semibold">Amount</th>
+                    <th className="pb-3 text-left font-semibold">Duration</th>
+                    <th className="pb-3 text-left font-semibold">Interest Rate</th>
+                    <th className="pb-3 text-left font-semibold">Payout</th>
+                    <th className="pb-3 text-left font-semibold">Max Accounts</th>
+                    <th className="pb-3 text-left font-semibold">Accounts</th>
+                    <th className="pb-3 text-right font-semibold">Status</th>
+                    <th className="pb-3 text-right font-semibold">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {circles.map((circle) => (
-                    <tr key={circle.id} style={{ borderBottom: "1px solid #F5F5F5", transition: "background-color 0.2s ease" }}
-                      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#F9FAFB"; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}>
-                      <td style={{ padding: "0.75rem 0" }}>
+                    <tr key={circle.id} className="border-b border-gray-100 transition-colors hover:bg-gray-50">
+                      <td className="py-3">
                         <div>
-                          <span style={{ fontWeight: 600, color: "#2D2D2D", display: "block" }}>{circle.name}</span>
-                          {circle.description && <span style={{ fontSize: "11px", color: "#999" }}>{circle.description}</span>}
+                          <span className="block font-semibold text-brand-dark">{circle.name}</span>
+                          {circle.description && <span className="text-[11px] text-gray-500">{circle.description}</span>}
                         </div>
                       </td>
-                      <td style={{ padding: "0.75rem 0", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: "#2D2D2D" }}>{formatNaira(circle.amount)}</td>
-                      <td style={{ padding: "0.75rem 0", fontWeight: 500, color: "#2D2D2D" }}>{formatDuration(circle.durationMonths)}</td>
-                      <td style={{ padding: "0.75rem 0", fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: cfg.colors.primary }}>{circle.interestRateAnnual}%</td>
-                      <td style={{ padding: "0.75rem 0" }}>
-                        <span style={{ fontSize: "9px", fontWeight: 700, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace",
-                          padding: "0.125rem 0.5rem", borderRadius: "0.375rem",
-                          backgroundColor: circle.autoPayout ? "#ECFDF5" : "#FEF2F2",
-                          color: circle.autoPayout ? "#059669" : "#DC2626",
-                          border: `1px solid ${circle.autoPayout ? "#A7F3D0" : "#FECACA"}` }}>
+                      <td className="py-3 text-right font-mono font-semibold text-brand-dark">{formatNaira(circle.amount)}</td>
+                      <td className="py-3 font-medium text-brand-dark">{formatDuration(circle.durationMonths)}</td>
+                      <td className="py-3 font-mono font-semibold" style={{ color: cfg.colors.primary }}>{circle.interestRateAnnual}%</td>
+                      <td className="py-3">
+                        <span className="rounded-md px-2 py-0.5 font-mono text-[9px] font-bold uppercase"
+                          style={{ backgroundColor: circle.autoPayout ? "#ECFDF5" : "#FEF2F2", color: circle.autoPayout ? "#059669" : "#DC2626", border: `1px solid ${circle.autoPayout ? "#A7F3D0" : "#FECACA"}` }}>
                           {circle.autoPayout ? "Auto" : "Clearance"}
                         </span>
                       </td>
-                      <td style={{ padding: "0.75rem 0", fontFamily: "'JetBrains Mono', monospace", color: "#717171" }}>{circle.maxAccountsPerUser}</td>
-                      <td style={{ padding: "0.75rem 0", fontFamily: "'JetBrains Mono', monospace", color: "#717171" }}>{circle._count?.accounts || 0}</td>
-                      <td style={{ padding: "0.75rem 0", textAlign: "right" }}>
-                        <span style={{
-                          fontSize: "9px", fontWeight: 700, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace",
-                          padding: "0.125rem 0.5rem", borderRadius: "0.375rem",
-                          backgroundColor: circle.status === "active" ? "#ECFDF5" : "#FFFBEB",
-                          color: circle.status === "active" ? "#059669" : "#D97706",
-                          border: `1px solid ${circle.status === "active" ? "#A7F3D0" : "#FDE68A"}`,
-                        }}>{circle.status}</span>
+                      <td className="py-3 font-mono text-gray-500">{circle.maxAccountsPerUser}</td>
+                      <td className="py-3 font-mono text-gray-500">{circle._count?.accounts || 0}</td>
+                      <td className="py-3 text-right">
+                        <span className="rounded-md px-2 py-0.5 font-mono text-[9px] font-bold uppercase"
+                          style={{ backgroundColor: circle.status === "active" ? "#ECFDF5" : "#FFFBEB", color: circle.status === "active" ? "#059669" : "#D97706", border: `1px solid ${circle.status === "active" ? "#A7F3D0" : "#FDE68A"}` }}>
+                          {circle.status}
+                        </span>
                       </td>
-                      <td style={{ padding: "0.75rem 0", textAlign: "right" }}>
-                        <div style={{ display: "flex", gap: "0.375rem", justifyContent: "flex-end" }}>
+                      <td className="py-3 text-right">
+                        <div className="flex justify-end gap-1.5">
                           <button onClick={() => openEditModal(circle)}
-                            style={{ padding: "0.25rem 0.5rem", borderRadius: "0.375rem", fontSize: "10px", fontWeight: 600, border: `1px solid ${cfg.colors.primary}30`, backgroundColor: `${cfg.colors.primary}08`, color: cfg.colors.primary, cursor: "pointer", transition: "all 0.2s ease" }}>
+                            className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold"
+                            style={{ border: `1px solid ${cfg.colors.primary}30`, backgroundColor: `${cfg.colors.primary}08`, color: cfg.colors.primary }}>
                             Edit
                           </button>
                           <button onClick={() => handleToggleStatus(circle)} disabled={togglingId === circle.id}
-                            style={{ padding: "0.25rem 0.5rem", borderRadius: "0.375rem", fontSize: "10px", fontWeight: 600, border: `1px solid ${circle.status === "active" ? "#FDE68A" : "#A7F3D0"}`, backgroundColor: circle.status === "active" ? "#FFFBEB" : "#ECFDF5", color: circle.status === "active" ? "#D97706" : "#059669", cursor: "pointer", transition: "all 0.2s ease", opacity: togglingId === circle.id ? 0.5 : 1 }}>
+                            className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold"
+                            style={{ border: `1px solid ${circle.status === "active" ? "#FDE68A" : "#A7F3D0"}`, backgroundColor: circle.status === "active" ? "#FFFBEB" : "#ECFDF5", color: circle.status === "active" ? "#D97706" : "#059669", opacity: togglingId === circle.id ? 0.5 : 1 }}>
                             {togglingId === circle.id ? "..." : circle.status === "active" ? "Deactivate" : "Activate"}
                           </button>
                         </div>
@@ -354,91 +347,90 @@ export default function CircleManagementPage() {
       </FadeInUp>
 
       {showModal && (
-        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem" }} onClick={() => setShowModal(false)}>
-          <div style={{ backgroundColor: "#fff", borderRadius: "1rem", padding: "2rem", maxWidth: "480px", width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.15)", maxHeight: "90vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ fontSize: "16px", fontWeight: 600, color: "#1A1A1A", marginBottom: "0.25rem" }}>
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 p-4" onClick={() => setShowModal(false)}>
+          <div className="max-h-[90vh] w-full max-w-[480px] overflow-y-auto rounded-2xl bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.15)]" onClick={(e) => e.stopPropagation()}>
+            <h3 className="mb-1 text-base font-semibold text-brand-dark">
               {editingCircle ? "Edit Circle" : "Create New Circle"}
             </h3>
-            <p style={{ fontSize: "12px", color: "#717171", marginBottom: "1.5rem" }}>
+            <p className="mb-6 text-[12px] text-gray-500">
               {editingCircle ? "Update circle configuration below." : "Configure a new circle savings product."}
             </p>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+            <div className="flex flex-col gap-4">
               <div>
-                <label style={{ fontSize: "11px", fontWeight: 600, color: "#2D2D2D", display: "block", marginBottom: "0.375rem" }}>Name *</label>
+                <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Name *</label>
                 <input type="text" value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
                   placeholder="e.g. Gold Circle"
-                  style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "0.5rem", border: "1px solid #E5E7EB", fontSize: "13px", outline: "none", boxSizing: "border-box" }} />
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-[13px] outline-none" />
               </div>
 
               <div>
-                <label style={{ fontSize: "11px", fontWeight: 600, color: "#2D2D2D", display: "block", marginBottom: "0.375rem" }}>Description</label>
+                <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Description</label>
                 <textarea value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
                   placeholder="Optional description"
                   rows={2}
-                  style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "0.5rem", border: "1px solid #E5E7EB", fontSize: "13px", outline: "none", resize: "vertical", boxSizing: "border-box" }} />
+                  className="w-full resize-y rounded-lg border border-gray-200 px-3 py-2 text-[13px] outline-none" />
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label style={{ fontSize: "11px", fontWeight: 600, color: "#2D2D2D", display: "block", marginBottom: "0.375rem" }}>Deposit Amount *</label>
+                  <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Deposit Amount *</label>
                   <input type="number" value={form.amount} onChange={(e) => setForm((p) => ({ ...p, amount: e.target.value }))}
                     placeholder="e.g. 25000"
-                    style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "0.5rem", border: "1px solid #E5E7EB", fontSize: "13px", fontFamily: "'JetBrains Mono', monospace", outline: "none", boxSizing: "border-box" }} />
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 font-mono text-[13px] outline-none" />
                 </div>
                 <div>
-                  <label style={{ fontSize: "11px", fontWeight: 600, color: "#2D2D2D", display: "block", marginBottom: "0.375rem" }}>Duration (months) *</label>
+                  <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Duration (months) *</label>
                   <input type="number" value={form.durationMonths} onChange={(e) => setForm((p) => ({ ...p, durationMonths: e.target.value }))}
                     placeholder="e.g. 12"
-                    style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "0.5rem", border: "1px solid #E5E7EB", fontSize: "13px", fontFamily: "'JetBrains Mono', monospace", outline: "none", boxSizing: "border-box" }} />
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 font-mono text-[13px] outline-none" />
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label style={{ fontSize: "11px", fontWeight: 600, color: "#2D2D2D", display: "block", marginBottom: "0.375rem" }}>Interest Rate (% p.a.) *</label>
+                  <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Interest Rate (% p.a.) *</label>
                   <input type="number" step="0.1" value={form.interestRateAnnual} onChange={(e) => setForm((p) => ({ ...p, interestRateAnnual: e.target.value }))}
                     placeholder="e.g. 10"
-                    style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "0.5rem", border: "1px solid #E5E7EB", fontSize: "13px", fontFamily: "'JetBrains Mono', monospace", outline: "none", boxSizing: "border-box" }} />
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 font-mono text-[13px] outline-none" />
                 </div>
                 <div>
-                  <label style={{ fontSize: "11px", fontWeight: 600, color: "#2D2D2D", display: "block", marginBottom: "0.375rem" }}>Max Accounts/User</label>
+                  <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Max Accounts/User</label>
                   <input type="number" value={form.maxAccountsPerUser} onChange={(e) => setForm((p) => ({ ...p, maxAccountsPerUser: e.target.value }))}
                     placeholder="10"
-                    style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "0.5rem", border: "1px solid #E5E7EB", fontSize: "13px", fontFamily: "'JetBrains Mono', monospace", outline: "none", boxSizing: "border-box" }} />
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 font-mono text-[13px] outline-none" />
                 </div>
               </div>
 
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.75rem 1rem", backgroundColor: "#F9FAFB", borderRadius: "0.5rem" }}>
+              <div className="flex items-center justify-between rounded-lg bg-gray-50 p-4">
                 <div>
-                  <span style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", display: "block" }}>Auto Payout</span>
-                  <span style={{ fontSize: "11px", color: "#717171" }}>{form.autoPayout ? "Members can claim maturity instantly" : "Maturity payouts require admin clearance"}</span>
+                  <span className="block text-[12px] font-semibold text-brand-dark">Auto Payout</span>
+                  <span className="text-[11px] text-gray-500">{form.autoPayout ? "Members can claim maturity instantly" : "Maturity payouts require admin clearance"}</span>
                 </div>
                 <button type="button" onClick={() => setForm((p) => ({ ...p, autoPayout: !p.autoPayout }))}
-                  style={{ width: "44px", height: "24px", borderRadius: "12px", border: "none", cursor: "pointer", position: "relative", transition: "background-color 0.2s ease",
-                    backgroundColor: form.autoPayout ? "#059669" : "#D1D5DB" }}>
-                  <span style={{ position: "absolute", top: "2px", left: form.autoPayout ? "22px" : "2px", width: "20px", height: "20px", borderRadius: "50%", backgroundColor: "#fff", transition: "left 0.2s ease", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }} />
+                  style={{ width: "44px", height: "24px", borderRadius: "12px", border: "none", cursor: "pointer", position: "relative", backgroundColor: form.autoPayout ? "#059669" : "#D1D5DB" }}>
+                  <span style={{ position: "absolute", top: "2px", left: form.autoPayout ? "22px" : "2px", width: "20px", height: "20px", borderRadius: "50%", backgroundColor: "#fff", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }} />
                 </button>
               </div>
 
               {form.amount && form.interestRateAnnual && form.durationMonths && (
-                <div style={{ backgroundColor: "#F9FAFB", borderRadius: "0.75rem", padding: "0.75rem 1rem", fontSize: "12px" }}>
-                  <div style={{ fontWeight: 600, color: "#2D2D2D", marginBottom: "0.375rem" }}>Preview</div>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.25rem" }}>
-                    <span style={{ color: "#717171" }}>Deposit</span>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600 }}>{formatNaira(Number(form.amount))}</span>
+                <div className="rounded-xl bg-gray-50 p-4 text-[12px]">
+                  <div className="mb-1.5 font-semibold text-brand-dark">Preview</div>
+                  <div className="mb-1 flex justify-between">
+                    <span className="text-gray-500">Deposit</span>
+                    <span className="font-mono font-semibold">{formatNaira(Number(form.amount))}</span>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.25rem" }}>
-                    <span style={{ color: "#717171" }}>Duration</span>
-                    <span style={{ fontWeight: 500 }}>{formatDuration(Number(form.durationMonths))}</span>
+                  <div className="mb-1 flex justify-between">
+                    <span className="text-gray-500">Duration</span>
+                    <span className="font-medium">{formatDuration(Number(form.durationMonths))}</span>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.25rem" }}>
-                    <span style={{ color: "#717171" }}>Annual Rate</span>
-                    <span style={{ fontWeight: 500 }}>{form.interestRateAnnual}%</span>
+                  <div className="mb-1 flex justify-between">
+                    <span className="text-gray-500">Annual Rate</span>
+                    <span className="font-medium">{form.interestRateAnnual}%</span>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span style={{ color: "#717171" }}>Est. Maturity Value</span>
-                    <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: "#059669" }}>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Est. Maturity Value</span>
+                    <span className="font-mono font-bold text-emerald-600">
                       {formatNaira(Number(form.amount) * (1 + (Number(form.interestRateAnnual) / 100) * (Number(form.durationMonths) / 12)))}
                     </span>
                   </div>
@@ -446,13 +438,14 @@ export default function CircleManagementPage() {
               )}
             </div>
 
-            <div style={{ display: "flex", gap: "0.75rem", marginTop: "1.5rem" }}>
+            <div className="mt-6 flex gap-3">
               <button onClick={() => setShowModal(false)}
-                style={{ flex: 1, padding: "0.625rem", borderRadius: "0.5rem", border: "1px solid #E5E7EB", backgroundColor: "#fff", fontSize: "13px", fontWeight: 500, cursor: "pointer" }}>
+                className="flex-1 cursor-pointer rounded-lg border border-gray-200 bg-white px-2.5 py-2.5 text-[13px] font-medium">
                 Cancel
               </button>
               <button onClick={handleSave} disabled={saving}
-                style={{ flex: 1, padding: "0.625rem", borderRadius: "0.5rem", border: "none", backgroundColor: cfg.colors.primary, color: "#fff", fontSize: "13px", fontWeight: 600, cursor: "pointer", opacity: saving ? 0.5 : 1 }}>
+                className="flex-1 cursor-pointer rounded-lg px-2.5 py-2.5 text-[13px] font-semibold text-white"
+                style={{ backgroundColor: cfg.colors.primary, opacity: saving ? 0.5 : 1 }}>
                 {saving ? "Saving..." : editingCircle ? "Update Circle" : "Create Circle"}
               </button>
             </div>

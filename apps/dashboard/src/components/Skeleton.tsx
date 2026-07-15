@@ -1,16 +1,10 @@
 "use client";
 
-const shimmerStyle: React.CSSProperties = {
-  background: "linear-gradient(90deg, #F0F0F0 25%, #E8E8E8 50%, #F0F0F0 75%)",
-  backgroundSize: "200% 100%",
-  animation: "shimmer 1.5s ease-in-out infinite",
-  borderRadius: "0.375rem",
-};
-
-export function Skeleton({ width, height = "1em", style, ...props }: { width?: string | number; height?: string | number; style?: React.CSSProperties } & React.HTMLAttributes<HTMLDivElement>) {
+export function Skeleton({ width, height = "1em", style, className = "", ...props }: { width?: string | number; height?: string | number; style?: React.CSSProperties; className?: string } & React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      style={{ ...shimmerStyle, width, height, flexShrink: 0, ...style }}
+      className={`flex-shrink-0 animate-pulse rounded-md bg-gray-200 ${className}`}
+      style={{ width, height, ...style }}
       {...props}
     />
   );
@@ -18,7 +12,7 @@ export function Skeleton({ width, height = "1em", style, ...props }: { width?: s
 
 export function SkeletonText({ lines = 3, gap = "0.5rem", style }: { lines?: number; gap?: string; style?: React.CSSProperties }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap, ...style }}>
+    <div className="flex flex-col" style={{ gap, ...style }}>
       {Array.from({ length: lines }).map((_, i) => (
         <Skeleton key={i} width={i === lines - 1 ? "60%" : "100%"} height="10px" />
       ))}
@@ -29,14 +23,8 @@ export function SkeletonText({ lines = 3, gap = "0.5rem", style }: { lines?: num
 export function SkeletonCircle({ size = 40, style }: { size?: number; style?: React.CSSProperties }) {
   return (
     <div
-      style={{
-        ...shimmerStyle,
-        width: size,
-        height: size,
-        borderRadius: "50%",
-        flexShrink: 0,
-        ...style,
-      }}
+      className="flex-shrink-0 animate-pulse rounded-full bg-gray-200"
+      style={{ width: size, height: size, ...style }}
     />
   );
 }
@@ -44,16 +32,8 @@ export function SkeletonCircle({ size = 40, style }: { size?: number; style?: Re
 export function SkeletonCard({ style }: { style?: React.CSSProperties }) {
   return (
     <div
-      style={{
-        padding: "1.5rem",
-        borderRadius: "0.75rem",
-        border: "1px solid #F0F0F0",
-        backgroundColor: "#ffffff",
-        display: "flex",
-        flexDirection: "column",
-        gap: "1rem",
-        ...style,
-      }}
+      className="flex flex-col gap-4 rounded-xl border border-gray-100 bg-white p-6"
+      style={style}
     >
       <Skeleton width="40%" height="12px" />
       <Skeleton width="70%" height="24px" />
@@ -64,14 +44,14 @@ export function SkeletonCard({ style }: { style?: React.CSSProperties }) {
 
 export function SkeletonTable({ rows = 5, cols = 4, style }: { rows?: number; cols?: number; style?: React.CSSProperties }) {
   return (
-    <div style={{ width: "100%", ...style }}>
-      <div style={{ display: "flex", gap: "1rem", padding: "0.75rem 0", borderBottom: "1px solid #F0F0F0" }}>
+    <div className="w-full" style={style}>
+      <div className="flex gap-4 border-b border-gray-100 py-3">
         {Array.from({ length: cols }).map((_, i) => (
           <Skeleton key={i} width={i === 0 ? "25%" : i === cols - 1 ? "15%" : "20%"} height="8px" />
         ))}
       </div>
       {Array.from({ length: rows }).map((_, r) => (
-        <div key={r} style={{ display: "flex", gap: "1rem", padding: "0.75rem 0", borderBottom: "1px solid #F5F5F5" }}>
+        <div key={r} className="flex gap-4 border-b border-gray-50 py-3">
           {Array.from({ length: cols }).map((_, c) => (
             <Skeleton key={c} width={c === 0 ? "25%" : c === cols - 1 ? "15%" : "20%"} height="10px" />
           ))}

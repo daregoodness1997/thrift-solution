@@ -32,52 +32,47 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", backgroundColor: "#FDFDFC" }}>
+    <div className="min-h-screen flex bg-brand-cream">
       {/* Left Panel — Brand */}
-      <div style={{
-        flex: "0 0 45%",
-        background: `linear-gradient(160deg, ${config.colors.secondary} 0%, ${config.colors.primary} 50%, #1a4a30 100%)`,
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        padding: "3rem",
-        position: "relative",
-        overflow: "hidden",
-      }}>
+      <div
+        className="hidden md:flex flex-col justify-center items-center p-12 relative overflow-hidden"
+        style={{
+          background: `linear-gradient(160deg, ${config.colors.secondary} 0%, ${config.colors.primary} 50%, #1a4a30 100%)`,
+        }}
+      >
         {/* Decorative circles */}
-        <div style={{ position: "absolute", top: "-10%", right: "-10%", width: "300px", height: "300px", borderRadius: "50%", border: `1px solid rgba(255,255,255,0.06)` }} />
-        <div style={{ position: "absolute", bottom: "-15%", left: "-10%", width: "400px", height: "400px", borderRadius: "50%", border: `1px solid rgba(255,255,255,0.04)` }} />
-        <div style={{ position: "absolute", top: "20%", left: "10%", width: "150px", height: "150px", borderRadius: "50%", backgroundColor: `rgba(255,255,255,0.03)` }} />
+        <div className="absolute -top-[10%] -right-[10%] w-[300px] h-[300px] rounded-full border border-[rgba(255,255,255,0.06)]" />
+        <div className="absolute -bottom-[15%] -left-[10%] w-[400px] h-[400px] rounded-full border border-[rgba(255,255,255,0.04)]" />
+        <div className="absolute top-[20%] left-[10%] w-[150px] h-[150px] rounded-full bg-white/[0.03]" />
 
-        <div style={{ position: "relative", zIndex: 1, textAlign: "center", maxWidth: "320px" }}>
-          <a href="/" style={{ textDecoration: "none", display: "block", marginBottom: "3rem" }}>
-            <span style={{ fontSize: "2rem", fontWeight: 800, letterSpacing: "-0.05em", color: "#ffffff" }}>
+        <div className="relative z-10 text-center max-w-[320px]">
+          <a href="/" className="block mb-12 no-underline">
+            <span className="text-2xl font-extrabold tracking-[-0.05em] text-white">
               {config.name.toUpperCase().replace(/\s+/g, "")}
             </span>
           </a>
 
-          <h1 style={{ fontSize: "clamp(1.5rem, 3vw, 2rem)", fontWeight: 300, color: "#ffffff", lineHeight: 1.3, marginBottom: "1rem" }}>
+          <h1 className="text-[clamp(1.5rem,3vw,2rem)] font-light text-white leading-[1.3] mb-4">
             Welcome back to<br />
-            <span style={{ fontStyle: "italic", fontFamily: "'Playfair Display', serif", fontWeight: 500, color: config.colors.accent }}>
+            <span className="font-display font-medium" style={{ color: config.colors.accent }}>
               {config.tagline.split(",")[0]}
             </span>
           </h1>
 
-          <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.6)", lineHeight: 1.6 }}>
+          <p className="text-[13px] text-white/60 leading-[1.6]">
             Continue managing your savings circles, tracking contributions, and growing together.
           </p>
 
           {/* Stats */}
-          <div style={{ display: "flex", gap: "2rem", justifyContent: "center", marginTop: "3rem" }}>
+          <div className="flex gap-8 justify-center mt-12">
             {[
               { value: "50K+", label: "Members" },
               { value: "₦2B+", label: "Saved" },
               { value: "10K+", label: "Circles" },
             ].map((stat) => (
-              <div key={stat.label} style={{ textAlign: "center" }}>
-                <span style={{ fontSize: "1.25rem", fontWeight: 700, color: config.colors.accent, display: "block" }}>{stat.value}</span>
-                <span style={{ fontSize: "10px", color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.1em" }}>{stat.label}</span>
+              <div key={stat.label} className="text-center">
+                <span className="block text-[1.25rem] font-bold" style={{ color: config.colors.accent }}>{stat.value}</span>
+                <span className="text-[10px] text-white/50 uppercase tracking-[0.1em]">{stat.label}</span>
               </div>
             ))}
           </div>
@@ -85,27 +80,27 @@ export default function LoginPage() {
       </div>
 
       {/* Right Panel — Form */}
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
-        <div style={{ width: "100%", maxWidth: "400px" }}>
-          <div style={{ marginBottom: "2.5rem" }}>
-            <h2 style={{ fontSize: "1.5rem", fontWeight: 600, color: "#1A1A1A", letterSpacing: "-0.025em" }}>Sign In</h2>
-            <p style={{ fontSize: "13px", color: "#717171", marginTop: "0.375rem" }}>Enter your credentials to access your account</p>
+      <div className="flex-1 flex items-center justify-center p-8">
+        <div className="w-full max-w-[400px]">
+          <div className="mb-10">
+            <h2 className="text-[1.5rem] font-semibold text-brand-dark tracking-[-0.025em]">Sign In</h2>
+            <p className="text-[13px] text-gray-500 mt-1.5">Enter your credentials to access your account</p>
           </div>
 
           <form onSubmit={handleSubmit}>
             {error && (
-              <div style={{ padding: "0.75rem 1rem", borderRadius: "0.75rem", backgroundColor: "#FEF2F2", border: "1px solid #FECACA", color: "#DC2626", fontSize: "12px", fontWeight: 500, marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-xs font-medium mb-6">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                 {error}
               </div>
             )}
 
-            <div style={{ marginBottom: "1.25rem" }}>
-              <label style={{ fontSize: "12px", fontWeight: 500, color: "#374151", display: "block", marginBottom: "0.375rem" }}>
+            <div className="mb-5">
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">
                 Email Address
               </label>
-              <div style={{ position: "relative" }}>
-                <svg style={{ position: "absolute", left: "0.875rem", top: "50%", transform: "translateY(-50%)", color: "#9CA3AF" }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+              <div className="relative">
+                <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
                   <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" />
                 </svg>
                 <input
@@ -114,19 +109,19 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
                   autoComplete="email"
-                  style={{ width: "100%", padding: "0.6875rem 0.875rem 0.6875rem 2.5rem", borderRadius: "0.625rem", border: "1px solid #E5E7EB", fontSize: "13px", outline: "none", transition: "all 0.2s ease", boxSizing: "border-box", color: "#1A1A1A" }}
+                  className="w-full py-[0.6875rem] pl-10 pr-[0.875rem] rounded-[0.625rem] border border-gray-200 text-[13px] text-brand-dark outline-none"
                   onFocus={(e) => { e.currentTarget.style.borderColor = config.colors.primary; e.currentTarget.style.boxShadow = `0 0 0 3px ${config.colors.primary}15`; }}
                   onBlur={(e) => { e.currentTarget.style.borderColor = "#E5E7EB"; e.currentTarget.style.boxShadow = "none"; }}
                 />
               </div>
             </div>
 
-            <div style={{ marginBottom: "1.5rem" }}>
-              <label style={{ fontSize: "12px", fontWeight: 500, color: "#374151", display: "block", marginBottom: "0.375rem" }}>
+            <div className="mb-6">
+              <label className="block text-xs font-medium text-gray-700 mb-1.5">
                 Password
               </label>
-              <div style={{ position: "relative" }}>
-                <svg style={{ position: "absolute", left: "0.875rem", top: "50%", transform: "translateY(-50%)", color: "#9CA3AF" }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+              <div className="relative">
+                <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0110 0v4" />
                 </svg>
                 <input
@@ -135,12 +130,12 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
                   autoComplete="current-password"
-                  style={{ width: "100%", padding: "0.6875rem 2.5rem 0.6875rem 2.5rem", borderRadius: "0.625rem", border: "1px solid #E5E7EB", fontSize: "13px", outline: "none", transition: "all 0.2s ease", boxSizing: "border-box", color: "#1A1A1A" }}
+                  className="w-full py-[0.6875rem] pl-10 pr-10 rounded-[0.625rem] border border-gray-200 text-[13px] text-brand-dark outline-none"
                   onFocus={(e) => { e.currentTarget.style.borderColor = config.colors.primary; e.currentTarget.style.boxShadow = `0 0 0 3px ${config.colors.primary}15`; }}
                   onBlur={(e) => { e.currentTarget.style.borderColor = "#E5E7EB"; e.currentTarget.style.boxShadow = "none"; }}
                 />
                 <button type="button" onClick={() => setShowPassword(!showPassword)}
-                  style={{ position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", padding: "0.25rem", color: "#9CA3AF", display: "flex", alignItems: "center" }}>
+                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-none border-none cursor-pointer p-1 text-gray-400 flex items-center">
                   {showPassword ? (
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" /></svg>
                   ) : (
@@ -150,8 +145,8 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div style={{ textAlign: "right", marginTop: "0.5rem" }}>
-              <a href="/forgot-password" style={{ fontSize: "12px", color: config.colors.primary, fontWeight: 600, textDecoration: "none" }}>
+            <div className="text-right mt-2">
+              <a href="/forgot-password" className="text-xs font-semibold no-underline" style={{ color: config.colors.primary }}>
                 Forgot password?
               </a>
             </div>
@@ -159,62 +154,42 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
+              className="w-full py-3 rounded-[0.625rem] text-[13px] font-semibold text-white border-none flex items-center justify-center gap-2 transition"
               style={{
-                width: "100%",
-                padding: "0.75rem",
-                borderRadius: "0.625rem",
-                fontSize: "13px",
-                fontWeight: 600,
-                cursor: loading ? "not-allowed" : "pointer",
                 backgroundColor: config.colors.primary,
                 color: "#ffffff",
-                border: "none",
-                transition: "all 0.2s ease",
                 opacity: loading ? 0.6 : 1,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "0.5rem",
+                cursor: loading ? "not-allowed" : "pointer",
               }}
             >
               {loading ? (
                 <>
-                  <svg style={{ animation: "spin 1s linear infinite" }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 12a9 9 0 11-6.219-8.56" /></svg>
+                  <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 12a9 9 0 11-6.219-8.56" /></svg>
                   Signing in...
                 </>
               ) : "Sign In"}
             </button>
           </form>
 
-          <div style={{ textAlign: "center", marginTop: "2rem" }}>
-            <span style={{ fontSize: "13px", color: "#717171" }}>
+          <div className="text-center mt-8">
+            <span className="text-[13px] text-gray-500">
               Don&apos;t have an account?{" "}
-              <a href="/register" style={{ color: config.colors.primary, fontWeight: 600, textDecoration: "none" }}>
+              <a href="/register" className="font-semibold no-underline" style={{ color: config.colors.primary }}>
                 Create one
               </a>
             </span>
           </div>
 
-          <div style={{ textAlign: "center", marginTop: "2rem", paddingTop: "1.5rem", borderTop: "1px solid #F3F4F6" }}>
-            <p style={{ fontSize: "11px", color: "#9CA3AF", lineHeight: 1.5 }}>
+          <div className="text-center mt-8 pt-6 border-t border-gray-100">
+            <p className="text-[11px] text-gray-400 leading-[1.5]">
               By signing in, you agree to our{" "}
-              <a href="#" style={{ color: config.colors.primary, textDecoration: "none" }}>Terms</a>
+              <a href="#" className="no-underline" style={{ color: config.colors.primary }}>Terms</a>
               {" "}and{" "}
-              <a href="#" style={{ color: config.colors.primary, textDecoration: "none" }}>Privacy Policy</a>
+              <a href="#" className="no-underline" style={{ color: config.colors.primary }}>Privacy Policy</a>
             </p>
           </div>
         </div>
       </div>
-
-      <style jsx global>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        @media (max-width: 768px) {
-          div[style*="flex: 0 0 45%"] { display: none !important; }
-        }
-      `}</style>
     </div>
   );
 }

@@ -99,6 +99,11 @@ export default function CirclesPage() {
         setAccountsData({ total: accountsJson.data.total, totalPages: accountsJson.data.totalPages });
         if (accountsJson.data.stats) setCirclesStats(accountsJson.data.stats);
       }
+      try {
+        const walletRes = await fetch(`${API_URL}/api/wallet/balance`, { headers: { Authorization: `Bearer ${token}` } });
+        const walletJson = await walletRes.json();
+        if (walletJson.success) setWalletBalance(walletJson.data.balance);
+      } catch {}
     } catch {}
     setLoading(false);
   }, [token, API_URL, page]);
@@ -123,6 +128,7 @@ export default function CirclesPage() {
         const opened = data.data.opened || 1;
         showMessage("success", `Opened ${opened} circle account${opened > 1 ? "s" : ""} successfully!`);
         setWalletBalance(data.data.walletBalance);
+        setOpenModalCircle(null);
         fetchData();
       } else {
         showMessage("error", data.error || "Failed to open account");
@@ -183,64 +189,72 @@ export default function CirclesPage() {
   const maturedAccounts = myAccounts.filter((a) => a.status === "matured");
 
   return (
-    <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
+    <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
       <PageHeader badgeLabel="Savings" heading="Circle" accentText="Accounts" description="Fixed-term savings with weekly interest. Earn more by locking your funds."
-        right={<span style={{ fontSize: "12px", color: "#717171" }}>Wallet: <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: cfg.colors.primary }}>{formatNaira(walletBalance)}</span></span>} />
+        right={<span className="text-[12px] text-gray-500">Wallet: <span className="font-mono font-semibold" style={{ color: cfg.colors.primary }}>{formatNaira(walletBalance)}</span></span>} />
 
       {message && (
         <FadeIn>
-          <div style={{ padding: "0.75rem 1rem", borderRadius: "0.75rem", marginBottom: "1.5rem", fontSize: "13px", fontWeight: 500, backgroundColor: message.type === "success" ? "#ECFDF5" : "#FEF2F2", color: message.type === "success" ? "#059669" : "#DC2626", border: `1px solid ${message.type === "success" ? "#A7F3D0" : "#FECACA"}` }}>
+          <div className="mb-6 rounded-xl px-4 py-3 text-[13px] font-medium" style={{ backgroundColor: message.type === "success" ? "#ECFDF5" : "#FEF2F2", color: message.type === "success" ? "#059669" : "#DC2626", border: `1px solid ${message.type === "success" ? "#A7F3D0" : "#FECACA"}` }}>
             {message.text}
           </div>
         </FadeIn>
       )}
 
-      <StaggerChildren staggerDelay={100} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.5rem", marginBottom: "2rem" }}>
+      <StaggerChildren staggerDelay={100} className="mb-8 grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-6">
         <StatCard label="Total Invested" value={formatNaira(circlesStats.totalInvested)} change={`${myAccounts.length} account${myAccounts.length !== 1 ? "s" : ""}`} positive variant="default" />
         <StatCard label="Interest Earned" value={formatNaira(circlesStats.totalInterest)} change={activeAccounts.length > 0 ? `${activeAccounts.length} earning` : "No active accounts"} positive variant="warm" />
         <StatCard label="Active Accounts" value={String(circlesStats.activeCount)} change={maturedAccounts.length > 0 ? `${circlesStats.maturedCount} matured` : "None matured"} positive variant="default" />
       </StaggerChildren>
 
-      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.5rem" }}>
+      <div className="mb-6 flex gap-2">
         <button onClick={() => setActiveTab("calculator")}
-          style={{ padding: "0.5rem 1.25rem", borderRadius: "9999px", fontSize: "12px", fontWeight: 600, border: "1.5px solid", cursor: "pointer", transition: "all 0.15s ease", backgroundColor: activeTab === "calculator" ? cfg.colors.primary : "#ffffff", color: activeTab === "calculator" ? "#ffffff" : "#717171", borderColor: activeTab === "calculator" ? cfg.colors.primary : "#EAEAEA" }}>
+          className="cursor-pointer rounded-full border-[1.5px] px-5 py-2 text-[12px] font-semibold transition-all duration-150"
+          style={{ backgroundColor: activeTab === "calculator" ? cfg.colors.primary : "#ffffff", color: activeTab === "calculator" ? "#ffffff" : "#717171", borderColor: activeTab === "calculator" ? cfg.colors.primary : "#EAEAEA" }}>
           Calculator
         </button>
         <button onClick={() => setActiveTab("accounts")}
-          style={{ padding: "0.5rem 1.25rem", borderRadius: "9999px", fontSize: "12px", fontWeight: 600, border: "1.5px solid", cursor: "pointer", transition: "all 0.15s ease", backgroundColor: activeTab === "accounts" ? cfg.colors.primary : "#ffffff", color: activeTab === "accounts" ? "#ffffff" : "#717171", borderColor: activeTab === "accounts" ? cfg.colors.primary : "#EAEAEA" }}>
+          className="cursor-pointer rounded-full border-[1.5px] px-5 py-2 text-[12px] font-semibold transition-all duration-150"
+          style={{ backgroundColor: activeTab === "accounts" ? cfg.colors.primary : "#ffffff", color: activeTab === "accounts" ? "#ffffff" : "#717171", borderColor: activeTab === "accounts" ? cfg.colors.primary : "#EAEAEA" }}>
           My Accounts ({myAccounts.length})
         </button>
       </div>
 
       {activeTab === "calculator" && (
         <>
-          <FadeInUp delay={200} style={{ marginBottom: "2rem" }}>
-            <CircleCalculator circleAmount={circles[0]?.amount || 10000} annualRate={circles[0]?.interestRateAnnual || 10} circles={circles.map((c) => ({ id: c.id, name: c.name, amount: c.amount, durationMonths: c.durationMonths, interestRateAnnual: c.interestRateAnnual }))} />
+          <FadeInUp delay={200} className="mb-8">
+            <CircleCalculator circleAmount={circles[0]?.amount || 10000} annualRate={circles[0]?.interestRateAnnual || 10} circles={circles.map((c) => ({ id: c.id, name: c.name, amount: c.amount, durationMonths: c.durationMonths, interestRateAnnual: c.interestRateAnnual }))} onSelectConfig={(amount, _duration, accounts, circleId) => {
+              const target = circles.find((c) => c.id === circleId) || circles.find((c) => c.amount === amount) || circles[0];
+              if (target) {
+                setAccountCount(Math.max(1, Math.min(accounts, target.maxAccountsPerUser)));
+                setOpenModalCircle(target);
+              }
+            }} />
           </FadeInUp>
 
           {circles.length > 0 && (
             <FadeInUp delay={300}>
               <Card padding="1.5rem">
                 <ColorfulBadge label="Available Circles" color={cfg.colors.primary} />
-                <h2 style={{ fontSize: "1.125rem", fontWeight: 500, color: "#1A1A1A", marginTop: "0.5rem", marginBottom: "1rem" }}>Open a Circle Account</h2>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "1rem" }}>
+                <h2 className="mt-2 mb-4 text-[1.125rem] font-medium text-brand-dark">Open a Circle Account</h2>
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4">
                   {circles.map((circle) => {
                     const userAccounts = myAccounts.filter((a) => a.circleId === circle.id && a.status === "active").length;
                     const canOpen = userAccounts < circle.maxAccountsPerUser;
                     return (
-                      <div key={circle.id} style={{ padding: "1.25rem", borderRadius: "0.75rem", border: "1px solid #F0F0F0", backgroundColor: "#FAFAFA", transition: "all 0.2s" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.75rem" }}>
+                      <div key={circle.id} className="rounded-xl border border-gray-100 bg-gray-50 p-5 transition-all duration-200">
+                        <div className="mb-3 flex items-start justify-between">
                           <div>
-                            <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.25rem" }}>{circle.name}</h3>
-                            {circle.description && <p style={{ fontSize: "11px", color: "#999", marginBottom: "0.5rem" }}>{circle.description}</p>}
+                            <h3 className="mb-1 text-[14px] font-semibold text-brand-dark">{circle.name}</h3>
+                            {circle.description && <p className="mb-2 text-[11px] text-gray-400">{circle.description}</p>}
                           </div>
-                          <span style={{ fontSize: "9px", fontWeight: 700, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace", color: "#059669", backgroundColor: "#05966912", padding: "0.125rem 0.5rem", borderRadius: "0.375rem" }}>active</span>
+                          <span className="rounded-[0.375rem] bg-[#05966912] px-2 py-0.5 text-[9px] font-bold uppercase font-mono text-emerald-600">active</span>
                         </div>
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem", fontSize: "12px", marginBottom: "1rem" }}>
-                          <div><span style={{ color: "#999" }}>Amount</span><br /><span style={{ fontWeight: 600, fontFamily: "'JetBrains Mono', monospace", color: "#2D2D2D" }}>{formatNaira(circle.amount)}</span></div>
-                          <div><span style={{ color: "#999" }}>Duration</span><br /><span style={{ fontWeight: 600, color: "#2D2D2D" }}>{formatDuration(circle.durationMonths)}</span></div>
-                          <div><span style={{ color: "#999" }}>Interest Rate</span><br /><span style={{ fontWeight: 600, color: "#2D2D2D" }}>{circle.interestRateAnnual}% p.a.</span></div>
-                          <div><span style={{ color: "#999" }}>Your Accounts</span><br /><span style={{ fontWeight: 600, color: "#2D2D2D" }}>{userAccounts}/{circle.maxAccountsPerUser}</span></div>
+                        <div className="mb-4 grid grid-cols-2 gap-2 text-[12px]">
+                          <div><span className="text-gray-400">Amount</span><br /><span className="font-mono font-semibold text-brand-dark">{formatNaira(circle.amount)}</span></div>
+                          <div><span className="text-gray-400">Duration</span><br /><span className="font-semibold text-brand-dark">{formatDuration(circle.durationMonths)}</span></div>
+                          <div><span className="text-gray-400">Interest Rate</span><br /><span className="font-semibold text-brand-dark">{circle.interestRateAnnual}% p.a.</span></div>
+                          <div><span className="text-gray-400">Your Accounts</span><br /><span className="font-semibold text-brand-dark">{userAccounts}/{circle.maxAccountsPerUser}</span></div>
                         </div>
                         <Button variant="primary" size="sm" disabled={!canOpen || openingCircle === circle.id} onClick={() => { setOpenModalCircle(circle); setAccountCount(1); }}>
                           {openingCircle === circle.id ? "Opening..." : canOpen ? "Open Account" : "Max Reached"}
@@ -258,14 +272,14 @@ export default function CirclesPage() {
       {activeTab === "accounts" && (
         <>
           {loading ? (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1.5rem" }}>{Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)}</div>
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-6">{Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)}</div>
           ) : myAccounts.length === 0 ? (
             <FadeInUp delay={200}>
               <Card padding="3rem">
-                <div style={{ textAlign: "center" }}>
-                  <div style={{ width: "48px", height: "48px", borderRadius: "50%", backgroundColor: "#F0F0F0", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", fontSize: "20px" }}>&#8358;</div>
-                  <h3 style={{ fontSize: "1rem", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.5rem" }}>No circle accounts yet</h3>
-                  <p style={{ fontSize: "13px", color: "#717171", marginBottom: "1rem" }}>Open a circle account to start earning weekly interest.</p>
+                <div className="text-center">
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-[20px]">&#8358;</div>
+                  <h3 className="mb-2 text-[1rem] font-semibold text-brand-dark">No circle accounts yet</h3>
+                  <p className="mb-4 text-[13px] text-gray-500">Open a circle account to start earning weekly interest.</p>
                   <Button variant="primary" size="sm" onClick={() => setActiveTab("calculator")}>Browse Circles</Button>
                 </div>
               </Card>
@@ -274,40 +288,40 @@ export default function CirclesPage() {
             <FadeInUp delay={200}>
               <Card padding="1.5rem">
                 <ColorfulBadge label="My Accounts" color={cfg.colors.primary} />
-                <h2 style={{ fontSize: "1.125rem", fontWeight: 500, color: "#1A1A1A", marginTop: "0.5rem", marginBottom: "1rem" }}>Your Circle Accounts ({myAccounts.length})</h2>
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                <h2 className="mt-2 mb-4 text-[1.125rem] font-medium text-brand-dark">Your Circle Accounts ({myAccounts.length})</h2>
+                <div className="flex flex-col gap-3">
                   {myAccounts.map((account) => (
-                    <div key={account.id} style={{ padding: "1rem", borderRadius: "0.75rem", border: "1px solid #F0F0F0", backgroundColor: expandedAccount === account.id ? "#FAF9F5" : "#ffffff", transition: "all 0.2s" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", flexWrap: "wrap", gap: "0.75rem" }} onClick={() => setExpandedAccount(expandedAccount === account.id ? null : account.id)}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                          <div style={{ width: "40px", height: "40px", borderRadius: "0.75rem", backgroundColor: "#F0F0F0", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'JetBrains Mono', monospace", fontSize: "11px", fontWeight: 700, color: cfg.colors.primary }}>{formatNaira(account.principalAmount).split(" ")[0]}</div>
+                    <div key={account.id} className="rounded-xl border border-gray-100 p-4 transition-all duration-200" style={{ backgroundColor: expandedAccount === account.id ? "#FAF9F5" : "#ffffff" }}>
+                      <div className="flex flex-wrap items-center justify-between gap-3" onClick={() => setExpandedAccount(expandedAccount === account.id ? null : account.id)}>
+                        <div className="flex items-center gap-4">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-xl font-mono text-[11px] font-bold bg-gray-100" style={{ color: cfg.colors.primary }}>{formatNaira(account.principalAmount).split(" ")[0]}</div>
                           <div>
-                            <span style={{ fontSize: "14px", fontWeight: 600, fontFamily: "'JetBrains Mono', monospace", color: "#2D2D2D", display: "block" }}>{account.circle.name}</span>
-                            <span style={{ fontSize: "11px", color: "#999" }}>{formatNaira(account.principalAmount)} &middot; {account.circle.interestRateAnnual}% p.a. &middot; {formatDuration(account.circle.durationMonths)}</span>
+                            <span className="block font-mono text-[14px] font-semibold text-brand-dark">{account.circle.name}</span>
+                            <span className="text-[11px] text-gray-400">{formatNaira(account.principalAmount)} &middot; {account.circle.interestRateAnnual}% p.a. &middot; {formatDuration(account.circle.durationMonths)}</span>
                           </div>
                         </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                        <div className="flex items-center gap-2">
                           {account.status === "active" && (
-                            <span style={{ fontSize: "10px", color: "#666", fontFamily: "'JetBrains Mono', monospace" }}>{daysUntil(account.maturityDate)}d left</span>
+                            <span className="font-mono text-[10px] text-[#666]">{daysUntil(account.maturityDate)}d left</span>
                           )}
-                          <span style={{ fontSize: "9px", fontWeight: 700, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace", color: ACCOUNT_STATUS_COLORS[account.status], backgroundColor: `${ACCOUNT_STATUS_COLORS[account.status]}12`, padding: "0.125rem 0.5rem", borderRadius: "0.375rem" }}>{account.status.replace("_", " ")}</span>
+                          <span className="rounded-[0.375rem] px-2 py-0.5 text-[9px] font-bold uppercase font-mono" style={{ color: ACCOUNT_STATUS_COLORS[account.status], backgroundColor: `${ACCOUNT_STATUS_COLORS[account.status]}12` }}>{account.status.replace("_", " ")}</span>
                         </div>
                       </div>
 
                       {expandedAccount === account.id && (
-                        <div style={{ marginTop: "1rem", paddingTop: "1rem", borderTop: "1px solid #F0F0F0" }}>
-                          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: "1rem", fontSize: "12px", marginBottom: "1rem" }}>
-                            <div><span style={{ color: "#999", display: "block", marginBottom: "0.25rem" }}>Principal</span><span style={{ fontWeight: 600, fontFamily: "'JetBrains Mono', monospace", color: cfg.colors.primary }}>{formatNaira(account.principalAmount)}</span></div>
-                            <div><span style={{ color: "#999", display: "block", marginBottom: "0.25rem" }}>Interest Earned</span><span style={{ fontWeight: 600, fontFamily: "'JetBrains Mono', monospace", color: "#10B981" }}>{formatNaira(account.interestEarned)}</span></div>
-                            <div><span style={{ color: "#999", display: "block", marginBottom: "0.25rem" }}>Maturity Payout</span><span style={{ fontWeight: 600, fontFamily: "'JetBrains Mono', monospace", color: "#2D2D2D" }}>{formatNaira(account.principalAmount + account.interestEarned)}</span></div>
-                            <div><span style={{ color: "#999", display: "block", marginBottom: "0.25rem" }}>Start Date</span><span style={{ fontWeight: 500, color: "#2D2D2D" }}>{formatDate(account.startDate)}</span></div>
-                            <div><span style={{ color: "#999", display: "block", marginBottom: "0.25rem" }}>Maturity Date</span><span style={{ fontWeight: 500, color: "#2D2D2D" }}>{formatDate(account.maturityDate)}</span></div>
+                        <div className="mt-4 border-t border-gray-100 pt-4">
+                          <div className="mb-4 grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-4 text-[12px]">
+                            <div><span className="mb-1 block text-gray-400">Principal</span><span className="font-mono font-semibold" style={{ color: cfg.colors.primary }}>{formatNaira(account.principalAmount)}</span></div>
+                            <div><span className="mb-1 block text-gray-400">Interest Earned</span><span className="font-mono font-semibold text-emerald-500">{formatNaira(account.interestEarned)}</span></div>
+                            <div><span className="mb-1 block text-gray-400">Maturity Payout</span><span className="font-mono font-semibold text-brand-dark">{formatNaira(account.principalAmount + account.interestEarned)}</span></div>
+                            <div><span className="mb-1 block text-gray-400">Start Date</span><span className="font-medium text-brand-dark">{formatDate(account.startDate)}</span></div>
+                            <div><span className="mb-1 block text-gray-400">Maturity Date</span><span className="font-medium text-brand-dark">{formatDate(account.maturityDate)}</span></div>
                             {account.lastInterestCalculation && (
-                              <div><span style={{ color: "#999", display: "block", marginBottom: "0.25rem" }}>Last Interest</span><span style={{ fontWeight: 500, color: "#2D2D2D" }}>{formatDate(account.lastInterestCalculation)}</span></div>
+                              <div><span className="mb-1 block text-gray-400">Last Interest</span><span className="font-medium text-brand-dark">{formatDate(account.lastInterestCalculation)}</span></div>
                             )}
                           </div>
 
-                          <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                          <div className="flex flex-wrap gap-2">
                             {account.status === "active" && (
                               <>
                                 <Button variant="primary" size="sm" disabled={claiming === account.id || daysUntil(account.maturityDate) > 0} onClick={() => handleClaim(account.id)}>
@@ -344,16 +358,16 @@ export default function CirclesPage() {
       )}
 
       {openModalCircle && (
-        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem" }} onClick={() => setOpenModalCircle(null)}>
-          <div style={{ backgroundColor: "#fff", borderRadius: "1rem", padding: "2rem", maxWidth: "400px", width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }} onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ fontSize: "16px", fontWeight: 600, color: "#1A1A1A", marginBottom: "0.5rem" }}>Open Circle Account</h3>
-            <p style={{ fontSize: "13px", color: "#717171", marginBottom: "1.5rem" }}>
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 p-4" onClick={() => setOpenModalCircle(null)}>
+          <div className="w-full max-w-[400px] cursor-default rounded-2xl bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.15)]" onClick={(e) => e.stopPropagation()}>
+            <h3 className="mb-2 text-[16px] font-semibold text-brand-dark">Open Circle Account</h3>
+            <p className="mb-6 text-[13px] text-gray-500">
               How many <strong>{openModalCircle.name}</strong> accounts would you like to open?
             </p>
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" }}>
+            <div className="mb-4 flex items-center gap-3">
               <button
                 onClick={() => setAccountCount((c) => Math.max(1, c - 1))}
-                style={{ width: "36px", height: "36px", borderRadius: "0.5rem", border: "1px solid #E5E7EB", backgroundColor: "#F9FAFB", fontSize: "16px", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-[16px] font-semibold cursor-pointer"
               >-</button>
               <input
                 type="number"
@@ -364,33 +378,34 @@ export default function CirclesPage() {
                   const v = parseInt(e.target.value, 10);
                   if (!isNaN(v) && v >= 1) setAccountCount(Math.min(v, openModalCircle.maxAccountsPerUser));
                 }}
-                style={{ width: "60px", height: "36px", textAlign: "center", borderRadius: "0.5rem", border: "1px solid #E5E7EB", fontSize: "14px", fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, outline: "none" }}
+                className="h-9 w-[60px] rounded-lg border border-gray-200 text-center font-mono text-[14px] font-semibold outline-none"
               />
               <button
                 onClick={() => setAccountCount((c) => Math.min(openModalCircle.maxAccountsPerUser, c + 1))}
-                style={{ width: "36px", height: "36px", borderRadius: "0.5rem", border: "1px solid #E5E7EB", backgroundColor: "#F9FAFB", fontSize: "16px", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-[16px] font-semibold cursor-pointer"
               >+</button>
             </div>
-            <div style={{ backgroundColor: "#F9FAFB", borderRadius: "0.75rem", padding: "1rem", marginBottom: "1.5rem", fontSize: "12px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
-                <span style={{ color: "#717171" }}>Cost per account</span>
-                <span style={{ fontWeight: 600, fontFamily: "'JetBrains Mono', monospace" }}>{formatNaira(openModalCircle.amount)}</span>
+            <div className="mb-6 rounded-xl bg-gray-50 p-4 text-[12px]">
+              <div className="mb-2 flex justify-between">
+                <span className="text-gray-500">Cost per account</span>
+                <span className="font-mono font-semibold">{formatNaira(openModalCircle.amount)}</span>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
-                <span style={{ color: "#717171" }}>Total cost</span>
-                <span style={{ fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", color: cfg.colors.primary }}>{formatNaira(openModalCircle.amount * accountCount)}</span>
+              <div className="mb-2 flex justify-between">
+                <span className="text-gray-500">Total cost</span>
+                <span className="font-mono font-bold" style={{ color: cfg.colors.primary }}>{formatNaira(openModalCircle.amount * accountCount)}</span>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#717171" }}>Your wallet</span>
-                <span style={{ fontWeight: 600, fontFamily: "'JetBrains Mono', monospace", color: walletBalance >= openModalCircle.amount * accountCount ? "#059669" : "#DC2626" }}>{formatNaira(walletBalance)}</span>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Your wallet</span>
+                <span className="font-mono font-semibold" style={{ color: walletBalance >= openModalCircle.amount * accountCount ? "#059669" : "#DC2626" }}>{formatNaira(walletBalance)}</span>
               </div>
             </div>
-            <div style={{ display: "flex", gap: "0.75rem" }}>
-              <button onClick={() => setOpenModalCircle(null)} style={{ flex: 1, padding: "0.625rem", borderRadius: "0.5rem", border: "1px solid #E5E7EB", backgroundColor: "#fff", fontSize: "13px", fontWeight: 500, cursor: "pointer" }}>Cancel</button>
+            <div className="flex gap-3">
+              <button onClick={() => setOpenModalCircle(null)} className="flex-1 cursor-pointer rounded-lg border border-gray-200 bg-white px-2.5 py-2.5 text-[13px] font-medium">Cancel</button>
               <button
                 disabled={openingCircle === openModalCircle.id || walletBalance < openModalCircle.amount * accountCount}
-                onClick={() => { handleOpenAccount(openModalCircle.id, accountCount); setOpenModalCircle(null); }}
-                style={{ flex: 1, padding: "0.625rem", borderRadius: "0.5rem", border: "none", backgroundColor: cfg.colors.primary, color: "#fff", fontSize: "13px", fontWeight: 600, cursor: "pointer", opacity: (openingCircle === openModalCircle.id || walletBalance < openModalCircle.amount * accountCount) ? 0.5 : 1 }}
+                onClick={() => { handleOpenAccount(openModalCircle.id, accountCount); }}
+                className="flex-1 cursor-pointer rounded-lg border-0 px-2.5 py-2.5 text-[13px] font-semibold text-white"
+                style={{ backgroundColor: cfg.colors.primary, opacity: (openingCircle === openModalCircle.id || walletBalance < openModalCircle.amount * accountCount) ? 0.5 : 1 }}
               >
                 {openingCircle === openModalCircle.id ? "Opening..." : `Open ${accountCount > 1 ? `${accountCount} Accounts` : "Account"}`}
               </button>

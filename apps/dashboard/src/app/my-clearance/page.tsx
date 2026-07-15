@@ -119,14 +119,14 @@ export default function MyClearancePage() {
 
   if (loading) {
     return (
-      <div style={{ maxWidth: "900px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
-        <div style={{ textAlign: "center", padding: "4rem", color: "#999", fontSize: "13px" }}>Loading clearances...</div>
+      <div className="mx-auto max-w-[900px] p-[clamp(1rem,3vw,2rem)]">
+        <div className="p-16 text-center text-[13px] text-gray-400">Loading clearances...</div>
       </div>
     );
   }
 
   return (
-    <div style={{ maxWidth: "900px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
+    <div className="mx-auto max-w-[900px] p-[clamp(1rem,3vw,2rem)]">
       <PageHeader
         badgeLabel="Member Portal"
         heading="My"
@@ -134,77 +134,78 @@ export default function MyClearancePage() {
         description="Track your payout clearances and circle progress."
       />
 
-      <StaggerChildren staggerDelay={100} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem", marginBottom: "2rem" }}>
+      <StaggerChildren staggerDelay={100} className="mb-8 grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
         <Card padding="1.25rem">
-          <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", fontWeight: 700, display: "block" }}>Total Payouts Received</span>
-          <span style={{ fontSize: "1.5rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: "#059669", display: "block", marginTop: "0.25rem" }}>{formatNaira(stats.totalPayouts)}</span>
+          <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-400">Total Payouts Received</span>
+          <span className="mt-1 block font-mono text-2xl font-bold text-emerald-600">{formatNaira(stats.totalPayouts)}</span>
         </Card>
         <Card padding="1.25rem">
-          <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", fontWeight: 700, display: "block" }}>Total Contributed</span>
-          <span style={{ fontSize: "1.5rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: "#1A1A1A", display: "block", marginTop: "0.25rem" }}>{formatNaira(stats.totalContributed)}</span>
+          <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-400">Total Contributed</span>
+          <span className="mt-1 block font-mono text-2xl font-bold text-brand-dark">{formatNaira(stats.totalContributed)}</span>
         </Card>
         <Card padding="1.25rem">
-          <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", fontWeight: 700, display: "block" }}>Pending Requests</span>
-          <span style={{ fontSize: "1.5rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: pendingRequests.length > 0 ? cfg.colors.primary : "#999", display: "block", marginTop: "0.25rem" }}>
+          <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-400">Pending Requests</span>
+          <span className="mt-1 block font-mono text-2xl font-bold" style={{ color: pendingRequests.length > 0 ? cfg.colors.primary : "#999" }}>
             {pendingRequests.length}
           </span>
-          {pendingRequests.length > 0 && <span style={{ fontSize: "10px", color: "#717171" }}>Awaiting approval</span>}
+          {pendingRequests.length > 0 && <span className="text-[10px] text-gray-500">Awaiting approval</span>}
         </Card>
       </StaggerChildren>
 
-      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.5rem" }}>
+      <div className="mb-6 flex gap-2">
         <button onClick={() => setActiveTab("group")}
-          style={{ padding: "0.5rem 1.25rem", borderRadius: "9999px", fontSize: "12px", fontWeight: 600, border: "1.5px solid", cursor: "pointer", transition: "all 0.15s ease", backgroundColor: activeTab === "group" ? cfg.colors.primary : "#ffffff", color: activeTab === "group" ? "#ffffff" : "#717171", borderColor: activeTab === "group" ? cfg.colors.primary : "#EAEAEA" }}>
+          className="cursor-pointer rounded-full border-[1.5px] px-5 py-2 text-xs font-semibold transition-all"
+          style={{ backgroundColor: activeTab === "group" ? cfg.colors.primary : "#ffffff", color: activeTab === "group" ? "#ffffff" : "#717171", borderColor: activeTab === "group" ? cfg.colors.primary : "#EAEAEA" }}>
           Group Clearances
         </button>
         <button onClick={() => setActiveTab("circle")}
-          style={{ padding: "0.5rem 1.25rem", borderRadius: "9999px", fontSize: "12px", fontWeight: 600, border: "1.5px solid", cursor: "pointer", transition: "all 0.15s ease", backgroundColor: activeTab === "circle" ? cfg.colors.primary : "#ffffff", color: activeTab === "circle" ? "#ffffff" : "#717171", borderColor: activeTab === "circle" ? cfg.colors.primary : "#EAEAEA" }}>
+          className="cursor-pointer rounded-full border-[1.5px] px-5 py-2 text-xs font-semibold transition-all"
+          style={{ backgroundColor: activeTab === "circle" ? cfg.colors.primary : "#ffffff", color: activeTab === "circle" ? "#ffffff" : "#717171", borderColor: activeTab === "circle" ? cfg.colors.primary : "#EAEAEA" }}>
           Circle Payouts
         </button>
       </div>
 
       {activeTab === "group" && (
         <FadeInUp delay={300}>
-          <Card padding="1.5rem" style={{ marginBottom: "1.5rem" }}>
-            <div style={{ marginBottom: "1rem" }}>
+          <Card padding="1.5rem" className="mb-6">
+            <div className="mb-4">
               <ColorfulBadge label="Clearance History" color={cfg.colors.primary} />
-              <h2 style={{ fontSize: "1.125rem", fontWeight: 500, color: "#1A1A1A", marginTop: "0.5rem" }}>My Payout Clearances</h2>
+              <h2 className="mt-2 text-lg font-medium text-brand-dark">My Payout Clearances</h2>
             </div>
             {(listLoading && paginatedItems.length === 0) ? (
-              <div style={{ textAlign: "center", padding: "2rem", color: "#999", fontSize: "13px" }}>Loading...</div>
+              <div className="p-8 text-center text-[13px] text-gray-400">Loading...</div>
             ) : paginatedItems.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "2rem", color: "#999", fontSize: "13px" }}>
+              <div className="p-8 text-center text-[13px] text-gray-400">
                 No clearances yet. Join a circle to start earning payouts.
               </div>
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+              <div className="flex flex-col gap-4">
                 {paginatedItems.map((c) => {
                   const st = statusStyles[c.status] || statusStyles.pending;
                   return (
-                    <div key={c.id} style={{ padding: "1.25rem", borderRadius: "1rem", border: `1px solid ${st.border}`, backgroundColor: st.bg + "30", transition: "all 0.2s ease" }}
-                      onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.06)"; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "none"; }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.75rem", flexWrap: "wrap", gap: "0.5rem" }}>
+                    <div key={c.id} className="rounded-xl p-5 transition-all hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)]"
+                      style={{ border: `1px solid ${st.border}`, backgroundColor: st.bg + "30" }}>
+                      <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
                         <div>
-                          <span style={{ fontSize: "13px", fontWeight: 600, color: "#2D2D2D", display: "block" }}>{c.groupName}</span>
-                          <span style={{ fontSize: "11px", color: "#717171" }}>Cycle {c.cycleNumber} payout</span>
+                          <span className="block text-[13px] font-semibold text-[#2D2D2D]">{c.groupName}</span>
+                          <span className="text-[11px] text-gray-500">Cycle {c.cycleNumber} payout</span>
                         </div>
-                        <span style={{ fontSize: "9px", fontWeight: 700, padding: "0.125rem 0.5rem", borderRadius: "0.375rem", backgroundColor: st.bg, color: st.color, border: `1px solid ${st.border}`, textTransform: "capitalize" }}>{c.status}</span>
+                        <span className="rounded-md border px-2 py-0.5 text-[9px] font-bold capitalize" style={{ backgroundColor: st.bg, color: st.color, borderColor: st.border }}>{c.status}</span>
                       </div>
 
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "0.75rem", marginBottom: "0.75rem" }}>
+                      <div className="mb-3 grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-3">
                         <div>
-                          <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", fontWeight: 700, display: "block" }}>Payout Amount</span>
-                          <span style={{ fontSize: "16px", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: "#059669", display: "block", marginTop: "0.125rem" }}>{formatNaira(c.payoutAmount)}</span>
+                          <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-400">Payout Amount</span>
+                          <span className="mt-0.5 block font-mono text-base font-bold text-emerald-600">{formatNaira(c.payoutAmount)}</span>
                         </div>
                         <div>
-                          <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", fontWeight: 700, display: "block" }}>My Contribution</span>
-                          <span style={{ fontSize: "16px", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: "#2D2D2D", display: "block", marginTop: "0.125rem" }}>{formatNaira(c.contributed)}</span>
+                          <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-400">My Contribution</span>
+                          <span className="mt-0.5 block font-mono text-base font-bold text-[#2D2D2D]">{formatNaira(c.contributed)}</span>
                         </div>
                         {c.clearedDate && (
                           <div>
-                            <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", fontWeight: 700, display: "block" }}>Cleared On</span>
-                            <span style={{ fontSize: "12px", fontFamily: "'JetBrains Mono', monospace", fontWeight: 500, color: "#2D2D2D", display: "block", marginTop: "0.125rem" }}>
+                            <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-400">Cleared On</span>
+                          <span className="mt-0.5 block font-mono text-xs font-medium text-[#2D2D2D]">
                               {new Date(c.clearedDate).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
                             </span>
                           </div>
@@ -222,63 +223,62 @@ export default function MyClearancePage() {
 
       {activeTab === "circle" && (
         <FadeInUp delay={300}>
-          <Card padding="1.5rem" style={{ marginBottom: "1.5rem" }}>
-            <div style={{ marginBottom: "1rem" }}>
+          <Card padding="1.5rem" className="mb-6">
+            <div className="mb-4">
               <ColorfulBadge label="Circle Payout Requests" color={cfg.colors.primary} />
-              <h2 style={{ fontSize: "1.125rem", fontWeight: 500, color: "#1A1A1A", marginTop: "0.5rem" }}>My Circle Payout Requests</h2>
+              <h2 className="mt-2 text-lg font-medium text-brand-dark">My Circle Payout Requests</h2>
             </div>
 
             {payoutRequests.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "2rem", color: "#999", fontSize: "13px" }}>
+              <div className="p-8 text-center text-[13px] text-gray-400">
                 No circle payout requests yet. Maturity payouts will appear here when requested.
               </div>
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+              <div className="flex flex-col gap-4">
                 {payoutRequests.map((r) => {
                   const st = statusStyles[r.status] || statusStyles.pending;
                   return (
-                    <div key={r.id} style={{ padding: "1.25rem", borderRadius: "1rem", border: `1px solid ${st.border}`, backgroundColor: st.bg + "30", transition: "all 0.2s ease" }}
-                      onMouseEnter={(e) => { e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.06)"; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.boxShadow = "none"; }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.75rem", flexWrap: "wrap", gap: "0.5rem" }}>
+                    <div key={r.id} className="rounded-xl p-5 transition-all hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)]"
+                      style={{ border: `1px solid ${st.border}`, backgroundColor: st.bg + "30" }}>
+                      <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
                         <div>
-                          <span style={{ fontSize: "13px", fontWeight: 600, color: "#2D2D2D", display: "block" }}>{r.circleAccount.circle.name}</span>
-                          <span style={{ fontSize: "11px", color: "#717171" }}>
+                          <span className="block text-[13px] font-semibold text-[#2D2D2D]">{r.circleAccount.circle.name}</span>
+                          <span className="text-[11px] text-gray-500">
                             {formatNaira(r.circleAccount.principalAmount)} &middot; {r.circleAccount.circle.interestRateAnnual}% p.a.
                           </span>
                         </div>
-                        <span style={{ fontSize: "9px", fontWeight: 700, padding: "0.125rem 0.5rem", borderRadius: "0.375rem", backgroundColor: st.bg, color: st.color, border: `1px solid ${st.border}`, textTransform: "capitalize" }}>{r.status}</span>
+                        <span className="rounded-md border px-2 py-0.5 text-[9px] font-bold capitalize" style={{ backgroundColor: st.bg, color: st.color, borderColor: st.border }}>{r.status}</span>
                       </div>
 
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "0.75rem", marginBottom: "0.5rem" }}>
+                      <div className="mb-2 grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-3">
                         <div>
-                          <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", fontWeight: 700, display: "block" }}>Principal</span>
-                          <span style={{ fontSize: "14px", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: cfg.colors.primary, display: "block", marginTop: "0.125rem" }}>{formatNaira(r.circleAccount.principalAmount)}</span>
+                          <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-400">Principal</span>
+                          <span className="mt-0.5 block font-mono text-sm font-bold" style={{ color: cfg.colors.primary }}>{formatNaira(r.circleAccount.principalAmount)}</span>
                         </div>
                         <div>
-                          <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", fontWeight: 700, display: "block" }}>Interest Earned</span>
-                          <span style={{ fontSize: "14px", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: "#059669", display: "block", marginTop: "0.125rem" }}>{formatNaira(r.circleAccount.interestEarned)}</span>
+                          <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-400">Interest Earned</span>
+                          <span className="mt-0.5 block font-mono text-sm font-bold text-emerald-600">{formatNaira(r.circleAccount.interestEarned)}</span>
                         </div>
                         <div>
-                          <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", fontWeight: 700, display: "block" }}>Total Payout</span>
-                          <span style={{ fontSize: "14px", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: "#2D2D2D", display: "block", marginTop: "0.125rem" }}>{formatNaira(r.amount)}</span>
+                          <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-400">Total Payout</span>
+                          <span className="mt-0.5 block font-mono text-sm font-bold text-[#2D2D2D]">{formatNaira(r.amount)}</span>
                         </div>
                         <div>
-                          <span style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", fontWeight: 700, display: "block" }}>Requested</span>
-                          <span style={{ fontSize: "12px", fontFamily: "'JetBrains Mono', monospace", fontWeight: 500, color: "#2D2D2D", display: "block", marginTop: "0.125rem" }}>
+                          <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-400">Requested</span>
+                          <span className="mt-0.5 block font-mono text-xs font-medium text-[#2D2D2D]">
                             {new Date(r.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
                           </span>
                         </div>
                       </div>
 
                       {r.note && (
-                        <div style={{ marginTop: "0.5rem", padding: "0.5rem 0.75rem", backgroundColor: "#FEF2F2", borderRadius: "0.5rem", fontSize: "11px", color: "#DC2626" }}>
+                        <div className="mt-2 rounded-lg bg-red-50 p-3 text-[11px] text-red-600">
                           Note: {r.note}
                         </div>
                       )}
 
                       {r.status === "pending" && (
-                        <div style={{ marginTop: "0.75rem", fontSize: "11px", color: "#D97706", fontWeight: 500 }}>
+                        <div className="mt-3 text-[11px] font-medium text-amber-600">
                           Waiting for admin approval...
                         </div>
                       )}
@@ -294,22 +294,22 @@ export default function MyClearancePage() {
 
       <FadeInUp delay={400}>
         <Card padding="1.5rem">
-          <div style={{ marginBottom: "1rem" }}>
+          <div className="mb-4">
             <ColorfulBadge label="How It Works" color={cfg.colors.accent} />
-            <h2 style={{ fontSize: "1.125rem", fontWeight: 500, color: "#1A1A1A", marginTop: "0.5rem" }}>Clearance Process</h2>
+            <h2 className="mt-2 text-lg font-medium text-brand-dark">Clearance Process</h2>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem" }}>
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
             {[
               { step: 1, title: "Contribute", desc: "Make your contributions each cycle to build your eligibility.", color: cfg.colors.primary },
               { step: 2, title: "Build Eligibility", desc: "Complete the required cycles to qualify for a payout.", color: "#8A7D73" },
               { step: 3, title: "Get Cleared", desc: "Once approved, your payout is credited to your wallet.", color: "#059669" },
             ].map((item) => (
-              <div key={item.step} style={{ padding: "1rem", borderRadius: "0.75rem", backgroundColor: "#FAFAFA", textAlign: "center" }}>
-                <div style={{ width: "32px", height: "32px", borderRadius: "50%", backgroundColor: `${item.color}15`, color: item.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", margin: "0 auto 0.5rem" }}>
+              <div key={item.step} className="rounded-xl bg-gray-50 p-4 text-center">
+                <div className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-full font-mono text-[13px] font-bold" style={{ backgroundColor: `${item.color}15`, color: item.color }}>
                   {item.step}
                 </div>
-                <span style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", display: "block" }}>{item.title}</span>
-                <span style={{ fontSize: "10px", color: "#717171", fontWeight: 300 }}>{item.desc}</span>
+                <span className="block text-xs font-semibold text-[#2D2D2D]">{item.title}</span>
+                <span className="text-[10px] font-light text-gray-500">{item.desc}</span>
               </div>
             ))}
           </div>

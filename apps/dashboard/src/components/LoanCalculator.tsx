@@ -71,105 +71,108 @@ export function LoanCalculator({ onRequestLoan, disabled }: LoanCalculatorProps)
   const sliderPct = ((amount - MIN_AMOUNT) / (MAX_AMOUNT - MIN_AMOUNT)) * 100;
 
   return (
-    <div style={{ borderRadius: "1rem", backgroundColor: "#111111", border: "1px solid #2A2A2A", overflow: "hidden" }}>
-      <div style={{ padding: "1.5rem 2rem 0.5rem" }}>
-        <div style={{ display: "inline-flex", padding: "0.25rem 0.75rem", borderRadius: "9999px", fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: cfg.colors.primary, backgroundColor: `${cfg.colors.primary}18`, border: `1px solid ${cfg.colors.primary}30` }}>Calculator</div>
-        <h2 style={{ fontSize: "1.125rem", fontWeight: 600, color: "#ffffff", marginTop: "0.5rem", marginBottom: "1.5rem" }}>Loan Calculator</h2>
+    <div className="rounded-2xl bg-[#111111] border border-[#2A2A2A] overflow-hidden">
+      <div className="px-8 pt-6 pb-2">
+        <div className="inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.05em]" style={{ color: cfg.colors.primary, backgroundColor: `${cfg.colors.primary}18`, border: `1px solid ${cfg.colors.primary}30` }}>Calculator</div>
+        <h2 className="font-display tracking-tight text-lg font-semibold text-white mt-2 mb-6">Loan Calculator</h2>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", minHeight: "420px" }}>
-        <div style={{ padding: "0 2rem 2rem" }}>
-          <div style={{ marginBottom: "1.5rem" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "0.5rem" }}>
-              <label style={{ fontSize: "12px", fontWeight: 600, color: "#A0A0A0" }}>Loan Amount</label>
-              <span style={{ fontSize: "18px", fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", color: cfg.colors.primary }}>{formatNaira(amount)}</span>
+      <div className="grid grid-cols-2 min-h-[420px]">
+        <div className="px-8 pb-8">
+          <div className="mb-6">
+            <div className="flex justify-between items-baseline mb-2">
+              <label className="text-xs font-semibold text-[#A0A0A0]">Loan Amount</label>
+              <span className="text-lg font-bold font-mono" style={{ color: cfg.colors.primary }}>{formatNaira(amount)}</span>
             </div>
-            <div style={{ position: "relative", height: "32px", display: "flex", alignItems: "center" }}>
-              <div style={{ position: "absolute", left: 0, right: 0, height: "4px", borderRadius: "2px", backgroundColor: "#2A2A2A" }}>
-                <div style={{ width: `${sliderPct}%`, height: "100%", borderRadius: "2px", background: `linear-gradient(90deg, ${cfg.colors.primary}, ${cfg.colors.primary}cc)` }} />
+            <div className="relative h-8 flex items-center">
+              <div className="absolute left-0 right-0 h-1 rounded-sm bg-[#2A2A2A]">
+                <div className="h-full rounded-sm" style={{ width: `${sliderPct}%`, background: `linear-gradient(90deg, ${cfg.colors.primary}, ${cfg.colors.primary}cc)` }} />
               </div>
               <input type="range" min={MIN_AMOUNT} max={MAX_AMOUNT} step={50000} value={amount}
                 onChange={(e) => setAmount(Number(e.target.value))}
-                style={{ position: "absolute", left: 0, width: "100%", height: "32px", appearance: "none", background: "transparent", cursor: "pointer", margin: 0, zIndex: 1 }}
+                className="absolute left-0 w-full h-8 appearance-none bg-transparent cursor-pointer m-0 z-[1]"
               />
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", color: "#666666", fontFamily: "'JetBrains Mono', monospace", marginTop: "-0.25rem" }}>
+            <div className="-mt-1 flex justify-between text-[10px] text-[#666666] font-mono">
               <span>{formatNaira(MIN_AMOUNT)}</span>
               <span>{formatNaira(MAX_AMOUNT)}</span>
             </div>
           </div>
 
-          <div style={{ marginBottom: "1.5rem" }}>
-            <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#A0A0A0", marginBottom: "0.5rem" }}>Repayment Term</label>
-            <div style={{ display: "flex", gap: "0.375rem", flexWrap: "wrap", marginBottom: "0.75rem" }}>
+          <div className="mb-6">
+            <label className="block text-xs font-semibold text-[#A0A0A0] mb-2">Repayment Term</label>
+            <div className="flex gap-1.5 flex-wrap mb-3">
               {TERM_PRESETS.map((t) => (
                 <button key={t} onClick={() => { setTerm(t); setCustomTerm(""); }}
-                  style={{ padding: "0.5rem 0.875rem", borderRadius: "9999px", fontSize: "11px", fontWeight: 600, border: "1.5px solid", cursor: "pointer", transition: "all 0.15s ease", backgroundColor: !customTerm && term === t ? cfg.colors.primary : "#1A1A1A", color: !customTerm && term === t ? "#ffffff" : "#777777", borderColor: !customTerm && term === t ? cfg.colors.primary : "#333333" }}>
+                  className="px-3.5 py-2 rounded-full text-[11px] font-semibold border-[1.5px] cursor-pointer transition-all duration-150 whitespace-nowrap"
+                  style={{ backgroundColor: !customTerm && term === t ? cfg.colors.primary : "#1A1A1A", color: !customTerm && term === t ? "#ffffff" : "#777777", borderColor: !customTerm && term === t ? cfg.colors.primary : "#333333" }}>
                   {formatTerm(t)}
                 </button>
               ))}
               <button onClick={() => setCustomTerm(customTerm ? "" : "12")}
-                style={{ padding: "0.5rem 0.875rem", borderRadius: "9999px", fontSize: "11px", fontWeight: 600, border: "1.5px solid", cursor: "pointer", transition: "all 0.15s ease", backgroundColor: !!customTerm ? cfg.colors.primary : "#1A1A1A", color: !!customTerm ? "#ffffff" : "#777777", borderColor: !!customTerm ? cfg.colors.primary : "#333333" }}>
+                className="px-3.5 py-2 rounded-full text-[11px] font-semibold border-[1.5px] cursor-pointer transition-all duration-150 whitespace-nowrap"
+                style={{ backgroundColor: !!customTerm ? cfg.colors.primary : "#1A1A1A", color: !!customTerm ? "#ffffff" : "#777777", borderColor: !!customTerm ? cfg.colors.primary : "#333333" }}>
                 Custom
               </button>
             </div>
             {customTerm !== "" && (
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <div className="flex items-center gap-2">
                 <input type="number" value={customTerm} onChange={(e) => setCustomTerm(e.target.value)} min="1" max="60"
-                  style={{ width: "80px", padding: "0.5rem 0.75rem", borderRadius: "0.75rem", border: "1px solid #333333", backgroundColor: "#1A1A1A", color: "#ffffff", fontSize: "13px", outline: "none", boxSizing: "border-box", textAlign: "center", fontFamily: "'JetBrains Mono', monospace" }} />
-                <span style={{ fontSize: "12px", color: "#666666" }}>months (1-60)</span>
+                  className="w-20 px-3 py-2 rounded-xl border border-[#333333] bg-[#1A1A1A] text-white text-[13px] outline-none box-border text-center font-mono" />
+                <span className="text-xs text-[#666666]">months (1-60)</span>
               </div>
             )}
           </div>
 
           <button onClick={() => onRequestLoan?.(amount, effectiveTerm)} disabled={disabled || !results}
-            style={{ width: "100%", padding: "0.75rem", borderRadius: "9999px", fontSize: "13px", fontWeight: 600, cursor: disabled || !results ? "not-allowed" : "pointer", backgroundColor: disabled || !results ? "#333333" : cfg.colors.primary, color: disabled || !results ? "#666666" : "#ffffff", border: "none", transition: "all 0.15s" }}>
+            className="w-full py-3 rounded-full text-[13px] font-semibold cursor-pointer border-none transition-all duration-150"
+            style={{ backgroundColor: disabled || !results ? "#333333" : cfg.colors.primary, color: disabled || !results ? "#666666" : "#ffffff" }}>
             {disabled ? "Active Loan Exists" : "Request This Loan"}
           </button>
         </div>
 
-        <div style={{ padding: "0 2rem 2rem 0", display: "flex", flexDirection: "column" }}>
+        <div className="px-8 pb-8 flex flex-col">
           {results ? (
             <>
-              <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
-                  <span style={{ display: "block", fontSize: "10px", fontWeight: 600, color: "#666666", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.375rem" }}>Monthly Payment</span>
-                  <span style={{ fontSize: "2rem", fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", color: "#ffffff" }}>{formatNaira(results.monthly)}</span>
+              <div className="flex-1 flex flex-col justify-center">
+                <div className="text-center mb-6">
+                  <span className="block text-[10px] font-semibold text-[#666666] uppercase tracking-[0.05em] mb-1.5">Monthly Payment</span>
+                  <span className="text-2xl font-bold font-mono text-white">{formatNaira(results.monthly)}</span>
                 </div>
 
-                <div style={{ display: "flex", gap: "1.5rem", justifyContent: "center", marginBottom: "1.5rem" }}>
-                  <div style={{ textAlign: "center" }}><span style={{ display: "block", fontSize: "10px", color: "#666666", marginBottom: "0.125rem" }}>You Borrow</span><span style={{ fontSize: "14px", fontWeight: 600, fontFamily: "'JetBrains Mono', monospace", color: "#E0E0E0" }}>{formatNaira(amount)}</span></div>
-                  <div style={{ width: "1px", backgroundColor: "#2A2A2A" }} />
-                  <div style={{ textAlign: "center" }}><span style={{ display: "block", fontSize: "10px", color: "#666666", marginBottom: "0.125rem" }}>Interest</span><span style={{ fontSize: "14px", fontWeight: 600, fontFamily: "'JetBrains Mono', monospace", color: "#F59E0B" }}>{formatNaira(results.interest)}</span></div>
+                <div className="flex gap-6 justify-center mb-6">
+                  <div className="text-center"><span className="block text-[10px] text-[#666666] mb-0.5">You Borrow</span><span className="text-sm font-semibold font-mono text-[#E0E0E0]">{formatNaira(amount)}</span></div>
+                  <div className="w-px bg-[#2A2A2A]" />
+                  <div className="text-center"><span className="block text-[10px] text-[#666666] mb-0.5">Interest</span><span className="text-sm font-semibold font-mono text-amber-500">{formatNaira(results.interest)}</span></div>
                 </div>
 
-                <div style={{ height: "8px", borderRadius: "4px", backgroundColor: "#222222", display: "flex", overflow: "hidden", marginBottom: "1.25rem" }}>
-                  <div style={{ width: `${results.principalPct}%`, backgroundColor: cfg.colors.primary, transition: "width 0.3s" }} />
-                  <div style={{ width: `${results.interestPct}%`, backgroundColor: "#F59E0B", transition: "width 0.3s" }} />
+                <div className="h-2 rounded bg-[#222222] flex overflow-hidden mb-5">
+                  <div className="transition-[width] duration-300" style={{ width: `${results.principalPct}%`, backgroundColor: cfg.colors.primary }} />
+                  <div className="bg-amber-500 transition-[width] duration-300" style={{ width: `${results.interestPct}%` }} />
                 </div>
 
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "#777777", marginBottom: "1rem" }}>
+                <div className="flex justify-between text-xs text-[#777777] mb-4">
                   <span>{results.principalPct.toFixed(1)}% Principal</span>
                   <span>{results.interestPct.toFixed(1)}% Interest</span>
                 </div>
 
-                <div style={{ padding: "1rem", borderRadius: "0.75rem", backgroundColor: "#1A1A1A", border: "1px solid #2A2A2A" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", marginBottom: "0.5rem" }}><span style={{ color: "#666666" }}>Total Repayment</span><span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: "#E0E0E0" }}>{formatNaira(results.total)}</span></div>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", marginBottom: "0.5rem" }}><span style={{ color: "#666666" }}>Loan Term</span><span style={{ fontWeight: 600, color: "#E0E0E0" }}>{formatTerm(effectiveTerm)}</span></div>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px" }}><span style={{ color: "#666666" }}>Interest Rate</span><span style={{ fontWeight: 600, color: "#E0E0E0" }}>5% APR</span></div>
+                <div className="p-4 rounded-xl bg-[#1A1A1A] border border-[#2A2A2A]">
+                  <div className="flex justify-between text-xs mb-2"><span className="text-[#666666]">Total Repayment</span><span className="font-mono font-semibold text-[#E0E0E0]">{formatNaira(results.total)}</span></div>
+                  <div className="flex justify-between text-xs mb-2"><span className="text-[#666666]">Loan Term</span><span className="font-semibold text-[#E0E0E0]">{formatTerm(effectiveTerm)}</span></div>
+                  <div className="flex justify-between text-xs"><span className="text-[#666666]">Interest Rate</span><span className="font-semibold text-[#E0E0E0]">5% APR</span></div>
                 </div>
               </div>
 
-              <div style={{ marginTop: "1rem" }}>
+              <div className="mt-4">
                 <button onClick={() => setShowAmortization(!showAmortization)}
-                  style={{ width: "100%", padding: "0.5rem", borderRadius: "0.5rem", fontSize: "11px", fontWeight: 600, cursor: "pointer", backgroundColor: "transparent", color: "#777777", border: "1px solid #333333", transition: "all 0.15s" }}>
+                  className="w-full py-2 rounded-lg text-[11px] font-semibold cursor-pointer bg-transparent text-[#777777] border border-[#333333] transition-all duration-150">
                   {showAmortization ? "Hide" : "Show"} Amortization Schedule
                 </button>
               </div>
             </>
           ) : (
-            <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <p style={{ fontSize: "13px", color: "#555555" }}>Adjust the slider to see your loan breakdown</p>
+            <div className="flex-1 flex items-center justify-center">
+              <p className="text-[13px] text-[#555555]">Adjust the slider to see your loan breakdown</p>
             </div>
           )}
         </div>
@@ -177,25 +180,25 @@ export function LoanCalculator({ onRequestLoan, disabled }: LoanCalculatorProps)
 
       {showAmortization && amortization.length > 0 && (
         <FadeInUp>
-          <div style={{ borderTop: "1px solid #2A2A2A", padding: "1.5rem 2rem" }}>
-            <h3 style={{ fontSize: "12px", fontWeight: 600, color: "#E0E0E0", marginBottom: "0.75rem" }}>Amortization Schedule ({amortization.length} payments)</h3>
-            <div style={{ maxHeight: "280px", overflowY: "auto", borderRadius: "0.5rem", border: "1px solid #2A2A2A" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "11px" }}>
-                <thead style={{ position: "sticky", top: 0, zIndex: 1 }}>
-                  <tr style={{ backgroundColor: "#1A1A1A" }}>
+          <div className="border-t border-[#2A2A2A] px-8 py-6">
+            <h3 className="font-display tracking-tight text-xs font-semibold text-[#E0E0E0] mb-3">Amortization Schedule ({amortization.length} payments)</h3>
+            <div className="max-h-[280px] overflow-y-auto rounded-lg border border-[#2A2A2A]">
+              <table className="w-full border-collapse text-[11px]">
+                <thead className="sticky top-0 z-[1]">
+                  <tr className="bg-[#1A1A1A]">
                     {["#", "Payment", "Principal", "Interest", "Balance"].map((h) => (
-                      <th key={h} style={{ padding: "0.625rem 0.75rem", textAlign: "right", fontWeight: 600, color: "#777777", borderBottom: "1px solid #2A2A2A" }}>{h}</th>
+                      <th key={h} className="px-3 py-2.5 text-right font-semibold text-[#777777] border-b border-[#2A2A2A]">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {amortization.map((row) => (
                     <tr key={row.month} style={{ backgroundColor: row.month % 2 === 0 ? "#161616" : "#111111" }}>
-                      <td style={{ padding: "0.5rem 0.75rem", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", color: "#555555" }}>{row.month}</td>
-                      <td style={{ padding: "0.5rem 0.75rem", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", fontWeight: 500, color: "#E0E0E0" }}>{formatNaira(row.payment)}</td>
-                      <td style={{ padding: "0.5rem 0.75rem", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", color: cfg.colors.primary }}>{formatNaira(row.principal)}</td>
-                      <td style={{ padding: "0.5rem 0.75rem", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", color: "#F59E0B" }}>{formatNaira(row.interest)}</td>
-                      <td style={{ padding: "0.5rem 0.75rem", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", color: "#777777" }}>{formatNaira(row.balance)}</td>
+                      <td className="px-3 py-2 text-right font-mono text-[#555555]">{row.month}</td>
+                      <td className="px-3 py-2 text-right font-mono font-medium text-[#E0E0E0]">{formatNaira(row.payment)}</td>
+                      <td className="px-3 py-2 text-right font-mono text-brand-primary">{formatNaira(row.principal)}</td>
+                      <td className="px-3 py-2 text-right font-mono text-amber-500">{formatNaira(row.interest)}</td>
+                      <td className="px-3 py-2 text-right font-mono text-[#777777]">{formatNaira(row.balance)}</td>
                     </tr>
                   ))}
                 </tbody>

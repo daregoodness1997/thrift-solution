@@ -180,23 +180,10 @@ export default function KycAdminPage() {
 
   if (loading) {
     return (
-      <div
-        style={{
-          maxWidth: "1200px",
-          margin: "0 auto",
-          padding: "clamp(1rem, 3vw, 2rem)",
-        }}
-      >
+      <div className="mx-auto max-w-[1200px] p-[clamp(1rem,3vw,2rem)]">
         <ColorBar />
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            minHeight: "400px",
-          }}
-        >
-          <span style={{ fontSize: "12px", color: "#999" }}>
+        <div className="flex min-h-[400px] items-center justify-center">
+          <span className="text-xs text-gray-400">
             Loading KYC submissions...
           </span>
         </div>
@@ -205,43 +192,15 @@ export default function KycAdminPage() {
   }
 
   return (
-    <div
-      style={{
-        maxWidth: "1200px",
-        margin: "0 auto",
-        padding: "clamp(1rem, 3vw, 2rem)",
-      }}
-    >
+    <div className="mx-auto max-w-[1200px] p-[clamp(1rem,3vw,2rem)]">
       <ColorBar />
 
       <FadeInUp delay={100}>
-        <div
-          style={{
-            marginBottom: "2rem",
-            marginTop: "2rem",
-            borderBottom: "1px solid #EAEAEA",
-            paddingBottom: "1.5rem",
-          }}
-        >
+        <div className="mb-8 mt-8 border-b border-gray-200 pb-6">
           <ColorfulBadge label="Admin Panel" color={cfg.colors.primary} />
-          <h1
-            style={{
-              fontSize: "clamp(1.25rem, 3vw, 1.75rem)",
-              fontWeight: 300,
-              color: "#1A1A1A",
-              letterSpacing: "-0.025em",
-              marginTop: "0.75rem",
-            }}
-          >
+          <h1 className="mt-3 font-display text-[clamp(1.25rem,3vw,1.75rem)] font-light tracking-tight text-brand-dark">
             KYC{" "}
-            <span
-              style={{
-                fontStyle: "italic",
-                fontFamily: "'Playfair Display', serif",
-                color: cfg.colors.primary,
-                fontWeight: 500,
-              }}
-            >
+            <span className="font-display font-medium" style={{ color: cfg.colors.primary }}>
               Management
             </span>
           </h1>
@@ -251,14 +210,7 @@ export default function KycAdminPage() {
       {/* Stats */}
       {stats && (
         <FadeInUp delay={200}>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-              gap: "0.75rem",
-              marginBottom: "2rem",
-            }}
-          >
+          <div className="mb-8 grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-3">
             {[
               { label: "Total", value: stats.total, color: "#6B7280" },
               { label: "Pending", value: stats.pending, color: "#2563EB" },
@@ -271,28 +223,10 @@ export default function KycAdminPage() {
               { label: "Rejected", value: stats.rejected, color: "#DC2626" },
             ].map((s) => (
               <Card key={s.label} padding="1rem">
-                <span
-                  style={{
-                    fontSize: "9px",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.1em",
-                    color: "#999",
-                    fontWeight: 700,
-                    display: "block",
-                  }}
-                >
+                <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-400">
                   {s.label}
                 </span>
-                <span
-                  style={{
-                    fontSize: "1.5rem",
-                    fontWeight: 700,
-                    color: s.color,
-                    fontFamily: "'JetBrains Mono', monospace",
-                    display: "block",
-                    marginTop: "0.25rem",
-                  }}
-                >
+                <span className="mt-1 block font-mono text-2xl font-bold" style={{ color: s.color }}>
                   {s.value}
                 </span>
               </Card>
@@ -305,17 +239,13 @@ export default function KycAdminPage() {
       {message && (
         <FadeInUp delay={250}>
           <div
+            className="mb-6 rounded-xl px-4 py-3 text-xs font-medium"
             style={{
-              padding: "0.75rem 1rem",
-              borderRadius: "0.75rem",
               backgroundColor: message.includes("error")
                 ? "#FEF2F2"
                 : "#ECFDF5",
               border: `1px solid ${message.includes("error") ? "#FECACA" : "#A7F3D0"}`,
               color: message.includes("error") ? "#DC2626" : "#059669",
-              fontSize: "12px",
-              fontWeight: 500,
-              marginBottom: "1.5rem",
             }}
           >
             {message}
@@ -325,29 +255,14 @@ export default function KycAdminPage() {
 
       {/* Tabs */}
       <FadeInUp delay={300}>
-        <div
-          style={{
-            display: "flex",
-            gap: "0.25rem",
-            marginBottom: "1.5rem",
-            padding: "0.25rem",
-            backgroundColor: "#F3F4F6",
-            borderRadius: "0.75rem",
-            flexWrap: "wrap",
-          }}
-        >
+        <div className="mb-6 flex flex-wrap gap-1 rounded-xl bg-gray-100 p-1">
           {STATUS_TABS.map((tab) => (
             <button
               key={tab.value}
               onClick={() => setActiveTab(tab.value)}
+              className="cursor-pointer rounded-lg border-none px-4 py-2 text-xs transition-all"
               style={{
-                padding: "0.5rem 1rem",
-                borderRadius: "0.5rem",
-                fontSize: "12px",
                 fontWeight: activeTab === tab.value ? 600 : 400,
-                cursor: "pointer",
-                border: "none",
-                transition: "all 0.2s ease",
                 backgroundColor:
                   activeTab === tab.value ? "#ffffff" : "transparent",
                 color: activeTab === tab.value ? "#2D2D2D" : "#717171",
@@ -359,17 +274,7 @@ export default function KycAdminPage() {
             >
               {tab.label}
               {tab.value === "pending" && stats && stats.pending > 0 && (
-                <span
-                  style={{
-                    marginLeft: "0.375rem",
-                    padding: "0.125rem 0.375rem",
-                    borderRadius: "9999px",
-                    backgroundColor: "#DC2626",
-                    color: "#ffffff",
-                    fontSize: "9px",
-                    fontWeight: 700,
-                  }}
-                >
+                <span className="ml-1.5 rounded-full bg-red-600 px-1.5 py-0.5 text-[9px] font-bold text-white">
                   {stats.pending}
                 </span>
               )}
@@ -382,7 +287,7 @@ export default function KycAdminPage() {
       <FadeInUp delay={400}>
         {submissions.length === 0 ? (
           <Card padding="2rem">
-            <div style={{ textAlign: "center" }}>
+            <div className="text-center">
               <svg
                 width="40"
                 height="40"
@@ -390,50 +295,33 @@ export default function KycAdminPage() {
                 fill="none"
                 stroke="#D1D5DB"
                 strokeWidth={1.5}
-                style={{ margin: "0 auto 1rem" }}
+                className="mx-auto mb-4"
               >
                 <path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
               </svg>
-              <span style={{ fontSize: "13px", color: "#999" }}>
+              <span className="text-[13px] text-gray-400">
                 No submissions found
               </span>
             </div>
           </Card>
         ) : (
-          <div
-            style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}
-          >
+          <div className="flex flex-col gap-3">
             {submissions.map((sub) => {
               const ss = getStatusStyle(sub.status);
               return (
-                <Card key={sub.id} padding="0" style={{ overflow: "hidden" }}>
+                <Card key={sub.id} padding="0" className="overflow-hidden">
                   <div
-                    style={{ padding: "1rem", cursor: "pointer" }}
+                    className="cursor-pointer p-4"
                     onClick={() =>
                       setSelectedKyc(selectedKyc?.id === sub.id ? null : sub)
                     }
                   >
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "1rem",
-                        flexWrap: "wrap",
-                      }}
-                    >
+                    <div className="flex flex-wrap items-center gap-4">
                       <div
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold"
                         style={{
-                          width: "40px",
-                          height: "40px",
-                          borderRadius: "50%",
                           backgroundColor: `${cfg.colors.primary}15`,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: "14px",
-                          fontWeight: 700,
                           color: cfg.colors.primary,
-                          flexShrink: 0,
                         }}
                       >
                         {sub.user.name
@@ -443,62 +331,33 @@ export default function KycAdminPage() {
                           .toUpperCase()
                           .slice(0, 2)}
                       </div>
-                      <div style={{ flex: 1, minWidth: "150px" }}>
-                        <span
-                          style={{
-                            fontSize: "13px",
-                            fontWeight: 600,
-                            color: "#2D2D2D",
-                            display: "block",
-                          }}
-                        >
+                      <div className="min-w-[150px] flex-1">
+                        <span className="block text-[13px] font-semibold text-brand-dark">
                           {sub.user.name}
                         </span>
-                        <span style={{ fontSize: "11px", color: "#717171" }}>
+                        <span className="text-[11px] text-gray-500">
                           {sub.user.email}
                         </span>
                       </div>
-                      <div style={{ textAlign: "right" }}>
-                        <span
-                          style={{
-                            fontSize: "11px",
-                            color: "#717171",
-                            display: "block",
-                          }}
-                        >
+                      <div className="text-right">
+                        <span className="block text-[11px] text-gray-500">
                           {ID_TYPE_LABELS[sub.idType] || sub.idType}
                         </span>
-                        <span
-                          style={{
-                            fontSize: "11px",
-                            color: "#999",
-                            fontFamily: "'JetBrains Mono', monospace",
-                          }}
-                        >
+                        <span className="font-mono text-[11px] text-gray-400">
                           ...{sub.idNumber.slice(-4)}
                         </span>
                       </div>
-                      <div style={{ textAlign: "right" }}>
-                        <span
-                          style={{
-                            fontSize: "10px",
-                            color: "#999",
-                            display: "block",
-                          }}
-                        >
+                      <div className="text-right">
+                        <span className="block text-[10px] text-gray-400">
                           {new Date(sub.submittedAt).toLocaleDateString()}
                         </span>
                       </div>
                       <span
+                        className="rounded-full px-3 py-1 text-[10px] font-semibold capitalize"
                         style={{
-                          padding: "0.25rem 0.75rem",
-                          borderRadius: "9999px",
-                          fontSize: "10px",
-                          fontWeight: 600,
                           color: ss.color,
                           backgroundColor: ss.bg,
                           border: `1px solid ${ss.border}`,
-                          textTransform: "capitalize",
                         }}
                       >
                         {sub.status.replace("_", " ")}
@@ -510,12 +369,12 @@ export default function KycAdminPage() {
                         fill="none"
                         stroke="#999"
                         strokeWidth={2}
+                        className="transition-transform"
                         style={{
                           transform:
                             selectedKyc?.id === sub.id
                               ? "rotate(180deg)"
                               : "rotate(0)",
-                          transition: "transform 0.2s",
                         }}
                       >
                         <path d="M6 9l6 6 6-6" />
@@ -525,50 +384,20 @@ export default function KycAdminPage() {
                     {/* Expanded Detail */}
                     {selectedKyc?.id === sub.id && (
                       <div
-                        style={{
-                          marginTop: "1rem",
-                          paddingTop: "1rem",
-                          borderTop: "1px solid #F0F0F0",
-                        }}
+                        className="mt-4 border-t border-gray-100 pt-4"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <div
-                          style={{
-                            display: "grid",
-                            gridTemplateColumns:
-                              "repeat(auto-fit, minmax(280px, 1fr))",
-                            gap: "1rem",
-                            marginBottom: "1rem",
-                          }}
-                        >
+                        <div className="mb-4 grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-4">
                           {/* Documents */}
                           <div>
-                            <span
-                              style={{
-                                fontSize: "10px",
-                                textTransform: "uppercase",
-                                letterSpacing: "0.05em",
-                                color: "#999",
-                                fontWeight: 700,
-                                display: "block",
-                                marginBottom: "0.5rem",
-                              }}
-                            >
+                            <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.05em] text-gray-400">
                               Documents
                             </span>
                             {sub.documents.length > 0 ? (
                               sub.documents.map((doc) => (
                                 <div
                                   key={doc.id}
-                                  style={{
-                                    padding: "0.5rem",
-                                    borderRadius: "0.5rem",
-                                    backgroundColor: "#FAFAFA",
-                                    marginBottom: "0.375rem",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "0.5rem",
-                                  }}
+                                  className="mb-1.5 flex items-center gap-2 rounded-lg bg-gray-50 p-2"
                                 >
                                   <svg
                                     width="14"
@@ -581,34 +410,22 @@ export default function KycAdminPage() {
                                     <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
                                     <polyline points="14 2 14 8 20 8" />
                                   </svg>
-                                  <span
-                                    style={{
-                                      fontSize: "11px",
-                                      color: "#2D2D2D",
-                                      flex: 1,
-                                      overflow: "hidden",
-                                      textOverflow: "ellipsis",
-                                      whiteSpace: "nowrap",
-                                    }}
-                                  >
+                                  <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[11px] text-brand-dark">
                                     {doc.fileName}
                                   </span>
                                   <a
                                     href={doc.fileUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    style={{
-                                      fontSize: "10px",
-                                      color: cfg.colors.primary,
-                                      textDecoration: "none",
-                                    }}
+                                    className="text-[10px] no-underline"
+                                    style={{ color: cfg.colors.primary }}
                                   >
                                     View
                                   </a>
                                 </div>
                               ))
                             ) : (
-                              <span style={{ fontSize: "11px", color: "#999" }}>
+                              <span className="text-[11px] text-gray-400">
                                 No documents uploaded
                               </span>
                             )}
@@ -616,51 +433,27 @@ export default function KycAdminPage() {
 
                           {/* Audit Log */}
                           <div>
-                            <span
-                              style={{
-                                fontSize: "10px",
-                                textTransform: "uppercase",
-                                letterSpacing: "0.05em",
-                                color: "#999",
-                                fontWeight: 700,
-                                display: "block",
-                                marginBottom: "0.5rem",
-                              }}
-                            >
+                            <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.05em] text-gray-400">
                               Activity
                             </span>
                             {sub.auditLogs?.slice(0, 3).map((log, i) => (
                               <div
                                 key={i}
+                                className="py-1.5"
                                 style={{
-                                  padding: "0.375rem 0",
                                   borderBottom:
                                     i < 2 ? "1px solid #F0F0F0" : "none",
                                 }}
                               >
-                                <span
-                                  style={{
-                                    fontSize: "11px",
-                                    color: "#2D2D2D",
-                                    textTransform: "capitalize",
-                                  }}
-                                >
+                                <span className="text-[11px] capitalize text-brand-dark">
                                   {log.action.replace(/_/g, " ")}
                                 </span>
                                 {log.notes && (
-                                  <span
-                                    style={{
-                                      fontSize: "10px",
-                                      color: "#717171",
-                                      display: "block",
-                                    }}
-                                  >
+                                  <span className="block text-[10px] text-gray-500">
                                     {log.notes}
                                   </span>
                                 )}
-                                <span
-                                  style={{ fontSize: "9px", color: "#999" }}
-                                >
+                                <span className="text-[9px] text-gray-400">
                                   {new Date(log.createdAt).toLocaleString()}
                                 </span>
                               </div>
@@ -670,30 +463,11 @@ export default function KycAdminPage() {
 
                         {/* Rejection Reason */}
                         {sub.status === "rejected" && sub.rejectionReason && (
-                          <div
-                            style={{
-                              padding: "0.75rem",
-                              borderRadius: "0.5rem",
-                              backgroundColor: "#FEF2F2",
-                              border: "1px solid #FECACA",
-                              marginBottom: "1rem",
-                            }}
-                          >
-                            <span
-                              style={{
-                                fontSize: "10px",
-                                textTransform: "uppercase",
-                                color: "#DC2626",
-                                fontWeight: 700,
-                                display: "block",
-                                marginBottom: "0.25rem",
-                              }}
-                            >
+                          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3">
+                            <span className="mb-1 block text-[10px] font-bold uppercase text-red-600">
                               Rejection Reason
                             </span>
-                            <span
-                              style={{ fontSize: "12px", color: "#2D2D2D" }}
-                            >
+                            <span className="text-xs text-brand-dark">
                               {sub.rejectionReason}
                             </span>
                           </div>
@@ -701,30 +475,12 @@ export default function KycAdminPage() {
 
                         {/* Actions */}
                         {sub.status !== "verified" && (
-                          <div
-                            style={{
-                              display: "flex",
-                              gap: "0.5rem",
-                              flexWrap: "wrap",
-                              alignItems: "flex-end",
-                            }}
-                          >
+                          <div className="flex flex-wrap items-end gap-2">
                             {sub.status === "pending" && (
                               <button
                                 onClick={() => handleAction(sub.id, "review")}
                                 disabled={actionLoading}
-                                style={{
-                                  padding: "0.5rem 1rem",
-                                  borderRadius: "9999px",
-                                  fontSize: "12px",
-                                  fontWeight: 600,
-                                  cursor: actionLoading
-                                    ? "not-allowed"
-                                    : "pointer",
-                                  backgroundColor: "#D97706",
-                                  color: "#ffffff",
-                                  border: "none",
-                                }}
+                                className="cursor-pointer rounded-full border-none bg-amber-600 px-4 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed"
                               >
                                 Start Review
                               </button>
@@ -732,29 +488,11 @@ export default function KycAdminPage() {
                             <button
                               onClick={() => handleAction(sub.id, "approve")}
                               disabled={actionLoading}
-                              style={{
-                                padding: "0.5rem 1rem",
-                                borderRadius: "9999px",
-                                fontSize: "12px",
-                                fontWeight: 600,
-                                cursor: actionLoading
-                                  ? "not-allowed"
-                                  : "pointer",
-                                backgroundColor: "#059669",
-                                color: "#ffffff",
-                                border: "none",
-                              }}
+                              className="cursor-pointer rounded-full border-none bg-emerald-600 px-4 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed"
                             >
                               Approve
                             </button>
-                            <div
-                              style={{
-                                display: "flex",
-                                gap: "0.375rem",
-                                flex: 1,
-                                minWidth: "200px",
-                              }}
-                            >
+                            <div className="flex min-w-[200px] flex-1 gap-1.5">
                               <input
                                 type="text"
                                 value={rejectReason}
@@ -762,34 +500,18 @@ export default function KycAdminPage() {
                                   setRejectReason(e.target.value)
                                 }
                                 placeholder="Rejection reason..."
-                                style={{
-                                  flex: 1,
-                                  padding: "0.5rem 0.75rem",
-                                  borderRadius: "9999px",
-                                  border: "1px solid #EAEAEA",
-                                  fontSize: "12px",
-                                  outline: "none",
-                                }}
+                                className="flex-1 rounded-full border border-gray-200 px-3 py-2 text-xs outline-none"
                               />
                               <button
                                 onClick={() =>
                                   rejectReason && handleAction(sub.id, "reject")
                                 }
                                 disabled={actionLoading || !rejectReason}
+                                className="cursor-pointer rounded-full border-none px-4 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed"
                                 style={{
-                                  padding: "0.5rem 1rem",
-                                  borderRadius: "9999px",
-                                  fontSize: "12px",
-                                  fontWeight: 600,
-                                  cursor:
-                                    actionLoading || !rejectReason
-                                      ? "not-allowed"
-                                      : "pointer",
                                   backgroundColor: rejectReason
                                     ? "#DC2626"
                                     : "#E5E7EB",
-                                  color: "#ffffff",
-                                  border: "none",
                                 }}
                               >
                                 Reject

@@ -106,69 +106,68 @@ export default function AdminVirtualAccountsPage() {
   if (authLoading || !isAdmin) return null;
 
   return (
-    <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
+    <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
       <PageHeader badgeLabel="Admin" heading="Virtual" accentText="Accounts" description="Inspect assigned bank accounts used for auto-settlement and monitor their status." />
 
       <ActionMessage message={message} />
 
       <FadeInUp delay={200}>
         <Card padding="1.5rem">
-          <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginBottom: "1rem" }}>
+          <div className="mb-4 flex flex-wrap gap-3">
             <input
               placeholder="Search account no, email, name..."
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              style={{ flex: 1, minWidth: "200px", padding: "0.5rem 0.75rem", borderRadius: "0.5rem", border: "1px solid #E5E7EB", fontSize: "12px" }}
+              className="min-w-[200px] flex-1 rounded-lg border border-gray-200 px-3 py-2 text-[12px] outline-none"
             />
             <FilterSelect value={providerFilter} onChange={(v) => { setProviderFilter(v); setPage(1); }} options={["all", "monnify", "flutterwave", "paystack"]} />
             <FilterSelect value={statusFilter} onChange={(v) => { setStatusFilter(v); setPage(1); }} options={["all", "active", "inactive", "pending"]} />
             <button onClick={generateMissing} disabled={generating}
-              style={{ padding: "0.5rem 0.75rem", borderRadius: "0.5rem", fontSize: "12px", fontWeight: 600, border: "1px solid #16A34A40", backgroundColor: "#16A34A0F", color: "#16A34A", cursor: "pointer", whiteSpace: "nowrap", opacity: generating ? 0.5 : 1 }}>
+              className="cursor-pointer whitespace-nowrap rounded-lg border border-[#16A34A40] bg-[#16A34A0F] px-3 py-2 text-[12px] font-semibold text-[#16A34A]"
+              style={{ opacity: generating ? 0.5 : 1 }}>
               {generating ? "Generating..." : "Generate missing"}
             </button>
           </div>
 
           {loading ? (
-            <div style={{ textAlign: "center", padding: "3rem", color: "#999", fontSize: "13px" }}>Loading accounts...</div>
+            <div className="p-12 text-center text-[13px] text-gray-500">Loading accounts...</div>
           ) : items.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "2rem", color: "#999", fontSize: "13px" }}>No virtual accounts found.</div>
+            <div className="p-8 text-center text-[13px] text-gray-500">No virtual accounts found.</div>
           ) : (
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", fontSize: "12px", borderCollapse: "collapse", minWidth: "820px" }}>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-[12px] min-w-[820px]">
                 <thead>
-                  <tr style={{ borderBottom: "1px solid #F0F0F0", color: "#999", textTransform: "uppercase", letterSpacing: "0.1em", fontSize: "9px", fontFamily: "'JetBrains Mono', monospace" }}>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>User</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Account</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Provider</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Wallet</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Status</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Created</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "right", fontWeight: 600 }}>Actions</th>
+                  <tr className="border-b border-gray-100 font-mono text-[9px] uppercase tracking-[0.1em] text-gray-500">
+                    <th className="pb-3 text-left font-semibold">User</th>
+                    <th className="pb-3 text-left font-semibold">Account</th>
+                    <th className="pb-3 text-left font-semibold">Provider</th>
+                    <th className="pb-3 text-left font-semibold">Wallet</th>
+                    <th className="pb-3 text-left font-semibold">Status</th>
+                    <th className="pb-3 text-left font-semibold">Created</th>
+                    <th className="pb-3 text-right font-semibold">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {items.map((va) => (
-                    <tr key={va.id} style={{ borderBottom: "1px solid #F5F5F5" }}
-                      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#F9FAFB"; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}>
-                      <td style={{ padding: "0.75rem 0" }}>
-                        <span style={{ fontWeight: 600, color: "#2D2D2D", display: "block" }}>{va.user?.name || "—"}</span>
-                        <span style={{ fontSize: "11px", color: "#999" }}>{va.user?.email}</span>
+                    <tr key={va.id} className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="py-3">
+                        <span className="block font-semibold text-brand-dark">{va.user?.name || "—"}</span>
+                        <span className="text-[11px] text-gray-500">{va.user?.email}</span>
                       </td>
-                      <td style={{ padding: "0.75rem 0" }}>
-                        <span style={{ fontFamily: "'JetBrains Mono', monospace", color: "#2D2D2D", display: "block" }}>{va.accountNumber}</span>
-                        <span style={{ fontSize: "11px", color: "#999" }}>{va.bankName || "—"}</span>
+                      <td className="py-3">
+                        <span className="block font-mono text-brand-dark">{va.accountNumber}</span>
+                        <span className="text-[11px] text-gray-500">{va.bankName || "—"}</span>
                       </td>
-                      <td style={{ padding: "0.75rem 0", color: "#717171", textTransform: "capitalize" }}>{va.provider}</td>
-                      <td style={{ padding: "0.75rem 0" }}>
-                        <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: "#2D2D2D" }}>{formatNaira(va.walletBalance || 0)}</span>
+                      <td className="py-3 capitalize text-gray-500">{va.provider}</td>
+                      <td className="py-3">
+                        <span className="font-mono font-semibold text-brand-dark">{formatNaira(va.walletBalance || 0)}</span>
                       </td>
-                      <td style={{ padding: "0.75rem 0" }}><StatusBadge status={va.status} /></td>
-                      <td style={{ padding: "0.75rem 0", color: "#717171" }}>{formatDate(new Date(va.createdAt))}</td>
-                      <td style={{ padding: "0.75rem 0", textAlign: "right" }}>
-                        <div style={{ display: "flex", gap: "0.375rem", justifyContent: "flex-end" }}>
-                          {va.status !== "active" && <button onClick={() => setStatus(va, "active")} disabled={busyId === va.id} style={btn("#059669")}>{busyId === va.id ? "..." : "Activate"}</button>}
-                          {va.status !== "inactive" && <button onClick={() => setStatus(va, "inactive")} disabled={busyId === va.id} style={btn("#DC2626")}>{busyId === va.id ? "..." : "Deactivate"}</button>}
+                      <td className="py-3"><StatusBadge status={va.status} /></td>
+                      <td className="py-3 text-gray-500">{formatDate(new Date(va.createdAt))}</td>
+                      <td className="py-3 text-right">
+                        <div className="flex justify-end gap-1.5">
+                          {va.status !== "active" && <button onClick={() => setStatus(va, "active")} disabled={busyId === va.id} className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold" style={btn("#059669")}>{busyId === va.id ? "..." : "Activate"}</button>}
+                          {va.status !== "inactive" && <button onClick={() => setStatus(va, "inactive")} disabled={busyId === va.id} className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold" style={btn("#DC2626")}>{busyId === va.id ? "..." : "Deactivate"}</button>}
                         </div>
                       </td>
                     </tr>

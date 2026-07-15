@@ -59,83 +59,83 @@ function ResetPasswordForm() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", backgroundColor: "#FDFDFC" }}>
-      <div style={{
-        flex: "0 0 45%",
-        background: `linear-gradient(160deg, ${config.colors.secondary} 0%, ${config.colors.primary} 50%, #1a4a30 100%)`,
-        display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center",
-        padding: "3rem", position: "relative", overflow: "hidden",
-      }}>
-        <div style={{ position: "relative", zIndex: 1, textAlign: "center", maxWidth: "320px" }}>
-          <a href="/" style={{ textDecoration: "none", display: "block", marginBottom: "3rem" }}>
-            <span style={{ fontSize: "2rem", fontWeight: 800, letterSpacing: "-0.05em", color: "#ffffff" }}>
+    <div className="min-h-screen flex bg-brand-cream">
+      <div
+        className="hidden md:flex flex-col justify-center items-center p-12 relative overflow-hidden"
+        style={{
+          background: `linear-gradient(160deg, ${config.colors.secondary} 0%, ${config.colors.primary} 50%, #1a4a30 100%)`,
+        }}
+      >
+        <div className="relative z-10 text-center max-w-[320px]">
+          <a href="/" className="block mb-12 no-underline">
+            <span className="text-2xl font-extrabold tracking-[-0.05em] text-white">
               {config.name.toUpperCase().replace(/\s+/g, "")}
             </span>
           </a>
-          <h1 style={{ fontSize: "clamp(1.5rem, 3vw, 2rem)", fontWeight: 300, color: "#ffffff", lineHeight: 1.3, marginBottom: "1rem" }}>
+          <h1 className="text-[clamp(1.5rem,3vw,2rem)] font-light text-white leading-[1.3] mb-4">
             Choose a new<br />
-            <span style={{ fontStyle: "italic", fontFamily: "'Playfair Display', serif", fontWeight: 500, color: config.colors.accent }}>
+            <span className="font-display font-medium" style={{ color: config.colors.accent }}>
               password
             </span>
           </h1>
-          <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.6)", lineHeight: 1.6 }}>
+          <p className="text-[13px] text-white/60 leading-[1.6]">
             Pick something strong — you&apos;ll use it to sign in next time.
           </p>
         </div>
       </div>
 
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
-        <div style={{ width: "100%", maxWidth: "400px" }}>
-          <div style={{ marginBottom: "2.5rem" }}>
-            <h2 style={{ fontSize: "1.5rem", fontWeight: 600, color: "#1A1A1A", letterSpacing: "-0.025em" }}>Set New Password</h2>
-            <p style={{ fontSize: "13px", color: "#717171", marginTop: "0.375rem" }}>
+      <div className="flex-1 flex items-center justify-center p-8">
+        <div className="w-full max-w-[400px]">
+          <div className="mb-10">
+            <h2 className="text-[1.5rem] font-semibold text-brand-dark tracking-[-0.025em]">Set New Password</h2>
+            <p className="text-[13px] text-gray-500 mt-1.5">
               {email ? `Resetting password for ${email}` : "Enter the code from your email if the link didn't work"}
             </p>
           </div>
 
           {done ? (
-            <div style={{ padding: "1.25rem 1.25rem", borderRadius: "0.75rem", backgroundColor: "#ECFDF5", border: "1px solid #A7F3D0", color: "#047857", fontSize: "13px", lineHeight: 1.6 }}>
+            <div className="p-5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-[13px] leading-[1.6]">
               <strong>All set!</strong> Your password has been updated.
-              <div style={{ marginTop: "1rem" }}>
-                <a href="/login" style={{ color: config.colors.primary, fontWeight: 600, textDecoration: "none" }}>Continue to sign in</a>
+              <div className="mt-4">
+                <a href="/login" className="font-semibold no-underline" style={{ color: config.colors.primary }}>Continue to sign in</a>
               </div>
             </div>
           ) : (
             <form onSubmit={handleSubmit}>
               {error && (
-                <div style={{ padding: "0.75rem 1rem", borderRadius: "0.75rem", backgroundColor: "#FEF2F2", border: "1px solid #FECACA", color: "#DC2626", fontSize: "12px", fontWeight: 500, marginBottom: "1.5rem" }}>
+                <div className="px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-xs font-medium mb-6">
                   {error}
                 </div>
               )}
 
               {!code && (
-                <div style={{ marginBottom: "1.25rem" }}>
-                  <label style={{ fontSize: "12px", fontWeight: 500, color: "#374151", display: "block", marginBottom: "0.375rem" }}>Reset Code</label>
+                <div className="mb-5">
+                  <label className="block text-xs font-medium text-gray-700 mb-1.5">Reset Code</label>
                   <input
                     type="text"
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
                     placeholder="6-digit code from email"
-                    style={{ width: "100%", padding: "0.6875rem 0.875rem", borderRadius: "0.625rem", border: "1px solid #E5E7EB", fontSize: "13px", outline: "none", boxSizing: "border-box", color: "#1A1A1A" }}
+                    className="w-full py-[0.6875rem] px-[0.875rem] rounded-[0.625rem] border border-gray-200 text-[13px] text-brand-dark outline-none"
                   />
                 </div>
               )}
 
-              <div style={{ marginBottom: "1.25rem" }}>
-                <label style={{ fontSize: "12px", fontWeight: 500, color: "#374151", display: "block", marginBottom: "0.375rem" }}>New Password</label>
+              <div className="mb-5">
+                <label className="block text-xs font-medium text-gray-700 mb-1.5">New Password</label>
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="At least 6 characters"
                   autoComplete="new-password"
-                  style={{ width: "100%", padding: "0.6875rem 0.875rem", borderRadius: "0.625rem", border: "1px solid #E5E7EB", fontSize: "13px", outline: "none", boxSizing: "border-box", color: "#1A1A1A" }}
+                  className="w-full py-[0.6875rem] px-[0.875rem] rounded-[0.625rem] border border-gray-200 text-[13px] text-brand-dark outline-none"
                   onFocus={(e) => { e.currentTarget.style.borderColor = config.colors.primary; e.currentTarget.style.boxShadow = `0 0 0 3px ${config.colors.primary}15`; }}
                   onBlur={(e) => { e.currentTarget.style.borderColor = "#E5E7EB"; e.currentTarget.style.boxShadow = "none"; }}
                 />
               </div>
 
-              <div style={{ margin: "-0.5rem 0 1.5rem", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.375rem 1rem" }}>
+              <div className="-my-2 mb-6 grid grid-cols-2 gap-x-4 gap-y-1.5">
                 {[
                   { ok: checks.length, label: "At least 8 characters" },
                   { ok: checks.uppercase, label: "One uppercase letter" },
@@ -143,27 +143,25 @@ function ResetPasswordForm() {
                   { ok: checks.number, label: "One number" },
                   { ok: checks.symbol, label: "One special character" },
                 ].map((c) => (
-                  <div key={c.label} style={{ display: "flex", alignItems: "center", gap: "0.375rem", fontSize: "12px", color: c.ok ? "#047857" : "#9CA3AF" }}>
-                    <span style={{
-                      width: "16px", height: "16px", borderRadius: "50%", flex: "0 0 16px",
-                      display: "inline-flex", alignItems: "center", justifyContent: "center",
-                      fontSize: "10px", fontWeight: 700, color: "#fff",
-                      backgroundColor: c.ok ? "#10B981" : "#E5E7EB",
-                    }}>{c.ok ? "✓" : ""}</span>
+                  <div key={c.label} className="flex items-center gap-1.5 text-xs" style={{ color: c.ok ? "#047857" : "#9CA3AF" }}>
+                    <span
+                      className="w-4 h-4 rounded-full flex-none flex items-center justify-center text-[10px] font-bold text-white"
+                      style={{ backgroundColor: c.ok ? "#10B981" : "#E5E7EB" }}
+                    >{c.ok ? "✓" : ""}</span>
                     {c.label}
                   </div>
                 ))}
               </div>
 
-              <div style={{ marginBottom: "1.5rem" }}>
-                <label style={{ fontSize: "12px", fontWeight: 500, color: "#374151", display: "block", marginBottom: "0.375rem" }}>Confirm Password</label>
+              <div className="mb-6">
+                <label className="block text-xs font-medium text-gray-700 mb-1.5">Confirm Password</label>
                 <input
                   type="password"
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
                   placeholder="Re-enter password"
                   autoComplete="new-password"
-                  style={{ width: "100%", padding: "0.6875rem 0.875rem", borderRadius: "0.625rem", border: "1px solid #E5E7EB", fontSize: "13px", outline: "none", boxSizing: "border-box", color: "#1A1A1A" }}
+                  className="w-full py-[0.6875rem] px-[0.875rem] rounded-[0.625rem] border border-gray-200 text-[13px] text-brand-dark outline-none"
                   onFocus={(e) => { e.currentTarget.style.borderColor = config.colors.primary; e.currentTarget.style.boxShadow = `0 0 0 3px ${config.colors.primary}15`; }}
                   onBlur={(e) => { e.currentTarget.style.borderColor = "#E5E7EB"; e.currentTarget.style.boxShadow = "none"; }}
                 />
@@ -172,13 +170,19 @@ function ResetPasswordForm() {
               <button
                 type="submit"
                 disabled={loading}
-                style={{ width: "100%", padding: "0.75rem", borderRadius: "0.625rem", fontSize: "13px", fontWeight: 600, cursor: loading ? "not-allowed" : "pointer", backgroundColor: config.colors.primary, color: "#ffffff", border: "none", opacity: loading ? 0.6 : 1 }}
+                className="w-full py-3 rounded-[0.625rem] text-[13px] font-semibold text-white border-none transition"
+                style={{
+                  backgroundColor: config.colors.primary,
+                  color: "#ffffff",
+                  opacity: loading ? 0.6 : 1,
+                  cursor: loading ? "not-allowed" : "pointer",
+                }}
               >
                 {loading ? "Resetting..." : "Reset password"}
               </button>
 
-              <div style={{ textAlign: "center", marginTop: "2rem" }}>
-                <a href="/login" style={{ fontSize: "13px", color: config.colors.primary, fontWeight: 600, textDecoration: "none" }}>Back to sign in</a>
+              <div className="text-center mt-8">
+                <a href="/login" className="text-[13px] font-semibold no-underline" style={{ color: config.colors.primary }}>Back to sign in</a>
               </div>
             </form>
           )}
@@ -190,7 +194,7 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={<div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#999", fontSize: "13px" }}>Loading…</div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-gray-400 text-[13px]">Loading…</div>}>
       <ResetPasswordForm />
     </Suspense>
   );

@@ -1,27 +1,47 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Arosco brand palette (adapted from flutterwave-us template) */
+  --color-brand-primary: #2D5A3D;   /* deep green */
+  --color-brand-secondary: #1E3D2A; /* forest */
+  --color-brand-sage: #3D7A52;      /* lighter green */
+  --color-brand-accent: #B8860B;     /* gold */
+  --color-brand-gold: #C99A2E;      /* brighter gold */
+  --color-brand-dark: #0A1A12;      /* near-black green */
+  --color-brand-cream: #F8F6F0;     /* warm off-white */
+  --color-brand-surface: #EFEAE0;
+  --color-brand-muted: #5A5A5A;
+}
 
 *,
 *::before,
 *::after {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 html {
   scroll-behavior: smooth;
 }
 
+body {
+  font-family: var(--font-sans);
+  color: var(--color-brand-dark);
+  background-color: var(--color-brand-cream);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
 ::selection {
-  background: rgba(45, 90, 61, 0.2);
-  color: #1E3D2A;
+  background: color-mix(in srgb, var(--color-brand-primary) 20%, transparent);
+  color: var(--color-brand-secondary);
 }
 
 a {
@@ -29,157 +49,77 @@ a {
   text-decoration: none;
 }
 
-/* ─── Animations ─── */
+/* ─── Custom keyframes / utilities ─── */
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee 32s linear infinite;
+}
+.animate-marquee:hover {
+  animation-play-state: paused;
 }
 
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(24px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
-@keyframes fadeInDown {
-  from { opacity: 0; transform: translateY(-16px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes fadeInLeft {
-  from { opacity: 0; transform: translateX(-24px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes fadeInRight {
-  from { opacity: 0; transform: translateX(24px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.92); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-@keyframes slideInLeft {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(0); }
-}
-
-@keyframes slideInRight {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
-}
-
-@keyframes popIn {
-  0% { opacity: 0; transform: scale(0.6); }
-  70% { transform: scale(1.05); }
-  100% { opacity: 1; transform: scale(1); }
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+.animate-fade-in-up {
+  animation: fadeInUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @keyframes pulse-soft {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+  50% { opacity: 0.55; }
+}
+.animate-pulse-soft {
+  animation: pulse-soft 2.4s ease-in-out infinite;
 }
 
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.animate-float-y {
+  animation: float-y 4s ease-in-out infinite;
 }
 
-@keyframes draw-line {
-  from { stroke-dashoffset: 1000; }
-  to { stroke-dashoffset: 0; }
-}
-
-@keyframes count-up {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes wiggle {
-  0%, 100% { transform: rotate(0deg); }
-  25% { transform: rotate(-3deg); }
-  75% { transform: rotate(3deg); }
-}
-
-@keyframes gradient-shift {
+@keyframes gradient-pan {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
-
-/* ─── Utility classes ─── */
-
-.animate-fade-in { animation: fadeIn 0.6s ease-out both; }
-.animate-fade-in-up { animation: fadeInUp 0.6s ease-out both; }
-.animate-fade-in-down { animation: fadeInDown 0.5s ease-out both; }
-.animate-fade-in-left { animation: fadeInLeft 0.6s ease-out both; }
-.animate-fade-in-right { animation: fadeInRight 0.6s ease-out both; }
-.animate-scale-in { animation: scaleIn 0.5s ease-out both; }
-.animate-pop-in { animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
-.animate-float { animation: float 3s ease-in-out infinite; }
-.animate-pulse-soft { animation: pulse-soft 2s ease-in-out infinite; }
-.animate-wiggle { animation: wiggle 0.5s ease-in-out; }
-.animate-gradient { animation: gradient-shift 4s ease infinite; background-size: 200% 200%; }
-
-/* Stagger delays */
-.delay-1 { animation-delay: 0.1s; }
-.delay-2 { animation-delay: 0.2s; }
-.delay-3 { animation-delay: 0.3s; }
-.delay-4 { animation-delay: 0.4s; }
-.delay-5 { animation-delay: 0.5s; }
-.delay-6 { animation-delay: 0.6s; }
-.delay-7 { animation-delay: 0.7s; }
-.delay-8 { animation-delay: 0.8s; }
-
-/* Hover transitions */
-.hover-lift { transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease; }
-.hover-lift:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.08); }
-
-.hover-glow { transition: box-shadow 0.3s ease, transform 0.3s ease; }
-.hover-glow:hover { box-shadow: 0 0 0 3px rgba(45, 90, 61, 0.15), 0 8px 32px rgba(45, 90, 61, 0.1); transform: translateY(-2px); }
-
-.hover-scale { transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
-.hover-scale:hover { transform: scale(1.03); }
-
-.hover-underline { position: relative; }
-.hover-underline::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: currentColor;
-  transition: width 0.3s ease;
-}
-.hover-underline:hover::after { width: 100%; }
-
-.hover-bg { transition: background-color 0.2s ease, color 0.2s ease; }
-
-/* ─── Responsive utilities ─── */
-
-.responsive-grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
-.responsive-grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; }
-.responsive-flex-wrap { display: flex; flex-wrap: wrap; gap: 2rem; }
-
-@media (max-width: 768px) {
-  .hide-mobile { display: none !important; }
-  .stack-mobile { flex-direction: column !important; }
-  .grid-1-mobile { grid-template-columns: 1fr !important; }
-  .text-center-mobile { text-align: center !important; }
-  .gap-sm-mobile { gap: 1rem !important; }
-  .p-sm-mobile { padding: 1.5rem !important; }
-  .p-xs-mobile { padding: 1rem !important; }
-  .flex-col-mobile { flex-direction: column !important; }
+.animate-gradient-pan {
+  background-size: 200% 200%;
+  animation: gradient-pan 6s ease infinite;
 }
 
-@media (max-width: 480px) {
-  .p-xs-mobile { padding: 0.75rem !important; }
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Entrance animations */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up {
+  animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes img-in {
+  from { opacity: 0; transform: scale(1.06); }
+  to { opacity: 1; transform: scale(1); }
+}
+.animate-img-in {
+  animation: img-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up,
+  .animate-img-in {
+    animation: none;
+  }
 }

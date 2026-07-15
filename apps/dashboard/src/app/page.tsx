@@ -97,6 +97,14 @@ export default function Dashboard() {
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
+  const STAFF_ROLES = ["admin", "superadmin", "support", "finance", "moderator"];
+
+  useEffect(() => {
+    if (user && STAFF_ROLES.includes(user.role || "")) {
+      router.replace("/admin");
+    }
+  }, [user, router]);
+
   useEffect(() => {
     fetch(`${API_URL}/api/config`)
       .then((r) => r.json())
@@ -249,19 +257,19 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
-        <div style={{ marginBottom: "2rem" }}>
-          <Skeleton width="100px" height="12px" style={{ marginBottom: "0.75rem" }} />
-          <Skeleton width="280px" height="28px" style={{ marginBottom: "0.5rem" }} />
+      <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
+        <div className="mb-8">
+          <Skeleton width="100px" height="12px" className="mb-3" />
+          <Skeleton width="280px" height="28px" className="mb-2" />
           <Skeleton width="200px" height="12px" />
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.5rem", marginBottom: "2rem" }}>
+        <div className="mb-8 grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-6">
           {Array.from({ length: 4 }).map((_, i) => (
             <SkeletonCard key={i} />
           ))}
         </div>
-        <Skeleton width="100%" height="160px" style={{ marginBottom: "2rem" }} />
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "1.5rem", marginBottom: "2rem" }}>
+        <Skeleton width="100%" height="160px" className="mb-8" />
+        <div className="mb-8 grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-6">
           <SkeletonCard />
           <SkeletonCard />
         </div>
@@ -271,31 +279,31 @@ export default function Dashboard() {
   }
 
   return (
-    <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
+    <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
       <PageHeader
         badgeLabel="Member Portal"
         heading={`Welcome back, ${displayName}`}
         description="Your Arosco savings dashboard"
         right={
-          <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+          <div className="flex flex-wrap gap-3">
             {(virtualAccounts.length > 0 || user?.accountNumber) && (
-              <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", backgroundColor: "#FAF9F5", borderRadius: "1rem", padding: "0.625rem 1rem", transition: "all 0.2s ease" }}>
-                <div style={{ width: "32px", height: "32px", borderRadius: "50%", backgroundColor: `${cfg.colors.primary}12`, color: cfg.colors.primary, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div className="flex items-center gap-2.5 rounded-2xl bg-brand-surface/40 px-4 py-2.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-primary/10 text-brand-primary">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="M7 8h10M7 12h6" /></svg>
                 </div>
                 <div>
-                  <span style={{ fontSize: "9px", color: "#999", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", display: "block" }}>Account</span>
-                  <span style={{ fontSize: "11px", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: "#2D2D2D", letterSpacing: "0.03em" }}>
+                  <span className="block text-[9px] font-bold uppercase tracking-wider text-gray-400">Account</span>
+                  <span className="font-mono text-[11px] font-bold tracking-wide text-brand-dark">
                     {virtualAccounts.length > 0 ? virtualAccounts[0].accountNumber : user?.accountNumber}
                   </span>
                 </div>
               </div>
             )}
-            <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", backgroundColor: "#FAF9F5", borderRadius: "1rem", padding: "0.625rem 1rem", transition: "all 0.2s ease" }}>
-              <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: `linear-gradient(135deg, ${cfg.colors.primary}, ${cfg.colors.accent})`, color: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: 700 }}>{profile?.stats.trustScore || 1}</div>
+            <div className="flex items-center gap-2.5 rounded-2xl bg-brand-surface/40 px-4 py-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-brand-primary to-brand-accent text-xs font-bold text-white">{profile?.stats.trustScore || 1}</div>
               <div>
-                <span style={{ fontSize: "9px", color: cfg.colors.accent, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", display: "block" }}>Trust Score</span>
-                <span style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D" }}>{profile?.stats.trustLevel || "Member"}</span>
+                <span className="block text-[9px] font-bold uppercase tracking-wider text-brand-accent">Trust Score</span>
+                <span className="text-xs font-semibold text-brand-dark">{profile?.stats.trustLevel || "Member"}</span>
               </div>
             </div>
           </div>
@@ -305,28 +313,28 @@ export default function Dashboard() {
       {user && (!user.kycStatus || user.kycStatus === "none" || user.kycStatus === "rejected" || user.kycStatus === "expired") && (
         <FadeInUp delay={200}>
           <Card padding="1.25rem" style={{ marginBottom: "2rem", border: `1px solid ${KYC_STATUS_CONFIG[user.kycStatus as keyof typeof KYC_STATUS_CONFIG]?.border || KYC_STATUS_CONFIG.none.border}` }}>
-            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "1rem" }}>
-              <div style={{ width: "40px", height: "40px", borderRadius: "0.75rem", backgroundColor: KYC_STATUS_CONFIG[user.kycStatus as keyof typeof KYC_STATUS_CONFIG]?.bg || KYC_STATUS_CONFIG.none.bg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <div className="flex flex-wrap items-center gap-4">
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: KYC_STATUS_CONFIG[user.kycStatus as keyof typeof KYC_STATUS_CONFIG]?.bg || KYC_STATUS_CONFIG.none.bg }}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={KYC_STATUS_CONFIG[user.kycStatus as keyof typeof KYC_STATUS_CONFIG]?.color || KYC_STATUS_CONFIG.none.color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                   <path d={KYC_STATUS_CONFIG[user.kycStatus as keyof typeof KYC_STATUS_CONFIG]?.icon || KYC_STATUS_CONFIG.none.icon} />
                 </svg>
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
-                  <span style={{ fontSize: "13px", fontWeight: 600, color: "#1A1A1A" }}>Complete Your KYC Verification</span>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[13px] font-semibold text-brand-dark">Complete Your KYC Verification</span>
                   {user.accountTier && (
-                    <span style={{ fontSize: "10px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", padding: "0.125rem 0.5rem", borderRadius: "9999px", backgroundColor: "#F3F4F6", color: "#6B7280", border: "1px solid #E5E7EB" }}>
+                    <span className="rounded-full border border-gray-200 bg-gray-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-gray-500">
                       {user.accountTier} tier
                     </span>
                   )}
                 </div>
-                <span style={{ fontSize: "12px", color: "#717171", display: "block", marginTop: "0.125rem" }}>
+                <span className="mt-0.5 block text-xs text-gray-500">
                   {user.kycStatus === "rejected"
                     ? "Your previous submission was rejected. Please resubmit your documents."
                     : "Verify your identity to unlock full platform features and build trust."}
                 </span>
               </div>
-              <a href="/kyc" style={{ padding: "0.5rem 1.25rem", borderRadius: "9999px", fontSize: "12px", fontWeight: 600, cursor: "pointer", backgroundColor: cfg.colors.primary, color: "#ffffff", textDecoration: "none", transition: "all 0.2s ease", whiteSpace: "nowrap" }}>
+              <a href="/kyc" className="whitespace-nowrap rounded-full bg-brand-primary px-5 py-2 text-xs font-semibold text-white transition-all duration-200 hover:bg-brand-secondary">
                 {user.kycStatus === "rejected" ? "Resubmit KYC" : "Start Verification"}
               </a>
             </div>
@@ -334,7 +342,7 @@ export default function Dashboard() {
         </FadeInUp>
       )}
 
-      <StaggerChildren staggerDelay={100} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.5rem", marginBottom: "2rem" }}>
+      <StaggerChildren staggerDelay={100} className="mb-8 grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-6">
         <StatCard label="Total Saved" value={formatNaira(profile?.stats.totalSaved || 0)} change={`Across ${profile?.stats.activeCircles || 0} circles`} positive variant="default" />
         <StatCard label="Total Donated" value={formatNaira(profile?.stats.totalDonated || 0)} change={`${profile?.stats.clearances || 0} clearances`} positive variant="warm" />
         <StatCard label="Active Circles" value={String(profile?.stats.activeCircles || 0)} change="All circles on track" positive variant="default" />
@@ -343,22 +351,22 @@ export default function Dashboard() {
 
       {referralCode && (
         <FadeInUp delay={300}>
-          <Card padding="1.5rem" style={{ marginBottom: "2rem", background: `linear-gradient(135deg, ${cfg.colors.primary}08, ${cfg.colors.primary}03)`, border: `1px solid ${cfg.colors.primary}20` }}>
-            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "1rem" }}>
+          <Card padding="1.5rem" style={{ marginBottom: "2rem" }} className="border border-brand-primary/20 bg-gradient-to-br from-brand-primary/[0.03] to-brand-primary/[0.06]">
+            <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <ColorfulBadge label="Referral Code" color={cfg.colors.primary} />
-                <h2 style={{ fontSize: "1.125rem", fontWeight: 500, color: "#1A1A1A", marginTop: "0.5rem" }}>Your Referral Code</h2>
-                <p style={{ fontSize: "12px", color: "#717171", fontWeight: 300, marginTop: "0.25rem" }}>Share with friends to earn tiered rewards when they join.</p>
+                <h2 className="mt-2 font-display text-lg font-semibold text-brand-dark">Your Referral Code</h2>
+                <p className="mt-1 text-xs font-light text-gray-500">Share with friends to earn tiered rewards when they join.</p>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                <span style={{ fontSize: "clamp(1.25rem, 3vw, 1.75rem)", fontFamily: "'JetBrains Mono', monospace", fontWeight: 800, letterSpacing: "0.05em", color: cfg.colors.primary }}>
+              <div className="flex items-center gap-3">
+                <span className="font-mono text-[clamp(1.25rem,3vw,1.75rem)] font-extrabold tracking-wide text-brand-primary">
                   {referralCode}
                 </span>
                 <button onClick={handleReferralCopy}
-                  style={{ padding: "0.5rem 1rem", borderRadius: "9999px", fontSize: "11px", fontWeight: 600, cursor: "pointer", border: `1px solid ${cfg.colors.primary}`, backgroundColor: referralCopied ? "#ECFDF5" : "transparent", color: referralCopied ? "#059669" : cfg.colors.primary, transition: "all 0.2s ease", whiteSpace: "nowrap" }}>
+                  className={`whitespace-nowrap rounded-full border border-brand-primary px-4 py-2 text-[11px] font-semibold transition-all duration-200 ${referralCopied ? "bg-emerald-50 text-emerald-600" : "bg-transparent text-brand-primary"}`}>
                   {referralCopied ? "Copied!" : "Copy"}
                 </button>
-                <a href="/referrals" style={{ padding: "0.5rem 1rem", borderRadius: "9999px", fontSize: "11px", fontWeight: 600, cursor: "pointer", backgroundColor: cfg.colors.primary, color: "#ffffff", textDecoration: "none", transition: "all 0.2s ease", whiteSpace: "nowrap" }}>
+                <a href="/referrals" className="whitespace-nowrap rounded-full bg-brand-primary px-4 py-2 text-[11px] font-semibold text-white transition-all duration-200 hover:bg-brand-secondary">
                   View Details
                 </a>
               </div>
@@ -892,14 +900,14 @@ export default function Dashboard() {
 
       {/* Virtual Account Creation Modal */}
       {showVirtualAccountModal && (
-        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem" }}>
-          <div style={{ backgroundColor: "#ffffff", borderRadius: "16px", padding: "1.5rem", maxWidth: "400px", width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.3)" }}>
-            <h3 style={{ fontSize: "18px", fontWeight: 600, color: "#1A1A1A", marginBottom: "0.5rem" }}>Create Virtual Account</h3>
-            <p style={{ fontSize: "13px", color: "#717171", marginBottom: "1.25rem" }}>Get a dedicated bank account to receive transfers directly to your wallet.</p>
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-[400px] rounded-2xl bg-white p-6 shadow-2xl">
+            <h3 className="mb-2 font-display text-lg font-semibold text-brand-dark">Create Virtual Account</h3>
+            <p className="mb-5 text-[13px] text-gray-500">Get a dedicated bank account to receive transfers directly to your wallet.</p>
             
-            <div style={{ marginBottom: "1rem" }}>
-              <label style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", display: "block", marginBottom: "0.5rem" }}>Select Provider</label>
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+            <div className="mb-4">
+              <label className="mb-2 block text-xs font-semibold text-brand-dark">Select Provider</label>
+              <div className="flex flex-col gap-2">
                 {[
                   { id: "flutterwave", name: "Flutterwave", desc: "Flutterwave MFB" },
                   { id: "paystack", name: "Paystack", desc: "Wema Bank" },
@@ -908,38 +916,38 @@ export default function Dashboard() {
                   <button
                     key={p.id}
                     onClick={() => setSelectedProvider(p.id)}
-                    style={{ padding: "0.75rem", borderRadius: "8px", border: `1px solid ${selectedProvider === p.id ? cfg.colors.primary : "#E5E7EB"}`, backgroundColor: selectedProvider === p.id ? `${cfg.colors.primary}08` : "#ffffff", cursor: "pointer", textAlign: "left", transition: "all 0.2s ease" }}
+                    className={`cursor-pointer rounded-lg border p-3 text-left transition-all duration-200 ${selectedProvider === p.id ? "border-brand-primary bg-brand-primary/5" : "border-gray-200 bg-white"}`}
                   >
-                    <div style={{ fontSize: "13px", fontWeight: 600, color: "#2D2D2D" }}>{p.name}</div>
-                    <div style={{ fontSize: "11px", color: "#717171" }}>{p.desc}</div>
+                    <div className="text-[13px] font-semibold text-brand-dark">{p.name}</div>
+                    <div className="text-[11px] text-gray-500">{p.desc}</div>
                   </button>
                 ))}
               </div>
             </div>
 
-            <div style={{ marginBottom: "1.25rem" }}>
-              <label style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", display: "block", marginBottom: "0.5rem" }}>BVN (Bank Verification Number)</label>
+            <div className="mb-5">
+              <label className="mb-2 block text-xs font-semibold text-brand-dark">BVN (Bank Verification Number)</label>
               <input
                 type="text"
                 value={bvn}
                 onChange={(e) => setBvn(e.target.value)}
                 placeholder="Enter your 11-digit BVN"
                 maxLength={11}
-                style={{ width: "100%", padding: "0.75rem", borderRadius: "8px", border: "1px solid #E5E7EB", fontSize: "14px", outline: "none", boxSizing: "border-box" }}
+                className="w-full rounded-lg border border-gray-200 p-3 text-sm outline-none focus:border-brand-primary"
               />
             </div>
 
-            <div style={{ display: "flex", gap: "0.75rem" }}>
+            <div className="flex gap-3">
               <button
                 onClick={() => { setShowVirtualAccountModal(false); setSelectedProvider(""); setBvn(""); }}
-                style={{ flex: 1, padding: "0.75rem", borderRadius: "8px", fontSize: "13px", fontWeight: 600, cursor: "pointer", backgroundColor: "#F3F4F6", color: "#6B7280", border: "none", transition: "all 0.2s ease" }}
+                className="flex-1 rounded-lg bg-gray-100 p-3 text-[13px] font-semibold text-gray-500 transition-all duration-200 hover:bg-gray-200"
               >
                 Cancel
               </button>
               <button
                 onClick={handleCreateVirtualAccount}
                 disabled={!selectedProvider || bvn.length !== 11 || creatingVirtualAccount}
-                style={{ flex: 1, padding: "0.75rem", borderRadius: "8px", fontSize: "13px", fontWeight: 600, cursor: "pointer", backgroundColor: cfg.colors.primary, color: "#ffffff", border: "none", opacity: !selectedProvider || bvn.length !== 11 || creatingVirtualAccount ? 0.5 : 1, transition: "all 0.2s ease" }}
+                className="flex-1 rounded-lg bg-brand-primary p-3 text-[13px] font-semibold text-white transition-all duration-200 hover:bg-brand-secondary disabled:opacity-50"
               >
                 {creatingVirtualAccount ? "Creating..." : "Create Account"}
               </button>
@@ -948,30 +956,28 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "1.5rem", marginBottom: "2rem" }}>
+      <div className="mb-8 grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-6">
         <FadeInUp delay={400}>
           <Card padding="1.5rem">
-            <div style={{ marginBottom: "1rem" }}>
+            <div className="mb-4">
               <ColorfulBadge label="Quick Actions" color={cfg.colors.primary} />
-              <h2 style={{ fontSize: "1.125rem", fontWeight: 500, color: "#1A1A1A", marginTop: "0.75rem" }}>My Circles</h2>
-              <p style={{ fontSize: "12px", color: "#717171", fontWeight: 300, marginTop: "0.25rem" }}>Select a circle and make your contribution.</p>
+              <h2 className="mt-3 font-display text-lg font-semibold text-brand-dark">My Circles</h2>
+              <p className="mt-1 text-xs font-light text-gray-500">Select a circle and make your contribution.</p>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginBottom: "1rem" }}>
+            <div className="mb-4 flex flex-col gap-2">
               {circleAccounts.length > 0 ? circleAccounts.slice(0, 3).map((ca) => (
                 <a key={ca.id} href="/circles"
-                  style={{ padding: "0.75rem", borderRadius: "0.75rem", cursor: "pointer", transition: "all 0.2s ease", textDecoration: "none", display: "block" }}
-                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#F9FAFB"; e.currentTarget.style.transform = "translateX(4px)"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.transform = "translateX(0)"; }}>
-                  <span style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", display: "block" }}>{ca.circle.name}</span>
-                  <span style={{ fontSize: "10px", color: "#717171", fontWeight: 300 }}>{formatNaira(ca.principalAmount)} deposited &middot; {ca.status}</span>
+                  className="block rounded-xl p-3 transition-all duration-200 hover:translate-x-1 hover:bg-gray-50">
+                  <span className="block text-xs font-semibold text-brand-dark">{ca.circle.name}</span>
+                  <span className="text-[10px] font-light text-gray-500">{formatNaira(ca.principalAmount)} deposited &middot; {ca.status}</span>
                 </a>
               )) : (
-                <div style={{ padding: "1rem", textAlign: "center", color: "#999", fontSize: "12px" }}>
-                  No circles yet. <a href="/circles" style={{ color: cfg.colors.primary }}>Join one</a>
+                <div className="p-4 text-center text-xs text-gray-400">
+                  No circles yet. <a href="/circles" className="text-brand-primary">Join one</a>
                 </div>
               )}
             </div>
-            <a href="/circles" style={{ display: "block", textAlign: "center", padding: "0.625rem 1rem", borderRadius: "9999px", fontSize: "13px", fontWeight: 600, color: cfg.colors.primary, border: `1px solid ${cfg.colors.primary}30`, backgroundColor: `${cfg.colors.primary}08`, textDecoration: "none", transition: "all 0.2s ease" }}>
+            <a href="/circles" className="block rounded-full border border-brand-primary/30 bg-brand-primary/5 px-4 py-2.5 text-center text-[13px] font-semibold text-brand-primary transition-all duration-200 hover:bg-brand-primary/10">
               View All Circles &rarr;
             </a>
           </Card>
@@ -979,11 +985,11 @@ export default function Dashboard() {
 
         <FadeInUp delay={500}>
           <Card padding="1.5rem">
-            <div style={{ marginBottom: "1rem" }}>
+            <div className="mb-4">
               <ColorfulBadge label="Financial Summary" color={cfg.colors.accent} />
-              <h2 style={{ fontSize: "1.125rem", fontWeight: 500, color: "#1A1A1A", marginTop: "0.75rem" }}>My Stats</h2>
+              <h2 className="mt-3 font-display text-lg font-semibold text-brand-dark">My Stats</h2>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+            <div className="flex flex-col gap-5">
               {(() => {
                 const stats = [
                   { label: "Total Contributed", value: profile?.stats.totalContributed || 0, color: "#4A5D4E" },
@@ -993,12 +999,12 @@ export default function Dashboard() {
                 const maxValue = Math.max(...stats.map((s) => s.value), 1);
                 return stats.map((m) => (
                   <div key={m.label}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.375rem" }}>
-                      <span style={{ fontSize: "12px", fontWeight: 500, color: "#2D2D2D" }}>{m.label}</span>
-                      <span style={{ fontSize: "12px", fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: m.color }}>{formatNaira(m.value)}</span>
+                    <div className="mb-1.5 flex items-center justify-between">
+                      <span className="text-xs font-medium text-brand-dark">{m.label}</span>
+                      <span className="font-mono text-xs font-semibold" style={{ color: m.color }}>{formatNaira(m.value)}</span>
                     </div>
-                    <div style={{ height: "6px", backgroundColor: "#F0F0F0", borderRadius: "9999px", overflow: "hidden" }}>
-                      <div style={{ height: "100%", backgroundColor: m.color, borderRadius: "9999px", width: `${(m.value / maxValue) * 100}%`, transition: "width 1s cubic-bezier(0.16, 1, 0.3, 1)" }} />
+                    <div className="h-1.5 overflow-hidden rounded-full bg-gray-100">
+                      <div className="h-full rounded-full transition-[width] duration-1000" style={{ backgroundColor: m.color, width: `${(m.value / maxValue) * 100}%` }} />
                     </div>
                   </div>
                 ));
@@ -1010,48 +1016,46 @@ export default function Dashboard() {
 
       <FadeInUp delay={700}>
         <Card padding="1.5rem">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem", paddingBottom: "1rem", borderBottom: "1px solid #F0F0F0" }}>
+          <div className="mb-4 flex items-center justify-between border-b border-gray-100 pb-4">
             <div>
               <ColorfulBadge label="Recent Activity" color="#8A7D73" />
-              <h2 style={{ fontSize: "1.125rem", fontWeight: 500, color: "#1A1A1A", marginTop: "0.5rem" }}>Contribution History</h2>
+              <h2 className="mt-2 font-display text-lg font-semibold text-brand-dark">Contribution History</h2>
             </div>
-            <span style={{ fontSize: "10px", fontFamily: "'JetBrains Mono', monospace", color: "#717171" }}>{transactions.length} entries</span>
+            <span className="font-mono text-[10px] text-gray-500">{transactions.length} entries</span>
           </div>
           {transactions.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "2rem", color: "#999", fontSize: "13px" }}>
-              No transactions yet. <a href="/circles" style={{ color: cfg.colors.primary }}>Join a circle</a> to get started.
+            <div className="p-8 text-center text-[13px] text-gray-400">
+              No transactions yet. <a href="/circles" className="text-brand-primary">Join a circle</a> to get started.
             </div>
           ) : (
-            <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
-              <table style={{ width: "100%", fontSize: "12px", borderCollapse: "collapse", minWidth: "500px" }}>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[500px] border-collapse text-xs">
                 <thead>
-                  <tr style={{ borderBottom: "1px solid #F0F0F0", color: "#999", textTransform: "uppercase", letterSpacing: "0.1em", fontSize: "9px", fontFamily: "'JetBrains Mono', monospace" }}>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Date</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Type</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "left", fontWeight: 600 }}>Description</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "right", fontWeight: 600 }}>Status</th>
-                    <th style={{ paddingBottom: "0.75rem", textAlign: "right", fontWeight: 600 }}>Amount</th>
+                  <tr className="border-b border-gray-100 font-mono text-[9px] uppercase tracking-wider text-gray-400">
+                    <th className="pb-3 text-left font-semibold">Date</th>
+                    <th className="pb-3 text-left font-semibold">Type</th>
+                    <th className="pb-3 text-left font-semibold">Description</th>
+                    <th className="pb-3 text-right font-semibold">Status</th>
+                    <th className="pb-3 text-right font-semibold">Amount</th>
                   </tr>
                 </thead>
                 <tbody>
                   {transactions.map((t) => {
                     const typeColor = getTypeColor(t.type);
                     return (
-                      <tr key={t.id} style={{ borderBottom: "1px solid #F5F5F5", transition: "background-color 0.2s ease", cursor: "pointer" }}
-                        onClick={() => router.push(`/transactions/${t.id}`)}
-                        onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#F9FAFB"; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}>
-                        <td style={{ padding: "0.75rem 0", fontFamily: "'JetBrains Mono', monospace", color: "#717171" }}>
+                      <tr key={t.id} className="cursor-pointer border-b border-gray-50 transition-colors hover:bg-gray-50"
+                        onClick={() => router.push(`/transactions/${t.id}`)}>
+                        <td className="py-3 font-mono text-gray-500">
                           {new Date(t.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
                         </td>
-                        <td style={{ padding: "0.75rem 0" }}>
-                          <span style={{ padding: "0.125rem 0.5rem", borderRadius: "0.375rem", fontSize: "9px", fontWeight: 700, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace", backgroundColor: `${typeColor}12`, color: typeColor, border: `1px solid ${typeColor}20` }}>{getTypeLabel(t.type)}</span>
+                        <td className="py-3">
+                          <span className="rounded-md border px-2 py-0.5 font-mono text-[9px] font-bold uppercase" style={{ backgroundColor: `${typeColor}12`, color: typeColor, borderColor: `${typeColor}20` }}>{getTypeLabel(t.type)}</span>
                         </td>
-                        <td style={{ padding: "0.75rem 0", fontWeight: 500, color: "#2D2D2D" }}>{t.description || getTypeLabel(t.type)}</td>
-                        <td style={{ padding: "0.75rem 0", textAlign: "right" }}>
-                          <span style={{ fontSize: "9px", fontWeight: 700, color: t.status === "completed" ? "#059669" : t.status === "pending" ? "#D97706" : "#717171", backgroundColor: t.status === "completed" ? "#ECFDF5" : t.status === "pending" ? "#FFFBEB" : "#F3F4F6", padding: "0.125rem 0.5rem", borderRadius: "0.375rem" }}>{t.status}</span>
+                        <td className="py-3 font-medium text-brand-dark">{t.description || getTypeLabel(t.type)}</td>
+                        <td className="py-3 text-right">
+                          <span className={`rounded-md px-2 py-0.5 text-[9px] font-bold ${t.status === "completed" ? "bg-emerald-50 text-emerald-600" : t.status === "pending" ? "bg-amber-50 text-amber-600" : "bg-gray-100 text-gray-500"}`}>{t.status}</span>
                         </td>
-                        <td style={{ padding: "0.75rem 0", textAlign: "right", fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: t.type === "payout" || t.type === "funding" ? "#059669" : "#2D2D2D" }}>{formatNaira(t.amount)}</td>
+                        <td className={`py-3 text-right font-mono font-semibold ${t.type === "payout" || t.type === "funding" ? "text-emerald-600" : "text-brand-dark"}`}>{formatNaira(t.amount)}</td>
                       </tr>
                     );
                   })}

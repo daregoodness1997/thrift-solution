@@ -88,7 +88,7 @@ export default function TransactionsPage() {
       header: "Date",
       mono: true,
       render: (t) => (
-        <span style={{ color: "#717171" }}>
+        <span className="text-gray-500">
           {new Date(t.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
         </span>
       ),
@@ -99,7 +99,7 @@ export default function TransactionsPage() {
       render: (t) => {
         const c = getTypeColor(t.type);
         return (
-          <span style={{ padding: "0.125rem 0.5rem", borderRadius: "0.375rem", fontSize: "9px", fontWeight: 700, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace", backgroundColor: `${c}12`, color: c, border: `1px solid ${c}20` }}>
+          <span className="rounded-[0.375rem] border px-2 py-0.5 text-[9px] font-bold uppercase font-mono" style={{ backgroundColor: `${c}12`, color: c, borderColor: `${c}20` }}>
             {getTypeLabel(t.type)}
           </span>
         );
@@ -109,7 +109,7 @@ export default function TransactionsPage() {
       key: "description",
       header: "Description",
       render: (t) => (
-        <span style={{ fontWeight: 500, color: "#2D2D2D" }}>{t.description || getTypeLabel(t.type)}</span>
+        <span className="font-medium text-brand-dark">{t.description || getTypeLabel(t.type)}</span>
       ),
     },
     {
@@ -117,7 +117,7 @@ export default function TransactionsPage() {
       header: "Reference",
       mono: true,
       render: (t) => (
-        <span style={{ fontSize: "10px", color: "#999" }}>{t.reference.length > 20 ? t.reference.slice(0, 20) + "..." : t.reference}</span>
+        <span className="text-[10px] text-gray-400">{t.reference.length > 20 ? t.reference.slice(0, 20) + "..." : t.reference}</span>
       ),
     },
     {
@@ -125,7 +125,7 @@ export default function TransactionsPage() {
       header: "Status",
       align: "right",
       render: (t) => (
-        <span style={{ fontSize: "9px", fontWeight: 700, color: t.status === "completed" ? "#059669" : t.status === "pending" ? "#D97706" : "#717171", backgroundColor: t.status === "completed" ? "#ECFDF5" : t.status === "pending" ? "#FFFBEB" : "#F3F4F6", padding: "0.125rem 0.5rem", borderRadius: "0.375rem" }}>
+        <span className="rounded-[0.375rem] px-2 py-0.5 text-[9px] font-bold" style={{ color: t.status === "completed" ? "#059669" : t.status === "pending" ? "#D97706" : "#717171", backgroundColor: t.status === "completed" ? "#ECFDF5" : t.status === "pending" ? "#FFFBEB" : "#F3F4F6" }}>
           {t.status}
         </span>
       ),
@@ -136,7 +136,7 @@ export default function TransactionsPage() {
       align: "right",
       mono: true,
       render: (t) => (
-        <span style={{ fontWeight: 600, color: t.type === "payout" || t.type === "funding" || t.type === "circle_withdrawal" || t.type === "circle_interest" || t.type === "referral_earning" ? "#059669" : "#2D2D2D" }}>
+        <span className="font-semibold" style={{ color: t.type === "payout" || t.type === "funding" || t.type === "circle_withdrawal" || t.type === "circle_interest" || t.type === "referral_earning" ? "#059669" : "#2D2D2D" }}>
           {formatNaira(t.amount)}
         </span>
       ),
@@ -156,29 +156,24 @@ export default function TransactionsPage() {
   ];
 
   return (
-    <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
+    <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
       <PageHeader
         badgeLabel="Contribution Ledger"
         heading="Transaction"
         accentText="History"
         description="View all your contributions, payouts, and financial activity."
         right={
-          <span style={{ fontSize: "10px", fontFamily: "'JetBrains Mono', monospace", color: "#717171" }}>{pagination.total} entries</span>
+          <span className="text-[10px] font-mono text-gray-500">{pagination.total} entries</span>
         }
       />
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "1.5rem" }}>
+      <div className="mb-6 flex flex-wrap gap-2">
         {filters.map((f) => (
           <button
             key={f.key}
             onClick={() => handleFilterChange(f.key)}
+            className="cursor-pointer rounded-full border px-4 py-1.5 text-[11px] font-semibold"
             style={{
-              padding: "0.375rem 1rem",
-              borderRadius: "9999px",
-              fontSize: "11px",
-              fontWeight: 600,
-              cursor: "pointer",
-              border: "1px solid",
               borderColor: filter === f.key ? cfg.colors.primary : "#EAEAEA",
               backgroundColor: filter === f.key ? cfg.colors.primary : "#ffffff",
               color: filter === f.key ? "#ffffff" : "#717171",
@@ -199,7 +194,7 @@ export default function TransactionsPage() {
           loading={loading}
           emptyMessage="No transactions found."
           emptyAction={
-            <a href="/circles" style={{ color: cfg.colors.primary, fontWeight: 600, fontSize: "12px" }}>
+            <a href="/circles" className="text-[12px] font-semibold" style={{ color: cfg.colors.primary }}>
               Join a circle to get started
             </a>
           }
