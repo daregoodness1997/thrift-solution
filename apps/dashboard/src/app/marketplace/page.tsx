@@ -90,7 +90,7 @@ export default function MarketplacePage() {
   };
 
   return (
-    <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
+    <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
       <PageHeader
         badgeLabel="Marketplace"
         heading="Community"
@@ -105,10 +105,10 @@ export default function MarketplacePage() {
 
       {/* Search & Filters */}
       <FadeIn delay={100}>
-        <div style={{ marginBottom: "2rem" }}>
-          <form onSubmit={handleSearch} style={{ display: "flex", gap: "0.75rem", marginBottom: "1rem", flexWrap: "wrap" }}>
-            <div style={{ flex: "1 1 300px", position: "relative" }}>
-              <svg style={{ position: "absolute", left: "0.75rem", top: "50%", transform: "translateY(-50%)", color: "#999" }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+        <div className="mb-8">
+          <form onSubmit={handleSearch} className="mb-4 flex flex-wrap gap-3">
+            <div className="relative flex-[1_1_300px]">
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
                 <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
               </svg>
               <input
@@ -116,21 +116,26 @@ export default function MarketplacePage() {
                 placeholder="Search items..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                style={{ width: "100%", padding: "0.625rem 0.75rem 0.625rem 2.25rem", borderRadius: "0.75rem", border: "1px solid #EAEAEA", fontSize: "13px", outline: "none", boxSizing: "border-box", transition: "border-color 0.2s ease" }}
+                className="w-full rounded-xl border border-gray-200 py-2.5 pl-9 pr-3 text-[13px] outline-none box-border transition-colors"
                 onFocus={(e) => { e.currentTarget.style.borderColor = cfg.colors.primary; }}
                 onBlur={(e) => { e.currentTarget.style.borderColor = "#EAEAEA"; }}
               />
             </div>
-            <a href="/marketplace/my" style={{ display: "flex", alignItems: "center", padding: "0.625rem 1rem", borderRadius: "0.75rem", fontSize: "12px", fontWeight: 600, color: cfg.colors.primary, border: `1px solid ${cfg.colors.primary}30`, backgroundColor: `${cfg.colors.primary}08`, textDecoration: "none", transition: "all 0.2s ease", whiteSpace: "nowrap" }}>
+            <a
+              href="/marketplace/my"
+              className="flex items-center rounded-xl px-4 py-2.5 text-xs font-semibold whitespace-nowrap no-underline transition-all"
+              style={{ color: cfg.colors.primary, border: `1px solid ${cfg.colors.primary}30`, backgroundColor: `${cfg.colors.primary}08` }}
+            >
               My Listings
             </a>
           </form>
-          <div style={{ display: "flex", gap: "0.375rem", flexWrap: "wrap" }}>
+          <div className="flex flex-wrap gap-1.5">
             {CATEGORIES.map((c) => (
               <button
                 key={c.key}
                 onClick={() => { setCategory(c.key); setPage(1); }}
-                style={{ padding: "0.375rem 0.75rem", borderRadius: "9999px", fontSize: "11px", fontWeight: 600, border: `1px solid ${category === c.key ? cfg.colors.primary : "#EAEAEA"}`, backgroundColor: category === c.key ? `${cfg.colors.primary}0A` : "#ffffff", color: category === c.key ? cfg.colors.primary : "#717171", cursor: "pointer", transition: "all 0.2s ease" }}
+                className="rounded-full px-3 py-1.5 text-[11px] font-semibold cursor-pointer transition-all"
+                style={{ border: `1px solid ${category === c.key ? cfg.colors.primary : "#EAEAEA"}`, backgroundColor: category === c.key ? `${cfg.colors.primary}0A` : "#ffffff", color: category === c.key ? cfg.colors.primary : "#717171" }}
               >
                 {c.label}
               </button>
@@ -141,7 +146,7 @@ export default function MarketplacePage() {
 
       {/* Listings Grid */}
       {loading ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "1.5rem" }}>
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6">
           {Array.from({ length: 6 }).map((_, i) => (
             <SkeletonCard key={i} />
           ))}
@@ -149,14 +154,14 @@ export default function MarketplacePage() {
       ) : listings.length === 0 ? (
         <FadeInUp>
           <Card padding="3rem">
-            <div style={{ textAlign: "center" }}>
-              <div style={{ width: "48px", height: "48px", borderRadius: "50%", backgroundColor: `${cfg.colors.primary}10`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem" }}>
+            <div className="text-center">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#2D5A3D10]">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={cfg.colors.primary} strokeWidth={1.5} strokeLinecap="round">
                   <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                 </svg>
               </div>
-              <h3 style={{ fontSize: "1rem", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.5rem" }}>No listings found</h3>
-              <p style={{ fontSize: "13px", color: "#717171", marginBottom: "1.5rem" }}>
+              <h3 className="mb-2 text-base font-semibold text-brand-dark">No listings found</h3>
+              <p className="mb-6 text-[13px] text-gray-500">
                 {search || category ? "Try adjusting your search or filters." : "Be the first to list an item on the marketplace!"}
               </p>
               <a href="/marketplace/new">
@@ -169,35 +174,39 @@ export default function MarketplacePage() {
         <>
           <StaggerChildren staggerDelay={60} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "1.5rem", marginBottom: "2rem" }}>
             {listings.map((listing) => (
-              <a key={listing.id} href={`/marketplace/${listing.id}`} style={{ textDecoration: "none" }}>
-                <div style={{ borderRadius: "1.5rem", overflow: "hidden", cursor: "pointer", transition: "all 0.2s ease", backgroundColor: "#FFFFFFDF", boxShadow: "0 2px 8px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.02)", borderTop: `3px solid ${cfg.colors.primary}22` }}
-                  onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 12px 40px rgba(0,0,0,0.08)"; }}
-                  onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.02)"; }}>
-                  <div style={{ height: "160px", backgroundColor: "#F5F7F5", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
+              <a key={listing.id} href={`/marketplace/${listing.id}`} className="no-underline">
+                <div
+                  className="overflow-hidden rounded-3xl cursor-pointer bg-[#FFFFFFDF] transition-all shadow-[0_2px_8px_rgba(0,0,0,0.04),0_0_0_1px_rgba(0,0,0,0.02)] hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]"
+                  style={{ borderTop: `3px solid ${cfg.colors.primary}22` }}
+                >
+                  <div className="relative flex h-40 items-center justify-center bg-[#F5F7F5]">
                     {listing.imageUrl ? (
-                      <img src={listing.imageUrl} alt={listing.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      <img src={listing.imageUrl} alt={listing.title} className="h-full w-full object-cover" />
                     ) : (
                       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#CCC" strokeWidth={1.5}>
                         <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                       </svg>
                     )}
-                    <span style={{ position: "absolute", top: "0.75rem", right: "0.75rem", padding: "0.125rem 0.5rem", borderRadius: "9999px", fontSize: "9px", fontWeight: 700, color: CONDITION_COLORS[listing.condition] || "#717171", backgroundColor: "#ffffff", border: `1px solid ${CONDITION_COLORS[listing.condition] || "#EAEAEA"}`, textTransform: "capitalize" }}>
+                    <span
+                      className="absolute top-3 right-3 rounded-full bg-white px-2 py-0.5 text-[9px] font-bold capitalize"
+                      style={{ color: CONDITION_COLORS[listing.condition] || "#717171", border: `1px solid ${CONDITION_COLORS[listing.condition] || "#EAEAEA"}` }}
+                    >
                       {listing.condition.replace("_", " ")}
                     </span>
                   </div>
-                  <div style={{ padding: "1rem" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.5rem" }}>
-                      <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#2D2D2D", lineHeight: 1.3, flex: 1, marginRight: "0.5rem" }}>{listing.title}</h3>
-                      <span style={{ fontSize: "14px", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: cfg.colors.primary, whiteSpace: "nowrap" }}>
+                  <div className="p-4">
+                    <div className="mb-2 flex items-start justify-between">
+                      <h3 className="flex-1 mr-2 text-sm font-semibold leading-[1.3] text-brand-dark">{listing.title}</h3>
+                      <span className="whitespace-nowrap text-sm font-mono font-bold" style={{ color: cfg.colors.primary }}>
                         {formatNaira(listing.price)}
                       </span>
                     </div>
-                    <p style={{ fontSize: "11px", color: "#717171", marginBottom: "0.75rem", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                    <p className="mb-3 line-clamp-2 text-[11px] text-gray-500">
                       {listing.description}
                     </p>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <span style={{ fontSize: "10px", color: "#999" }}>by {listing.seller.name}</span>
-                      <span style={{ fontSize: "10px", color: "#999" }}>{listing._count.offers} offer{listing._count.offers !== 1 ? "s" : ""}</span>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-gray-500">by {listing.seller.name}</span>
+                      <span className="text-[10px] text-gray-500">{listing._count.offers} offer{listing._count.offers !== 1 ? "s" : ""}</span>
                     </div>
                   </div>
                 </div>
@@ -206,10 +215,10 @@ export default function MarketplacePage() {
           </StaggerChildren>
 
           {totalPages > 1 && (
-            <div style={{ display: "flex", justifyContent: "center", gap: "0.5rem" }}>
-              <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} style={{ padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "12px", fontWeight: 600, border: "1px solid #EAEAEA", backgroundColor: "#ffffff", color: page <= 1 ? "#CCC" : "#717171", cursor: page <= 1 ? "not-allowed" : "pointer" }}>Previous</button>
-              <span style={{ padding: "0.5rem 1rem", fontSize: "12px", color: "#999", fontFamily: "'JetBrains Mono', monospace" }}>Page {page} of {totalPages}</span>
-              <button disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)} style={{ padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "12px", fontWeight: 600, border: "1px solid #EAEAEA", backgroundColor: "#ffffff", color: page >= totalPages ? "#CCC" : "#717171", cursor: page >= totalPages ? "not-allowed" : "pointer" }}>Next</button>
+            <div className="flex justify-center gap-2">
+              <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-xs font-semibold transition-colors" style={{ color: page <= 1 ? "#CCC" : "#717171", cursor: page <= 1 ? "not-allowed" : "pointer" }}>Previous</button>
+              <span className="px-4 py-2 text-xs text-gray-500 font-mono">Page {page} of {totalPages}</span>
+              <button disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)} className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-xs font-semibold transition-colors" style={{ color: page >= totalPages ? "#CCC" : "#717171", cursor: page >= totalPages ? "not-allowed" : "pointer" }}>Next</button>
             </div>
           )}
         </>

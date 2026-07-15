@@ -106,7 +106,7 @@ export default function ApplicationDetailPage() {
 
   if (loading) {
     return (
-      <div style={{ maxWidth: "800px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
+      <div className="mx-auto max-w-[800px] p-[clamp(1rem,3vw,2rem)]">
         <Skeleton width="200px" height="12px" style={{ marginBottom: "1rem" }} />
         <Skeleton width="320px" height="28px" style={{ marginBottom: "2rem" }} />
         <Skeleton width="100%" height="200px" style={{ marginBottom: "1.5rem" }} />
@@ -117,69 +117,68 @@ export default function ApplicationDetailPage() {
 
   if (!application) {
     return (
-      <div style={{ maxWidth: "800px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
-        <Card padding="3rem"><div style={{ textAlign: "center" }}><h3 style={{ fontSize: "1rem", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.5rem" }}>Application not found</h3><p style={{ fontSize: "13px", color: "#717171", marginBottom: "1.5rem" }}>This application may have been removed or you don't have access.</p><a href="/jobs/my"><Button variant="primary" size="sm">Back to My Jobs</Button></a></div></Card>
-      </div>
+      <div className="mx-auto max-w-[800px] p-[clamp(1rem,3vw,2rem)]">
+        <Card padding="3rem"><div className="text-center"><h3 className="mb-2 text-base font-semibold text-brand-dark">Application not found</h3><p className="mb-6 text-[13px] text-gray-500">This application may have been removed or you don't have access.</p><a href="/jobs/my"><Button variant="primary" size="sm">Back to My Jobs</Button></a></div></Card></div>
     );
   }
 
   const job = application.listing;
 
   return (
-    <div style={{ maxWidth: "800px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
+    <div className="mx-auto max-w-[800px] p-[clamp(1rem,3vw,2rem)]">
       <FadeIn>
-        <div style={{ marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "1.5rem" }}>
-          <a href="/jobs/my" style={{ fontSize: "12px", color: cfg.colors.primary, textDecoration: "none", fontWeight: 600 }}>&larr; My Jobs</a>
-          <a href={`/jobs/${job.id}`} style={{ fontSize: "12px", color: cfg.colors.primary, textDecoration: "none", fontWeight: 600 }}>View Job Listing</a>
+        <div className="mb-6 flex items-center gap-6">
+          <a href="/jobs/my" className="text-xs font-semibold no-underline" style={{ color: cfg.colors.primary }}>&larr; My Jobs</a>
+          <a href={`/jobs/${job.id}`} className="text-xs font-semibold no-underline" style={{ color: cfg.colors.primary }}>View Job Listing</a>
         </div>
       </FadeIn>
 
       <FadeIn delay={100}>
-        <Card padding="2rem" style={{ marginBottom: "1.5rem" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem", flexWrap: "wrap", gap: "0.75rem" }}>
+        <Card padding="2rem" className="mb-6">
+          <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h1 style={{ fontSize: "1.25rem", fontWeight: 700, color: "#1A1A1A", marginBottom: "0.25rem" }}>Application for {job.title}</h1>
-              <p style={{ fontSize: "13px", color: "#717171" }}>{job.company || job.poster.name} &middot; {job.location}</p>
+              <h1 className="mb-1 text-[1.25rem] font-bold text-brand-dark">Application for {job.title}</h1>
+              <p className="text-[13px] text-gray-500">{job.company || job.poster.name} &middot; {job.location}</p>
             </div>
-            <span style={{ padding: "0.25rem 0.75rem", borderRadius: "9999px", fontSize: "11px", fontWeight: 700, color: APP_STATUS_COLORS[application.status], backgroundColor: `${APP_STATUS_COLORS[application.status]}12`, border: `1px solid ${APP_STATUS_COLORS[application.status]}`, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace" }}>
+            <span className="rounded-full px-3 py-1 text-[11px] font-bold uppercase font-mono" style={{ color: APP_STATUS_COLORS[application.status], backgroundColor: `${APP_STATUS_COLORS[application.status]}12`, border: `1px solid ${APP_STATUS_COLORS[application.status]}` }}>
               {STATUS_LABELS[application.status] || application.status}
             </span>
           </div>
 
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "1.5rem", marginBottom: "1.5rem", fontSize: "12px" }}>
-            <div><span style={{ color: "#999", display: "block", marginBottom: "0.25rem" }}>Salary</span><span style={{ fontWeight: 600, color: cfg.colors.primary, fontFamily: "'JetBrains Mono', monospace" }}>{formatSalary(job.salaryMin, job.salaryMax)}</span></div>
-            <div><span style={{ color: "#999", display: "block", marginBottom: "0.25rem" }}>Category</span><span style={{ fontWeight: 600, color: "#2D2D2D", textTransform: "capitalize" }}>{job.category}</span></div>
-            <div><span style={{ color: "#999", display: "block", marginBottom: "0.25rem" }}>Job Type</span><span style={{ padding: "0.125rem 0.5rem", borderRadius: "9999px", fontSize: "10px", fontWeight: 700, color: JOB_TYPE_COLORS[job.jobType], backgroundColor: `${JOB_TYPE_COLORS[job.jobType]}12`, textTransform: "capitalize" }}>{job.jobType.replace("_", " ")}</span></div>
-            <div><span style={{ color: "#999", display: "block", marginBottom: "0.25rem" }}>Job Posted</span><span style={{ fontWeight: 600, color: "#2D2D2D" }}>{new Date(job.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</span></div>
+          <div className="mb-6 flex flex-wrap gap-6 text-xs">
+            <div><span className="mb-1 block text-gray-500">Salary</span><span className="font-mono font-semibold" style={{ color: cfg.colors.primary }}>{formatSalary(job.salaryMin, job.salaryMax)}</span></div>
+            <div><span className="mb-1 block text-gray-500">Category</span><span className="font-semibold capitalize text-brand-dark">{job.category}</span></div>
+            <div><span className="mb-1 block text-gray-500">Job Type</span><span className="rounded-full px-2 py-0.5 text-[10px] font-bold capitalize" style={{ color: JOB_TYPE_COLORS[job.jobType], backgroundColor: `${JOB_TYPE_COLORS[job.jobType]}12` }}>{job.jobType.replace("_", " ")}</span></div>
+            <div><span className="mb-1 block text-gray-500">Job Posted</span><span className="font-semibold text-brand-dark">{new Date(job.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</span></div>
           </div>
 
-          <div style={{ padding: "1rem", borderRadius: "0.75rem", backgroundColor: "#FAF9F5", border: "1px solid #F0F0F0", marginBottom: "1.5rem" }}>
-            <p style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.5rem" }}>Job Description</p>
-            <p style={{ fontSize: "13px", color: "#2D2D2D", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{job.description}</p>
+          <div className="mb-6 rounded-xl border border-gray-100 bg-gray-50 p-4">
+            <p className="mb-2 text-xs font-semibold text-brand-dark">Job Description</p>
+            <p className="whitespace-pre-wrap text-[13px] leading-[1.7] text-brand-dark">{job.description}</p>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", paddingTop: "1rem", borderTop: "1px solid #F0F0F0" }}>
-            <div style={{ width: "32px", height: "32px", borderRadius: "50%", backgroundColor: cfg.colors.primary, color: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 700 }}>
+          <div className="flex items-center gap-3 border-t border-gray-100 pt-4">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white" style={{ backgroundColor: cfg.colors.primary }}>
               {job.poster.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}
             </div>
-            <div><span style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", display: "block" }}>Posted by {job.poster.name}</span></div>
+            <div><span className="block text-xs font-semibold text-brand-dark">Posted by {job.poster.name}</span></div>
           </div>
         </Card>
       </FadeIn>
 
       <FadeInUp delay={200}>
-        <Card padding="2rem" style={{ marginBottom: "1.5rem" }}>
+        <Card padding="2rem" className="mb-6">
           <ColorfulBadge label="Your Application" color={APP_STATUS_COLORS[application.status]} />
 
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "1.5rem", marginTop: "1rem", marginBottom: "1.5rem", fontSize: "12px" }}>
-            <div><span style={{ color: "#999", display: "block", marginBottom: "0.25rem" }}>Applied On</span><span style={{ fontWeight: 600, color: "#2D2D2D" }}>{new Date(application.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span></div>
-            <div><span style={{ color: "#999", display: "block", marginBottom: "0.25rem" }}>Last Updated</span><span style={{ fontWeight: 600, color: "#2D2D2D" }}>{new Date(application.updatedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span></div>
+          <div className="mb-6 mt-4 flex flex-wrap gap-6 text-xs">
+            <div><span className="mb-1 block text-gray-500">Applied On</span><span className="font-semibold text-brand-dark">{new Date(application.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span></div>
+            <div><span className="mb-1 block text-gray-500">Last Updated</span><span className="font-semibold text-brand-dark">{new Date(application.updatedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span></div>
           </div>
 
           {application.resumeUrl && (
-            <div style={{ marginBottom: "1.5rem" }}>
-              <p style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.375rem" }}>Resume</p>
-              <a href={application.resumeUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: "13px", color: cfg.colors.primary, textDecoration: "none", fontWeight: 500, display: "inline-flex", alignItems: "center", gap: "0.375rem" }}>
+            <div className="mb-6">
+              <p className="mb-1.5 text-xs font-semibold text-brand-dark">Resume</p>
+              <a href={application.resumeUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[13px] font-medium no-underline" style={{ color: cfg.colors.primary }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14,2 14,8 20,8" /></svg>
                 View Resume
               </a>
@@ -188,26 +187,26 @@ export default function ApplicationDetailPage() {
 
           {application.coverLetter && (
             <div>
-              <p style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.375rem" }}>Cover Letter</p>
-              <div style={{ padding: "1rem", borderRadius: "0.75rem", backgroundColor: "#FAF9F5", border: "1px solid #F0F0F0" }}>
-                <p style={{ fontSize: "13px", color: "#2D2D2D", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{application.coverLetter}</p>
+              <p className="mb-1.5 text-xs font-semibold text-brand-dark">Cover Letter</p>
+              <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
+                <p className="whitespace-pre-wrap text-[13px] leading-[1.7] text-brand-dark">{application.coverLetter}</p>
               </div>
             </div>
           )}
 
           {!application.resumeUrl && !application.coverLetter && (
-            <p style={{ fontSize: "13px", color: "#999", fontStyle: "italic" }}>No additional details provided with this application.</p>
+            <p className="text-[13px] italic text-gray-500">No additional details provided with this application.</p>
           )}
 
           {isApplicant && (
-            <div style={{ marginTop: "1.5rem", paddingTop: "1rem", borderTop: "1px solid #F0F0F0" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                <div style={{ width: "32px", height: "32px", borderRadius: "50%", backgroundColor: "#F0F0F0", color: "#717171", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 700 }}>
+            <div className="mt-6 border-t border-gray-100 pt-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-xs font-bold text-gray-500">
                   {application.applicant.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}
                 </div>
                 <div>
-                  <span style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", display: "block" }}>{application.applicant.name}</span>
-                  <span style={{ fontSize: "11px", color: "#999" }}>{application.applicant.email}</span>
+                  <span className="block text-xs font-semibold text-brand-dark">{application.applicant.name}</span>
+                  <span className="text-[11px] text-gray-500">{application.applicant.email}</span>
                 </div>
               </div>
             </div>
@@ -219,44 +218,44 @@ export default function ApplicationDetailPage() {
         <FadeInUp delay={300}>
           <Card padding="1.5rem">
             <ColorfulBadge label="Manage Application" color={cfg.colors.primary} />
-            <h2 style={{ fontSize: "14px", fontWeight: 600, color: "#1A1A1A", marginTop: "0.5rem", marginBottom: "0.75rem" }}>Applicant</h2>
+            <h2 className="mb-3 mt-2 text-sm font-semibold text-brand-dark">Applicant</h2>
 
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1.5rem" }}>
-              <div style={{ width: "40px", height: "40px", borderRadius: "50%", backgroundColor: "#F0F0F0", color: "#717171", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: 700 }}>
+            <div className="mb-6 flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-[13px] font-bold text-gray-500">
                 {application.applicant.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}
               </div>
               <div>
-                <span style={{ fontSize: "13px", fontWeight: 600, color: "#2D2D2D", display: "block" }}>{application.applicant.name}</span>
-                <span style={{ fontSize: "12px", color: "#999" }}>{application.applicant.email}</span>
+                <span className="block text-[13px] font-semibold text-brand-dark">{application.applicant.name}</span>
+                <span className="text-xs text-gray-500">{application.applicant.email}</span>
               </div>
             </div>
 
             {updateSuccess && (
-              <div style={{ padding: "0.75rem 1rem", borderRadius: "0.75rem", backgroundColor: "#ECFDF5", border: "1px solid #A7F3D0", color: "#059669", fontSize: "12px", fontWeight: 500, marginBottom: "1rem" }}>{updateSuccess}</div>
+              <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-medium text-emerald-600">{updateSuccess}</div>
             )}
 
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+            <div className="flex flex-wrap gap-2">
               {application.status === "pending" && (
                 <>
-                  <button onClick={() => handleStatusUpdate("reviewed")} disabled={updating} style={{ padding: "0.5rem 1rem", borderRadius: "9999px", fontSize: "12px", fontWeight: 600, backgroundColor: "#ffffff", color: "#2563EB", border: "1px solid #BFDBFE", cursor: "pointer", opacity: updating ? 0.5 : 1 }}>Mark Reviewed</button>
-                  <button onClick={() => handleStatusUpdate("shortlisted")} disabled={updating} style={{ padding: "0.5rem 1rem", borderRadius: "9999px", fontSize: "12px", fontWeight: 600, backgroundColor: "#059669", color: "#ffffff", border: "none", cursor: "pointer", opacity: updating ? 0.5 : 1 }}>Shortlist</button>
-                  <button onClick={() => handleStatusUpdate("rejected")} disabled={updating} style={{ padding: "0.5rem 1rem", borderRadius: "9999px", fontSize: "12px", fontWeight: 600, backgroundColor: "#ffffff", color: "#DC2626", border: "1px solid #FECACA", cursor: "pointer", opacity: updating ? 0.5 : 1 }}>Reject</button>
+                  <button onClick={() => handleStatusUpdate("reviewed")} disabled={updating} className="cursor-pointer rounded-full border border-blue-200 bg-white px-4 py-2 text-xs font-semibold text-blue-600" style={{ opacity: updating ? 0.5 : 1 }}>Mark Reviewed</button>
+                  <button onClick={() => handleStatusUpdate("shortlisted")} disabled={updating} className="cursor-pointer rounded-full border-none bg-emerald-600 px-4 py-2 text-xs font-semibold text-white" style={{ opacity: updating ? 0.5 : 1 }}>Shortlist</button>
+                  <button onClick={() => handleStatusUpdate("rejected")} disabled={updating} className="cursor-pointer rounded-full border border-red-200 bg-white px-4 py-2 text-xs font-semibold text-red-600" style={{ opacity: updating ? 0.5 : 1 }}>Reject</button>
                 </>
               )}
               {application.status === "reviewed" && (
                 <>
-                  <button onClick={() => handleStatusUpdate("shortlisted")} disabled={updating} style={{ padding: "0.5rem 1rem", borderRadius: "9999px", fontSize: "12px", fontWeight: 600, backgroundColor: "#059669", color: "#ffffff", border: "none", cursor: "pointer", opacity: updating ? 0.5 : 1 }}>Shortlist</button>
-                  <button onClick={() => handleStatusUpdate("rejected")} disabled={updating} style={{ padding: "0.5rem 1rem", borderRadius: "9999px", fontSize: "12px", fontWeight: 600, backgroundColor: "#ffffff", color: "#DC2626", border: "1px solid #FECACA", cursor: "pointer", opacity: updating ? 0.5 : 1 }}>Reject</button>
+                  <button onClick={() => handleStatusUpdate("shortlisted")} disabled={updating} className="cursor-pointer rounded-full border-none bg-emerald-600 px-4 py-2 text-xs font-semibold text-white" style={{ opacity: updating ? 0.5 : 1 }}>Shortlist</button>
+                  <button onClick={() => handleStatusUpdate("rejected")} disabled={updating} className="cursor-pointer rounded-full border border-red-200 bg-white px-4 py-2 text-xs font-semibold text-red-600" style={{ opacity: updating ? 0.5 : 1 }}>Reject</button>
                 </>
               )}
               {application.status === "shortlisted" && (
                 <>
-                  <button onClick={() => handleStatusUpdate("accepted")} disabled={updating} style={{ padding: "0.5rem 1rem", borderRadius: "9999px", fontSize: "12px", fontWeight: 600, backgroundColor: "#059669", color: "#ffffff", border: "none", cursor: "pointer", opacity: updating ? 0.5 : 1 }}>Accept</button>
-                  <button onClick={() => handleStatusUpdate("rejected")} disabled={updating} style={{ padding: "0.5rem 1rem", borderRadius: "9999px", fontSize: "12px", fontWeight: 600, backgroundColor: "#ffffff", color: "#DC2626", border: "1px solid #FECACA", cursor: "pointer", opacity: updating ? 0.5 : 1 }}>Reject</button>
+                  <button onClick={() => handleStatusUpdate("accepted")} disabled={updating} className="cursor-pointer rounded-full border-none bg-emerald-600 px-4 py-2 text-xs font-semibold text-white" style={{ opacity: updating ? 0.5 : 1 }}>Accept</button>
+                  <button onClick={() => handleStatusUpdate("rejected")} disabled={updating} className="cursor-pointer rounded-full border border-red-200 bg-white px-4 py-2 text-xs font-semibold text-red-600" style={{ opacity: updating ? 0.5 : 1 }}>Reject</button>
                 </>
               )}
               {!["pending", "reviewed", "shortlisted"].includes(application.status) && (
-                <p style={{ fontSize: "12px", color: "#999", fontStyle: "italic" }}>This application has been {application.status}.</p>
+                <p className="text-xs italic text-gray-500">This application has been {application.status}.</p>
               )}
             </div>
           </Card>

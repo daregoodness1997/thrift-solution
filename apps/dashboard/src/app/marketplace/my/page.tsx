@@ -135,7 +135,7 @@ export default function MyMarketplacePage() {
 
 
   return (
-    <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
+    <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
       <PageHeader
         badgeLabel="Marketplace"
         heading="My"
@@ -156,10 +156,11 @@ export default function MyMarketplacePage() {
 
       {/* Tabs */}
       <FadeInUp delay={200}>
-        <div style={{ display: "flex", gap: "0.25rem", backgroundColor: "#F5F7F5", borderRadius: "0.5rem", padding: "0.2rem", marginBottom: "1.5rem", width: "fit-content" }}>
+        <div className="mb-6 flex w-fit gap-1 rounded-lg bg-[#F5F7F5] p-0.5">
           {([["listings", "My Listings"], ["received", "Received Offers"], ["sent", "My Offers"]] as const).map(([key, label]) => (
             <button key={key} onClick={() => { setTab(key); setListingsPage(1); setReceivedOffersPage(1); setMyOffersPage(1); }}
-              style={{ padding: "0.5rem 1rem", borderRadius: "0.375rem", fontSize: "12px", fontWeight: 600, border: "none", cursor: "pointer", transition: "all 0.2s ease", backgroundColor: tab === key ? "#ffffff" : "transparent", color: tab === key ? cfg.colors.primary : "#717171" }}>
+              className="cursor-pointer rounded-md px-4 py-2 text-xs font-semibold transition-all"
+              style={{ backgroundColor: tab === key ? "#ffffff" : "transparent", color: tab === key ? cfg.colors.primary : "#717171" }}>
               {label}
             </button>
           ))}
@@ -167,35 +168,36 @@ export default function MyMarketplacePage() {
       </FadeInUp>
 
       {loading ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1.5rem" }}>
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-6">
           {Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)}
         </div>
       ) : tab === "listings" ? (
         listings.length === 0 ? (
           <Card padding="3rem">
-            <div style={{ textAlign: "center" }}>
-              <h3 style={{ fontSize: "1rem", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.5rem" }}>No listings yet</h3>
-              <p style={{ fontSize: "13px", color: "#717171", marginBottom: "1.5rem" }}>Create your first listing to start selling.</p>
+            <div className="text-center">
+              <h3 className="mb-2 text-base font-semibold text-brand-dark">No listings yet</h3>
+              <p className="mb-6 text-[13px] text-gray-500">Create your first listing to start selling.</p>
               <a href="/marketplace/new"><Button variant="primary" size="sm">Create Listing</Button></a>
             </div>
           </Card>
         ) : (
           <>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1.5rem" }}>
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-6">
               {listings.map((listing) => (
-                <a key={listing.id} href={`/marketplace/${listing.id}`} style={{ textDecoration: "none" }}>
-                  <div style={{ padding: "1.25rem", borderRadius: "1.5rem", cursor: "pointer", transition: "all 0.2s ease", backgroundColor: "#FFFFFFDF", boxShadow: "0 2px 8px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.02)", borderTop: `3px solid ${cfg.colors.primary}22` }}
-                    onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.06)"; }}
-                    onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.04), 0 0 0 1px rgba(0,0,0,0.02)"; }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.75rem" }}>
-                      <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#2D2D2D", flex: 1, marginRight: "0.5rem" }}>{listing.title}</h3>
-                      <span style={{ fontSize: "9px", fontWeight: 700, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace", color: STATUS_COLORS[listing.status], backgroundColor: `${STATUS_COLORS[listing.status]}12`, padding: "0.125rem 0.5rem", borderRadius: "0.375rem" }}>{listing.status}</span>
+                <a key={listing.id} href={`/marketplace/${listing.id}`} className="no-underline">
+                  <div
+                    className="cursor-pointer rounded-3xl bg-[#FFFFFFDF] p-5 transition-all shadow-[0_2px_8px_rgba(0,0,0,0.04),0_0_0_1px_rgba(0,0,0,0.02)] hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)]"
+                    style={{ borderTop: `3px solid ${cfg.colors.primary}22` }}
+                  >
+                    <div className="mb-3 flex items-start justify-between">
+                      <h3 className="flex-1 mr-2 text-sm font-semibold text-brand-dark">{listing.title}</h3>
+                      <span className="rounded-md px-2 py-0.5 text-[9px] font-bold uppercase font-mono" style={{ color: STATUS_COLORS[listing.status], backgroundColor: `${STATUS_COLORS[listing.status]}12` }}>{listing.status}</span>
                     </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <span style={{ fontSize: "14px", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: cfg.colors.primary }}>{formatNaira(listing.price)}</span>
-                      <span style={{ fontSize: "11px", color: "#999" }}>{listing._count.offers} offer{listing._count.offers !== 1 ? "s" : ""}</span>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-mono font-bold" style={{ color: cfg.colors.primary }}>{formatNaira(listing.price)}</span>
+                      <span className="text-[11px] text-gray-500">{listing._count.offers} offer{listing._count.offers !== 1 ? "s" : ""}</span>
                     </div>
-                    <span style={{ fontSize: "10px", color: "#999", display: "block", marginTop: "0.5rem" }}>
+                    <span className="mt-2 block text-[10px] text-gray-500">
                       Listed {new Date(listing.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
                     </span>
                   </div>
@@ -208,34 +210,34 @@ export default function MyMarketplacePage() {
       ) : tab === "received" ? (
         receivedOffers.length === 0 ? (
           <Card padding="3rem">
-            <div style={{ textAlign: "center" }}>
-              <h3 style={{ fontSize: "1rem", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.5rem" }}>No offers received</h3>
-              <p style={{ fontSize: "13px", color: "#717171" }}>Offers on your listings will appear here.</p>
+            <div className="text-center">
+              <h3 className="mb-2 text-base font-semibold text-brand-dark">No offers received</h3>
+              <p className="text-[13px] text-gray-500">Offers on your listings will appear here.</p>
             </div>
           </Card>
         ) : (
           <>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+            <div className="flex flex-col gap-3">
               {receivedOffers.map((offer) => (
                 <Card key={offer.id} padding="1.25rem">
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.75rem" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                      <div style={{ width: "32px", height: "32px", borderRadius: "50%", backgroundColor: "#F0F0F0", color: "#717171", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 700 }}>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-xs font-bold text-gray-500">
                         {offer.offerer.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}
                       </div>
                       <div>
-                        <span style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", display: "block" }}>{offer.offerer.name}</span>
-                        <span style={{ fontSize: "11px", color: "#999" }}>for {offer.listing.title}</span>
-                        {offer.message && <span style={{ fontSize: "11px", color: "#717171", display: "block", marginTop: "0.125rem" }}>{offer.message}</span>}
+                        <span className="block text-xs font-semibold text-brand-dark">{offer.offerer.name}</span>
+                        <span className="text-[11px] text-gray-500">for {offer.listing.title}</span>
+                        {offer.message && <span className="mt-0.5 block text-[11px] text-gray-500">{offer.message}</span>}
                       </div>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                      <span style={{ fontSize: "14px", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: cfg.colors.primary }}>{formatNaira(offer.amount)}</span>
-                      <span style={{ fontSize: "9px", fontWeight: 700, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace", color: STATUS_COLORS[offer.status], backgroundColor: `${STATUS_COLORS[offer.status]}12`, padding: "0.125rem 0.5rem", borderRadius: "0.375rem" }}>{offer.status}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-mono font-bold" style={{ color: cfg.colors.primary }}>{formatNaira(offer.amount)}</span>
+                      <span className="rounded-md px-2 py-0.5 text-[9px] font-bold uppercase font-mono" style={{ color: STATUS_COLORS[offer.status], backgroundColor: `${STATUS_COLORS[offer.status]}12` }}>{offer.status}</span>
                       {offer.status === "pending" && (
-                        <div style={{ display: "flex", gap: "0.375rem" }}>
-                          <button onClick={() => handleOfferAction(offer.listing.id, offer.id, "accepted")} style={{ padding: "0.375rem 0.75rem", borderRadius: "9999px", fontSize: "11px", fontWeight: 600, backgroundColor: "#059669", color: "#ffffff", border: "none", cursor: "pointer" }}>Accept</button>
-                          <button onClick={() => handleOfferAction(offer.listing.id, offer.id, "rejected")} style={{ padding: "0.375rem 0.75rem", borderRadius: "9999px", fontSize: "11px", fontWeight: 600, backgroundColor: "#ffffff", color: "#DC2626", border: "1px solid #FECACA", cursor: "pointer" }}>Reject</button>
+                        <div className="flex gap-1.5">
+                          <button onClick={() => handleOfferAction(offer.listing.id, offer.id, "accepted")} className="cursor-pointer rounded-full bg-emerald-600 px-3 py-1.5 text-[11px] font-semibold text-white border-none">Accept</button>
+                          <button onClick={() => handleOfferAction(offer.listing.id, offer.id, "rejected")} className="cursor-pointer rounded-full border border-red-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-red-600">Reject</button>
                         </div>
                       )}
                     </div>
@@ -248,24 +250,24 @@ export default function MyMarketplacePage() {
         )
       ) : sentOffers.length === 0 ? (
         <Card padding="3rem">
-          <div style={{ textAlign: "center" }}>
-            <h3 style={{ fontSize: "1rem", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.5rem" }}>No offers made</h3>
-            <p style={{ fontSize: "13px", color: "#717171" }}>Offers you make on listings will appear here.</p>
+          <div className="text-center">
+            <h3 className="mb-2 text-base font-semibold text-brand-dark">No offers made</h3>
+            <p className="text-[13px] text-gray-500">Offers you make on listings will appear here.</p>
           </div>
         </Card>
       ) : (
         <>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+          <div className="flex flex-col gap-3">
             {sentOffers.map((offer) => (
               <Card key={offer.id} padding="1.25rem">
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.75rem" }}>
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <a href={`/marketplace/${offer.listing.id}`} style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", textDecoration: "none" }}>{offer.listing.title}</a>
-                    <span style={{ fontSize: "11px", color: "#999", display: "block" }}>by {offer.listing.seller.name}</span>
+                    <a href={`/marketplace/${offer.listing.id}`} className="block text-xs font-semibold text-brand-dark no-underline">{offer.listing.title}</a>
+                    <span className="block text-[11px] text-gray-500">by {offer.listing.seller.name}</span>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                    <span style={{ fontSize: "14px", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: cfg.colors.primary }}>{formatNaira(offer.amount)}</span>
-                    <span style={{ fontSize: "9px", fontWeight: 700, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace", color: STATUS_COLORS[offer.status], backgroundColor: `${STATUS_COLORS[offer.status]}12`, padding: "0.125rem 0.5rem", borderRadius: "0.375rem" }}>{offer.status}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-mono font-bold" style={{ color: cfg.colors.primary }}>{formatNaira(offer.amount)}</span>
+                    <span className="rounded-md px-2 py-0.5 text-[9px] font-bold uppercase font-mono" style={{ color: STATUS_COLORS[offer.status], backgroundColor: `${STATUS_COLORS[offer.status]}12` }}>{offer.status}</span>
                   </div>
                 </div>
               </Card>

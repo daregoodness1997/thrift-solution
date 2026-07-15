@@ -70,7 +70,7 @@ export default function MyJobsPage() {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   return (
-    <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
+    <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
       <PageHeader badgeLabel="Job Board" heading="My" accentText="Jobs" description="Manage your posted jobs and applications."
         right={<a href="/jobs/new"><Button variant="primary" size="sm">+ Post Job</Button></a>} />
 
@@ -81,10 +81,11 @@ export default function MyJobsPage() {
       </StaggerChildren>
 
       <FadeInUp delay={200}>
-        <div style={{ display: "flex", gap: "0.25rem", backgroundColor: "#F5F7F5", borderRadius: "0.5rem", padding: "0.2rem", marginBottom: "1.5rem", width: "fit-content" }}>
+        <div className="mb-6 flex w-fit gap-1 rounded-lg bg-[#F5F7F5] p-0.5">
           {([["posted", "Posted Jobs"], ["received", "Received Applications"], ["applied", "My Applications"]] as const).map(([key, label]) => (
             <button key={key} onClick={() => { setTab(key); setListingsPage(1); setReceivedPage(1); setApplicationsPage(1); }}
-              style={{ padding: "0.5rem 1rem", borderRadius: "0.375rem", fontSize: "12px", fontWeight: 600, border: "none", cursor: "pointer", transition: "all 0.2s ease", backgroundColor: tab === key ? "#ffffff" : "transparent", color: tab === key ? cfg.colors.primary : "#717171" }}>
+              className="cursor-pointer rounded-md px-4 py-2 text-xs font-semibold transition-all"
+              style={{ backgroundColor: tab === key ? "#ffffff" : "transparent", color: tab === key ? cfg.colors.primary : "#717171" }}>
               {label}
             </button>
           ))}
@@ -92,24 +93,24 @@ export default function MyJobsPage() {
       </FadeInUp>
 
       {loading ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1.5rem" }}>{Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)}</div>
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-6">{Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)}</div>
       ) : tab === "posted" ? (
         listings.length === 0 ? (
-          <Card padding="3rem"><div style={{ textAlign: "center" }}><h3 style={{ fontSize: "1rem", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.5rem" }}>No jobs posted yet</h3><a href="/jobs/new"><Button variant="primary" size="sm">Post a Job</Button></a></div></Card>
+          <Card padding="3rem"><div className="text-center"><h3 className="mb-2 text-base font-semibold text-brand-dark">No jobs posted yet</h3><a href="/jobs/new"><Button variant="primary" size="sm">Post a Job</Button></a></div></Card>
         ) : (
           <>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1.5rem" }}>
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-6">
               {listings.map((job) => (
-                <a key={job.id} href={`/jobs/${job.id}`} style={{ textDecoration: "none" }}>
+                <a key={job.id} href={`/jobs/${job.id}`} className="no-underline">
                   <Card padding="1.25rem">
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.75rem" }}>
-                      <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#2D2D2D", flex: 1, marginRight: "0.5rem" }}>{job.title}</h3>
-                      <span style={{ fontSize: "9px", fontWeight: 700, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace", color: STATUS_COLORS[job.status], backgroundColor: `${STATUS_COLORS[job.status]}12`, padding: "0.125rem 0.5rem", borderRadius: "0.375rem" }}>{job.status}</span>
+                    <div className="mb-3 flex items-start justify-between">
+                      <h3 className="flex-1 mr-2 text-sm font-semibold text-brand-dark">{job.title}</h3>
+                      <span className="rounded-md px-2 py-0.5 text-[9px] font-bold uppercase font-mono" style={{ color: STATUS_COLORS[job.status], backgroundColor: `${STATUS_COLORS[job.status]}12` }}>{job.status}</span>
                     </div>
-                    <span style={{ padding: "0.125rem 0.5rem", borderRadius: "9999px", fontSize: "9px", fontWeight: 700, color: JOB_TYPE_COLORS[job.jobType], backgroundColor: `${JOB_TYPE_COLORS[job.jobType]}12`, textTransform: "capitalize", marginBottom: "0.5rem", display: "inline-block" }}>{job.jobType.replace("_", " ")}</span>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "0.5rem" }}>
-                      <span style={{ fontSize: "11px", color: "#999" }}>{job.location}</span>
-                      <span style={{ fontSize: "11px", color: "#999" }}>{job._count.applications} applicant{job._count.applications !== 1 ? "s" : ""}</span>
+                    <span className="mb-2 inline-block rounded-full px-2 py-0.5 text-[9px] font-bold capitalize" style={{ color: JOB_TYPE_COLORS[job.jobType], backgroundColor: `${JOB_TYPE_COLORS[job.jobType]}12` }}>{job.jobType.replace("_", " ")}</span>
+                    <div className="mt-2 flex items-center justify-between">
+                      <span className="text-[11px] text-gray-500">{job.location}</span>
+                      <span className="text-[11px] text-gray-500">{job._count.applications} applicant{job._count.applications !== 1 ? "s" : ""}</span>
                     </div>
                   </Card>
                 </a>
@@ -120,24 +121,24 @@ export default function MyJobsPage() {
         )
       ) : tab === "received" ? (
         receivedApps.length === 0 ? (
-          <Card padding="3rem"><div style={{ textAlign: "center" }}><h3 style={{ fontSize: "1rem", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.5rem" }}>No applications received</h3><p style={{ fontSize: "13px", color: "#717171" }}>Applications to your job listings will appear here.</p></div></Card>
+          <Card padding="3rem"><div className="text-center"><h3 className="mb-2 text-base font-semibold text-brand-dark">No applications received</h3><p className="text-[13px] text-gray-500">Applications to your job listings will appear here.</p></div></Card>
         ) : (
           <>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+            <div className="flex flex-col gap-3">
               {receivedApps.map((app) => (
-                <a key={app.id} href={`/jobs/applications/${app.id}`} style={{ textDecoration: "none" }}>
+                <a key={app.id} href={`/jobs/applications/${app.id}`} className="no-underline">
                   <Card padding="1.25rem">
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.75rem" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                        <div style={{ width: "32px", height: "32px", borderRadius: "50%", backgroundColor: "#F0F0F0", color: "#717171", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 700 }}>
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-xs font-bold text-gray-500">
                           {app.applicant.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}
                         </div>
                         <div>
-                          <span style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", display: "block" }}>{app.applicant.name}</span>
-                          <span style={{ fontSize: "11px", color: "#999" }}>for {app.listing.title}</span>
+                          <span className="block text-xs font-semibold text-brand-dark">{app.applicant.name}</span>
+                          <span className="text-[11px] text-gray-500">for {app.listing.title}</span>
                         </div>
                       </div>
-                      <span style={{ fontSize: "9px", fontWeight: 700, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace", color: STATUS_COLORS[app.status], backgroundColor: `${STATUS_COLORS[app.status]}12`, padding: "0.125rem 0.5rem", borderRadius: "0.375rem" }}>{app.status}</span>
+                      <span className="rounded-md px-2 py-0.5 text-[9px] font-bold uppercase font-mono" style={{ color: STATUS_COLORS[app.status], backgroundColor: `${STATUS_COLORS[app.status]}12` }}>{app.status}</span>
                     </div>
                   </Card>
                 </a>
@@ -147,21 +148,21 @@ export default function MyJobsPage() {
           </>
         )
       ) : myApps.length === 0 ? (
-        <Card padding="3rem"><div style={{ textAlign: "center" }}><h3 style={{ fontSize: "1rem", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.5rem" }}>No applications yet</h3><p style={{ fontSize: "13px", color: "#717171" }}>Your job applications will appear here.</p></div></Card>
+        <Card padding="3rem"><div className="text-center"><h3 className="mb-2 text-base font-semibold text-brand-dark">No applications yet</h3><p className="text-[13px] text-gray-500">Your job applications will appear here.</p></div></Card>
       ) : (
         <>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+          <div className="flex flex-col gap-3">
             {myApps.map((app) => (
-              <a key={app.id} href={`/jobs/applications/${app.id}`} style={{ textDecoration: "none" }}>
+              <a key={app.id} href={`/jobs/applications/${app.id}`} className="no-underline">
                 <Card padding="1.25rem">
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.75rem" }}>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <span style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", display: "block" }}>{app.listing.title}</span>
-                      <span style={{ fontSize: "11px", color: "#999" }}>{app.listing.company || "Community"} &middot; {app.listing.location}</span>
+                      <span className="block text-xs font-semibold text-brand-dark">{app.listing.title}</span>
+                      <span className="text-[11px] text-gray-500">{app.listing.company || "Community"} &middot; {app.listing.location}</span>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                      <span style={{ padding: "0.125rem 0.5rem", borderRadius: "9999px", fontSize: "9px", fontWeight: 700, color: JOB_TYPE_COLORS[app.listing.jobType], backgroundColor: `${JOB_TYPE_COLORS[app.listing.jobType]}12`, textTransform: "capitalize" }}>{app.listing.jobType.replace("_", " ")}</span>
-                      <span style={{ fontSize: "9px", fontWeight: 700, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace", color: STATUS_COLORS[app.status], backgroundColor: `${STATUS_COLORS[app.status]}12`, padding: "0.125rem 0.5rem", borderRadius: "0.375rem" }}>{app.status}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="rounded-full px-2 py-0.5 text-[9px] font-bold capitalize" style={{ color: JOB_TYPE_COLORS[app.listing.jobType], backgroundColor: `${JOB_TYPE_COLORS[app.listing.jobType]}12` }}>{app.listing.jobType.replace("_", " ")}</span>
+                      <span className="rounded-md px-2 py-0.5 text-[9px] font-bold uppercase font-mono" style={{ color: STATUS_COLORS[app.status], backgroundColor: `${STATUS_COLORS[app.status]}12` }}>{app.status}</span>
                     </div>
                   </div>
                 </Card>

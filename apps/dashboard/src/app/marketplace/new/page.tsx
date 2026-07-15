@@ -130,7 +130,7 @@ export default function NewListingPage() {
   };
 
   return (
-    <div style={{ maxWidth: "720px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
+    <div className="mx-auto max-w-[720px] p-[clamp(1rem,3vw,2rem)]">
       <PageHeader
         badgeLabel="Marketplace"
         heading="Create"
@@ -141,38 +141,38 @@ export default function NewListingPage() {
       <FadeInUp delay={200}>
         <Card padding="2rem">
           <form onSubmit={handleSubmit}>
-            <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+            <div className="flex flex-col gap-6">
               <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.375rem" }}>Title *</label>
+                <label className="mb-1.5 block text-xs font-semibold text-brand-dark">Title *</label>
                 <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="What are you selling?"
-                  style={{ width: "100%", padding: "0.625rem 0.75rem", borderRadius: "0.75rem", border: "1px solid #EAEAEA", fontSize: "13px", outline: "none", boxSizing: "border-box", transition: "border-color 0.2s ease" }}
+                  className="w-full rounded-xl border border-gray-200 py-2.5 px-3 text-[13px] outline-none box-border transition-colors"
                   onFocus={(e) => { e.currentTarget.style.borderColor = cfg.colors.primary; }}
                   onBlur={(e) => { e.currentTarget.style.borderColor = "#EAEAEA"; }} />
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.375rem" }}>Description *</label>
+                <label className="mb-1.5 block text-xs font-semibold text-brand-dark">Description *</label>
                 <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe the item, its condition, and any relevant details..." rows={4}
-                  style={{ width: "100%", padding: "0.625rem 0.75rem", borderRadius: "0.75rem", border: "1px solid #EAEAEA", fontSize: "13px", outline: "none", boxSizing: "border-box", resize: "vertical", fontFamily: "inherit", transition: "border-color 0.2s ease" }}
+                  className="w-full rounded-xl border border-gray-200 py-2.5 px-3 resize-y text-[13px] outline-none box-border font-sans transition-colors"
                   onFocus={(e) => { e.currentTarget.style.borderColor = cfg.colors.primary; }}
                   onBlur={(e) => { e.currentTarget.style.borderColor = "#EAEAEA"; }} />
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.375rem" }}>Price (NGN) *</label>
-                  <div style={{ position: "relative" }}>
-                    <span style={{ position: "absolute", left: "0.75rem", top: "50%", transform: "translateY(-50%)", fontSize: "13px", fontWeight: 600, color: "#999" }}>₦</span>
+                  <label className="mb-1.5 block text-xs font-semibold text-brand-dark">Price (NGN) *</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[13px] font-semibold text-gray-500">₦</span>
                     <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="0.00" min="0" step="0.01"
-                      style={{ width: "100%", padding: "0.625rem 0.75rem 0.625rem 1.75rem", borderRadius: "0.75rem", border: "1px solid #EAEAEA", fontSize: "13px", fontFamily: "'JetBrains Mono', monospace", outline: "none", boxSizing: "border-box", transition: "border-color 0.2s ease" }}
+                      className="w-full rounded-xl border border-gray-200 py-2.5 pl-7 pr-3 font-mono text-[13px] outline-none box-border transition-colors"
                       onFocus={(e) => { e.currentTarget.style.borderColor = cfg.colors.primary; }}
                       onBlur={(e) => { e.currentTarget.style.borderColor = "#EAEAEA"; }} />
                   </div>
                 </div>
                 <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.375rem" }}>Category *</label>
+                  <label className="mb-1.5 block text-xs font-semibold text-brand-dark">Category *</label>
                   <select value={category} onChange={(e) => setCategory(e.target.value)}
-                    style={{ width: "100%", padding: "0.625rem 0.75rem", borderRadius: "0.75rem", border: "1px solid #EAEAEA", fontSize: "13px", outline: "none", boxSizing: "border-box", backgroundColor: "#ffffff", cursor: "pointer", transition: "border-color 0.2s ease" }}
+                    className="w-full cursor-pointer rounded-xl border border-gray-200 bg-white py-2.5 px-3 text-[13px] outline-none box-border transition-colors"
                     onFocus={(e) => { e.currentTarget.style.borderColor = cfg.colors.primary; }}
                     onBlur={(e) => { e.currentTarget.style.borderColor = "#EAEAEA"; }}>
                     {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
@@ -181,9 +181,9 @@ export default function NewListingPage() {
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.375rem" }}>Condition *</label>
+                <label className="mb-1.5 block text-xs font-semibold text-brand-dark">Condition *</label>
                 <select value={condition} onChange={(e) => setCondition(e.target.value)}
-                  style={{ width: "100%", padding: "0.625rem 0.75rem", borderRadius: "0.75rem", border: "1px solid #EAEAEA", fontSize: "13px", outline: "none", boxSizing: "border-box", backgroundColor: "#ffffff", cursor: "pointer", transition: "border-color 0.2s ease" }}
+                  className="w-full cursor-pointer rounded-xl border border-gray-200 bg-white py-2.5 px-3 text-[13px] outline-none box-border transition-colors"
                   onFocus={(e) => { e.currentTarget.style.borderColor = cfg.colors.primary; }}
                   onBlur={(e) => { e.currentTarget.style.borderColor = "#EAEAEA"; }}>
                   {CONDITIONS.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
@@ -191,39 +191,36 @@ export default function NewListingPage() {
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.375rem" }}>Product Image (optional)</label>
-                <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleFileSelect} style={{ display: "none" }} />
+                <label className="mb-1.5 block text-xs font-semibold text-brand-dark">Product Image (optional)</label>
+                <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleFileSelect} className="hidden" />
                 {imageFile ? (
-                  <div style={{ padding: "0.75rem", borderRadius: "0.75rem", border: "1px solid #A7F3D0", backgroundColor: "#ECFDF5", display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                    <img src={imageFile.preview} alt="Preview" style={{ width: "64px", height: "64px", borderRadius: "0.5rem", objectFit: "cover" }} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <span style={{ fontSize: "12px", fontWeight: 500, color: "#2D2D2D", display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{imageFile.file.name}</span>
-                      <span style={{ fontSize: "10px", color: "#059669" }}>{(imageFile.file.size / 1024).toFixed(1)} KB</span>
+                  <div className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+                    <img src={imageFile.preview} alt="Preview" className="h-16 w-16 rounded-lg object-cover" />
+                    <div className="min-w-0 flex-1">
+                      <span className="block truncate text-xs font-medium text-brand-dark">{imageFile.file.name}</span>
+                      <span className="text-[10px] text-emerald-600">{(imageFile.file.size / 1024).toFixed(1)} KB</span>
                     </div>
-                    <button type="button" onClick={removeFile} style={{ background: "none", border: "none", cursor: "pointer", padding: "0.25rem", color: "#DC2626" }}>
+                    <button type="button" onClick={removeFile} className="cursor-pointer border-none bg-none p-1 text-red-600">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M18 6L6 18M6 6l12 12" /></svg>
                     </button>
                   </div>
                 ) : (
-                  <button type="button" onClick={() => fileRef.current?.click()} style={{ width: "100%", padding: "2rem", borderRadius: "0.75rem", border: "2px dashed #D1D5DB", backgroundColor: "#FAFAFA", cursor: "pointer", textAlign: "center", transition: "all 0.2s ease" }}
-                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = cfg.colors.primary; e.currentTarget.style.backgroundColor = `${cfg.colors.primary}05`; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#D1D5DB"; e.currentTarget.style.backgroundColor = "#FAFAFA"; }}
-                  >
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth={1.5} style={{ margin: "0 auto 0.5rem" }}><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-                    <span style={{ fontSize: "12px", color: "#717171", display: "block" }}>Click to upload product image</span>
-                    <span style={{ fontSize: "10px", color: "#999", display: "block", marginTop: "0.25rem" }}>JPEG, PNG, WebP, or GIF up to 10MB</span>
+                  <button type="button" onClick={() => fileRef.current?.click()} className="w-full cursor-pointer rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-8 text-center transition-all hover:border-brand-primary hover:bg-[#2D5A3D05]">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth={1.5} className="mx-auto mb-2"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+                    <span className="block text-xs text-gray-500">Click to upload product image</span>
+                    <span className="mt-1 block text-[10px] text-gray-500">JPEG, PNG, WebP, or GIF up to 10MB</span>
                   </button>
                 )}
               </div>
 
               {error && (
-                <div style={{ padding: "0.75rem 1rem", borderRadius: "0.75rem", backgroundColor: "#FEF2F2", border: "1px solid #FECACA", color: "#DC2626", fontSize: "12px", fontWeight: 500 }}>
+                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-medium text-red-600">
                   {error}
                 </div>
               )}
 
-              <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end", paddingTop: "0.5rem" }}>
-                <a href="/marketplace" style={{ padding: "0.625rem 1.25rem", borderRadius: "9999px", fontSize: "13px", fontWeight: 600, color: "#717171", border: "1px solid #EAEAEA", textDecoration: "none", transition: "all 0.2s ease" }}>
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <a href="/marketplace" className="rounded-full border border-gray-200 px-5 py-2.5 text-[13px] font-semibold text-gray-500 no-underline transition-all">
                   Cancel
                 </a>
                 <Button type="submit" variant="primary" size="md" disabled={submitting}>

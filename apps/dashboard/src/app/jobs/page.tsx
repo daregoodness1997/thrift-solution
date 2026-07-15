@@ -92,14 +92,14 @@ export default function JobsPage() {
   };
 
   return (
-    <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
+    <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
       <PageHeader
         badgeLabel="Job Board"
         heading="Find"
         accentText="Opportunities"
         description="Browse job openings posted by community members."
         right={
-          <div style={{ display: "flex", gap: "0.75rem" }}>
+          <div className="flex gap-3">
             <a href="/jobs/my">
               <Button variant="outline" size="sm">My Jobs</Button>
             </a>
@@ -111,22 +111,23 @@ export default function JobsPage() {
       />
 
       <FadeIn delay={100}>
-        <div style={{ marginBottom: "2rem" }}>
-          <form onSubmit={(e) => { e.preventDefault(); setPage(1); }} style={{ display: "flex", gap: "0.75rem", marginBottom: "1rem", flexWrap: "wrap" }}>
-            <div style={{ flex: "1 1 300px", position: "relative" }}>
-              <svg style={{ position: "absolute", left: "0.75rem", top: "50%", transform: "translateY(-50%)", color: "#999" }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+        <div className="mb-8">
+          <form onSubmit={(e) => { e.preventDefault(); setPage(1); }} className="mb-4 flex flex-wrap gap-3">
+            <div className="relative flex-[1_1_300px]">
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
                 <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
               </svg>
               <input type="text" placeholder="Search jobs..." value={search} onChange={(e) => setSearch(e.target.value)}
-                style={{ width: "100%", padding: "0.625rem 0.75rem 0.625rem 2.25rem", borderRadius: "0.75rem", border: "1px solid #EAEAEA", fontSize: "13px", outline: "none", boxSizing: "border-box", transition: "border-color 0.2s ease" }}
+                className="w-full rounded-xl border border-gray-200 py-2.5 pl-9 pr-3 text-[13px] outline-none box-border transition-colors"
                 onFocus={(e) => { e.currentTarget.style.borderColor = cfg.colors.primary; }}
                 onBlur={(e) => { e.currentTarget.style.borderColor = "#EAEAEA"; }} />
             </div>
           </form>
-          <div style={{ display: "flex", gap: "0.375rem", flexWrap: "wrap" }}>
+          <div className="flex flex-wrap gap-1.5">
             {JOB_TYPES.map((t) => (
               <button key={t.key} onClick={() => { setJobType(t.key); setPage(1); }}
-                style={{ padding: "0.375rem 0.75rem", borderRadius: "9999px", fontSize: "11px", fontWeight: 600, border: `1px solid ${jobType === t.key ? cfg.colors.primary : "#EAEAEA"}`, backgroundColor: jobType === t.key ? `${cfg.colors.primary}0A` : "#ffffff", color: jobType === t.key ? cfg.colors.primary : "#717171", cursor: "pointer", transition: "all 0.2s ease" }}>
+                className="rounded-full px-3 py-1.5 text-[11px] font-semibold cursor-pointer transition-all"
+                style={{ border: `1px solid ${jobType === t.key ? cfg.colors.primary : "#EAEAEA"}`, backgroundColor: jobType === t.key ? `${cfg.colors.primary}0A` : "#ffffff", color: jobType === t.key ? cfg.colors.primary : "#717171" }}>
                 {t.label}
               </button>
             ))}
@@ -135,20 +136,20 @@ export default function JobsPage() {
       </FadeIn>
 
       {loading ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(360px, 1fr))", gap: "1.5rem" }}>
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(360px,1fr))] gap-6">
           {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
         </div>
       ) : listings.length === 0 ? (
         <FadeInUp>
           <Card padding="3rem">
-            <div style={{ textAlign: "center" }}>
-              <div style={{ width: "48px", height: "48px", borderRadius: "50%", backgroundColor: `${cfg.colors.primary}10`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem" }}>
+            <div className="text-center">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#2D5A3D10]">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={cfg.colors.primary} strokeWidth={1.5} strokeLinecap="round">
                   <path d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
               </div>
-              <h3 style={{ fontSize: "1rem", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.5rem" }}>No jobs found</h3>
-              <p style={{ fontSize: "13px", color: "#717171", marginBottom: "1.5rem" }}>
+              <h3 className="mb-2 text-base font-semibold text-brand-dark">No jobs found</h3>
+              <p className="mb-6 text-[13px] text-gray-500">
                 {search || jobType ? "Try adjusting your search or filters." : "Be the first to post a job opening!"}
               </p>
               <a href="/jobs/new"><Button variant="primary" size="sm">Post a Job</Button></a>
@@ -159,32 +160,32 @@ export default function JobsPage() {
         <>
           <StaggerChildren staggerDelay={60} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(360px, 1fr))", gap: "1.5rem", marginBottom: "2rem" }}>
             {listings.map((job) => (
-              <a key={job.id} href={`/jobs/${job.id}`} style={{ textDecoration: "none" }}>
-                <Card padding="1.5rem" style={{ cursor: "pointer" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.75rem" }}>
-                    <div style={{ flex: 1 }}>
-                      <h3 style={{ fontSize: "15px", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.25rem" }}>{job.title}</h3>
-                      <p style={{ fontSize: "12px", color: "#717171" }}>{job.company || job.poster.name}</p>
+              <a key={job.id} href={`/jobs/${job.id}`} className="no-underline">
+                <Card padding="1.5rem" className="cursor-pointer">
+                  <div className="mb-3 flex items-start justify-between">
+                    <div className="flex-1">
+                      <h3 className="mb-1 text-[15px] font-semibold text-brand-dark">{job.title}</h3>
+                      <p className="text-xs text-gray-500">{job.company || job.poster.name}</p>
                     </div>
-                    <span style={{ padding: "0.125rem 0.5rem", borderRadius: "9999px", fontSize: "9px", fontWeight: 700, color: JOB_TYPE_COLORS[job.jobType] || "#717171", backgroundColor: `${JOB_TYPE_COLORS[job.jobType] || "#717171"}12`, border: `1px solid ${JOB_TYPE_COLORS[job.jobType] || "#EAEAEA"}`, textTransform: "capitalize", whiteSpace: "nowrap" }}>
+                    <span className="whitespace-nowrap rounded-full px-2 py-0.5 text-[9px] font-bold capitalize" style={{ color: JOB_TYPE_COLORS[job.jobType] || "#717171", backgroundColor: `${JOB_TYPE_COLORS[job.jobType] || "#717171"}12`, border: `1px solid ${JOB_TYPE_COLORS[job.jobType] || "#EAEAEA"}` }}>
                       {job.jobType.replace("_", " ")}
                     </span>
                   </div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem", marginBottom: "0.75rem", fontSize: "11px", color: "#717171" }}>
-                    <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                  <div className="mb-3 flex flex-wrap items-center gap-3 text-[11px] text-gray-500">
+                    <span className="flex items-center gap-1">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" /><circle cx="12" cy="10" r="3" /></svg>
                       {job.location}
                     </span>
                     {formatSalary(job.salaryMin, job.salaryMax) && (
-                      <span style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: cfg.colors.primary }}>
+                      <span className="font-mono font-semibold" style={{ color: cfg.colors.primary }}>
                         {formatSalary(job.salaryMin, job.salaryMax)}
                       </span>
                     )}
                   </div>
-                  <p style={{ fontSize: "12px", color: "#717171", marginBottom: "0.75rem", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                  <p className="mb-3 line-clamp-2 text-xs text-gray-500">
                     {job.description}
                   </p>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "10px", color: "#999" }}>
+                  <div className="flex items-center justify-between text-[10px] text-gray-500">
                     <span>{job._count.applications} applicant{job._count.applications !== 1 ? "s" : ""}</span>
                     <span>{new Date(job.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
                   </div>
@@ -194,10 +195,10 @@ export default function JobsPage() {
           </StaggerChildren>
 
           {totalPages > 1 && (
-            <div style={{ display: "flex", justifyContent: "center", gap: "0.5rem" }}>
-              <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} style={{ padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "12px", fontWeight: 600, border: "1px solid #EAEAEA", backgroundColor: "#ffffff", color: page <= 1 ? "#CCC" : "#717171", cursor: page <= 1 ? "not-allowed" : "pointer" }}>Previous</button>
-              <span style={{ padding: "0.5rem 1rem", fontSize: "12px", color: "#999", fontFamily: "'JetBrains Mono', monospace" }}>Page {page} of {totalPages}</span>
-              <button disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)} style={{ padding: "0.5rem 1rem", borderRadius: "0.5rem", fontSize: "12px", fontWeight: 600, border: "1px solid #EAEAEA", backgroundColor: "#ffffff", color: page >= totalPages ? "#CCC" : "#717171", cursor: page >= totalPages ? "not-allowed" : "pointer" }}>Next</button>
+            <div className="flex justify-center gap-2">
+              <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-xs font-semibold transition-colors" style={{ color: page <= 1 ? "#CCC" : "#717171", cursor: page <= 1 ? "not-allowed" : "pointer" }}>Previous</button>
+              <span className="px-4 py-2 text-xs text-gray-500 font-mono">Page {page} of {totalPages}</span>
+              <button disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)} className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-xs font-semibold transition-colors" style={{ color: page >= totalPages ? "#CCC" : "#717171", cursor: page >= totalPages ? "not-allowed" : "pointer" }}>Next</button>
             </div>
           )}
         </>

@@ -172,7 +172,7 @@ export default function JobDetailPage() {
 
   if (loading) {
     return (
-      <div style={{ maxWidth: "800px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
+      <div className="mx-auto max-w-[800px] p-[clamp(1rem,3vw,2rem)]">
         <Skeleton width="200px" height="12px" style={{ marginBottom: "1rem" }} />
         <Skeleton width="320px" height="28px" style={{ marginBottom: "2rem" }} />
         <Skeleton width="100%" height="200px" style={{ marginBottom: "1.5rem" }} />
@@ -183,93 +183,89 @@ export default function JobDetailPage() {
 
   if (!job) {
     return (
-      <div style={{ maxWidth: "800px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
-        <Card padding="3rem"><div style={{ textAlign: "center" }}><h3 style={{ fontSize: "1rem", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.5rem" }}>Job not found</h3><a href="/jobs"><Button variant="primary" size="sm">Back to Jobs</Button></a></div></Card>
-      </div>
+      <div className="mx-auto max-w-[800px] p-[clamp(1rem,3vw,2rem)]">
+        <Card padding="3rem"><div className="text-center"><h3 className="mb-2 text-base font-semibold text-brand-dark">Job not found</h3><a href="/jobs"><Button variant="primary" size="sm">Back to Jobs</Button></a></div></Card></div>
     );
   }
 
   return (
-    <div style={{ maxWidth: "800px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
+    <div className="mx-auto max-w-[800px] p-[clamp(1rem,3vw,2rem)]">
       <FadeIn>
-        <div style={{ marginBottom: "1.5rem" }}><a href="/jobs" style={{ fontSize: "12px", color: cfg.colors.primary, textDecoration: "none", fontWeight: 600 }}>&larr; Back to Jobs</a></div>
+        <div className="mb-6"><a href="/jobs" className="text-xs font-semibold no-underline" style={{ color: cfg.colors.primary }}>&larr; Back to Jobs</a></div>
       </FadeIn>
 
       <FadeIn delay={100}>
-        <Card padding="2rem" style={{ marginBottom: "1.5rem" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem", flexWrap: "wrap", gap: "0.75rem" }}>
+        <Card padding="2rem" className="mb-6">
+          <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h1 style={{ fontSize: "1.5rem", fontWeight: 700, color: "#1A1A1A", marginBottom: "0.25rem" }}>{job.title}</h1>
-              <p style={{ fontSize: "13px", color: "#717171" }}>{job.company || job.poster.name} &middot; {job.location}</p>
+              <h1 className="mb-1 text-[1.5rem] font-bold text-brand-dark">{job.title}</h1>
+              <p className="text-[13px] text-gray-500">{job.company || job.poster.name} &middot; {job.location}</p>
             </div>
-            <span style={{ padding: "0.25rem 0.75rem", borderRadius: "9999px", fontSize: "11px", fontWeight: 700, color: JOB_TYPE_COLORS[job.jobType] || "#717171", backgroundColor: `${JOB_TYPE_COLORS[job.jobType] || "#717171"}12`, border: `1px solid ${JOB_TYPE_COLORS[job.jobType] || "#EAEAEA"}`, textTransform: "capitalize" }}>
+            <span className="rounded-full px-3 py-1 text-[11px] font-bold capitalize" style={{ color: JOB_TYPE_COLORS[job.jobType] || "#717171", backgroundColor: `${JOB_TYPE_COLORS[job.jobType] || "#717171"}12`, border: `1px solid ${JOB_TYPE_COLORS[job.jobType] || "#EAEAEA"}` }}>
               {job.jobType.replace("_", " ")}
             </span>
           </div>
 
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "1.5rem", marginBottom: "1.5rem", fontSize: "12px" }}>
-            <div><span style={{ color: "#999", display: "block", marginBottom: "0.25rem" }}>Salary</span><span style={{ fontWeight: 600, color: cfg.colors.primary, fontFamily: "'JetBrains Mono', monospace" }}>{formatSalary(job.salaryMin, job.salaryMax)}</span></div>
-            <div><span style={{ color: "#999", display: "block", marginBottom: "0.25rem" }}>Category</span><span style={{ fontWeight: 600, color: "#2D2D2D", textTransform: "capitalize" }}>{job.category}</span></div>
-            <div><span style={{ color: "#999", display: "block", marginBottom: "0.25rem" }}>Posted</span><span style={{ fontWeight: 600, color: "#2D2D2D" }}>{new Date(job.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</span></div>
-            <div><span style={{ color: "#999", display: "block", marginBottom: "0.25rem" }}>Applications</span><span style={{ fontWeight: 600, color: "#2D2D2D" }}>{job.applications.length}</span></div>
+          <div className="mb-6 flex flex-wrap gap-6 text-xs">
+            <div><span className="mb-1 block text-gray-500">Salary</span><span className="font-mono font-semibold" style={{ color: cfg.colors.primary }}>{formatSalary(job.salaryMin, job.salaryMax)}</span></div>
+            <div><span className="mb-1 block text-gray-500">Category</span><span className="font-semibold capitalize text-brand-dark">{job.category}</span></div>
+            <div><span className="mb-1 block text-gray-500">Posted</span><span className="font-semibold text-brand-dark">{new Date(job.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</span></div>
+            <div><span className="mb-1 block text-gray-500">Applications</span><span className="font-semibold text-brand-dark">{job.applications.length}</span></div>
           </div>
 
-          <div style={{ padding: "1rem", borderRadius: "0.75rem", backgroundColor: "#FAF9F5", border: "1px solid #F0F0F0" }}>
-            <p style={{ fontSize: "13px", color: "#2D2D2D", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{job.description}</p>
+          <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
+            <p className="whitespace-pre-wrap text-[13px] leading-[1.7] text-brand-dark">{job.description}</p>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginTop: "1.5rem", paddingTop: "1rem", borderTop: "1px solid #F0F0F0" }}>
-            <div style={{ width: "32px", height: "32px", borderRadius: "50%", backgroundColor: cfg.colors.primary, color: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 700 }}>
+          <div className="mt-6 flex items-center gap-3 border-t border-gray-100 pt-4">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white" style={{ backgroundColor: cfg.colors.primary }}>
               {job.poster.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}
             </div>
-            <div><span style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", display: "block" }}>Posted by {job.poster.name}</span></div>
+            <div><span className="block text-xs font-semibold text-brand-dark">Posted by {job.poster.name}</span></div>
           </div>
 
           {isPoster ? (
-            <div style={{ display: "flex", gap: "0.75rem", marginTop: "1.5rem" }}>
-              <button onClick={handleDelete} disabled={deleting} style={{ padding: "0.625rem 1.25rem", borderRadius: "9999px", fontSize: "13px", fontWeight: 600, cursor: "pointer", backgroundColor: "#ffffff", color: "#DC2626", border: "1px solid #FECACA", opacity: deleting ? 0.5 : 1 }}>
+            <div className="mt-6 flex gap-3">
+              <button onClick={handleDelete} disabled={deleting} className="cursor-pointer rounded-full border border-red-200 bg-white px-5 py-2.5 text-[13px] font-semibold text-red-600" style={{ opacity: deleting ? 0.5 : 1 }}>
                 {deleting ? "Deleting..." : "Delete Job"}
               </button>
             </div>
           ) : !hasApplied && job.status === "active" ? (
-            <form onSubmit={handleApply} style={{ marginTop: "1.5rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+            <form onSubmit={handleApply} className="mt-6 flex flex-col gap-3">
               <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.375rem" }}>Resume (optional)</label>
-                <input ref={resumeFileRef} type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={handleResumeSelect} style={{ display: "none" }} />
+                <label className="mb-1.5 block text-xs font-semibold text-brand-dark">Resume (optional)</label>
+                <input ref={resumeFileRef} type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={handleResumeSelect} className="hidden" />
                 {resumeFile ? (
-                  <div style={{ padding: "0.75rem", borderRadius: "0.75rem", border: "1px solid #A7F3D0", backgroundColor: "#ECFDF5", display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                    <div style={{ width: "40px", height: "40px", borderRadius: "0.5rem", backgroundColor: "#EFF6FF", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <div className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#EFF6FF]">
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth={2}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
                     </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <span style={{ fontSize: "12px", fontWeight: 500, color: "#2D2D2D", display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{resumeFile.name}</span>
-                      <span style={{ fontSize: "10px", color: "#059669" }}>{(resumeFile.size / 1024).toFixed(1)} KB</span>
+                    <div className="min-w-0 flex-1">
+                      <span className="block truncate text-xs font-medium text-brand-dark">{resumeFile.name}</span>
+                      <span className="text-[10px] text-emerald-600">{(resumeFile.size / 1024).toFixed(1)} KB</span>
                     </div>
-                    <button type="button" onClick={removeResume} style={{ background: "none", border: "none", cursor: "pointer", padding: "0.25rem", color: "#DC2626" }}>
+                    <button type="button" onClick={removeResume} className="cursor-pointer border-none bg-none p-1 text-red-600">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M18 6L6 18M6 6l12 12" /></svg>
                     </button>
                   </div>
                 ) : (
-                  <button type="button" onClick={() => resumeFileRef.current?.click()} style={{ width: "100%", padding: "1.5rem", borderRadius: "0.75rem", border: "2px dashed #D1D5DB", backgroundColor: "#FAFAFA", cursor: "pointer", textAlign: "center", transition: "all 0.2s ease" }}
-                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = cfg.colors.primary; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#D1D5DB"; }}
-                  >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth={1.5} style={{ margin: "0 auto 0.375rem" }}><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-                    <span style={{ fontSize: "12px", color: "#717171", display: "block" }}>Click to upload resume</span>
-                    <span style={{ fontSize: "10px", color: "#999", display: "block", marginTop: "0.25rem" }}>PDF, DOC, or DOCX up to 5MB</span>
+                  <button type="button" onClick={() => resumeFileRef.current?.click()} className="w-full cursor-pointer rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-6 text-center transition-all hover:border-brand-primary">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth={1.5} className="mx-auto mb-1.5"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+                    <span className="block text-xs text-gray-500">Click to upload resume</span>
+                    <span className="mt-1 block text-[10px] text-gray-500">PDF, DOC, or DOCX up to 5MB</span>
                   </button>
                 )}
               </div>
               <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.375rem" }}>Cover Letter (optional)</label>
-                <textarea value={coverLetter} onChange={(e) => setCoverLetter(e.target.value)} placeholder="Tell the employer why you're a great fit..." rows={4} style={{ width: "100%", padding: "0.625rem 0.75rem", borderRadius: "0.75rem", border: "1px solid #EAEAEA", fontSize: "13px", outline: "none", boxSizing: "border-box", resize: "vertical", fontFamily: "inherit" }} />
+                <label className="mb-1.5 block text-xs font-semibold text-brand-dark">Cover Letter (optional)</label>
+                <textarea value={coverLetter} onChange={(e) => setCoverLetter(e.target.value)} placeholder="Tell the employer why you're a great fit..." rows={4} className="w-full rounded-xl border border-gray-200 py-2.5 px-3 resize-y text-[13px] outline-none box-border font-sans" />
               </div>
-              {applyError && <div style={{ fontSize: "12px", color: "#DC2626" }}>{applyError}</div>}
-              {applySuccess && <div style={{ fontSize: "12px", color: "#059669" }}>Application submitted!</div>}
+              {applyError && <div className="text-xs text-red-600">{applyError}</div>}
+              {applySuccess && <div className="text-xs text-emerald-600">Application submitted!</div>}
               <Button type="submit" variant="primary" size="md" disabled={applying}>{applying ? "Submitting..." : "Apply Now"}</Button>
             </form>
           ) : hasApplied ? (
-            <div style={{ marginTop: "1.5rem", padding: "0.75rem 1rem", borderRadius: "0.75rem", backgroundColor: "#ECFDF5", border: "1px solid #A7F3D0", color: "#059669", fontSize: "12px", fontWeight: 500 }}>You have already applied to this position.</div>
+            <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-medium text-emerald-600">You have already applied to this position.</div>
           ) : null}
         </Card>
       </FadeIn>
@@ -278,29 +274,27 @@ export default function JobDetailPage() {
         <FadeInUp delay={300}>
           <Card padding="1.5rem">
             <ColorfulBadge label="Applications" color={cfg.colors.primary} />
-            <h2 style={{ fontSize: "1.125rem", fontWeight: 500, color: "#1A1A1A", marginTop: "0.5rem", marginBottom: "1rem" }}>Applications ({job.applications.length})</h2>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+            <h2 className="mb-4 mt-2 text-[1.125rem] font-medium text-brand-dark">Applications ({job.applications.length})</h2>
+            <div className="flex flex-col gap-3">
               {job.applications.map((app) => (
-                <a key={app.id} href={`/jobs/applications/${app.id}`} style={{ textDecoration: "none", display: "block" }}>
-                  <div style={{ padding: "1rem", borderRadius: "0.75rem", border: "1px solid #F0F0F0", backgroundColor: "#FAFAFA", cursor: "pointer", transition: "border-color 0.2s ease" }}
-                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = cfg.colors.primary; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#F0F0F0"; }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.75rem" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                        <div style={{ width: "32px", height: "32px", borderRadius: "50%", backgroundColor: "#F0F0F0", color: "#717171", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 700 }}>
+                <a key={app.id} href={`/jobs/applications/${app.id}`} className="block no-underline">
+                  <div className="cursor-pointer rounded-xl border border-gray-100 bg-gray-50 p-4 transition-colors hover:border-brand-primary">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-xs font-bold text-gray-500">
                           {app.applicant.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}
                         </div>
                         <div>
-                          <span style={{ fontSize: "12px", fontWeight: 600, color: "#2D2D2D", display: "block" }}>{app.applicant.name}</span>
-                          {app.coverLetter && <span style={{ fontSize: "11px", color: "#717171", display: "block", marginTop: "0.125rem", maxWidth: "400px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{app.coverLetter}</span>}
+                          <span className="block text-xs font-semibold text-brand-dark">{app.applicant.name}</span>
+                          {app.coverLetter && <span className="mt-0.5 block max-w-[400px] truncate text-[11px] text-gray-500">{app.coverLetter}</span>}
                         </div>
                       </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                        <span style={{ fontSize: "9px", fontWeight: 700, textTransform: "uppercase", fontFamily: "'JetBrains Mono', monospace", color: APP_STATUS_COLORS[app.status], backgroundColor: `${APP_STATUS_COLORS[app.status]}12`, padding: "0.125rem 0.5rem", borderRadius: "0.375rem" }}>{app.status}</span>
+                      <div className="flex items-center gap-3">
+                        <span className="rounded-md px-2 py-0.5 text-[9px] font-bold uppercase font-mono" style={{ color: APP_STATUS_COLORS[app.status], backgroundColor: `${APP_STATUS_COLORS[app.status]}12` }}>{app.status}</span>
                         {app.status === "pending" && (
-                          <div style={{ display: "flex", gap: "0.375rem" }} onClick={(e) => e.preventDefault()}>
-                            <button onClick={(e) => { e.preventDefault(); handleApplicationAction(app.id, "shortlisted"); }} style={{ padding: "0.375rem 0.75rem", borderRadius: "9999px", fontSize: "11px", fontWeight: 600, backgroundColor: "#059669", color: "#ffffff", border: "none", cursor: "pointer" }}>Shortlist</button>
-                            <button onClick={(e) => { e.preventDefault(); handleApplicationAction(app.id, "rejected"); }} style={{ padding: "0.375rem 0.75rem", borderRadius: "9999px", fontSize: "11px", fontWeight: 600, backgroundColor: "#ffffff", color: "#DC2626", border: "1px solid #FECACA", cursor: "pointer" }}>Reject</button>
+                          <div className="flex gap-1.5" onClick={(e) => e.preventDefault()}>
+                            <button onClick={(e) => { e.preventDefault(); handleApplicationAction(app.id, "shortlisted"); }} className="cursor-pointer rounded-full bg-emerald-600 px-3 py-1.5 text-[11px] font-semibold text-white border-none">Shortlist</button>
+                            <button onClick={(e) => { e.preventDefault(); handleApplicationAction(app.id, "rejected"); }} className="cursor-pointer rounded-full border border-red-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-red-600">Reject</button>
                           </div>
                         )}
                       </div>

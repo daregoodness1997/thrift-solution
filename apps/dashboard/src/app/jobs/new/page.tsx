@@ -91,61 +91,61 @@ export default function NewJobPage() {
     setSubmitting(false);
   };
 
-  const inputStyle: React.CSSProperties = { width: "100%", padding: "0.625rem 0.75rem", borderRadius: "0.75rem", border: "1px solid #EAEAEA", fontSize: "13px", outline: "none", boxSizing: "border-box", transition: "border-color 0.2s ease" };
+  const inputClass = "w-full rounded-xl border border-gray-200 py-2.5 px-3 text-[13px] outline-none box-border transition-colors";
   const focusProps = { onFocus: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => { e.currentTarget.style.borderColor = cfg.colors.primary; }, onBlur: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => { e.currentTarget.style.borderColor = "#EAEAEA"; } };
 
   return (
-    <div style={{ maxWidth: "720px", margin: "0 auto", padding: "clamp(1rem, 3vw, 2rem)" }}>
+    <div className="mx-auto max-w-[720px] p-[clamp(1rem,3vw,2rem)]">
       <PageHeader badgeLabel="Job Board" heading="Post a" accentText="Job" description="Share job opportunities with the community." />
       <FadeInUp delay={200}>
         <Card padding="2rem">
           <form onSubmit={handleSubmit}>
-            <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+            <div className="flex flex-col gap-6">
               <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.375rem" }}>Job Title *</label>
-                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Senior Software Engineer" style={inputStyle} {...focusProps} />
+                <label className="mb-1.5 block text-xs font-semibold text-brand-dark">Job Title *</label>
+                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Senior Software Engineer" className={inputClass} {...focusProps} />
               </div>
               <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.375rem" }}>Description *</label>
-                <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe the role, requirements, and benefits..." rows={5} style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit" }} {...focusProps} />
+                <label className="mb-1.5 block text-xs font-semibold text-brand-dark">Description *</label>
+                <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe the role, requirements, and benefits..." rows={5} className={`${inputClass} resize-y font-sans`} {...focusProps} />
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.375rem" }}>Company</label>
-                  <input type="text" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company name" style={inputStyle} {...focusProps} />
+                  <label className="mb-1.5 block text-xs font-semibold text-brand-dark">Company</label>
+                  <input type="text" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company name" className={inputClass} {...focusProps} />
                 </div>
                 <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.375rem" }}>Location *</label>
-                  <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Lagos, Nigeria" style={inputStyle} {...focusProps} />
+                  <label className="mb-1.5 block text-xs font-semibold text-brand-dark">Location *</label>
+                  <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Lagos, Nigeria" className={inputClass} {...focusProps} />
                 </div>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.375rem" }}>Job Type *</label>
-                  <select value={jobType} onChange={(e) => setJobType(e.target.value)} style={{ ...inputStyle, backgroundColor: "#ffffff", cursor: "pointer" }}>
+                  <label className="mb-1.5 block text-xs font-semibold text-brand-dark">Job Type *</label>
+                  <select value={jobType} onChange={(e) => setJobType(e.target.value)} className={`${inputClass} cursor-pointer bg-white`}>
                     {JOB_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.375rem" }}>Category *</label>
-                  <select value={category} onChange={(e) => setCategory(e.target.value)} style={{ ...inputStyle, backgroundColor: "#ffffff", cursor: "pointer" }}>
+                  <label className="mb-1.5 block text-xs font-semibold text-brand-dark">Category *</label>
+                  <select value={category} onChange={(e) => setCategory(e.target.value)} className={`${inputClass} cursor-pointer bg-white`}>
                     {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
                   </select>
                 </div>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.375rem" }}>Min Salary (NGN)</label>
-                  <input type="number" value={salaryMin} onChange={(e) => setSalaryMin(e.target.value)} placeholder="0" min="0" style={{ ...inputStyle, fontFamily: "'JetBrains Mono', monospace" }} {...focusProps} />
+                  <label className="mb-1.5 block text-xs font-semibold text-brand-dark">Min Salary (NGN)</label>
+                  <input type="number" value={salaryMin} onChange={(e) => setSalaryMin(e.target.value)} placeholder="0" min="0" className={`${inputClass} font-mono`} {...focusProps} />
                 </div>
                 <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#2D2D2D", marginBottom: "0.375rem" }}>Max Salary (NGN)</label>
-                  <input type="number" value={salaryMax} onChange={(e) => setSalaryMax(e.target.value)} placeholder="0" min="0" style={{ ...inputStyle, fontFamily: "'JetBrains Mono', monospace" }} {...focusProps} />
+                  <label className="mb-1.5 block text-xs font-semibold text-brand-dark">Max Salary (NGN)</label>
+                  <input type="number" value={salaryMax} onChange={(e) => setSalaryMax(e.target.value)} placeholder="0" min="0" className={`${inputClass} font-mono`} {...focusProps} />
                 </div>
               </div>
-              {error && <div style={{ padding: "0.75rem 1rem", borderRadius: "0.75rem", backgroundColor: "#FEF2F2", border: "1px solid #FECACA", color: "#DC2626", fontSize: "12px", fontWeight: 500 }}>{error}</div>}
-              <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end", paddingTop: "0.5rem" }}>
-                <a href="/jobs" style={{ padding: "0.625rem 1.25rem", borderRadius: "9999px", fontSize: "13px", fontWeight: 600, color: "#717171", border: "1px solid #EAEAEA", textDecoration: "none" }}>Cancel</a>
+              {error && <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-medium text-red-600">{error}</div>}
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <a href="/jobs" className="rounded-full border border-gray-200 px-5 py-2.5 text-[13px] font-semibold text-gray-500 no-underline">Cancel</a>
                 <Button type="submit" variant="primary" size="md" disabled={submitting}>{submitting ? "Posting..." : "Post Job"}</Button>
               </div>
             </div>
