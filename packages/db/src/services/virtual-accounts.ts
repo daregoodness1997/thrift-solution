@@ -14,6 +14,7 @@ export interface CreateVirtualAccountParams {
   isPermanent?: boolean;
   bvn?: string;
   nin?: string;
+  accountName?: string;
 }
 
 export async function createVirtualAccount(
@@ -32,6 +33,7 @@ export async function createVirtualAccount(
       isPermanent: params.isPermanent ?? true,
       bvn: params.bvn,
       nin: params.nin,
+      accountName: params.accountName,
       status: "active",
     },
   });
@@ -105,14 +107,18 @@ export async function deleteVirtualAccount(id: string): Promise<VirtualAccount> 
   });
 }
 
-export async function getUsersWithoutVirtualAccounts(): Promise<{ id: string; email: string; name: string; bvn: string | null }[]> {
+export async function getUsersWithoutVirtualAccounts(): Promise<{ id: string; email: string; name: string; bvn: string | null; nin: string | null; verifiedName: string | null }[]> {
   return prisma.$queryRaw`
-    SELECT u.id, u.email, u.name, k.id_number as bvn
+    SELECT u.id, u.email, u.name, k.bvn, k.nin, k.verified_name AS "verifiedName"
     FROM users u
-    INNER JOIN kyc k ON k.user_id = u.id AND k.status IN ('verified', 'approved') AND k.id_type = 'bvn'
+    INNER JOIN kyc k ON k.user_id = u.id AND k.status IN ('verified', 'approved') AND k.deleted_at IS NULL
     LEFT JOIN virtual_accounts va ON va.user_id = u.id AND va.deleted_at IS NULL
     WHERE va.id IS NULL
     AND u.deleted_at IS NULL
+    AND k.bvn IS NOT NULL
+    AND k.bvn <> ''
+    AND k.nin IS NOT NULL
+    AND k.nin <> ''
     LIMIT 50
   `;
 }
@@ -125,6 +131,21 @@ export async function hasVirtualAccountForProvider(
     where: {
       userId,
       provider,
+      deletedAt: null,
+    },
+  });
+  return count > 0;
+}
+
+/**
+ * Returns true if the user already has any active virtual account.
+ * Used to enforce the one-virtual-account-per-user (1:1) rule globally,
+ * regardless of payment provider.
+ */
+export async function hasVirtualAccount(userId: string): Promise<boolean> {
+  const count = await prisma.virtualAccount.count({
+    where: {
+      userId,
       deletedAt: null,
     },
   });

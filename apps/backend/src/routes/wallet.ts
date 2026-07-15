@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, Request as ExpressRequest } from "express";
 import crypto from "crypto";
 import { authMiddleware } from "../middleware/auth";
 import { getPaymentProvider, getAvailableProviders } from "../services/payments";
@@ -13,6 +13,10 @@ import {
 export const walletRouter = Router();
 
 const DASHBOARD_URL = process.env.DASHBOARD_URL || "http://localhost:3001";
+
+function getRawBody(req: ExpressRequest): Buffer | undefined {
+  return (req as unknown as { rawBody?: Buffer }).rawBody;
+}
 
 // Get available payment providers
 walletRouter.get("/providers", (_req, res) => {
@@ -126,7 +130,7 @@ walletRouter.post("/webhook/paystack", async (req, res) => {
   try {
     const hash = crypto
       .createHmac("sha512", process.env.PAYSTACK_SECRET_KEY || "")
-      .update(JSON.stringify(req.body))
+      .update(getRawBody(req) || JSON.stringify(req.body))
       .digest("hex");
 
     if (hash !== req.headers["x-paystack-signature"]) {
@@ -151,12 +155,17 @@ walletRouter.post("/webhook/paystack", async (req, res) => {
 
 walletRouter.post("/webhook/flutterwave", async (req, res) => {
   try {
-    const hash = crypto
-      .createHmac("sha256", process.env.FLUTTERWAVE_SECRET_KEY || "")
-      .update(JSON.stringify(req.body))
-      .digest("hex");
+    const signature = req.headers["verif-hash"];
+    const webhookSecret = process.env.FLUTTERWAVE_WEBHOOK_SECRET || process.env.FLUTTERWAVE_SECRET_KEY || "";
+    const signatureValid =
+      typeof signature === "string" &&
+      signature.length > 0 &&
+      (signature === webhookSecret ||
+        (getRawBody(req) && process.env.FLUTTERWAVE_SECRET_KEY
+          ? crypto.createHmac("sha256", process.env.FLUTTERWAVE_SECRET_KEY).update(getRawBody(req)!).digest("hex") === signature
+          : false));
 
-    if (hash !== req.headers["verif-hash"]) {
+    if (!signatureValid) {
       res.status(400).json({ error: "Invalid signature" });
       return;
     }

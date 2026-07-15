@@ -13,20 +13,22 @@ interface MemberRow {
   name: string;
   bvn: string | null;
   nin: string | null;
+  verifiedName: string | null;
   phone: string | null;
 }
 
 async function getMembers(): Promise<MemberRow[]> {
   return prisma.$queryRaw<MemberRow[]>`
     SELECT u.id, u.email, u.name, u.phone AS phone,
-           CASE WHEN k.id_type = 'bvn' THEN k.id_number END AS bvn,
-           CASE WHEN k.id_type = 'nin' THEN k.id_number END AS nin
+           k.bvn, k.nin, k.verified_name AS "verifiedName"
     FROM users u
-    LEFT JOIN kyc k
+    INNER JOIN kyc k
       ON k.user_id = u.id
       AND k.status IN ('verified', 'approved')
       AND k.deleted_at IS NULL
     WHERE u.deleted_at IS NULL AND u.role = 'member'
+    AND k.bvn IS NOT NULL AND k.bvn <> ''
+    AND k.nin IS NOT NULL AND k.nin <> ''
     ORDER BY u.created_at ASC
   `;
 }
@@ -48,9 +50,10 @@ async function main() {
 
   for (const u of members) {
     try {
-      const nameParts = (u.name || "").trim().split(/\s+/);
+      const nameParts = (u.verifiedName || u.name || "").trim().split(/\s+/);
       const firstName = nameParts[0] || u.email.split("@")[0];
       const lastName = nameParts.slice(1).join(" ") || "User";
+      const verifiedName = u.verifiedName || "";
       const reference = `va_${u.id}_flutterwave_${Date.now()}`;
 
       if (DRY_RUN) {
@@ -89,6 +92,7 @@ async function main() {
             isPermanent: true,
             bvn: u.bvn || undefined,
             nin: u.nin || undefined,
+            accountName: verifiedName || undefined,
             status: "active",
           },
         }),

@@ -129,18 +129,20 @@ export async function getAllVirtualAccounts(params: {
 }
 
 export async function getMembersWithoutVirtualAccount(): Promise<
-  { id: string; email: string; name: string; bvn: string | null; phone: string | null }[]
+  { id: string; email: string; name: string; bvn: string | null; nin: string | null; phone: string | null; verifiedName: string | null; kycStatus: string | null }[]
 > {
-  const rows = await prisma.$queryRaw<{ id: string; email: string; name: string; bvn: string | null; phone: string | null }[]>`
-    SELECT u.id, u.email, u.name, k.id_number AS bvn, k.phone AS phone
+  const rows = await prisma.$queryRaw<{ id: string; email: string; name: string; bvn: string | null; nin: string | null; phone: string | null; verifiedName: string | null; kycStatus: string | null }[]>`
+    SELECT u.id, u.email, u.name, k.bvn, k.nin, k.phone, k.verified_name AS "verifiedName", k.status AS "kycStatus"
     FROM users u
     LEFT JOIN virtual_accounts va ON va.user_id = u.id AND va.deleted_at IS NULL
     LEFT JOIN LATERAL (
-      SELECT id_number, phone FROM kyc k2
-      WHERE k2.user_id = u.id AND k2.status IN ('verified', 'approved')
+      SELECT bvn, nin, phone, verified_name, status FROM kyc k2
+      WHERE k2.user_id = u.id AND k2.status IN ('verified', 'approved') AND k2.deleted_at IS NULL
       LIMIT 1
     ) k ON true
     WHERE va.id IS NULL AND u.deleted_at IS NULL AND u.role = 'member'
+    AND k.bvn IS NOT NULL AND k.bvn <> ''
+    AND k.nin IS NOT NULL AND k.nin <> ''
     LIMIT 200
   `;
   return rows;

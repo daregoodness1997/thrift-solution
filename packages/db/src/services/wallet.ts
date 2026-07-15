@@ -23,9 +23,16 @@ export async function debitWallet(userId: string, amount: number, description: s
   });
 }
 
-export async function creditWallet(userId: string, amount: number, type: string, description: string) {
-  const reference = `${type.toUpperCase()}-${Date.now()}-${nodeCrypto.randomBytes(4).toString("hex")}`;
+export async function creditWallet(
+  userId: string,
+  amount: number,
+  type: string,
+  description: string,
+  reference?: string,
+) {
+  const txnReference =
+    reference || `${type.toUpperCase()}-${Date.now()}-${nodeCrypto.randomBytes(4).toString("hex")}`;
   return prisma.transaction.create({
-    data: { userId, type, amount, reference, status: "completed", description },
+    data: { userId, type, amount, reference: txnReference, status: "completed", description },
   });
 }

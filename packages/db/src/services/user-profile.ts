@@ -1,11 +1,12 @@
 import { prisma } from "./prisma";
 import { getWalletBalance } from "./wallet";
+import { getVirtualAccountsByUser } from "./virtual-accounts";
 
 export async function getUserProfile(userId: string) {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) return null;
 
-  const [totalDonated, totalContributed, totalReceived, activeCircles, defaults, clearances, referralCount] = await Promise.all([
+  const [totalDonated, totalContributed, totalReceived, activeCircles, defaults, clearances, referralCount, virtualAccounts] = await Promise.all([
     prisma.donation.aggregate({
       where: { userId, type: "monetary", status: "completed" },
       _sum: { amount: true },
@@ -22,6 +23,7 @@ export async function getUserProfile(userId: string) {
     prisma.transaction.count({ where: { userId, type: "default", status: "pending" } }),
     prisma.transaction.count({ where: { userId, type: "clearance", status: "completed" } }),
     prisma.referral.count({ where: { referrerId: userId } }),
+    getVirtualAccountsByUser(userId),
   ]);
 
   const totalSaved = totalContributed._sum.amount ?? 0;
@@ -29,6 +31,18 @@ export async function getUserProfile(userId: string) {
   const trustScore = Math.min(5, Math.max(1, Math.ceil(totalSaved / 100000) + (activeCircles > 0 ? 1 : 0)));
   const trustLevels = ["", "Bronze", "Silver", "Gold", "Platinum", "Diamond"];
   const trustLevel = trustLevels[trustScore] || "Bronze";
+
+  const virtualAccount = virtualAccounts[0]
+    ? {
+        id: virtualAccounts[0].id,
+        accountNumber: virtualAccounts[0].accountNumber,
+        accountName: virtualAccounts[0].accountName || user.name,
+        bankName: virtualAccounts[0].bankName,
+        bankCode: virtualAccounts[0].bankCode,
+        provider: virtualAccounts[0].provider,
+        status: virtualAccounts[0].status,
+      }
+    : null;
 
   return {
     id: user.id,
@@ -38,6 +52,7 @@ export async function getUserProfile(userId: string) {
     accountNumber: user.accountNumber,
     accountTier: user.accountTier,
     createdAt: user.createdAt,
+    virtualAccount,
     stats: {
       totalSaved,
       totalDonated: totalDonated._sum.amount ?? 0,

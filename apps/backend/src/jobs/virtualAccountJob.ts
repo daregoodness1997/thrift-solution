@@ -1,4 +1,4 @@
-import { getUsersWithoutVirtualAccounts, createVirtualAccount, hasVirtualAccountForProvider } from "@thrift/db";
+import { getUsersWithoutVirtualAccounts, createVirtualAccount, hasVirtualAccount } from "@thrift/db";
 import { getPaymentProvider } from "../services/payments";
 import { randomBytes } from "crypto";
 
@@ -29,25 +29,30 @@ export async function virtualAccountGenerationJob() {
     for (const user of users) {
       processed++;
       try {
-        const hasAccount = await hasVirtualAccountForProvider(user.id, DEFAULT_PROVIDER);
+        const hasAccount = await hasVirtualAccount(user.id);
         if (hasAccount) {
           skipped++;
           continue;
         }
 
-        if (!user.bvn) {
-          console.log(`[Virtual Account Job] Skipping user ${user.id} - no BVN on file`);
+        if (!user.bvn || !user.nin) {
+          console.log(`[Virtual Account Job] Skipping user ${user.id} - BVN/NIN not fully verified`);
           skipped++;
           continue;
         }
 
         const reference = generateReference("va_auto");
+        const verifiedName = user.verifiedName || "";
+        const nameParts = (verifiedName || user.name || "").trim().split(/\s+/);
+        const firstName = nameParts[0] || user.email.split("@")[0];
+        const lastName = nameParts.slice(1).join(" ") || "User";
 
         const result = await provider.createVirtualAccount({
           email: user.email,
-          firstName: user.name?.split(" ")[0] || "",
-          lastName: user.name?.split(" ").slice(1).join(" ") || "",
+          firstName,
+          lastName,
           bvn: user.bvn,
+          nin: user.nin || undefined,
           reference,
           narration: "Thrift Solution Virtual Account",
         });
@@ -62,6 +67,8 @@ export async function virtualAccountGenerationJob() {
           providerRef: result.providerRef,
           isPermanent: true,
           bvn: user.bvn,
+          nin: user.nin || undefined,
+          accountName: verifiedName || undefined,
         });
 
         created++;

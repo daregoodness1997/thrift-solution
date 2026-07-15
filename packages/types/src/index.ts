@@ -590,6 +590,39 @@ export interface CircleWithAccounts extends Circle {
   };
 }
 
+export type NotificationChannel = "in_app" | "email" | "sms";
+
+export type NotificationStatus = "unread" | "read";
+
+export interface Notification {
+  id: string;
+  userId: string;
+  type: string;
+  title: string;
+  body: string;
+  data: Record<string, unknown> | null;
+  channel: NotificationChannel;
+  status: NotificationStatus;
+  readAt: string | null;
+  createdAt: string;
+}
+
+export interface NotificationListResponse {
+  items: Notification[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface NotificationPreferences {
+  id: string;
+  userId: string;
+  inApp: boolean;
+  email: boolean;
+  sms: boolean;
+}
+
 export const CIRCLE_DEFAULT_CONFIG = {
   INTEREST_CALCULATION_DAY: "sunday",
   INTEREST_CALCULATION_HOUR: 0,

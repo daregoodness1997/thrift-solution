@@ -1,19 +1,62 @@
 import { Router, Request, Response } from "express";
+import crypto from "crypto";
 import { getPaymentProvider, resolveVirtualAccount } from "../services/payments/index";
 import { authMiddleware } from "../middleware/auth";
-import { randomBytes } from "crypto";
 import {
   createVirtualAccount,
   getVirtualAccountsByUser,
   getVirtualAccountByAccountNumber,
+  updateVirtualAccountLastTransfer,
   creditWallet,
   getKycByUserId,
+  hasVirtualAccount,
+  isKycVerifiedForVirtualAccount,
 } from "@thrift/db";
 
 const router = Router();
 
 function generateReference(prefix: string): string {
-  return `${prefix}_${Date.now()}_${randomBytes(8).toString("hex")}`;
+  return `${prefix}_${Date.now()}_${crypto.randomBytes(8).toString("hex")}`;
+}
+
+function isUniqueViolation(err: unknown): boolean {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    "code" in err &&
+    (err as { code?: string }).code === "P2002"
+  );
+}
+
+function verifyHmac(rawBody: Buffer | undefined, secret: string, signature: unknown, algorithm: "sha256" | "sha512"): boolean {
+  if (!rawBody || typeof signature !== "string" || !secret) return false;
+  const expected = crypto.createHmac(algorithm, secret).update(rawBody).digest("hex");
+  const a = Buffer.from(expected);
+  const b = Buffer.from(signature);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+function getRawBody(req: Request): Buffer | undefined {
+  return (req as unknown as { rawBody?: Buffer }).rawBody;
+}
+
+// Flutterwave sends the "Webhook Secret Hash" you set in the dashboard directly
+// in the `verif-hash` header (plain comparison). Some setups instead sign the
+// raw body with HMAC-SHA256 using the secret key. We accept either so the
+// handler works regardless of how the dashboard was configured.
+function verifyFlutterwave(rawBody: Buffer | undefined, signature: unknown): boolean {
+  if (typeof signature !== "string" || !signature) return false;
+  const webhookSecret = process.env.FLUTTERWAVE_WEBHOOK_SECRET || process.env.FLUTTERWAVE_SECRET_KEY || "";
+
+  if (webhookSecret && signature === webhookSecret) return true;
+
+  if (rawBody && process.env.FLUTTERWAVE_SECRET_KEY) {
+    const expected = crypto.createHmac("sha256", process.env.FLUTTERWAVE_SECRET_KEY).update(rawBody).digest("hex");
+    const a = Buffer.from(expected);
+    const b = Buffer.from(signature);
+    if (a.length === b.length && crypto.timingSafeEqual(a, b)) return true;
+  }
+  return false;
 }
 
 router.get("/providers", (_req: Request, res: Response) => {
@@ -43,7 +86,11 @@ router.get("/providers", (_req: Request, res: Response) => {
 router.post("/create", authMiddleware, async (req: Request, res: Response) => {
   try {
     const { provider, firstName, lastName, email, phone } = req.body;
-    const userId = (req as any).userId;
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ error: "Authentication required" });
+      return;
+    }
 
     if (!provider) {
       res.status(400).json({ error: "Payment provider is required" });
@@ -62,23 +109,55 @@ router.post("/create", authMiddleware, async (req: Request, res: Response) => {
     }
 
     const kyc = await getKycByUserId(userId);
-    if (!kyc || !["approved", "verified"].includes(kyc.status) || !kyc.idNumber) {
+    if (!kyc || !isKycVerifiedForVirtualAccount(kyc)) {
       res.status(403).json({
-        error: "KYC verification with a valid BVN is required before a virtual account can be created. Please complete KYC first.",
+        error:
+          "KYC verification with both a valid BVN and NIN is required before a virtual account can be created. Please complete KYC first.",
         code: "KYC_REQUIRED",
       });
       return;
     }
 
-    const bvn = kyc.idNumber;
+    // Enforce one-virtual-account-per-user (1:1).
+    if (await hasVirtualAccount(userId)) {
+      const existing = await getVirtualAccountsByUser(userId);
+      res.status(409).json({
+        success: false,
+        error: "A virtual account already exists for this user.",
+        code: "VIRTUAL_ACCOUNT_EXISTS",
+        virtualAccount: existing[0]
+          ? {
+              id: existing[0].id,
+              accountNumber: existing[0].accountNumber,
+              bankName: existing[0].bankName,
+              bankCode: existing[0].bankCode,
+              provider: existing[0].provider,
+              reference: existing[0].reference,
+              status: existing[0].status,
+            }
+          : undefined,
+      });
+      return;
+    }
+
+    const bvn = kyc.bvn!;
+    const nin = kyc.nin!;
     const reference = generateReference("va");
+
+    // Use the KYC-verified legal name for the account, not the user's
+    // self-entered name.
+    const verifiedName = kyc.verifiedName || "";
+    const nameParts = verifiedName.trim().split(/\s+/);
+    const vaFirstName = nameParts[0] || firstName || "";
+    const vaLastName = nameParts.slice(1).join(" ") || lastName || "";
 
     const result = await paymentProvider.createVirtualAccount({
       email,
-      firstName,
-      lastName,
+      firstName: vaFirstName,
+      lastName: vaLastName,
       phone,
       bvn,
+      nin,
       reference,
       narration: "Thrift Solution Virtual Account",
     });
@@ -94,6 +173,8 @@ router.post("/create", authMiddleware, async (req: Request, res: Response) => {
       providerRef: result.providerRef,
       isPermanent: true,
       bvn,
+      nin,
+      accountName: verifiedName || undefined,
     });
 
     res.status(201).json({
@@ -117,13 +198,18 @@ router.post("/create", authMiddleware, async (req: Request, res: Response) => {
 
 router.get("/", authMiddleware, async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).userId;
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ error: "Authentication required" });
+      return;
+    }
     const accounts = await getVirtualAccountsByUser(userId);
 
     res.json({
       virtualAccounts: accounts.map((va) => ({
         id: va.id,
         accountNumber: va.accountNumber,
+        accountName: va.accountName,
         bankName: va.bankName,
         bankCode: va.bankCode,
         provider: va.provider,
@@ -144,24 +230,33 @@ router.post("/webhook/flutterwave", async (req: Request, res: Response) => {
 
   setImmediate(async () => {
     try {
-      const event = req.body;
-
-      if (event.event === "charge.completed" && event.data) {
-        const data = event.data;
-        const accountNumber = data.account?.account_number || data.meta?.account_number;
-
-        if (accountNumber) {
-          const virtualAccount = await getVirtualAccountByAccountNumber(accountNumber);
-          if (virtualAccount) {
-            const amount = data.amount;
-            const description = `Wallet funding via Flutterwave virtual account ${accountNumber}`;
-
-            await creditWallet(virtualAccount.userId, amount, "wallet_funding", description);
-          }
-        }
+      const signature = req.headers["verif-hash"];
+      if (!verifyFlutterwave(getRawBody(req), signature)) {
+        console.error("Flutterwave virtual account webhook: invalid signature");
+        return;
       }
+
+      const event = req.body;
+      if (event.event !== "charge.completed" || !event.data) return;
+      const data = event.data;
+      if (data.status !== "successful") return;
+
+      const accountNumber =
+        data.account?.account_number || data.account_number || data.meta?.account_number;
+      if (!accountNumber) return;
+
+      const virtualAccount = await getVirtualAccountByAccountNumber(accountNumber);
+      if (!virtualAccount) return;
+
+      const amount = Number(data.amount);
+      const reference = `va_flw_${data.id}`;
+      const description = `Wallet funding via Flutterwave virtual account ${accountNumber}`;
+
+      await creditWallet(virtualAccount.userId, amount, "wallet_funding", description, reference);
+      await updateVirtualAccountLastTransfer(virtualAccount.id);
     } catch (err) {
-      console.error("Flutterwave webhook processing error:", err);
+      if (isUniqueViolation(err)) return;
+      console.error("Flutterwave virtual account webhook processing error:", err);
     }
   });
 });
@@ -171,24 +266,32 @@ router.post("/webhook/paystack", async (req: Request, res: Response) => {
 
   setImmediate(async () => {
     try {
-      const event = req.body;
-
-      if (event.event === "dedicated_account.assign" || event.event === "charge.success") {
-        const data = event.data;
-        const accountNumber = data.account_number;
-
-        if (accountNumber) {
-          const virtualAccount = await getVirtualAccountByAccountNumber(accountNumber);
-          if (virtualAccount) {
-            const amount = data.amount / 100;
-            const description = `Wallet funding via Paystack virtual account ${accountNumber}`;
-
-            await creditWallet(virtualAccount.userId, amount, "wallet_funding", description);
-          }
-        }
+      const signature = req.headers["x-paystack-signature"];
+      if (!verifyHmac(getRawBody(req), process.env.PAYSTACK_SECRET_KEY || "", signature, "sha512")) {
+        console.error("Paystack virtual account webhook: invalid signature");
+        return;
       }
+
+      const event = req.body;
+      if (event.event !== "charge.success" || !event.data) return;
+      const data = event.data;
+      if (data.status !== "success") return;
+
+      const accountNumber = data.account_number;
+      if (!accountNumber) return;
+
+      const virtualAccount = await getVirtualAccountByAccountNumber(accountNumber);
+      if (!virtualAccount) return;
+
+      const amount = Number(data.amount) / 100;
+      const reference = `va_ps_${data.reference}`;
+      const description = `Wallet funding via Paystack virtual account ${accountNumber}`;
+
+      await creditWallet(virtualAccount.userId, amount, "wallet_funding", description, reference);
+      await updateVirtualAccountLastTransfer(virtualAccount.id);
     } catch (err) {
-      console.error("Paystack webhook processing error:", err);
+      if (isUniqueViolation(err)) return;
+      console.error("Paystack virtual account webhook processing error:", err);
     }
   });
 });
@@ -198,24 +301,33 @@ router.post("/webhook/nomba", async (req: Request, res: Response) => {
 
   setImmediate(async () => {
     try {
-      const event = req.body;
-
-      if (event.event === "TRANSFER" || event.event === "payment.success") {
-        const data = event.data;
-        const accountNumber = data.destinationAccountNumber || data.accountNumber;
-
-        if (accountNumber) {
-          const virtualAccount = await getVirtualAccountByAccountNumber(accountNumber);
-          if (virtualAccount) {
-            const amount = data.amount;
-            const description = `Wallet funding via Nomba virtual account ${accountNumber}`;
-
-            await creditWallet(virtualAccount.userId, amount, "wallet_funding", description);
-          }
-        }
+      const signature = req.headers["x-nomba-signature"];
+      if (!verifyHmac(getRawBody(req), process.env.NOMBA_API_KEY || "", signature, "sha256")) {
+        console.error("Nomba virtual account webhook: invalid signature");
+        return;
       }
+
+      const event = req.body;
+      if (event.eventType !== "PAYMENT_SUCCESS" && event.event !== "TRANSFER" && event.event !== "payment.success") {
+        return;
+      }
+      const data = event.data || event;
+
+      const accountNumber = data.destinationAccountNumber || data.accountNumber || data.account_number;
+      if (!accountNumber) return;
+
+      const virtualAccount = await getVirtualAccountByAccountNumber(accountNumber);
+      if (!virtualAccount) return;
+
+      const amount = Number(data.amount);
+      const reference = `va_nm_${data.id || data.orderId || data.transactionId}`;
+      const description = `Wallet funding via Nomba virtual account ${accountNumber}`;
+
+      await creditWallet(virtualAccount.userId, amount, "wallet_funding", description, reference);
+      await updateVirtualAccountLastTransfer(virtualAccount.id);
     } catch (err) {
-      console.error("Nomba webhook processing error:", err);
+      if (isUniqueViolation(err)) return;
+      console.error("Nomba virtual account webhook processing error:", err);
     }
   });
 });

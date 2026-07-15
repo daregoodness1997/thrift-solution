@@ -20,6 +20,8 @@ import {
   getWalletBalance,
   updateVirtualAccountStatus,
   createVirtualAccount,
+  hasVirtualAccount,
+  isKycVerifiedForVirtualAccount,
   getAllMarketplaceListingsAdmin,
   updateMarketplaceListing,
   deleteMarketplaceListing,
@@ -272,11 +274,24 @@ adminRouter.post("/virtual-accounts/generate", requireAdmin, async (req, res) =>
 
     for (const u of users) {
       try {
-        const nameParts = (u.name || "").trim().split(/\s+/);
+        const verifiedName = u.verifiedName || "";
+        const nameParts = (verifiedName || u.name || "").trim().split(/\s+/);
         const firstName = nameParts[0] || u.email.split("@")[0];
         const lastName = nameParts.slice(1).join(" ") || "User";
 
-        const provider = forceProvider || (u.bvn ? "flutterwave" : "paystack");
+        if (!isKycVerifiedForVirtualAccount({ status: u.kycStatus || "", bvn: u.bvn, nin: u.nin })) {
+          skipped++;
+          errors.push({ userId: u.id, email: u.email, error: "User does not have both BVN and NIN verified" });
+          continue;
+        }
+
+        if (await hasVirtualAccount(u.id)) {
+          skipped++;
+          errors.push({ userId: u.id, email: u.email, error: "User already has a virtual account" });
+          continue;
+        }
+
+        const provider = forceProvider || "flutterwave";
         const paymentProvider = getPaymentProvider(provider);
         if (!paymentProvider.createVirtualAccount) {
           throw new Error(`${provider} does not support virtual account creation`);
@@ -289,6 +304,7 @@ adminRouter.post("/virtual-accounts/generate", requireAdmin, async (req, res) =>
           lastName,
           phone: u.phone || undefined,
           bvn: u.bvn || undefined,
+          nin: u.nin || undefined,
           reference,
           narration: "Thrift Solution Virtual Account",
         });
@@ -305,6 +321,8 @@ adminRouter.post("/virtual-accounts/generate", requireAdmin, async (req, res) =>
           providerRef: result.providerRef,
           isPermanent: true,
           bvn: u.bvn || undefined,
+          nin: u.nin || undefined,
+          accountName: verifiedName || undefined,
         });
         created++;
       } catch (err) {

@@ -79,3 +79,27 @@ export async function setTwoFactorEnabled(userId: string, enabled: boolean) {
 export async function updatePasswordHash(userId: string, passwordHash: string) {
   return prisma.user.update({ where: { id: userId }, data: { passwordHash } });
 }
+
+export async function setUserIdentity(userId: string, data: { bvn?: string; nin?: string }) {
+  return prisma.user.update({
+    where: { id: userId },
+    data: {
+      ...(data.bvn !== undefined ? { bvn: data.bvn } : {}),
+      ...(data.nin !== undefined ? { nin: data.nin } : {}),
+    },
+  });
+}
+
+export async function setRegistrationProgress(
+  userId: string,
+  data: { step?: number; feePaid?: boolean; completedAt?: Date | null }
+) {
+  return prisma.user.update({
+    where: { id: userId },
+    data: {
+      ...(data.step !== undefined ? { registrationStep: data.step } : {}),
+      ...(data.feePaid !== undefined ? { registrationFeePaid: data.feePaid } : {}),
+      ...(data.completedAt !== undefined ? { registrationCompletedAt: data.completedAt } : {}),
+    },
+  });
+}

@@ -243,3 +243,25 @@ export async function getKycAuditLogs(kycId: string) {
     orderBy: { createdAt: "desc" },
   });
 }
+
+/**
+ * Single source of truth for whether a user may be issued a virtual account.
+ *
+ * A virtual account must NEVER be created unless the user's KYC is verified
+ * (or approved) AND both a BVN and NIN are present and non-empty. This blocks
+ * document-only approvals (e.g. voter_card) that lack a verified BVN/NIN.
+ */
+export function isKycVerifiedForVirtualAccount(kyc: {
+  status: string;
+  bvn?: string | null;
+  nin?: string | null;
+} | null): boolean {
+  return (
+    !!kyc &&
+    (kyc.status === "verified" || kyc.status === "approved") &&
+    !!kyc.bvn &&
+    kyc.bvn.trim() !== "" &&
+    !!kyc.nin &&
+    kyc.nin.trim() !== ""
+  );
+}

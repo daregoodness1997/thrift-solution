@@ -3,8 +3,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { config, BrandConfig } from "@thrift/config";
 import { Card, Button } from "@thrift/ui";
+import type { NotificationPreferences } from "@thrift/types";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
+import { fetchNotificationPreferences, updateNotificationPreferences } from "@/lib/notifications";
 
 const fallback = config;
 
@@ -13,7 +15,7 @@ export default function SettingsPage() {
   const [cfg, setCfg] = useState<BrandConfig>(fallback);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [notifications, setNotifications] = useState(true);
+  const [prefs, setPrefs] = useState<NotificationPreferences | null>(null);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -40,6 +42,22 @@ export default function SettingsPage() {
   }, [token, API_URL]);
 
   useEffect(() => { fetchProfile(); }, [fetchProfile]);
+
+  useEffect(() => {
+    if (!token) return;
+    fetchNotificationPreferences().then(setPrefs).catch(() => {});
+  }, [token]);
+
+  const handlePref = async (key: "inApp" | "email" | "sms", value: boolean) => {
+    if (!prefs) return;
+    setPrefs({ ...prefs, [key]: value });
+    try {
+      const updated = await updateNotificationPreferences({ [key]: value });
+      setPrefs(updated);
+    } catch {
+      setPrefs(prefs);
+    }
+  };
 
   function handleSave() {
     setSaved(true);
@@ -74,26 +92,39 @@ export default function SettingsPage() {
 
       <Card padding="1.5rem" style={{ marginBottom: "1rem" }}>
         <h3 style={{ fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#999", fontWeight: 700, marginBottom: "1rem" }}>Notifications</h3>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.75rem 0", borderBottom: "1px solid #F0F0F0" }}>
-          <div>
-            <span style={{ fontSize: "12px", fontWeight: 500, color: "#2D2D2D", display: "block" }}>Email Notifications</span>
-            <span style={{ fontSize: "11px", color: "#717171", fontWeight: 300 }}>Receive updates about your activity and contributions.</span>
-          </div>
-          <button onClick={() => setNotifications(!notifications)} style={{ width: "40px", height: "22px", borderRadius: "11px", border: "none", backgroundColor: notifications ? cfg.colors.primary : "#E5E7EB", cursor: "pointer", position: "relative", transition: "background 0.2s" }}>
-            <div style={{ width: "18px", height: "18px", borderRadius: "50%", backgroundColor: "#ffffff", position: "absolute", top: "2px", left: notifications ? "20px" : "2px", transition: "left 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }} />
-          </button>
-        </div>
-        <div style={{ padding: "0.75rem 0" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div>
-              <span style={{ fontSize: "12px", fontWeight: 500, color: "#2D2D2D", display: "block" }}>Contribution Alerts</span>
-              <span style={{ fontSize: "11px", color: "#717171", fontWeight: 300 }}>Get notified when your circles reach new milestones or payouts.</span>
+        {prefs ? (
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.75rem 0", borderBottom: "1px solid #F0F0F0" }}>
+              <div>
+                <span style={{ fontSize: "12px", fontWeight: 500, color: "#2D2D2D", display: "block" }}>In-App Notifications</span>
+                <span style={{ fontSize: "11px", color: "#717171", fontWeight: 300 }}>See updates inside your dashboard.</span>
+              </div>
+              <button onClick={() => handlePref("inApp", !prefs.inApp)} aria-label="Toggle in-app notifications" style={{ width: "40px", height: "22px", borderRadius: "11px", border: "none", backgroundColor: prefs.inApp ? cfg.colors.primary : "#E5E7EB", cursor: "pointer", position: "relative", transition: "background 0.2s" }}>
+                <div style={{ width: "18px", height: "18px", borderRadius: "50%", backgroundColor: "#ffffff", position: "absolute", top: "2px", left: prefs.inApp ? "20px" : "2px", transition: "left 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }} />
+              </button>
             </div>
-            <button style={{ width: "40px", height: "22px", borderRadius: "11px", border: "none", backgroundColor: cfg.colors.primary, cursor: "pointer", position: "relative" }}>
-              <div style={{ width: "18px", height: "18px", borderRadius: "50%", backgroundColor: "#ffffff", position: "absolute", top: "2px", left: "20px", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }} />
-            </button>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.75rem 0", borderBottom: "1px solid #F0F0F0" }}>
+              <div>
+                <span style={{ fontSize: "12px", fontWeight: 500, color: "#2D2D2D", display: "block" }}>Email Notifications</span>
+                <span style={{ fontSize: "11px", color: "#717171", fontWeight: 300 }}>Receive updates about your activity and contributions.</span>
+              </div>
+              <button onClick={() => handlePref("email", !prefs.email)} aria-label="Toggle email notifications" style={{ width: "40px", height: "22px", borderRadius: "11px", border: "none", backgroundColor: prefs.email ? cfg.colors.primary : "#E5E7EB", cursor: "pointer", position: "relative", transition: "background 0.2s" }}>
+                <div style={{ width: "18px", height: "18px", borderRadius: "50%", backgroundColor: "#ffffff", position: "absolute", top: "2px", left: prefs.email ? "20px" : "2px", transition: "left 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }} />
+              </button>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.75rem 0" }}>
+              <div>
+                <span style={{ fontSize: "12px", fontWeight: 500, color: "#2D2D2D", display: "block" }}>SMS Alerts</span>
+                <span style={{ fontSize: "11px", color: "#717171", fontWeight: 300 }}>Get critical alerts sent to your phone.</span>
+              </div>
+              <button onClick={() => handlePref("sms", !prefs.sms)} aria-label="Toggle SMS alerts" style={{ width: "40px", height: "22px", borderRadius: "11px", border: "none", backgroundColor: prefs.sms ? cfg.colors.primary : "#E5E7EB", cursor: "pointer", position: "relative", transition: "background 0.2s" }}>
+                <div style={{ width: "18px", height: "18px", borderRadius: "50%", backgroundColor: "#ffffff", position: "absolute", top: "2px", left: prefs.sms ? "20px" : "2px", transition: "left 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }} />
+              </button>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div style={{ fontSize: "12px", color: "#999", padding: "0.5rem 0" }}>Loading preferences…</div>
+        )}
       </Card>
 
       <Card padding="1.5rem" style={{ marginBottom: "1rem" }}>

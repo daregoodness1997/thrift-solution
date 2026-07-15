@@ -23,7 +23,7 @@ export function SiteHeader() {
   return (
     <Header
       nav={nav}
-      actions={<Button size="sm">Join a Circle</Button>}
+      actions={<Button size="sm" onClick={() => (window.location.href = "/register")}>Join a Circle</Button>}
     />
   );
 }

@@ -40,7 +40,7 @@ function StepIndicator({ step }: { step: number }) {
 
 const inputStyle: React.CSSProperties = {
   width: "100%", padding: "0.6875rem 0.875rem",
-  borderRadius: "0.625rem", border: "1px solid #E5E7EB", fontSize: "13px",
+  borderRadius: "0.625rem", border: "1px solid #E5E7EB", fontSize: "14px",
   outline: "none", transition: "all 0.2s ease", boxSizing: "border-box", color: "#1A1A1A",
 };
 
@@ -106,7 +106,7 @@ const icons = {
   eyeOff: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" /></svg>,
 };
 
-export default function RegisterForm() {
+export default function WebsiteRegisterPage() {
   const searchParams = useSearchParams();
   const [step, setStep] = useState(1);
   const [token, setToken] = useState<string | null>(null);
@@ -127,7 +127,6 @@ export default function RegisterForm() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
   const [virtualAccount, setVirtualAccount] = useState<{ accountNumber: string; bankName: string; bankCode?: string } | null>(null);
 
   const passwordStrength = (() => {
@@ -149,11 +148,11 @@ export default function RegisterForm() {
     if (ref) setReferralCode(ref);
     const reference = searchParams.get("reference");
     if (reference) {
-      const storedToken = localStorage.getItem("token");
-      if (storedToken) {
-        setToken(storedToken);
+      const stored = localStorage.getItem("token");
+      if (stored) {
+        setToken(stored);
         setStep(3);
-        verifyPayment(reference, storedToken);
+        verifyPayment(reference, stored);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -180,14 +179,12 @@ export default function RegisterForm() {
     }
   }, []);
 
-  // ── Step 1: Basic ──────────────────────────────────────────────────
   const handleBasic = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     if (!name || !email || !password) return setError("Name, email, and password are required");
     if (password.length < 6) return setError("Password must be at least 6 characters");
     if (password !== confirmPassword) return setError("Passwords do not match");
-
     setLoading(true);
     try {
       const res = await fetch(`${API_URL}/api/registration/basic`, {
@@ -196,9 +193,8 @@ export default function RegisterForm() {
         body: JSON.stringify({ name, email, password, phone, referralCode: referralCode.trim() || undefined }),
       });
       const data = await res.json();
-      if (!data.success) {
-        setError(data.error || "Registration failed");
-      } else {
+      if (!data.success) setError(data.error || "Registration failed");
+      else {
         setUserId(data.data.userId);
         setOtpSent(true);
         toast.success("Verification code sent to your email");
@@ -220,9 +216,8 @@ export default function RegisterForm() {
         body: JSON.stringify({ userId, code: otp }),
       });
       const data = await res.json();
-      if (!data.success) {
-        setError(data.error || "Verification failed");
-      } else {
+      if (!data.success) setError(data.error || "Verification failed");
+      else {
         localStorage.setItem("token", data.data.token);
         setToken(data.data.token);
         setStep(2);
@@ -234,7 +229,6 @@ export default function RegisterForm() {
     setLoading(false);
   };
 
-  // ── Step 2: Payment ────────────────────────────────────────────────
   const handlePay = async () => {
     if (!token) return setError("Please verify your email first");
     setLoading(true);
@@ -265,7 +259,6 @@ export default function RegisterForm() {
     setLoading(false);
   };
 
-  // ── Step 3: KYC ────────────────────────────────────────────────────
   const handleKyc = async () => {
     if (!/^\d{11}$/.test(bvn)) return setError("BVN must be 11 digits");
     if (!/^\d{11}$/.test(nin)) return setError("NIN must be 11 digits");
@@ -278,9 +271,8 @@ export default function RegisterForm() {
         body: JSON.stringify({ bvn, nin }),
       });
       const data = await res.json();
-      if (!data.success) {
-        setError(data.error || "KYC verification failed");
-      } else {
+      if (!data.success) setError(data.error || "KYC verification failed");
+      else {
         setVirtualAccount(data.data.virtualAccount || null);
         setStep(4);
         toast.success("Account created & verified!");
@@ -293,34 +285,30 @@ export default function RegisterForm() {
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", backgroundColor: "#FDFDFC" }}>
-      {/* Left Panel */}
       <div style={{
         flex: "0 0 45%",
         background: `linear-gradient(160deg, ${config.colors.secondary} 0%, ${config.colors.primary} 50%, #1a4a30 100%)`,
         display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center",
         padding: "3rem", position: "relative", overflow: "hidden",
       }}>
-        <div style={{ position: "absolute", top: "-10%", right: "-10%", width: "300px", height: "300px", borderRadius: "50%", border: "1px solid rgba(255,255,255,0.06)" }} />
-        <div style={{ position: "absolute", bottom: "-15%", left: "-10%", width: "400px", height: "400px", borderRadius: "50%", border: "1px solid rgba(255,255,255,0.04)" }} />
+        <a href="/" style={{ position: "absolute", top: "2rem", left: "2rem", textDecoration: "none" }}>
+          <span style={{ fontSize: "1.5rem", fontWeight: 800, letterSpacing: "-0.05em", color: "#ffffff" }}>
+            {config.name.toUpperCase().replace(/\s+/g, "")}
+          </span>
+        </a>
         <div style={{ position: "relative", zIndex: 1, textAlign: "center", maxWidth: "320px" }}>
-          <a href="/" style={{ textDecoration: "none", display: "block", marginBottom: "3rem" }}>
-            <span style={{ fontSize: "2rem", fontWeight: 800, letterSpacing: "-0.05em", color: "#ffffff" }}>
-              {config.name.toUpperCase().replace(/\s+/g, "")}
-            </span>
-          </a>
           <h1 style={{ fontSize: "clamp(1.5rem, 3vw, 2rem)", fontWeight: 300, color: "#ffffff", lineHeight: 1.3, marginBottom: "1rem" }}>
-            Start your<br />
+            Join {config.name}<br />
             <span style={{ fontStyle: "italic", fontFamily: "'Playfair Display', serif", fontWeight: 500, color: config.colors.accent }}>
-              savings journey
+              in three easy steps
             </span>
           </h1>
           <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.6)", lineHeight: 1.6 }}>
-            Three quick steps: create your account, pay the one-time ₦{REG_FEE.toLocaleString()} registration fee, and verify your identity to unlock your virtual account.
+            Create your account, pay the one-time ₦{REG_FEE.toLocaleString()} registration fee, and verify your BVN & NIN to unlock your virtual account.
           </p>
         </div>
       </div>
 
-      {/* Right Panel */}
       <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem", overflowY: "auto" }}>
         <div style={{ width: "100%", maxWidth: "420px" }}>
           {step <= 3 && <StepIndicator step={step} />}
@@ -341,16 +329,15 @@ export default function RegisterForm() {
           </div>
 
           {error && (
-            <div style={{ padding: "0.75rem 1rem", borderRadius: "0.75rem", backgroundColor: "#FEF2F2", border: "1px solid #FECACA", color: "#DC2626", fontSize: "12px", fontWeight: 500, marginBottom: "1.25rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <div style={{ padding: "0.75rem 1rem", borderRadius: "0.75rem", backgroundColor: "#FEF2F2", border: "1px solid #FECACA", color: "#DC2626", fontSize: "12px", fontWeight: 500, marginBottom: "1.25rem" }}>
               {error}
             </div>
           )}
 
-          {/* Step 1 */}
           {step === 1 && !otpSent && (
             <form onSubmit={handleBasic}>
-              <TextField label="Full Name" icon={icons.user} type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Adaeze Nwankwo" autoComplete="name" />
-              <TextField label="Email Address" icon={icons.mail} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="adaeze@email.com" autoComplete="email" />
+              <TextField label="Full Name" icon={icons.user} type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Adaeze Nwankwo" />
+              <TextField label="Email Address" icon={icons.mail} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="adaeze@email.com" />
               <TextField label="Phone (optional)" icon={icons.phone} type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+234..." />
 
               <div style={{ marginBottom: "1rem" }}>
@@ -386,13 +373,11 @@ export default function RegisterForm() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Re-enter password"
-                autoComplete="new-password"
                 invalid={!!(confirmPassword && password !== confirmPassword)}
                 rightSlot={confirmPassword && password === confirmPassword ? icons.check : undefined}
               />
 
-              {/* Referral Code */}
-              <div style={{ marginBottom: "1.5rem", padding: "0.875rem", borderRadius: "0.625rem", backgroundColor: referralCode ? `${config.colors.primary}06` : "#FAFAFA", border: `1px solid ${referralCode ? `${config.colors.primary}20` : "#F3F4F6"}`, transition: "all 0.2s ease" }}>
+              <div style={{ marginBottom: "1.5rem", padding: "0.875rem", borderRadius: "0.625rem", backgroundColor: referralCode ? `${config.colors.primary}06` : "#FAFAFA", border: `1px solid ${referralCode ? `${config.colors.primary}20` : "#F3F4F6"}` }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: referralCode ? "0.5rem" : 0 }}>
                   <span style={{ fontSize: "12px", fontWeight: 500, color: "#374151", display: "flex", alignItems: "center", gap: "0.375rem" }}>
                     {icons.gift}
@@ -406,18 +391,16 @@ export default function RegisterForm() {
                   )}
                 </div>
                 {referralCode && (
-                  <div style={{ position: "relative" }}>
-                    <input type="text" value={referralCode} onChange={(e) => setReferralCode(e.target.value)} placeholder="e.g. ADAEZE-8K3M"
-                      style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "0.5rem", border: "1px solid #E5E7EB", fontSize: "12px", fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, letterSpacing: "0.05em", outline: "none", boxSizing: "border-box", color: config.colors.primary, backgroundColor: "#ffffff" }}
-                      onFocus={(e) => { e.currentTarget.style.borderColor = config.colors.primary; }}
-                      onBlur={(e) => { e.currentTarget.style.borderColor = "#E5E7EB"; }}
-                    />
-                  </div>
+                  <input type="text" value={referralCode} onChange={(e) => setReferralCode(e.target.value)} placeholder="e.g. ADAEZE-8K3M"
+                    style={{ width: "100%", padding: "0.5rem 0.75rem", borderRadius: "0.5rem", border: "1px solid #E5E7EB", fontSize: "12px", fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, letterSpacing: "0.05em", outline: "none", boxSizing: "border-box", color: config.colors.primary, backgroundColor: "#ffffff" }}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = config.colors.primary; }}
+                    onBlur={(e) => { e.currentTarget.style.borderColor = "#E5E7EB"; }}
+                  />
                 )}
               </div>
 
               <button type="submit" disabled={loading}
-                style={{ width: "100%", padding: "0.75rem", borderRadius: "0.625rem", fontSize: "13px", fontWeight: 600, cursor: loading ? "not-allowed" : "pointer", backgroundColor: config.colors.primary, color: "#ffffff", border: "none", opacity: loading ? 0.6 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
+                style={{ width: "100%", padding: "0.75rem", borderRadius: "0.625rem", fontSize: "14px", fontWeight: 600, cursor: loading ? "not-allowed" : "pointer", backgroundColor: config.colors.primary, color: "#ffffff", border: "none", opacity: loading ? 0.6 : 1 }}>
                 {loading ? "Creating account..." : "Continue"}
               </button>
             </form>
@@ -427,16 +410,12 @@ export default function RegisterForm() {
             <div>
               <TextField label="Verification Code" type="text" value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="6-digit code from email" />
               <button onClick={handleVerifyEmail} disabled={loading}
-                style={{ width: "100%", padding: "0.75rem", borderRadius: "0.625rem", fontSize: "13px", fontWeight: 600, cursor: loading ? "not-allowed" : "pointer", backgroundColor: config.colors.primary, color: "#ffffff", border: "none", opacity: loading ? 0.6 : 1 }}>
+                style={{ width: "100%", padding: "0.75rem", borderRadius: "0.625rem", fontSize: "14px", fontWeight: 600, cursor: loading ? "not-allowed" : "pointer", backgroundColor: config.colors.primary, color: "#ffffff", border: "none", opacity: loading ? 0.6 : 1 }}>
                 {loading ? "Verifying..." : "Verify Email & Continue"}
               </button>
-              <p style={{ fontSize: "11px", color: "#9CA3AF", marginTop: "0.75rem", textAlign: "center" }}>
-                Didn't get it? Check spam or contact support.
-              </p>
             </div>
           )}
 
-          {/* Step 2 */}
           {step === 2 && (
             <div>
               <div style={{ padding: "1.25rem", backgroundColor: "#F9FAFB", borderRadius: "12px", marginBottom: "1.5rem", textAlign: "center" }}>
@@ -444,59 +423,42 @@ export default function RegisterForm() {
                 <div style={{ fontSize: "1.75rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: config.colors.primary, marginTop: "0.25rem" }}>
                   ₦{REG_FEE.toLocaleString()}
                 </div>
-                <p style={{ fontSize: "11px", color: "#6B7280", marginTop: "0.5rem" }}>
-                  One-time fee. Secured by Flutterwave (card, bank transfer, USSD).
-                </p>
+                <p style={{ fontSize: "11px", color: "#6B7280", marginTop: "0.5rem" }}>One-time fee. Secured by Flutterwave.</p>
               </div>
               <button onClick={handlePay} disabled={loading}
-                style={{ width: "100%", padding: "0.75rem", borderRadius: "0.625rem", fontSize: "13px", fontWeight: 600, cursor: loading ? "not-allowed" : "pointer", backgroundColor: config.colors.primary, color: "#ffffff", border: "none", opacity: loading ? 0.6 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
+                style={{ width: "100%", padding: "0.75rem", borderRadius: "0.625rem", fontSize: "14px", fontWeight: 600, cursor: loading ? "not-allowed" : "pointer", backgroundColor: config.colors.primary, color: "#ffffff", border: "none", opacity: loading ? 0.6 : 1 }}>
                 {loading ? "Redirecting..." : `Pay ₦${REG_FEE.toLocaleString()}`}
               </button>
             </div>
           )}
 
-          {/* Step 3 */}
           {step === 3 && (
             <div>
               <TextField label="BVN (11 digits)" type="text" value={bvn} onChange={(e) => setBvn(e.target.value.replace(/\D/g, "").slice(0, 11))} placeholder="12345678901" inputMode="numeric" />
               <TextField label="NIN (11 digits)" type="text" value={nin} onChange={(e) => setNin(e.target.value.replace(/\D/g, "").slice(0, 11))} placeholder="98765432109" inputMode="numeric" />
               <button onClick={handleKyc} disabled={loading}
-                style={{ width: "100%", padding: "0.75rem", borderRadius: "0.625rem", fontSize: "13px", fontWeight: 600, cursor: loading ? "not-allowed" : "pointer", backgroundColor: config.colors.primary, color: "#ffffff", border: "none", opacity: loading ? 0.6 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
+                style={{ width: "100%", padding: "0.75rem", borderRadius: "0.625rem", fontSize: "14px", fontWeight: 600, cursor: loading ? "not-allowed" : "pointer", backgroundColor: config.colors.primary, color: "#ffffff", border: "none", opacity: loading ? 0.6 : 1 }}>
                 {loading ? "Verifying with CreditChek..." : "Verify & Finish"}
               </button>
             </div>
           )}
 
-          {/* Step 4 — success */}
           {step === 4 && (
             <div>
               <div style={{ padding: "1.5rem", backgroundColor: "#ECFDF5", borderRadius: "12px", marginBottom: "1.5rem", border: "1px solid #A7F3D0" }}>
                 <div style={{ fontSize: "13px", fontWeight: 600, color: "#059669", marginBottom: "0.75rem" }}>✓ Identity verified & KYC approved</div>
                 {virtualAccount ? (
                   <div style={{ fontSize: "12px", color: "#065F46" }}>
-                    <div style={{ marginBottom: "0.5rem" }}>
-                      <span style={{ color: "#6B7280" }}>Virtual Account: </span>
-                      <strong style={{ fontFamily: "'JetBrains Mono', monospace" }}>{virtualAccount.accountNumber}</strong>
-                    </div>
+                    <div style={{ marginBottom: "0.5rem" }}><span style={{ color: "#6B7280" }}>Virtual Account: </span><strong style={{ fontFamily: "'JetBrains Mono', monospace" }}>{virtualAccount.accountNumber}</strong></div>
                     <div><span style={{ color: "#6B7280" }}>Bank: </span><strong>{virtualAccount.bankName}</strong></div>
                   </div>
                 ) : (
                   <div style={{ fontSize: "12px", color: "#065F46" }}>Your virtual account will be created shortly.</div>
                 )}
               </div>
-              <button onClick={() => { window.location.href = "/"; }}
-                style={{ width: "100%", padding: "0.75rem", borderRadius: "0.625rem", fontSize: "13px", fontWeight: 600, cursor: "pointer", backgroundColor: config.colors.primary, color: "#ffffff", border: "none" }}>
+              <a href="/dashboard" style={{ display: "block", width: "100%", padding: "0.75rem", borderRadius: "0.625rem", fontSize: "14px", fontWeight: 600, textAlign: "center", textDecoration: "none", backgroundColor: config.colors.primary, color: "#ffffff" }}>
                 Go to Dashboard
-              </button>
-            </div>
-          )}
-
-          {step <= 3 && (
-            <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
-              <span style={{ fontSize: "13px", color: "#717171" }}>
-                Already have an account?{" "}
-                <a href="/login" style={{ color: config.colors.primary, fontWeight: 600, textDecoration: "none" }}>Sign in</a>
-              </span>
+              </a>
             </div>
           )}
         </div>

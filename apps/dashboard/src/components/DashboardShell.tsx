@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { config } from "@thrift/config";
 import { useAuth } from "@/lib/auth-context";
+import { NotificationBell } from "@/components/NotificationBell";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -275,11 +276,14 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               {isStaffRole(user.role) ? "Admin Portal" : "Member Portal"}
             </p>
           </div>
-          {isMobile && (
-            <button onClick={() => setSidebarOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", padding: "0.25rem", color: "#717171" }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
-            </button>
-          )}
+          <div style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+            <NotificationBell />
+            {isMobile && (
+              <button onClick={() => setSidebarOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", padding: "0.25rem", color: "#717171" }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+              </button>
+            )}
+          </div>
         </div>
 
         <nav style={{ flex: 1, padding: "0.75rem" }}>
@@ -375,6 +379,9 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
             </button>
             <span style={{ fontSize: "1rem", fontWeight: 800, letterSpacing: "-0.05em", color: config.colors.primary }}>{config.name.toUpperCase().replace(/\s+/g, "")}</span>
+            <div style={{ marginLeft: "auto" }}>
+              <NotificationBell />
+            </div>
           </div>
         )}
         {children}

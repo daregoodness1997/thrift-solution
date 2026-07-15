@@ -2,7 +2,7 @@ export { prisma, softDelete } from "./services/prisma";
 
 export { getConfig, saveConfig } from "./services/config";
 
-export { findUserByEmail, findUserById, createUser, setEmailVerified, setPhoneVerified, setTotpSecret, setTwoFactorEnabled, updatePasswordHash } from "./services/users";
+export { findUserByEmail, findUserById, createUser, setEmailVerified, setPhoneVerified, setTotpSecret, setTwoFactorEnabled, updatePasswordHash, setUserIdentity, setRegistrationProgress } from "./services/users";
 
 export {
   createVerificationToken,
@@ -56,6 +56,7 @@ export {
   addKycDocument,
   getKycDocuments,
   getKycAuditLogs,
+  isKycVerifiedForVirtualAccount,
 } from "./services/kyc";
 
 export { getUserProfile, updateUserProfile } from "./services/user-profile";
@@ -169,6 +170,7 @@ export {
   deleteVirtualAccount,
   getUsersWithoutVirtualAccounts,
   hasVirtualAccountForProvider,
+  hasVirtualAccount,
 } from "./services/virtual-accounts";
 
 export { createAuditLog, getAuditLogs } from "./services/audit";

@@ -7,6 +7,7 @@ import { Router } from "express";
 import { healthRouter } from "./routes/health";
 import { configRouter } from "./routes/config";
 import { authRouter } from "./routes/auth";
+import { registrationRouter } from "./routes/registration";
 import { donationsRouter } from "./routes/donations";
 import { groupsRouter } from "./routes/groups";
 import { referralsRouter } from "./routes/referrals";
@@ -35,7 +36,14 @@ const PORT = process.env.PORT || 4000;
 const LOCAL_UPLOAD_DIR = process.env.LOCAL_UPLOAD_DIR || './uploads';
 
 app.use(cors());
-app.use(express.json({ limit: "10mb" }));
+app.use(
+  express.json({
+    limit: "10mb",
+    verify: (req, _res, buf) => {
+      (req as unknown as { rawBody?: Buffer }).rawBody = buf;
+    },
+  }),
+);
 
 app.use("/uploads", express.static(path.resolve(LOCAL_UPLOAD_DIR), {
   maxAge: "1d",
@@ -45,6 +53,7 @@ app.use("/uploads", express.static(path.resolve(LOCAL_UPLOAD_DIR), {
 app.use("/api/health", healthRouter);
 app.use("/api/config", configRouter);
 app.use("/api/auth", authRouter);
+app.use("/api/registration", registrationRouter);
 app.use("/api/donations", donationsRouter);
 app.use("/api/groups", groupsRouter);
 app.use("/api/referrals", referralsRouter);
