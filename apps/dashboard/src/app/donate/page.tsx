@@ -12,8 +12,13 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const presetAmounts = [5000, 10000, 25000, 50000, 100000];
 
 const itemCategories = [
-  "Clothing", "Electronics", "Food & Groceries", "Household Items",
-  "Books & Supplies", "Health & Wellness", "Other",
+  "Clothing",
+  "Electronics",
+  "Food & Groceries",
+  "Household Items",
+  "Books & Supplies",
+  "Health & Wellness",
+  "Other",
 ];
 
 const itemConditions = ["New", "Like New", "Good", "Fair"];
@@ -28,10 +33,12 @@ export default function DonatePage() {
   const [activeTab, setActiveTab] = useState<"monetary" | "item">("monetary");
   const [amount, setAmount] = useState("");
   const [customAmount, setCustomAmount] = useState("");
-  const [provider, setProvider] = useState("paystack");
+  const [provider, setProvider] = useState("flutterwave");
   const [providers, setProviders] = useState<string[]>([]);
   const [groupId, setGroupId] = useState("");
-  const [groups, setGroups] = useState<{ id: string; name: string; targetAmount: number; currentAmount: number }[]>([]);
+  const [groups, setGroups] = useState<
+    { id: string; name: string; targetAmount: number; currentAmount: number }[]
+  >([]);
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -53,14 +60,18 @@ export default function DonatePage() {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
-      .then((d) => { if (d.success) setProviders(d.data); })
+      .then((d) => {
+        if (d.success) setProviders(d.data);
+      })
       .catch(() => {});
 
     fetch(`${API_URL}/api/groups`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((r) => r.json())
-      .then((d) => { if (d.success) setGroups(d.data); })
+      .then((d) => {
+        if (d.success) setGroups(d.data);
+      })
       .catch(() => {});
   }, [token]);
 
@@ -122,7 +133,11 @@ export default function DonatePage() {
       setError("Image file size must be less than 10MB");
       return;
     }
-    if (!["image/jpeg", "image/png", "image/webp", "image/gif"].includes(file.type)) {
+    if (
+      !["image/jpeg", "image/png", "image/webp", "image/gif"].includes(
+        file.type,
+      )
+    ) {
       setError("Only JPEG, PNG, WebP, and GIF files are allowed");
       return;
     }
@@ -206,7 +221,9 @@ export default function DonatePage() {
               {activeTab === "monetary" ? "\uD83C\uDF81" : "\uD83C\uDF8D"}
             </div>
             <h2 className="mb-2 text-2xl font-semibold text-brand-dark">
-              {activeTab === "monetary" ? "Thank you for your donation!" : "Item donation submitted!"}
+              {activeTab === "monetary"
+                ? "Thank you for your donation!"
+                : "Item donation submitted!"}
             </h2>
             <p className="mb-6 text-[14px] leading-[1.6] text-gray-500">
               {activeTab === "monetary"
@@ -214,10 +231,20 @@ export default function DonatePage() {
                 : "Your item donation has been recorded. Our team will review it shortly."}
             </p>
             <div className="flex items-center justify-center gap-3">
-              <Button onClick={() => { setSuccess(false); setAmount(""); setCustomAmount(""); setItemName(""); }}>
+              <Button
+                onClick={() => {
+                  setSuccess(false);
+                  setAmount("");
+                  setCustomAmount("");
+                  setItemName("");
+                }}
+              >
                 Make Another Donation
               </Button>
-              <a href="/donations" className="inline-flex items-center rounded-full border border-gray-100 bg-white px-6 py-3 text-[14px] font-semibold text-gray-500 no-underline transition-all duration-200">
+              <a
+                href="/donations"
+                className="inline-flex items-center rounded-full border border-gray-100 bg-white px-6 py-3 text-[14px] font-semibold text-gray-500 no-underline transition-all duration-200"
+              >
                 View History
               </a>
             </div>
@@ -241,7 +268,10 @@ export default function DonatePage() {
           {(["monetary", "item"] as const).map((tab) => (
             <button
               key={tab}
-              onClick={() => { setActiveTab(tab); setError(""); }}
+              onClick={() => {
+                setActiveTab(tab);
+                setError("");
+              }}
               style={{
                 flex: 1,
                 padding: "0.625rem 1rem",
@@ -253,10 +283,13 @@ export default function DonatePage() {
                 transition: "all 0.2s ease",
                 backgroundColor: activeTab === tab ? "#ffffff" : "transparent",
                 color: activeTab === tab ? config.colors.primary : "#717171",
-                boxShadow: activeTab === tab ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
+                boxShadow:
+                  activeTab === tab ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
               }}
             >
-              {tab === "monetary" ? "\uD83D\uDCB3 Monetary" : "\uD83C\uDFFC\uFE0F Item Donation"}
+              {tab === "monetary"
+                ? "\uD83D\uDCB3 Monetary"
+                : "\uD83C\uDFFC\uFE0F Item Donation"}
             </button>
           ))}
         </div>
@@ -285,7 +318,10 @@ export default function DonatePage() {
                 >
                   <option value="">General Fund</option>
                   {groups.map((g) => (
-                    <option key={g.id} value={g.id}>{g.name} — ₦{g.currentAmount.toLocaleString()} / ₦{g.targetAmount.toLocaleString()}</option>
+                    <option key={g.id} value={g.id}>
+                      {g.name} — ₦{g.currentAmount.toLocaleString()} / ₦
+                      {g.targetAmount.toLocaleString()}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -299,13 +335,22 @@ export default function DonatePage() {
                 {presetAmounts.map((preset) => (
                   <button
                     key={preset}
-                    onClick={() => { setAmount(String(preset)); setCustomAmount(""); }}
+                    onClick={() => {
+                      setAmount(String(preset));
+                      setCustomAmount("");
+                    }}
                     style={{
                       padding: "0.75rem",
                       borderRadius: "0.75rem",
                       border: `1px solid ${amount === String(preset) ? config.colors.primary : "#EAEAEA"}`,
-                      backgroundColor: amount === String(preset) ? `${config.colors.primary}0A` : "#ffffff",
-                      color: amount === String(preset) ? config.colors.primary : "#717171",
+                      backgroundColor:
+                        amount === String(preset)
+                          ? `${config.colors.primary}0A`
+                          : "#ffffff",
+                      color:
+                        amount === String(preset)
+                          ? config.colors.primary
+                          : "#717171",
                       fontSize: "13px",
                       fontWeight: 600,
                       fontFamily: "'JetBrains Mono', monospace",
@@ -318,45 +363,25 @@ export default function DonatePage() {
                 ))}
               </div>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[13px] font-semibold text-gray-400">₦</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[13px] font-semibold text-gray-400">
+                  ₦
+                </span>
                 <input
                   type="number"
                   placeholder="Custom amount"
                   value={customAmount}
-                  onChange={(e) => { setCustomAmount(e.target.value); setAmount(""); }}
+                  onChange={(e) => {
+                    setCustomAmount(e.target.value);
+                    setAmount("");
+                  }}
                   className="w-full rounded-xl border border-gray-100 p-3 pl-7 font-mono text-[13px] outline-none transition-colors"
-                  onFocus={(e) => { e.currentTarget.style.borderColor = config.colors.primary; }}
-                  onBlur={(e) => { e.currentTarget.style.borderColor = "#EAEAEA"; }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = config.colors.primary;
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = "#EAEAEA";
+                  }}
                 />
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <label className="mb-2 block text-[12px] font-semibold text-brand-dark">
-                Payment Method
-              </label>
-              <div className="flex gap-2">
-                {providers.map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => setProvider(p)}
-                    style={{
-                      flex: 1,
-                      padding: "0.625rem",
-                      borderRadius: "0.75rem",
-                      border: `1px solid ${provider === p ? config.colors.primary : "#EAEAEA"}`,
-                      backgroundColor: provider === p ? `${config.colors.primary}0A` : "#ffffff",
-                      color: provider === p ? config.colors.primary : "#717171",
-                      fontSize: "12px",
-                      fontWeight: 600,
-                      textTransform: "capitalize",
-                      cursor: "pointer",
-                      transition: "all 0.2s ease",
-                    }}
-                  >
-                    {p}
-                  </button>
-                ))}
               </div>
             </div>
 
@@ -370,15 +395,22 @@ export default function DonatePage() {
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
                 className="w-full resize-y rounded-xl border border-gray-100 p-3 text-[13px] font-sans outline-none transition-colors"
-                onFocus={(e) => { e.currentTarget.style.borderColor = config.colors.primary; }}
-                onBlur={(e) => { e.currentTarget.style.borderColor = "#EAEAEA"; }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = config.colors.primary;
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = "#EAEAEA";
+                }}
               />
             </div>
 
             <Button
               onClick={handleMonetaryDonation}
               disabled={loading || (!amount && !customAmount)}
-              className="w-full justify-center" style={{ opacity: loading || (!amount && !customAmount) ? 0.5 : 1 }}
+              className="w-full justify-center"
+              style={{
+                opacity: loading || (!amount && !customAmount) ? 0.5 : 1,
+              }}
             >
               {loading ? "Processing..." : "Donate Now"}
             </Button>
@@ -387,7 +419,7 @@ export default function DonatePage() {
       ) : (
         <FadeInUp delay={300}>
           <Card padding="1.5rem">
-              <div className="mb-5">
+            <div className="mb-5">
               <label className="mb-2 block text-[12px] font-semibold text-brand-dark">
                 Item Name *
               </label>
@@ -397,8 +429,12 @@ export default function DonatePage() {
                 value={itemName}
                 onChange={(e) => setItemName(e.target.value)}
                 className="w-full rounded-xl border border-gray-100 p-3 text-[13px] outline-none transition-colors"
-                onFocus={(e) => { e.currentTarget.style.borderColor = config.colors.primary; }}
-                onBlur={(e) => { e.currentTarget.style.borderColor = "#EAEAEA"; }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = config.colors.primary;
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = "#EAEAEA";
+                }}
               />
             </div>
 
@@ -413,7 +449,11 @@ export default function DonatePage() {
                   className="w-full cursor-pointer rounded-xl border border-gray-100 bg-white p-3 text-[13px] text-brand-dark outline-none"
                 >
                   <option value="">Select category</option>
-                  {itemCategories.map((c) => <option key={c} value={c}>{c}</option>)}
+                  {itemCategories.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div>
@@ -426,12 +466,16 @@ export default function DonatePage() {
                   className="w-full cursor-pointer rounded-xl border border-gray-100 bg-white p-3 text-[13px] text-brand-dark outline-none"
                 >
                   <option value="">Select condition</option>
-                  {itemConditions.map((c) => <option key={c} value={c}>{c}</option>)}
+                  {itemConditions.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
 
-              <div className="mb-5">
+            <div className="mb-5">
               <label className="mb-2 block text-[12px] font-semibold text-brand-dark">
                 Description
               </label>
@@ -441,35 +485,87 @@ export default function DonatePage() {
                 onChange={(e) => setItemDescription(e.target.value)}
                 rows={3}
                 className="w-full resize-y rounded-xl border border-gray-100 p-3 text-[13px] font-sans outline-none transition-colors"
-                onFocus={(e) => { e.currentTarget.style.borderColor = config.colors.primary; }}
-                onBlur={(e) => { e.currentTarget.style.borderColor = "#EAEAEA"; }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = config.colors.primary;
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = "#EAEAEA";
+                }}
               />
             </div>
 
-              <div className="mb-5">
+            <div className="mb-5">
               <label className="mb-2 block text-[12px] font-semibold text-brand-dark">
                 Item Image (optional)
               </label>
-               <input ref={itemImageRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" onChange={handleItemImageSelect} className="hidden" />
+              <input
+                ref={itemImageRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                onChange={handleItemImageSelect}
+                className="hidden"
+              />
               {itemImage ? (
                 <div className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3">
-                  <img src={itemImage.preview} alt="Preview" className="h-16 w-16 rounded-lg object-cover" />
+                  <img
+                    src={itemImage.preview}
+                    alt="Preview"
+                    className="h-16 w-16 rounded-lg object-cover"
+                  />
                   <div className="min-w-0 flex-1">
-                    <span className="block truncate text-[12px] font-medium text-brand-dark">{itemImage.file.name}</span>
-                    <span className="text-[10px] text-emerald-600">{(itemImage.file.size / 1024).toFixed(1)} KB</span>
+                    <span className="block truncate text-[12px] font-medium text-brand-dark">
+                      {itemImage.file.name}
+                    </span>
+                    <span className="text-[10px] text-emerald-600">
+                      {(itemImage.file.size / 1024).toFixed(1)} KB
+                    </span>
                   </div>
-                   <button type="button" onClick={removeItemImage} className="cursor-pointer border-0 bg-none p-1 text-red-600">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M18 6L6 18M6 6l12 12" /></svg>
+                  <button
+                    type="button"
+                    onClick={removeItemImage}
+                    className="cursor-pointer border-0 bg-none p-1 text-red-600"
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path d="M18 6L6 18M6 6l12 12" />
+                    </svg>
                   </button>
                 </div>
               ) : (
-                <button type="button" onClick={() => itemImageRef.current?.click()} className="w-full cursor-pointer rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-6 text-center transition-all duration-200"
-                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = config.colors.primary; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#D1D5DB"; }}
+                <button
+                  type="button"
+                  onClick={() => itemImageRef.current?.click()}
+                  className="w-full cursor-pointer rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-6 text-center transition-all duration-200"
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = config.colors.primary;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = "#D1D5DB";
+                  }}
                 >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth={1.5} className="mx-auto mb-1.5"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-                  <span className="block text-[12px] text-gray-500">Click to upload item image</span>
-                  <span className="mt-1 block text-[10px] text-gray-400">JPEG, PNG, WebP, or GIF up to 10MB</span>
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#9CA3AF"
+                    strokeWidth={1.5}
+                    className="mx-auto mb-1.5"
+                  >
+                    <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                  <span className="block text-[12px] text-gray-500">
+                    Click to upload item image
+                  </span>
+                  <span className="mt-1 block text-[10px] text-gray-400">
+                    JPEG, PNG, WebP, or GIF up to 10MB
+                  </span>
                 </button>
               )}
             </div>
@@ -484,15 +580,20 @@ export default function DonatePage() {
                 value={itemNotes}
                 onChange={(e) => setItemNotes(e.target.value)}
                 className="w-full rounded-xl border border-gray-100 p-3 text-[13px] outline-none transition-colors"
-                onFocus={(e) => { e.currentTarget.style.borderColor = config.colors.primary; }}
-                onBlur={(e) => { e.currentTarget.style.borderColor = "#EAEAEA"; }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = config.colors.primary;
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = "#EAEAEA";
+                }}
               />
             </div>
 
             <Button
               onClick={handleItemDonation}
               disabled={loading || !itemName.trim()}
-              className="w-full justify-center" style={{ opacity: loading || !itemName.trim() ? 0.5 : 1 }}
+              className="w-full justify-center"
+              style={{ opacity: loading || !itemName.trim() ? 0.5 : 1 }}
             >
               {loading ? "Submitting..." : "Submit Item Donation"}
             </Button>
