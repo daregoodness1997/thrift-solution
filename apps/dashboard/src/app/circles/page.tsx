@@ -16,10 +16,14 @@ interface Circle {
   id: string;
   name: string;
   description?: string;
+  cycleType: string;
   amount: number;
+  weeklyAmount?: number | null;
+  totalWeeks?: number | null;
   durationMonths: number;
   interestRateAnnual: number;
   maxAccountsPerUser: number;
+  payoutMode?: string;
   status: string;
   _count?: { accounts: number };
 }
@@ -31,10 +35,21 @@ interface CircleAccount {
   interestEarned: number;
   totalWithdrawn: number;
   status: string;
+  weeksContributed?: number;
+  weeksDefaulted?: number;
   startDate: string;
   maturityDate: string;
   lastInterestCalculation?: string;
-  circle: { id: string; name: string; amount: number; durationMonths: number; interestRateAnnual: number; autoPayout: boolean };
+  circle: { id: string; name: string; cycleType?: string; amount: number; weeklyAmount?: number | null; totalWeeks?: number | null; durationMonths: number; interestRateAnnual: number; autoPayout?: boolean; payoutMode?: string };
+}
+
+function circleOpenCost(c: { cycleType?: string; amount: number; weeklyAmount?: number | null }) {
+  return c.cycleType === "weekly_contribution" ? (c.weeklyAmount || 0) : c.amount;
+}
+
+function isAutoPayout(c: { autoPayout?: boolean; payoutMode?: string }) {
+  if (c.payoutMode) return c.payoutMode === "auto";
+  return !!c.autoPayout;
 }
 
 const ACCOUNT_STATUS_COLORS: Record<string, string> = {
@@ -248,10 +263,17 @@ export default function CirclesPage() {
                             <h3 className="mb-1 text-[14px] font-semibold text-brand-dark">{circle.name}</h3>
                             {circle.description && <p className="mb-2 text-[11px] text-gray-400">{circle.description}</p>}
                           </div>
-                          <span className="rounded-[0.375rem] bg-[#05966912] px-2 py-0.5 text-[9px] font-bold uppercase font-mono text-emerald-600">active</span>
+                          <span className="rounded-[0.375rem] px-2 py-0.5 text-[9px] font-bold uppercase font-mono"
+                            style={{ backgroundColor: circle.cycleType === "weekly_contribution" ? "#EFF6FF" : "#F5F3FF", color: circle.cycleType === "weekly_contribution" ? "#2563EB" : "#7C3AED" }}>
+                            {circle.cycleType === "weekly_contribution" ? "Weekly" : "Deposit"}
+                          </span>
                         </div>
                         <div className="mb-4 grid grid-cols-2 gap-2 text-[12px]">
-                          <div><span className="text-gray-400">Amount</span><br /><span className="font-mono font-semibold text-brand-dark">{formatNaira(circle.amount)}</span></div>
+                          {circle.cycleType === "weekly_contribution" ? (
+                            <div><span className="text-gray-400">Weekly</span><br /><span className="font-mono font-semibold text-brand-dark">{formatNaira(circle.weeklyAmount || 0)} × {circle.totalWeeks || 0}</span></div>
+                          ) : (
+                            <div><span className="text-gray-400">Amount</span><br /><span className="font-mono font-semibold text-brand-dark">{formatNaira(circle.amount)}</span></div>
+                          )}
                           <div><span className="text-gray-400">Duration</span><br /><span className="font-semibold text-brand-dark">{formatDuration(circle.durationMonths)}</span></div>
                           <div><span className="text-gray-400">Interest Rate</span><br /><span className="font-semibold text-brand-dark">{circle.interestRateAnnual}% p.a.</span></div>
                           <div><span className="text-gray-400">Your Accounts</span><br /><span className="font-semibold text-brand-dark">{userAccounts}/{circle.maxAccountsPerUser}</span></div>
@@ -319,13 +341,24 @@ export default function CirclesPage() {
                             {account.lastInterestCalculation && (
                               <div><span className="mb-1 block text-gray-400">Last Interest</span><span className="font-medium text-brand-dark">{formatDate(account.lastInterestCalculation)}</span></div>
                             )}
+                            {account.circle.cycleType === "weekly_contribution" && (
+                              <>
+                                <div><span className="mb-1 block text-gray-400">Weeks Paid</span><span className="font-mono font-semibold text-emerald-600">{account.weeksContributed ?? 0}/{account.circle.totalWeeks ?? 0}</span></div>
+                                <div><span className="mb-1 block text-gray-400">Weeks Defaulted</span><span className="font-mono font-semibold" style={{ color: (account.weeksDefaulted ?? 0) > 0 ? "#DC2626" : "#6B7280" }}>{account.weeksDefaulted ?? 0}</span></div>
+                              </>
+                            )}
                           </div>
+                          {account.circle.cycleType === "weekly_contribution" && (account.weeksDefaulted ?? 0) > 0 && (
+                            <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-[11px] text-red-700">
+                              You have {account.weeksDefaulted} missed contribution(s). Resolve them on the <a href="/my-defaults" className="font-semibold underline">My Defaults</a> page (2× clearance applies).
+                            </div>
+                          )}
 
                           <div className="flex flex-wrap gap-2">
                             {account.status === "active" && (
                               <>
                                 <Button variant="primary" size="sm" disabled={claiming === account.id || daysUntil(account.maturityDate) > 0} onClick={() => handleClaim(account.id)}>
-                                  {claiming === account.id ? "Processing..." : daysUntil(account.maturityDate) > 0 ? `Matures in ${daysUntil(account.maturityDate)}d` : account.circle.autoPayout ? "Claim Maturity" : "Request Payout"}
+                                  {claiming === account.id ? "Processing..." : daysUntil(account.maturityDate) > 0 ? `Matures in ${daysUntil(account.maturityDate)}d` : isAutoPayout(account.circle) ? "Claim Maturity" : "Request Payout"}
                                 </Button>
                                 <Button variant="secondary" size="sm" disabled={withdrawing === account.id} onClick={() => handleWithdraw(account.id)}>
                                   {withdrawing === account.id ? "Withdrawing..." : "Early Withdraw (Forfeit Interest)"}
@@ -334,7 +367,7 @@ export default function CirclesPage() {
                             )}
                             {account.status === "matured" && (
                               <Button variant="primary" size="sm" disabled={claiming === account.id} onClick={() => handleClaim(account.id)}>
-                                {claiming === account.id ? "Processing..." : account.circle.autoPayout ? "Claim Maturity Payout" : "Request Payout"}
+                                {claiming === account.id ? "Processing..." : isAutoPayout(account.circle) ? "Claim Maturity Payout" : "Request Payout"}
                               </Button>
                             )}
                           </div>
@@ -386,26 +419,31 @@ export default function CirclesPage() {
               >+</button>
             </div>
             <div className="mb-6 rounded-xl bg-gray-50 p-4 text-[12px]">
+              {openModalCircle.cycleType === "weekly_contribution" && (
+                <div className="mb-2 rounded-lg bg-blue-50 px-3 py-2 text-[11px] text-blue-700">
+                  Weekly cycle: only the first {formatNaira(openModalCircle.weeklyAmount || 0)} is debited now. Subsequent weeks auto-debit from your wallet.
+                </div>
+              )}
               <div className="mb-2 flex justify-between">
-                <span className="text-gray-500">Cost per account</span>
-                <span className="font-mono font-semibold">{formatNaira(openModalCircle.amount)}</span>
+                <span className="text-gray-500">{openModalCircle.cycleType === "weekly_contribution" ? "First debit / account" : "Cost per account"}</span>
+                <span className="font-mono font-semibold">{formatNaira(circleOpenCost(openModalCircle))}</span>
               </div>
               <div className="mb-2 flex justify-between">
-                <span className="text-gray-500">Total cost</span>
-                <span className="font-mono font-bold" style={{ color: cfg.colors.primary }}>{formatNaira(openModalCircle.amount * accountCount)}</span>
+                <span className="text-gray-500">Total charged now</span>
+                <span className="font-mono font-bold" style={{ color: cfg.colors.primary }}>{formatNaira(circleOpenCost(openModalCircle) * accountCount)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Your wallet</span>
-                <span className="font-mono font-semibold" style={{ color: walletBalance >= openModalCircle.amount * accountCount ? "#059669" : "#DC2626" }}>{formatNaira(walletBalance)}</span>
+                <span className="font-mono font-semibold" style={{ color: walletBalance >= circleOpenCost(openModalCircle) * accountCount ? "#059669" : "#DC2626" }}>{formatNaira(walletBalance)}</span>
               </div>
             </div>
             <div className="flex gap-3">
               <button onClick={() => setOpenModalCircle(null)} className="flex-1 cursor-pointer rounded-lg border border-gray-200 bg-white px-2.5 py-2.5 text-[13px] font-medium">Cancel</button>
               <button
-                disabled={openingCircle === openModalCircle.id || walletBalance < openModalCircle.amount * accountCount}
+                disabled={openingCircle === openModalCircle.id || walletBalance < circleOpenCost(openModalCircle) * accountCount}
                 onClick={() => { handleOpenAccount(openModalCircle.id, accountCount); }}
                 className="flex-1 cursor-pointer rounded-lg border-0 px-2.5 py-2.5 text-[13px] font-semibold text-white"
-                style={{ backgroundColor: cfg.colors.primary, opacity: (openingCircle === openModalCircle.id || walletBalance < openModalCircle.amount * accountCount) ? 0.5 : 1 }}
+                style={{ backgroundColor: cfg.colors.primary, opacity: (openingCircle === openModalCircle.id || walletBalance < circleOpenCost(openModalCircle) * accountCount) ? 0.5 : 1 }}
               >
                 {openingCircle === openModalCircle.id ? "Opening..." : `Open ${accountCount > 1 ? `${accountCount} Accounts` : "Account"}`}
               </button>

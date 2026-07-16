@@ -17,10 +17,17 @@ interface CircleAccount {
   interestEarned: number;
   totalWithdrawn: number;
   status: string;
+  weeksContributed?: number;
+  weeksDefaulted?: number;
   startDate: string;
   maturityDate: string;
   lastInterestCalculation?: string;
-  circle: { id: string; name: string; amount: number; durationMonths: number; interestRateAnnual: number; autoPayout: boolean };
+  circle: { id: string; name: string; cycleType?: string; amount: number; weeklyAmount?: number | null; totalWeeks?: number | null; durationMonths: number; interestRateAnnual: number; autoPayout?: boolean; payoutMode?: string };
+}
+
+function isAutoPayout(c: { autoPayout?: boolean; payoutMode?: string }) {
+  if (c.payoutMode) return c.payoutMode === "auto";
+  return !!c.autoPayout;
 }
 
 interface InterestLog {
@@ -290,6 +297,12 @@ export default function MyCirclesPage() {
                           <div className="mb-0.5 flex items-center gap-2">
                             <span className="truncate text-[14px] font-semibold text-brand-dark">{account.circle.name}</span>
                             <span className="shrink-0 rounded-[0.375rem] px-2 py-0.5 text-[9px] font-bold uppercase font-mono" style={{ color: ACCOUNT_STATUS_COLORS[account.status], backgroundColor: `${ACCOUNT_STATUS_COLORS[account.status]}12` }}>{account.status.replace("_", " ")}</span>
+                            {account.circle.cycleType === "weekly_contribution" && (
+                              <span className="shrink-0 rounded-[0.375rem] px-2 py-0.5 text-[9px] font-bold uppercase font-mono" style={{ color: "#2563EB", backgroundColor: "#EFF6FF" }}>Weekly</span>
+                            )}
+                            {(account.weeksDefaulted ?? 0) > 0 && (
+                              <span className="shrink-0 rounded-[0.375rem] px-2 py-0.5 text-[9px] font-bold uppercase font-mono" style={{ color: "#DC2626", backgroundColor: "#FEF2F2" }}>{account.weeksDefaulted} default</span>
+                            )}
                           </div>
                           <span className="text-[11px] text-gray-400">{formatNaira(account.principalAmount)} &middot; {account.circle.interestRateAnnual}% p.a. &middot; {formatDuration(account.circle.durationMonths)}</span>
                         </div>
@@ -330,7 +343,19 @@ export default function MyCirclesPage() {
                             {account.lastInterestCalculation && (
                               <div><span className="mb-1 block text-gray-400">Last Interest</span><span className="font-medium text-brand-dark">{formatDate(account.lastInterestCalculation)}</span></div>
                             )}
+                            {account.circle.cycleType === "weekly_contribution" && (
+                              <>
+                                <div><span className="mb-1 block text-gray-400">Weeks Paid</span><span className="font-mono font-semibold text-emerald-500">{account.weeksContributed ?? 0}/{account.circle.totalWeeks ?? 0}</span></div>
+                                <div><span className="mb-1 block text-gray-400">Weeks Defaulted</span><span className="font-mono font-semibold" style={{ color: (account.weeksDefaulted ?? 0) > 0 ? "#DC2626" : "#6B7280" }}>{account.weeksDefaulted ?? 0}</span></div>
+                              </>
+                            )}
                           </div>
+
+                          {(account.weeksDefaulted ?? 0) > 0 && (
+                            <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-[11px] text-red-700">
+                              You have {account.weeksDefaulted} missed contribution(s). Clear them on the <a href="/my-defaults" className="font-semibold underline">My Defaults</a> page (2× clearance applies).
+                            </div>
+                          )}
 
                           <div className="mb-4 flex gap-1.5">
                           <button onClick={() => setAccountSubTab("interest")}
@@ -422,7 +447,7 @@ export default function MyCirclesPage() {
                           {account.status === "active" && (
                             <>
                               <Button variant="primary" size="sm" disabled={claiming === account.id || daysUntil(account.maturityDate) > 0} onClick={() => handleClaim(account.id)}>
-                                {claiming === account.id ? "Processing..." : daysUntil(account.maturityDate) > 0 ? `Matures in ${daysUntil(account.maturityDate)}d` : account.circle.autoPayout ? "Claim Maturity" : "Request Payout"}
+                                {claiming === account.id ? "Processing..." : daysUntil(account.maturityDate) > 0 ? `Matures in ${daysUntil(account.maturityDate)}d` : isAutoPayout(account.circle) ? "Claim Maturity" : "Request Payout"}
                               </Button>
                               <Button variant="secondary" size="sm" disabled={withdrawing === account.id} onClick={() => handleWithdraw(account.id)}>
                                 {withdrawing === account.id ? "Withdrawing..." : "Early Withdraw (Forfeit Interest)"}
@@ -431,7 +456,7 @@ export default function MyCirclesPage() {
                           )}
                           {account.status === "matured" && (
                             <Button variant="primary" size="sm" disabled={claiming === account.id} onClick={() => handleClaim(account.id)}>
-                              {claiming === account.id ? "Processing..." : account.circle.autoPayout ? "Claim Maturity Payout" : "Request Payout"}
+                              {claiming === account.id ? "Processing..." : isAutoPayout(account.circle) ? "Claim Maturity Payout" : "Request Payout"}
                             </Button>
                           )}
                         </div>

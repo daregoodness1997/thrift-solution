@@ -5,6 +5,8 @@ import type {
   PaymentVerificationResult,
   VirtualAccountParams,
   VirtualAccountResult,
+  VirtualAccountTransferParams,
+  VirtualAccountTransferResult,
 } from "./types";
 
 const FLW_SECRET = process.env.FLUTTERWAVE_SECRET_KEY || "";
@@ -118,6 +120,50 @@ export const flutterwaveProvider: PaymentProvider = {
       bankName: data.data.bank_name,
       reference: params.reference,
       providerRef: data.data.flw_ref,
+    };
+  },
+
+  async initiateTransfer(params: VirtualAccountTransferParams): Promise<VirtualAccountTransferResult> {
+    let response: Response;
+    try {
+      response = await fetch(`${FLW_BASE}/transfers`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${FLW_SECRET}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          account_bank: params.bankCode,
+          account_number: params.accountNumber,
+          amount: params.amount,
+          currency: "NGN",
+          reference: params.reference,
+          narration: "Thrift Solution circle payout",
+        }),
+      });
+    } catch (err) {
+      const cause = err instanceof Error ? err.message : String(err);
+      throw new Error(`Failed to connect to Flutterwave API: ${cause}`);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data: any = await response.json();
+    if (data.status !== "success") {
+      throw new Error(data.message || "Flutterwave transfer failed");
+    }
+
+    const flwStatus: string = data.data?.status || "";
+    const status: VirtualAccountTransferResult["status"] =
+      flwStatus === "SUCCESSFUL"
+        ? "completed"
+        : flwStatus === "FAILED"
+          ? "failed"
+          : "pending";
+
+    return {
+      status,
+      reference: params.reference,
+      providerRef: data.data?.id ? String(data.data.id) : undefined,
     };
   },
 };

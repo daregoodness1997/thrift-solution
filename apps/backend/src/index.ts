@@ -28,7 +28,9 @@ import { uploadRouter } from "./routes/upload";
 import { virtualAccountsRouter } from "./routes/virtual-accounts";
 import { notificationsRouter } from "./routes/notifications";
 import { adminRouter } from "./routes/admin";
+import { webhookRouter } from "./routes/webhook";
 import { circleInterestJob } from "./jobs/circleInterestJob";
+import { circleContributionJob } from "./jobs/circleContributionJob";
 import { virtualAccountGenerationJob } from "./jobs/virtualAccountJob";
 
 const app = express();
@@ -74,8 +76,10 @@ app.use("/api/navigation", navigationRouter);
 app.use("/api/upload", uploadRouter);
 app.use("/api/notifications", notificationsRouter);
 app.use("/api/admin", adminRouter);
+app.use("/api/webhooks", webhookRouter);
 
 cron.schedule("0 0 * * 0", circleInterestJob);
+cron.schedule("0 1 * * 0", circleContributionJob);
 cron.schedule("0 2 * * *", virtualAccountGenerationJob);
 
 app.listen(PORT, () => {

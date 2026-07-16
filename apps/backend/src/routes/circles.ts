@@ -20,7 +20,15 @@ import {
   getCirclePayoutRequestsByUser,
   approveCirclePayoutRequest,
   declineCirclePayoutRequest,
+  clearCirclePayoutRequest,
+  disburseCirclePayoutRequestViaFlutterwave,
+  markCirclePayoutRequestDisbursed,
+  runWeeklyContributionJob,
+  getDefaultsByAccount,
+  getDefaultsByUser,
+  clearCircleDefault,
 } from "@thrift/db";
+import { getPaymentProvider } from "../services/payments";
 
 export const circlesRouter = Router();
 
@@ -221,42 +229,69 @@ circlesRouter.post("/accounts/:id/mature", authMiddleware, async (req, res) => {
 
 circlesRouter.post("/", adminMiddleware, async (req, res) => {
   try {
-    const { name, description, amount, durationMonths, interestRateAnnual, maxAccountsPerUser, autoPayout } = req.body;
+    const {
+      name, description, cycleType, amount, weeklyAmount, totalWeeks,
+      durationMonths, interestRateAnnual, maxAccountsPerUser, autoPayout, payoutMode, blockPayoutOnDefault,
+    } = req.body;
 
-    if (!name || !amount || !durationMonths || !interestRateAnnual) {
-      res.status(400).json({ success: false, error: "name, amount, durationMonths, and interestRateAnnual are required" });
+    const resolvedType = cycleType === "weekly_contribution" ? "weekly_contribution" : "deposit";
+
+    if (!name || !durationMonths || !interestRateAnnual) {
+      res.status(400).json({ success: false, error: "name, durationMonths, and interestRateAnnual are required" });
+      return;
+    }
+    if (resolvedType === "deposit" && !amount) {
+      res.status(400).json({ success: false, error: "amount is required for deposit cycles" });
+      return;
+    }
+    if (resolvedType === "weekly_contribution" && (!weeklyAmount || !totalWeeks)) {
+      res.status(400).json({ success: false, error: "weeklyAmount and totalWeeks are required for weekly_contribution cycles" });
       return;
     }
 
     const circle = await createCircle({
       name,
       description,
-      amount: Number(amount),
+      cycleType: resolvedType,
+      amount: Number(amount) || 0,
+      weeklyAmount: weeklyAmount ? Number(weeklyAmount) : undefined,
+      totalWeeks: totalWeeks ? Number(totalWeeks) : undefined,
       durationMonths: Number(durationMonths),
       interestRateAnnual: Number(interestRateAnnual),
       maxAccountsPerUser: maxAccountsPerUser ? Number(maxAccountsPerUser) : undefined,
       autoPayout: autoPayout === true || autoPayout === "true",
+      payoutMode: payoutMode === "clearance" || payoutMode === "auto" ? payoutMode : undefined,
+      blockPayoutOnDefault: blockPayoutOnDefault !== undefined ? (blockPayoutOnDefault === true || blockPayoutOnDefault === "true") : undefined,
     });
 
     res.status(201).json({ success: true, data: circle });
   } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to create circle";
     console.error("Create circle error:", err);
-    res.status(500).json({ success: false, error: "Failed to create circle" });
+    res.status(400).json({ success: false, error: message });
   }
 });
 
 circlesRouter.put("/:id", adminMiddleware, async (req, res) => {
   try {
-    const { name, description, amount, durationMonths, interestRateAnnual, maxAccountsPerUser, autoPayout, status } = req.body;
+    const {
+      name, description, cycleType, amount, weeklyAmount, totalWeeks,
+      durationMonths, interestRateAnnual, maxAccountsPerUser, autoPayout, payoutMode, blockPayoutOnDefault, status,
+    } = req.body;
 
     const circle = await updateCircle(req.params.id, {
       name,
       description,
+      cycleType: cycleType ? (cycleType === "weekly_contribution" ? "weekly_contribution" : "deposit") : undefined,
       amount: amount ? Number(amount) : undefined,
+      weeklyAmount: weeklyAmount ? Number(weeklyAmount) : undefined,
+      totalWeeks: totalWeeks ? Number(totalWeeks) : undefined,
       durationMonths: durationMonths ? Number(durationMonths) : undefined,
       interestRateAnnual: interestRateAnnual ? Number(interestRateAnnual) : undefined,
       maxAccountsPerUser: maxAccountsPerUser ? Number(maxAccountsPerUser) : undefined,
       autoPayout: autoPayout !== undefined ? (autoPayout === true || autoPayout === "true") : undefined,
+      payoutMode: payoutMode === "clearance" || payoutMode === "auto" ? payoutMode : undefined,
+      blockPayoutOnDefault: blockPayoutOnDefault !== undefined ? (blockPayoutOnDefault === true || blockPayoutOnDefault === "true") : undefined,
       status,
     });
 
@@ -274,6 +309,52 @@ circlesRouter.post("/admin/run-interest-job", adminMiddleware, async (_req, res)
   } catch (err) {
     console.error("Run interest job error:", err);
     res.status(500).json({ success: false, error: "Failed to run interest job" });
+  }
+});
+
+circlesRouter.post("/admin/run-contribution-job", adminMiddleware, async (_req, res) => {
+  try {
+    const result = await runWeeklyContributionJob();
+    res.json({ success: true, data: result });
+  } catch (err) {
+    console.error("Run contribution job error:", err);
+    res.status(500).json({ success: false, error: "Failed to run contribution job" });
+  }
+});
+
+circlesRouter.get("/defaults/my", authMiddleware, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const status = req.query.status as string | undefined;
+    const result = await getDefaultsByUser(req.user!.userId, { page, limit, status });
+    res.json({ success: true, data: result });
+  } catch (err) {
+    console.error("Get my circle defaults error:", err);
+    res.status(500).json({ success: false, error: "Failed to fetch circle defaults" });
+  }
+});
+
+circlesRouter.get("/accounts/:id/defaults", authMiddleware, async (req, res) => {
+  try {
+    const defaults = await getDefaultsByAccount(req.params.id, req.user!.userId);
+    res.json({ success: true, data: defaults });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to fetch defaults";
+    console.error("Get account defaults error:", err);
+    res.status(400).json({ success: false, error: message });
+  }
+});
+
+circlesRouter.post("/defaults/:id/clear", authMiddleware, async (req, res) => {
+  try {
+    const account = await clearCircleDefault(req.params.id, req.user!.userId);
+    const balance = await getWalletBalance(req.user!.userId);
+    res.json({ success: true, data: { account, walletBalance: balance } });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to clear default";
+    console.error("Clear circle default error:", err);
+    res.status(400).json({ success: false, error: message });
   }
 });
 
@@ -322,6 +403,54 @@ circlesRouter.post("/admin/payout-requests/:id/decline", adminMiddleware, async 
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to decline payout request";
     console.error("Decline payout request error:", err);
+    res.status(400).json({ success: false, error: message });
+  }
+});
+
+circlesRouter.post("/admin/payout-requests/:id/clear", adminMiddleware, async (req, res) => {
+  try {
+    const { note } = req.body;
+    const request = await clearCirclePayoutRequest(req.params.id, req.user!.userId, note);
+    res.json({ success: true, data: request });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to clear payout request";
+    console.error("Clear payout request error:", err);
+    res.status(400).json({ success: false, error: message });
+  }
+});
+
+circlesRouter.post("/admin/payout-requests/:id/disburse", adminMiddleware, async (req, res) => {
+  try {
+    const provider = getPaymentProvider("flutterwave");
+    if (!provider.initiateTransfer) {
+      res.status(400).json({ success: false, error: "Flutterwave transfers are not available" });
+      return;
+    }
+    const request = await disburseCirclePayoutRequestViaFlutterwave(
+      req.params.id,
+      req.user!.userId,
+      (params) => provider.initiateTransfer!(params),
+    );
+    res.json({ success: true, data: request });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to disburse payout request";
+    console.error("Disburse payout request error:", err);
+    res.status(400).json({ success: false, error: message });
+  }
+});
+
+circlesRouter.post("/admin/payout-requests/:id/mark-disbursed", adminMiddleware, async (req, res) => {
+  try {
+    const { proofUrl, note, reference } = req.body;
+    const request = await markCirclePayoutRequestDisbursed(req.params.id, req.user!.userId, {
+      proofUrl,
+      note,
+      reference,
+    });
+    res.json({ success: true, data: request });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to mark payout request as disbursed";
+    console.error("Mark disbursed error:", err);
     res.status(400).json({ success: false, error: message });
   }
 });

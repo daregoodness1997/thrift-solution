@@ -36,6 +36,10 @@ model User {
   twoFactorEnabled Boolean  @default(false) @map("two_factor_enabled")
   bvn             String?   @map("bvn")
   nin             String?   @map("nin")
+  bankName        String?   @map("bank_name")
+  bankCode        String?   @map("bank_code")
+  bankAccountNumber String? @map("bank_account_number")
+  bankAccountName String?   @map("bank_account_name")
   registrationStep Int       @default(1) @map("registration_step")
   registrationFeePaid Boolean @default(false) @map("registration_fee_paid")
   registrationCompletedAt DateTime? @map("registration_completed_at")
@@ -466,11 +470,16 @@ model Circle {
   id                  String    @id @default(uuid())
   name                String
   description         String?
+  cycleType           String    @default("deposit") @map("cycle_type")
   amount              Float
+  weeklyAmount        Float?    @map("weekly_amount")
+  totalWeeks          Int?      @map("total_weeks")
   durationMonths      Int       @map("duration_months")
   interestRateAnnual  Float     @map("interest_rate_annual")
   maxAccountsPerUser  Int       @default(10) @map("max_accounts_per_user")
   autoPayout          Boolean   @default(false) @map("auto_payout")
+  payoutMode          String    @default("auto") @map("payout_mode")
+  blockPayoutOnDefault Boolean  @default(true) @map("block_payout_on_default")
   status              String    @default("active")
   deletedAt           DateTime? @map("deleted_at")
   createdAt           DateTime  @default(now()) @map("created_at")
@@ -489,6 +498,9 @@ model CircleAccount {
   interestEarned            Float     @default(0) @map("interest_earned")
   totalWithdrawn            Float     @default(0) @map("total_withdrawn")
   status                    String    @default("active")
+  weeksContributed          Int       @default(0) @map("weeks_contributed")
+  weeksDefaulted            Int       @default(0) @map("weeks_defaulted")
+  lastContributionAttempt   DateTime? @map("last_contribution_attempt")
   startDate                 DateTime  @map("start_date")
   maturityDate              DateTime  @map("maturity_date")
   lastInterestCalculation   DateTime? @map("last_interest_calculation")
@@ -500,11 +512,50 @@ model CircleAccount {
   user          User                  @relation(fields: [userId], references: [id], onDelete: Restrict)
   interestLogs  CircleInterestLog[]
   payoutRequests CirclePayoutRequest[]
+  contributions CircleContribution[]
+  defaults      CircleDefault[]
 
   @@index([circleId])
   @@index([userId])
   @@index([status])
   @@map("circle_accounts")
+}
+
+model CircleContribution {
+  id              String    @id @default(uuid())
+  circleAccountId String    @map("circle_account_id")
+  userId          String    @map("user_id")
+  weekNumber      Int       @map("week_number")
+  amount          Float
+  type            String    @default("weekly")
+  transactionId   String?   @map("transaction_id")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  circleAccount CircleAccount @relation(fields: [circleAccountId], references: [id], onDelete: Restrict)
+
+  @@index([circleAccountId])
+  @@index([userId])
+  @@map("circle_contributions")
+}
+
+model CircleDefault {
+  id              String    @id @default(uuid())
+  circleAccountId String    @map("circle_account_id")
+  userId          String    @map("user_id")
+  weekNumber      Int       @map("week_number")
+  amountDue       Float     @map("amount_due")
+  clearanceAmount Float     @map("clearance_amount")
+  status          String    @default("outstanding")
+  clearedAt       DateTime? @map("cleared_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  circleAccount CircleAccount @relation(fields: [circleAccountId], references: [id], onDelete: Restrict)
+
+  @@index([circleAccountId])
+  @@index([userId])
+  @@index([status])
+  @@map("circle_defaults")
 }
 
 model CircleInterestLog {
@@ -532,6 +583,19 @@ model CirclePayoutRequest {
   note            String?
   reviewedById    String?   @map("reviewed_by_id")
   reviewedAt      DateTime? @map("reviewed_at")
+
+  clearedById     String?   @map("cleared_by_id")
+  clearedAt       DateTime? @map("cleared_at")
+  clearanceNote   String?   @map("clearance_note")
+
+  disbursementMethod String? @map("disbursement_method")
+  disbursementStatus String  @default("pending") @map("disbursement_status")
+  disbursementRef    String? @map("disbursement_ref")
+  disbursementProofUrl String? @map("disbursement_proof_url")
+  disbursementNote   String? @map("disbursement_note")
+  disbursedById      String? @map("disbursed_by_id")
+  disbursedAt        DateTime? @map("disbursed_at")
+
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @default(now()) @updatedAt @map("updated_at")
 

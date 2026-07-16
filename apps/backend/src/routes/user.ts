@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { authMiddleware } from "../middleware/auth";
-import { getUserProfile, updateUserProfile, getUserGroups } from "@thrift/db";
+import { getUserProfile, updateUserProfile, getUserGroups, setUserBankDetails } from "@thrift/db";
 
 export const userRouter = Router();
 
@@ -26,6 +26,30 @@ userRouter.put("/profile", authMiddleware, async (req, res) => {
   } catch (err) {
     console.error("Update profile error:", err);
     res.status(500).json({ success: false, error: "Failed to update profile" });
+  }
+});
+
+userRouter.put("/bank-details", authMiddleware, async (req, res) => {
+  try {
+    const { bankName, bankCode, bankAccountNumber, bankAccountName } = req.body;
+    const updated = await setUserBankDetails(req.user!.userId, {
+      bankName,
+      bankCode,
+      bankAccountNumber,
+      bankAccountName,
+    });
+    res.json({
+      success: true,
+      data: {
+        bankName: updated.bankName,
+        bankCode: updated.bankCode,
+        bankAccountNumber: updated.bankAccountNumber,
+        bankAccountName: updated.bankAccountName,
+      },
+    });
+  } catch (err) {
+    console.error("Update bank details error:", err);
+    res.status(500).json({ success: false, error: "Failed to update bank details" });
   }
 });
 

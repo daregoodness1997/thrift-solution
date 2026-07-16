@@ -2,7 +2,7 @@ export { prisma, softDelete } from "./services/prisma";
 
 export { getConfig, saveConfig } from "./services/config";
 
-export { findUserByEmail, findUserById, createUser, setEmailVerified, setPhoneVerified, setTotpSecret, setTwoFactorEnabled, updatePasswordHash, setUserIdentity, setRegistrationProgress } from "./services/users";
+export { findUserByEmail, findUserById, createUser, setEmailVerified, setPhoneVerified, setTotpSecret, setTwoFactorEnabled, updatePasswordHash, setUserIdentity, setUserBankDetails, setRegistrationProgress } from "./services/users";
 
 export {
   createVerificationToken,
@@ -146,6 +146,15 @@ export {
   getCirclePayoutRequestsByUser,
   approveCirclePayoutRequest,
   declineCirclePayoutRequest,
+  clearCirclePayoutRequest,
+  disburseCirclePayoutRequestViaFlutterwave,
+  markCirclePayoutRequestDisbursed,
+  getOutstandingDefaults,
+  processWeeklyContributionForAccount,
+  runWeeklyContributionJob,
+  getDefaultsByAccount,
+  getDefaultsByUser,
+  clearCircleDefault,
 } from "./services/circles";
 
 export {

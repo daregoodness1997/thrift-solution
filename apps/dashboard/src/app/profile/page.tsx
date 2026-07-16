@@ -21,6 +21,10 @@ interface UserProfile {
   accountNumber: string;
   accountTier: string;
   createdAt: string;
+  bankName?: string | null;
+  bankCode?: string | null;
+  bankAccountNumber?: string | null;
+  bankAccountName?: string | null;
   stats: {
     totalSaved: number;
     totalDonated: number;
@@ -90,6 +94,13 @@ export default function ProfilePage() {
   const [saved, setSaved] = useState(false);
   const [accountCopied, setAccountCopied] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [bankName, setBankName] = useState("");
+  const [bankCode, setBankCode] = useState("");
+  const [bankAccountNumber, setBankAccountNumber] = useState("");
+  const [bankAccountName, setBankAccountName] = useState("");
+  const [savingBank, setSavingBank] = useState(false);
+  const [bankSaved, setBankSaved] = useState(false);
+  const [bankError, setBankError] = useState("");
   const [virtualAccount, setVirtualAccount] = useState<{
     accountNumber: string;
     bankName: string;
@@ -120,6 +131,10 @@ export default function ProfilePage() {
       if (profileData.success) {
         setProfile(profileData.data);
         setName(profileData.data.name);
+        setBankName(profileData.data.bankName || "");
+        setBankCode(profileData.data.bankCode || "");
+        setBankAccountNumber(profileData.data.bankAccountNumber || "");
+        setBankAccountName(profileData.data.bankAccountName || "");
       }
       if (vaData?.virtualAccounts && vaData.virtualAccounts.length > 0) {
         setVirtualAccount({
@@ -156,6 +171,39 @@ export default function ProfilePage() {
         setTimeout(() => setSaved(false), 2000);
       }
     } catch {}
+  };
+
+  const handleSaveBank = async () => {
+    if (!token) return;
+    if (!bankName.trim() || !bankAccountNumber.trim()) {
+      setBankError("Bank name and account number are required");
+      return;
+    }
+    setBankError("");
+    setSavingBank(true);
+    try {
+      const res = await fetch(`${API_URL}/api/user/bank-details`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          bankName: bankName.trim(),
+          bankCode: bankCode.trim() || undefined,
+          bankAccountNumber: bankAccountNumber.trim(),
+          bankAccountName: bankAccountName.trim() || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setProfile((prev) => (prev ? { ...prev, bankName: data.data.bankName, bankCode: data.data.bankCode, bankAccountNumber: data.data.bankAccountNumber, bankAccountName: data.data.bankAccountName } : prev));
+        setBankSaved(true);
+        setTimeout(() => setBankSaved(false), 2000);
+      } else {
+        setBankError(data.error || "Failed to save bank details");
+      }
+    } catch {
+      setBankError("Failed to save bank details");
+    }
+    setSavingBank(false);
   };
 
   const handleCopyAccount = async () => {
@@ -535,6 +583,56 @@ export default function ProfilePage() {
               </Button>
             </div>
           )}
+        </Card>
+      </FadeInUp>
+
+      <FadeInUp delay={450}>
+        <Card padding="1.5rem" className="mb-6">
+          <div className="flex justify-between items-center mb-2">
+            <ColorfulBadge label="Payout Bank Account" color={cfg.colors.primary} />
+            {bankSaved && (
+              <span className="text-[11px] text-emerald-600 font-medium">Saved!</span>
+            )}
+          </div>
+          <p className="text-[12px] text-gray-500 mb-4">
+            Used for circle payout disbursements via bank transfer. Keep this accurate to avoid failed transfers.
+          </p>
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] uppercase tracking-[0.1em] text-gray-400 font-bold">Bank Name</label>
+              <input value={bankName} onChange={(e) => setBankName(e.target.value)} placeholder="e.g. GTBank"
+                className="bg-white border rounded-xl px-3 py-2 text-xs text-brand-dark outline-none font-sans"
+                style={{ border: `1px solid ${cfg.colors.primary}30` }} />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] uppercase tracking-[0.1em] text-gray-400 font-bold">Bank Code</label>
+              <input value={bankCode} onChange={(e) => setBankCode(e.target.value)} placeholder="e.g. 058"
+                className="bg-white border rounded-xl px-3 py-2 text-xs text-brand-dark outline-none font-mono"
+                style={{ border: `1px solid ${cfg.colors.primary}30` }} />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] uppercase tracking-[0.1em] text-gray-400 font-bold">Account Number</label>
+              <input value={bankAccountNumber} onChange={(e) => setBankAccountNumber(e.target.value)} placeholder="10-digit NUBAN"
+                className="bg-white border rounded-xl px-3 py-2 text-xs text-brand-dark outline-none font-mono"
+                style={{ border: `1px solid ${cfg.colors.primary}30` }} />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] uppercase tracking-[0.1em] text-gray-400 font-bold">Account Name</label>
+              <input value={bankAccountName} onChange={(e) => setBankAccountName(e.target.value)} placeholder="Account holder name"
+                className="bg-white border rounded-xl px-3 py-2 text-xs text-brand-dark outline-none font-sans"
+                style={{ border: `1px solid ${cfg.colors.primary}30` }} />
+            </div>
+          </div>
+          {bankError && (
+            <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-xs font-medium text-red-600">
+              {bankError}
+            </div>
+          )}
+          <div className="flex justify-end mt-4">
+            <Button onClick={handleSaveBank} size="sm" disabled={savingBank}>
+              {savingBank ? "Saving..." : "Save Bank Details"}
+            </Button>
+          </div>
         </Card>
       </FadeInUp>
     </div>

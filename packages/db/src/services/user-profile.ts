@@ -52,6 +52,10 @@ export async function getUserProfile(userId: string) {
     accountNumber: user.accountNumber,
     accountTier: user.accountTier,
     createdAt: user.createdAt,
+    bankName: user.bankName,
+    bankCode: user.bankCode,
+    bankAccountNumber: user.bankAccountNumber,
+    bankAccountName: user.bankAccountName,
     virtualAccount,
     stats: {
       totalSaved,

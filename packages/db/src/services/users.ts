@@ -90,6 +90,21 @@ export async function setUserIdentity(userId: string, data: { bvn?: string; nin?
   });
 }
 
+export async function setUserBankDetails(
+  userId: string,
+  data: { bankName?: string; bankCode?: string; bankAccountNumber?: string; bankAccountName?: string },
+) {
+  return prisma.user.update({
+    where: { id: userId },
+    data: {
+      ...(data.bankName !== undefined ? { bankName: data.bankName } : {}),
+      ...(data.bankCode !== undefined ? { bankCode: data.bankCode } : {}),
+      ...(data.bankAccountNumber !== undefined ? { bankAccountNumber: data.bankAccountNumber } : {}),
+      ...(data.bankAccountName !== undefined ? { bankAccountName: data.bankAccountName } : {}),
+    },
+  });
+}
+
 export async function setRegistrationProgress(
   userId: string,
   data: { step?: number; feePaid?: boolean; completedAt?: Date | null }

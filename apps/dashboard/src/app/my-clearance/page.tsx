@@ -27,6 +27,10 @@ interface PayoutRequest {
   amount: number;
   status: string;
   note?: string;
+  clearanceNote?: string;
+  disbursementNote?: string;
+  disbursementRef?: string;
+  disbursedAt?: string;
   reviewedAt?: string;
   createdAt: string;
   circleAccount: {
@@ -37,8 +41,10 @@ interface PayoutRequest {
 }
 
 const statusStyles: Record<string, { bg: string; color: string; border: string }> = {
-  cleared: { bg: "#ECFDF5", color: "#059669", border: "#A7F3D0" },
+  cleared: { bg: "#EFF6FF", color: "#2563EB", border: "#BFDBFE" },
   approved: { bg: "#ECFDF5", color: "#059669", border: "#A7F3D0" },
+  disbursed: { bg: "#ECFDF5", color: "#059669", border: "#A7F3D0" },
+  disbursement_failed: { bg: "#FEF2F2", color: "#DC2626", border: "#FECACA" },
   pending: { bg: "#FFFBEB", color: "#D97706", border: "#FDE68A" },
   declined: { bg: "#FEF2F2", color: "#DC2626", border: "#FECACA" },
   upcoming: { bg: "#F3F4F6", color: "#6B7280", border: "#E5E7EB" },
@@ -279,7 +285,17 @@ export default function MyClearancePage() {
 
                       {r.status === "pending" && (
                         <div className="mt-3 text-[11px] font-medium text-amber-600">
-                          Waiting for admin approval...
+                          Waiting for admin review...
+                        </div>
+                      )}
+                      {r.status === "cleared" && (
+                        <div className="mt-3 text-[11px] font-medium text-blue-600">
+                          Cleared — awaiting disbursement.
+                        </div>
+                      )}
+                      {r.status === "disbursed" && (
+                        <div className="mt-3 text-[11px] font-medium text-emerald-600">
+                          Disbursed{r.disbursedAt ? ` on ${new Date(r.disbursedAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}` : ""}{r.disbursementRef ? ` · Ref ${r.disbursementRef}` : ""}
                         </div>
                       )}
                     </div>

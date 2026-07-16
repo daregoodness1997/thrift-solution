@@ -29,6 +29,11 @@ interface PayoutRequest {
   amount: number;
   status: string;
   note?: string;
+  clearanceNote?: string;
+  disbursementStatus?: string;
+  disbursementRef?: string;
+  disbursementProofUrl?: string;
+  disbursedAt?: string;
   reviewedAt?: string;
   createdAt: string;
   user: { id: string; name: string; email: string };
@@ -41,8 +46,10 @@ interface PayoutRequest {
 }
 
 const statusStyles: Record<string, { bg: string; color: string; border: string }> = {
-  cleared: { bg: "#ECFDF5", color: "#059669", border: "#A7F3D0" },
+  cleared: { bg: "#EFF6FF", color: "#2563EB", border: "#BFDBFE" },
   approved: { bg: "#ECFDF5", color: "#059669", border: "#A7F3D0" },
+  disbursed: { bg: "#ECFDF5", color: "#059669", border: "#A7F3D0" },
+  disbursement_failed: { bg: "#FEF2F2", color: "#DC2626", border: "#FECACA" },
   partial: { bg: "#FFFBEB", color: "#D97706", border: "#FDE68A" },
   pending: { bg: "#F3F4F6", color: "#6B7280", border: "#E5E7EB" },
   declined: { bg: "#FEF2F2", color: "#DC2626", border: "#FECACA" },
@@ -63,13 +70,18 @@ export default function ClearanceManagementPage() {
   const LIMIT = 20;
 
   const [payoutRequests, setPayoutRequests] = useState<PayoutRequest[]>([]);
-  const [prFilter, setPrFilter] = useState<"all" | "pending" | "approved" | "declined">("all");
+  const [prFilter, setPrFilter] = useState<"all" | "pending" | "cleared" | "disbursed" | "declined">("all");
   const [prPage, setPrPage] = useState(1);
   const [prTotalPages, setPrTotalPages] = useState(1);
   const [prTotal, setPrTotal] = useState(0);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [declineNote, setDeclineNote] = useState("");
   const [declineTarget, setDeclineTarget] = useState<string | null>(null);
+  const [disburseTarget, setDisburseTarget] = useState<PayoutRequest | null>(null);
+  const [proofFile, setProofFile] = useState<File | null>(null);
+  const [proofUploading, setProofUploading] = useState(false);
+  const [manualRef, setManualRef] = useState("");
+  const [manualNote, setManualNote] = useState("");
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -143,22 +155,94 @@ export default function ClearanceManagementPage() {
     } catch {}
   };
 
-  const handleApprovePayout = async (id: string) => {
+  const handleClearPayout = async (id: string) => {
     setProcessingId(id);
     try {
-      const res = await fetch(`${API_URL}/api/circles/admin/payout-requests/${id}/approve`, {
+      const res = await fetch(`${API_URL}/api/circles/admin/payout-requests/${id}/clear`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showMessage("success", "Payout request cleared. Ready for disbursement.");
+        fetchPayoutRequests();
+      } else {
+        showMessage("error", data.error || "Failed to clear payout");
+      }
+    } catch {
+      showMessage("error", "Failed to clear payout");
+    }
+    setProcessingId(null);
+  };
+
+  const handleDisburseFlutterwave = async (id: string) => {
+    setProcessingId(id);
+    try {
+      const res = await fetch(`${API_URL}/api/circles/admin/payout-requests/${id}/disburse`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
       if (data.success) {
-        showMessage("success", "Payout approved and credited to wallet");
+        showMessage("success", "Flutterwave transfer initiated");
+        setDisburseTarget(null);
         fetchPayoutRequests();
       } else {
-        showMessage("error", data.error || "Failed to approve payout");
+        showMessage("error", data.error || "Failed to disburse via Flutterwave");
       }
     } catch {
-      showMessage("error", "Failed to approve payout");
+      showMessage("error", "Failed to disburse via Flutterwave");
+    }
+    setProcessingId(null);
+  };
+
+  const handleMarkDisbursed = async (id: string) => {
+    if (!proofFile && !manualRef.trim()) {
+      showMessage("error", "Provide a proof of payment or a reference");
+      return;
+    }
+    setProcessingId(id);
+    try {
+      let proofUrl: string | undefined;
+      if (proofFile) {
+        setProofUploading(true);
+        const fd = new FormData();
+        fd.append("file", proofFile);
+        fd.append("folder", "circle-disbursements");
+        const upRes = await fetch(`${API_URL}/api/upload`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: fd,
+        });
+        const upData = await upRes.json();
+        setProofUploading(false);
+        if (!upRes.ok || !upData.url) {
+          showMessage("error", upData.error || "Failed to upload proof");
+          setProcessingId(null);
+          return;
+        }
+        proofUrl = upData.url;
+      }
+      const res = await fetch(`${API_URL}/api/circles/admin/payout-requests/${id}/mark-disbursed`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ proofUrl, reference: manualRef || undefined, note: manualNote || undefined }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showMessage("success", "Payout marked as disbursed");
+        setDisburseTarget(null);
+        setProofFile(null);
+        setManualRef("");
+        setManualNote("");
+        fetchPayoutRequests();
+      } else {
+        showMessage("error", data.error || "Failed to mark disbursed");
+      }
+    } catch {
+      setProofUploading(false);
+      showMessage("error", "Failed to mark disbursed");
     }
     setProcessingId(null);
   };
@@ -338,9 +422,9 @@ export default function ClearanceManagementPage() {
               <span className="mt-1 block font-mono text-2xl font-bold text-amber-600">{payoutRequests.filter((r) => r.status === "pending").length}</span>
             </Card>
             <Card padding="1.25rem">
-              <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-500">Approved Total</span>
+              <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-500">Disbursed Total</span>
               <span className="mt-1 block font-mono text-2xl font-bold text-emerald-600">
-                {formatNaira(payoutRequests.filter((r) => r.status === "approved").reduce((sum, r) => sum + r.amount, 0))}
+                {formatNaira(payoutRequests.filter((r) => r.status === "disbursed").reduce((sum, r) => sum + r.amount, 0))}
               </span>
             </Card>
             <Card padding="1.25rem">
@@ -354,7 +438,7 @@ export default function ClearanceManagementPage() {
               <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
                 <ColorfulBadge label="Circle Payout Requests" color={cfg.colors.primary} />
                 <div className="flex gap-1 rounded-lg bg-gray-100 p-1">
-                  {(["all", "pending", "approved", "declined"] as const).map((f) => (
+                  {(["all", "pending", "cleared", "disbursed", "declined"] as const).map((f) => (
                     <button key={f} onClick={() => { setPrFilter(f); setPrPage(1); }}
                       className="cursor-pointer rounded-md px-3 py-1.5 text-[11px] font-semibold capitalize"
                       style={{ backgroundColor: prFilter === f ? "#ffffff" : "transparent", color: prFilter === f ? cfg.colors.primary : "#717171", boxShadow: prFilter === f ? "0 1px 3px rgba(0,0,0,0.08)" : "none" }}>
@@ -406,19 +490,34 @@ export default function ClearanceManagementPage() {
                               <span className="rounded-md px-2 py-0.5 font-bold uppercase" style={{ backgroundColor: st.bg, color: st.color, border: `1px solid ${st.border}` }}>{r.status}</span>
                             </td>
                             <td className="py-3 text-right">
-                              {r.status === "pending" && (
-                                <div className="flex justify-end gap-1.5">
-                                  <button onClick={() => handleApprovePayout(r.id)} disabled={processingId === r.id}
+                              <div className="flex justify-end gap-1.5">
+                                {r.status === "pending" && (
+                                  <>
+                                    <button onClick={() => handleClearPayout(r.id)} disabled={processingId === r.id}
+                                      className="cursor-pointer rounded-md border border-blue-200 bg-blue-50 px-2 py-1 text-[10px] font-semibold text-blue-600"
+                                      style={{ opacity: processingId === r.id ? 0.5 : 1 }}>
+                                      {processingId === r.id ? "..." : "Clear"}
+                                    </button>
+                                    <button onClick={() => setDeclineTarget(r.id)} disabled={processingId === r.id}
+                                      className="cursor-pointer rounded-md border border-red-200 bg-red-50 px-2 py-1 text-[10px] font-semibold text-red-600">
+                                      Decline
+                                    </button>
+                                  </>
+                                )}
+                                {r.status === "cleared" && (
+                                  <button onClick={() => { setDisburseTarget(r); setProofFile(null); setManualRef(""); setManualNote(""); }} disabled={processingId === r.id}
                                     className="cursor-pointer rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-semibold text-emerald-600"
                                     style={{ opacity: processingId === r.id ? 0.5 : 1 }}>
-                                    {processingId === r.id ? "..." : "Approve"}
+                                    Disburse
                                   </button>
-                                  <button onClick={() => setDeclineTarget(r.id)} disabled={processingId === r.id}
-                                    className="cursor-pointer rounded-md border border-red-200 bg-red-50 px-2 py-1 text-[10px] font-semibold text-red-600">
-                                    Decline
-                                  </button>
-                                </div>
-                              )}
+                                )}
+                                {r.status === "disbursed" && r.disbursementProofUrl && (
+                                  <a href={r.disbursementProofUrl} target="_blank" rel="noreferrer"
+                                    className="cursor-pointer rounded-md border border-gray-200 bg-gray-50 px-2 py-1 text-[10px] font-semibold text-gray-600">
+                                    Proof
+                                  </a>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         );
@@ -475,6 +574,51 @@ export default function ClearanceManagementPage() {
                 {processingId === declineTarget ? "Declining..." : "Decline"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {disburseTarget && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 p-4" onClick={() => setDisburseTarget(null)}>
+          <div className="max-h-[90vh] w-full max-w-[440px] overflow-y-auto rounded-2xl bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.15)]" onClick={(e) => e.stopPropagation()}>
+            <h3 className="mb-1 text-base font-semibold text-brand-dark">Disburse Payout</h3>
+            <p className="mb-4 text-[12px] text-gray-500">
+              {disburseTarget.user.name} · <span className="font-mono font-semibold">{formatNaira(disburseTarget.amount)}</span>
+            </p>
+
+            <div className="mb-5 rounded-xl border border-emerald-100 bg-emerald-50/50 p-4">
+              <span className="mb-1 block text-[11px] font-semibold text-brand-dark">Option 1 — Flutterwave Transfer</span>
+              <span className="mb-3 block text-[11px] text-gray-500">Sends funds directly to the member&apos;s saved bank account.</span>
+              <button onClick={() => handleDisburseFlutterwave(disburseTarget.id)} disabled={processingId === disburseTarget.id}
+                className="w-full cursor-pointer rounded-lg bg-emerald-600 px-2.5 py-2.5 text-[13px] font-semibold text-white"
+                style={{ opacity: processingId === disburseTarget.id ? 0.5 : 1 }}>
+                {processingId === disburseTarget.id ? "Processing..." : "Transfer via Flutterwave"}
+              </button>
+            </div>
+
+            <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
+              <span className="mb-1 block text-[11px] font-semibold text-brand-dark">Option 2 — Manual (mark disbursed)</span>
+              <span className="mb-3 block text-[11px] text-gray-500">Record an external payment with proof and/or reference.</span>
+              <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Proof of Payment</label>
+              <input type="file" accept="image/*,application/pdf" onChange={(e) => setProofFile(e.target.files?.[0] || null)}
+                className="mb-3 w-full text-[12px]" />
+              <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Reference</label>
+              <input type="text" value={manualRef} onChange={(e) => setManualRef(e.target.value)} placeholder="e.g. bank transfer ref"
+                className="mb-3 w-full rounded-lg border border-gray-200 px-3 py-2 text-[13px] outline-none" />
+              <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Note</label>
+              <textarea value={manualNote} onChange={(e) => setManualNote(e.target.value)} rows={2} placeholder="Optional note"
+                className="mb-3 w-full resize-y rounded-lg border border-gray-200 px-3 py-2 text-[13px] outline-none" />
+              <button onClick={() => handleMarkDisbursed(disburseTarget.id)} disabled={processingId === disburseTarget.id || proofUploading}
+                className="w-full cursor-pointer rounded-lg px-2.5 py-2.5 text-[13px] font-semibold text-white"
+                style={{ backgroundColor: cfg.colors.primary, opacity: processingId === disburseTarget.id || proofUploading ? 0.5 : 1 }}>
+                {proofUploading ? "Uploading..." : processingId === disburseTarget.id ? "Saving..." : "Mark as Disbursed"}
+              </button>
+            </div>
+
+            <button onClick={() => setDisburseTarget(null)}
+              className="mt-4 w-full cursor-pointer rounded-lg border border-gray-200 bg-white px-2.5 py-2.5 text-[13px] font-medium">
+              Cancel
+            </button>
           </div>
         </div>
       )}
