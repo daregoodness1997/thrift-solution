@@ -57,6 +57,7 @@ const ACCOUNT_STATUS_COLORS: Record<string, string> = {
   matured: "#F59E0B",
   withdrawn: "#6B7280",
   early_withdrawn: "#DC2626",
+  reversed: "#DC2626",
 };
 
 function formatDuration(months: number) {
@@ -241,7 +242,8 @@ export default function CirclesPage() {
             <CircleCalculator circleAmount={circles[0]?.amount || 10000} annualRate={circles[0]?.interestRateAnnual || 10} circles={circles.map((c) => ({ id: c.id, name: c.name, amount: c.amount, durationMonths: c.durationMonths, interestRateAnnual: c.interestRateAnnual }))} onSelectConfig={(amount, _duration, accounts, circleId) => {
               const target = circles.find((c) => c.id === circleId) || circles.find((c) => c.amount === amount) || circles[0];
               if (target) {
-                setAccountCount(Math.max(1, Math.min(accounts, target.maxAccountsPerUser)));
+                const maxPer = target.maxAccountsPerUser > 0 ? target.maxAccountsPerUser : accounts;
+                setAccountCount(Math.max(1, Math.min(accounts, maxPer)));
                 setOpenModalCircle(target);
               }
             }} />
@@ -255,7 +257,8 @@ export default function CirclesPage() {
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-4">
                   {circles.map((circle) => {
                     const userAccounts = myAccounts.filter((a) => a.circleId === circle.id && a.status === "active").length;
-                    const canOpen = userAccounts < circle.maxAccountsPerUser;
+                    const maxPerUser = circle.maxAccountsPerUser > 0 ? circle.maxAccountsPerUser : Infinity;
+                    const canOpen = userAccounts < maxPerUser;
                     return (
                       <div key={circle.id} className="rounded-xl border border-gray-100 bg-gray-50 p-5 transition-all duration-200">
                         <div className="mb-3 flex items-start justify-between">
@@ -276,7 +279,7 @@ export default function CirclesPage() {
                           )}
                           <div><span className="text-gray-400">Duration</span><br /><span className="font-semibold text-brand-dark">{formatDuration(circle.durationMonths)}</span></div>
                           <div><span className="text-gray-400">Interest Rate</span><br /><span className="font-semibold text-brand-dark">{circle.interestRateAnnual}% p.a.</span></div>
-                          <div><span className="text-gray-400">Your Accounts</span><br /><span className="font-semibold text-brand-dark">{userAccounts}/{circle.maxAccountsPerUser}</span></div>
+                          <div><span className="text-gray-400">Your Accounts</span><br /><span className="font-semibold text-brand-dark">{userAccounts}{circle.maxAccountsPerUser > 0 ? `/${circle.maxAccountsPerUser}` : ""}</span></div>
                         </div>
                         <Button variant="primary" size="sm" disabled={!canOpen || openingCircle === circle.id} onClick={() => { setOpenModalCircle(circle); setAccountCount(1); }}>
                           {openingCircle === circle.id ? "Opening..." : canOpen ? "Open Account" : "Max Reached"}
@@ -405,16 +408,24 @@ export default function CirclesPage() {
               <input
                 type="number"
                 min={1}
-                max={Math.max(1, openModalCircle.maxAccountsPerUser - (myAccounts.filter((a) => a.circleId === openModalCircle.id && a.status === "active").length))}
+                max={openModalCircle.maxAccountsPerUser > 0 ? Math.max(1, openModalCircle.maxAccountsPerUser - (myAccounts.filter((a) => a.circleId === openModalCircle.id && a.status === "active").length)) : undefined}
                 value={accountCount}
                 onChange={(e) => {
                   const v = parseInt(e.target.value, 10);
-                  if (!isNaN(v) && v >= 1) setAccountCount(Math.min(v, openModalCircle.maxAccountsPerUser));
+                  const cap = openModalCircle.maxAccountsPerUser > 0
+                    ? openModalCircle.maxAccountsPerUser - (myAccounts.filter((a) => a.circleId === openModalCircle.id && a.status === "active").length)
+                    : Infinity;
+                  if (!isNaN(v) && v >= 1) setAccountCount(Math.min(v, cap));
                 }}
                 className="h-9 w-[60px] rounded-lg border border-gray-200 text-center font-mono text-[14px] font-semibold outline-none"
               />
               <button
-                onClick={() => setAccountCount((c) => Math.min(openModalCircle.maxAccountsPerUser, c + 1))}
+                onClick={() => {
+                  const cap = openModalCircle.maxAccountsPerUser > 0
+                    ? openModalCircle.maxAccountsPerUser - (myAccounts.filter((a) => a.circleId === openModalCircle.id && a.status === "active").length)
+                    : Infinity;
+                  setAccountCount((c) => Math.min(cap, c + 1));
+                }}
                 className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-[16px] font-semibold cursor-pointer"
               >+</button>
             </div>

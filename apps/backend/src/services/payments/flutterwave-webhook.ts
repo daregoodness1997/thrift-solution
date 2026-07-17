@@ -5,10 +5,17 @@ import {
   updateDonationStatus,
   findTransactionByReference,
   updateTransactionStatus,
+  findLoanRepaymentByReference,
+  recordLoanRepaymentByReference,
   getVirtualAccountByAccountNumber,
   creditWallet,
   updateVirtualAccountLastTransfer,
+  processPaymentReversal,
 } from "@thrift/db";
+
+const REVERSED_STATUSES = ["reversed", "refunded", "chargeback", "failed"];
+const isReversed = (status: unknown) =>
+  typeof status === "string" && REVERSED_STATUSES.includes(status.toLowerCase());
 
 // --- Signature verification -------------------------------------------------
 //
@@ -72,6 +79,26 @@ async function handleChargeCompleted(data: Record<string, any>): Promise<void> {
     if (transaction) {
       await updateTransactionStatus(transaction.id, "completed");
     }
+
+    // Loan repayment payments are keyed by the transaction reference. Record the
+    // repayment against the schedule once the charge is successful.
+    if (reference && /^LOANPAY-|LOANLIQ-/.test(reference)) {
+      const already = await findLoanRepaymentByReference(reference);
+      if (!already) {
+        const { prisma } = await import("@thrift/db");
+        const txn = await prisma.transaction.findUnique({ where: { reference } });
+        if (txn?.loanId) {
+          await recordLoanRepaymentByReference({
+            reference,
+            loanId: txn.loanId,
+            borrowerId: txn.userId,
+            amount: Number(data.amount),
+            provider: "flutterwave",
+            installmentNo: (txn.metadata as { installmentNo?: number } | null)?.installmentNo,
+          });
+        }
+      }
+    }
   }
 
   // Virtual account deposits arrive with an `account` object.
@@ -104,6 +131,39 @@ async function handleTransfer(data: Record<string, any>): Promise<void> {
   }
 }
 
+/**
+ * Handle a payment reversal. Flutterwave reports reversals either as a
+ * `charge.completed` event with `status: "reversed"`/`"refunded"`, or as a
+ * dedicated `refund` event. Either way we reverse the wallet credit and unwind
+ * any circle subscription that was funded by the payment.
+ */
+async function handleReversal(data: Record<string, any>): Promise<void> {
+  // Card/web checkout + donation payments carry a tx_ref.
+  const reference = data.tx_ref as string | undefined;
+  // Virtual-account deposits are keyed by the `va_flw_<id>` reference we
+  // generated when the deposit originally landed.
+  const vaRef = data.id ? `va_flw_${data.id}` : undefined;
+
+  const reason =
+    (data.narration as string) ||
+    (data.meta?.reason as string) ||
+    (isReversed(data.status) ? `payment ${data.status}` : "payment reversed");
+
+  let processed = false;
+  if (reference) {
+    const result = await processPaymentReversal(reference, reason);
+    processed = result.walletReversed || result.reversedAccounts > 0;
+  }
+  if (vaRef) {
+    const result = await processPaymentReversal(vaRef, reason);
+    processed = processed || result.walletReversed || result.reversedAccounts > 0;
+  }
+
+  if (processed) {
+    console.warn(`Flutterwave reversal processed: ref=${reference ?? vaRef} status=${data.status}`);
+  }
+}
+
 type FlutterwaveEvent = {
   event?: string;
   data?: Record<string, any>;
@@ -127,7 +187,16 @@ export async function processFlutterwaveWebhook(req: Request): Promise<boolean> 
 
   switch (event) {
     case "charge.completed":
-      await handleChargeCompleted(data);
+      if (isReversed(data.status)) {
+        await handleReversal(data);
+      } else {
+        await handleChargeCompleted(data);
+      }
+      break;
+    case "refund":
+    case "charge.reversed":
+    case "transfer.reversed":
+      await handleReversal(data);
       break;
     case "transfer":
     case "transfer.completed":

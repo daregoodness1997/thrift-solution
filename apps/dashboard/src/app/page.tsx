@@ -240,6 +240,12 @@ export default function Dashboard() {
       case "donation": return "Donation";
       case "funding": return "Funding";
       case "referral_earning": return "Referral";
+      case "wallet_funding": return "Wallet Funding";
+      case "wallet_funding_reversal": return "Funding Reversed";
+      case "circle_reversal": return "Circle Reversed";
+      case "circle_deposit": return "Circle Deposit";
+      case "circle_contribution": return "Circle Contribution";
+      case "circle_processing_fee": return "Processing Fee";
       default: return type;
     }
   };
@@ -251,6 +257,12 @@ export default function Dashboard() {
       case "donation": return cfg.colors.primary;
       case "funding": return "#2563EB";
       case "referral_earning": return "#8A7D73";
+      case "wallet_funding": return "#2563EB";
+      case "wallet_funding_reversal": return "#DC2626";
+      case "circle_reversal": return "#DC2626";
+      case "circle_deposit": return "#7C3AED";
+      case "circle_contribution": return "#7C3AED";
+      case "circle_processing_fee": return "#D97706";
       default: return "#717171";
     }
   };
@@ -1055,7 +1067,7 @@ export default function Dashboard() {
                         <td className="py-3 text-right">
                           <span className={`rounded-md px-2 py-0.5 text-[9px] font-bold ${t.status === "completed" ? "bg-emerald-50 text-emerald-600" : t.status === "pending" ? "bg-amber-50 text-amber-600" : "bg-gray-100 text-gray-500"}`}>{t.status}</span>
                         </td>
-                        <td className={`py-3 text-right font-mono font-semibold ${t.type === "payout" || t.type === "funding" ? "text-emerald-600" : "text-brand-dark"}`}>{formatNaira(t.amount)}</td>
+                        <td className={`py-3 text-right font-mono font-semibold ${t.type === "payout" || t.type === "funding" || t.type === "wallet_funding" || t.type === "referral_earning" || t.type === "circle_interest" ? "text-emerald-600" : t.type === "wallet_funding_reversal" || t.type === "circle_reversal" ? "text-red-600" : "text-brand-dark"}`}>{formatNaira(t.amount)}</td>
                       </tr>
                     );
                   })}

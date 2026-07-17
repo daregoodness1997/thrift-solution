@@ -19,6 +19,8 @@ event asynchronously so Flutterwave never retries a slow handler.
 | Event                 | Action                                                            |
 | --------------------- | ----------------------------------------------------------------- |
 | `charge.completed`    | Mark donation/transaction as `completed`; credit wallet on virtual-account deposits |
+| `charge.completed` (`status: reversed/refunded`) | Reverse the wallet credit and unwind any circle subscription funded by that payment |
+| `refund` / `charge.reversed` / `transfer.reversed` | Same reversal handling as above |
 | `transfer` / `transfer.completed` | Mark payout transaction `completed` or `failed`        |
 | *(anything else)*     | Acknowledged and ignored                                          |
 
@@ -120,3 +122,35 @@ curl -X POST http://localhost:4000/api/webhooks/flutterwave \
   `200` acknowledgement is already sent.
 - Donations and generic wallet-funding payments are completed only when a
   matching `tx_ref` is found in the donations/transactions tables.
+
+## Payment reversals
+
+When a payment is reversed (Flutterwave `charge.completed` with
+`status: "reversed"`/`"refunded"`, or a dedicated `refund` event), the handler
+runs `processPaymentReversal`:
+
+1. **Reverse the wallet credit** — a balancing `wallet_funding_reversal`
+   transaction is created (idempotent by reference) so the derived wallet
+   balance automatically corrects, and the original funding row is marked
+   `reversed`.
+2. **Unwind dependent circle subscriptions** — any `CircleAccount` whose
+   `funded_by_txn_ref` matches the reversed funding reference is set to
+   `reversed` and its principal/processing-fee transactions are reversed,
+   restoring the user's balance. The user is notified in-app.
+3. **Mark the donation/transaction** as `reversed`.
+
+Circle subscriptions are linked to their funding source via the
+`funded_by_txn_ref` column on `circle_accounts`, set when the account is
+opened (the client may pass it explicitly, otherwise the most recent completed
+wallet-funding transaction is used as the fallback).
+
+### Reconciliation (safety net)
+
+Webhooks are best-effort, so `paymentReversalReconciliationJob` runs daily
+(default `0 3 * * *`) and re-verifies recent completed wallet-funding
+transactions against the provider, reversing any that now report a reversed/
+refunded state. It can also be triggered manually:
+
+```
+POST /api/circles/admin/run-reversal-reconciliation
+```

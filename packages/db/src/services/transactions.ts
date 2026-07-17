@@ -1,5 +1,6 @@
 import nodeCrypto from "node:crypto";
 import { prisma } from "./prisma";
+import type { Prisma } from "@prisma/client";
 
 export async function createTransaction(data: {
   userId: string;
@@ -7,6 +8,9 @@ export async function createTransaction(data: {
   amount: number;
   groupId?: string;
   donationId?: string;
+  loanId?: string;
+  status?: string;
+  metadata?: Prisma.InputJsonValue;
   reference: string;
   description?: string;
 }) {

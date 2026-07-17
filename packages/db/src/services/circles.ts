@@ -12,9 +12,12 @@ export async function createCircle(data: {
   durationMonths: number;
   interestRateAnnual: number;
   maxAccountsPerUser?: number;
+  maxSubscribers?: number;
   autoPayout?: boolean;
   payoutMode?: string;
   blockPayoutOnDefault?: boolean;
+  processingFeeType?: "fixed" | "percent" | null;
+  processingFeeValue?: number | null;
 }) {
   const cycleType = data.cycleType === "weekly_contribution" ? "weekly_contribution" : "deposit";
   if (cycleType === "weekly_contribution") {
@@ -26,9 +29,47 @@ export async function createCircle(data: {
     }
   }
   const payoutMode = resolvePayoutMode(data.payoutMode, data.autoPayout);
+  const { processingFeeType, processingFeeValue } = resolveProcessingFee(data.processingFeeType, data.processingFeeValue);
   return prisma.circle.create({
-    data: { ...data, cycleType, payoutMode, autoPayout: payoutMode === "auto" },
+    data: {
+      name: data.name,
+      description: data.description,
+      cycleType,
+      amount: data.amount,
+      weeklyAmount: data.weeklyAmount,
+      totalWeeks: data.totalWeeks,
+      durationMonths: data.durationMonths,
+      interestRateAnnual: data.interestRateAnnual,
+      maxAccountsPerUser: data.maxAccountsPerUser,
+      maxSubscribers: data.maxSubscribers,
+      autoPayout: payoutMode === "auto",
+      payoutMode,
+      blockPayoutOnDefault: data.blockPayoutOnDefault,
+      processingFeeType,
+      processingFeeValue,
+    },
   });
+}
+
+export function resolveProcessingFee(
+  type?: "fixed" | "percent" | string | null,
+  value?: number | string | null,
+): { processingFeeType: "fixed" | "percent" | null; processingFeeValue: number | null } {
+  if (type !== "fixed" && type !== "percent") return { processingFeeType: null, processingFeeValue: null };
+  const numeric = typeof value === "string" ? Number(value) : value;
+  if (numeric == null || isNaN(numeric) || numeric < 0) return { processingFeeType: null, processingFeeValue: null };
+  return { processingFeeType: type, processingFeeValue: Math.round(numeric * 100) / 100 };
+}
+
+export function computeProcessingFee(
+  type: "fixed" | "percent" | null | undefined,
+  value: number | null | undefined,
+  baseAmount: number,
+): number {
+  if (type !== "fixed" && type !== "percent") return 0;
+  if (value == null || value <= 0) return 0;
+  const fee = type === "fixed" ? value : baseAmount * (value / 100);
+  return Math.round(fee * 100) / 100;
 }
 
 function resolvePayoutMode(payoutMode?: string, autoPayout?: boolean): string {
@@ -86,9 +127,12 @@ export async function updateCircle(id: string, data: {
   durationMonths?: number;
   interestRateAnnual?: number;
   maxAccountsPerUser?: number;
+  maxSubscribers?: number;
   autoPayout?: boolean;
   payoutMode?: string;
   blockPayoutOnDefault?: boolean;
+  processingFeeType?: "fixed" | "percent" | null;
+  processingFeeValue?: number | null;
   status?: string;
 }) {
   const patch: Record<string, unknown> = { ...data };
@@ -99,6 +143,14 @@ export async function updateCircle(id: string, data: {
     patch.autoPayout = data.autoPayout;
     patch.payoutMode = data.autoPayout ? "auto" : "clearance";
   }
+  if (data.processingFeeType !== undefined || data.processingFeeValue !== undefined) {
+    const { processingFeeType, processingFeeValue } = resolveProcessingFee(
+      data.processingFeeType ?? null,
+      data.processingFeeValue ?? null,
+    );
+    patch.processingFeeType = processingFeeType;
+    patch.processingFeeValue = processingFeeValue;
+  }
   return prisma.circle.update({
     where: { id },
     data: patch,
@@ -106,7 +158,7 @@ export async function updateCircle(id: string, data: {
   });
 }
 
-export async function openCircleAccount(circleId: string, userId: string) {
+export async function openCircleAccount(circleId: string, userId: string, fundedByTxnRef?: string) {
   const circle = await prisma.circle.findUnique({ where: { id: circleId } });
   if (!circle) throw new Error("Circle not found");
   if (circle.status !== "active") throw new Error("Circle is not active");
@@ -114,16 +166,32 @@ export async function openCircleAccount(circleId: string, userId: string) {
   const userAccounts = await prisma.circleAccount.count({
     where: { circleId, userId, status: "active" },
   });
-  if (userAccounts >= circle.maxAccountsPerUser) {
+  if (circle.maxAccountsPerUser > 0 && userAccounts >= circle.maxAccountsPerUser) {
     throw new Error(`Maximum ${circle.maxAccountsPerUser} active accounts per circle reached`);
+  }
+
+  if (circle.maxSubscribers != null && circle.maxSubscribers > 0) {
+    const totalAccounts = await prisma.circleAccount.count({
+      where: { circleId, status: { in: ["active", "matured"] } },
+    });
+    if (totalAccounts >= circle.maxSubscribers) {
+      throw new Error(`Circle is full. Maximum ${circle.maxSubscribers} subscribers reached`);
+    }
   }
 
   const isWeekly = circle.cycleType === "weekly_contribution";
   const initialDebit = isWeekly ? (circle.weeklyAmount ?? 0) : circle.amount;
 
+  const processingFee = computeProcessingFee(
+    (circle.processingFeeType as "fixed" | "percent" | null | undefined),
+    circle.processingFeeValue,
+    initialDebit,
+  );
+  const totalRequired = Math.round((initialDebit + processingFee) * 100) / 100;
+
   const balance = await getWalletBalance(userId);
-  if (balance < initialDebit) {
-    throw new Error(`Insufficient wallet balance. Required: ${initialDebit}, Available: ${balance}`);
+  if (balance < totalRequired) {
+    throw new Error(`Insufficient wallet balance. Required: ${totalRequired}, Available: ${balance}`);
   }
 
   const now = new Date();
@@ -140,11 +208,13 @@ export async function openCircleAccount(circleId: string, userId: string) {
         circleId,
         userId,
         principalAmount: initialDebit,
+        processingFee,
         weeksContributed: isWeekly ? 1 : 0,
         lastContributionAttempt: isWeekly ? now : null,
         startDate: now,
         maturityDate,
         lastInterestCalculation: now,
+        fundedByTxnRef: fundedByTxnRef || null,
       },
       include: {
         circle: { select: { id: true, name: true, amount: true, durationMonths: true, interestRateAnnual: true } },
@@ -163,6 +233,20 @@ export async function openCircleAccount(circleId: string, userId: string) {
         description: `${isWeekly ? "Week 1 contribution" : "Deposit"} into ${circle.name} [${circleAccount.id}]`,
       },
     });
+
+    if (processingFee > 0) {
+      const feeReference = `CIRCLE-FEE-${circleAccount.id}-${Date.now()}-${nodeCrypto.randomBytes(4).toString("hex")}`;
+      await tx.transaction.create({
+        data: {
+          userId,
+          type: "circle_processing_fee",
+          amount: processingFee,
+          reference: feeReference,
+          status: "completed",
+          description: `Processing fee for ${circle.name} [${circleAccount.id}]`,
+        },
+      });
+    }
 
     if (isWeekly) {
       await tx.circleContribution.create({

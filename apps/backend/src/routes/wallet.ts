@@ -8,6 +8,7 @@ import {
   findTransactionByReference,
   updateTransactionStatus,
   getWalletBalance,
+  getWalletBreakdown,
 } from "@thrift/db";
 
 export const walletRouter = Router();
@@ -31,6 +32,17 @@ walletRouter.get("/balance", authMiddleware, async (req, res) => {
   } catch (err) {
     console.error("Get wallet balance error:", err);
     res.status(500).json({ success: false, error: "Failed to fetch wallet balance" });
+  }
+});
+
+// Get wallet balance breakdown (available vs. committed/locked funds)
+walletRouter.get("/balance/breakdown", authMiddleware, async (req, res) => {
+  try {
+    const breakdown = await getWalletBreakdown(req.user!.userId);
+    res.json({ success: true, data: breakdown });
+  } catch (err) {
+    console.error("Get wallet breakdown error:", err);
+    res.status(500).json({ success: false, error: "Failed to fetch wallet breakdown" });
   }
 });
 
@@ -66,6 +78,7 @@ walletRouter.post("/fund", authMiddleware, async (req, res) => {
       type: "funding",
       amount: parseFloat(amount),
       reference,
+      status: "pending",
       description: `Wallet funding via ${provider}`,
     });
 

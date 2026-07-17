@@ -71,15 +71,26 @@ export default function TransactionsPage() {
       case "donation": return cfg.colors.primary;
       case "funding": return "#2563EB";
       case "referral_earning": return "#8A7D73";
+      case "wallet_funding": return "#2563EB";
+      case "wallet_funding_reversal": return "#DC2626";
+      case "circle_reversal": return "#DC2626";
       case "circle_deposit": return "#7C3AED";
+      case "circle_contribution": return "#7C3AED";
       case "circle_withdrawal": return "#0891B2";
       case "circle_interest": return "#D97706";
+      case "circle_processing_fee": return "#D97706";
       default: return "#717171";
     }
   };
 
   const getTypeLabel = (type: string) => {
-    return type.split("_").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+    switch (type) {
+      case "wallet_funding_reversal": return "Funding Reversed";
+      case "circle_reversal": return "Circle Reversed";
+      case "wallet_funding": return "Wallet Funding";
+      case "circle_processing_fee": return "Processing Fee";
+      default: return type.split("_").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+    }
   };
 
   const columns: Column<Transaction>[] = [

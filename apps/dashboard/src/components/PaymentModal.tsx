@@ -42,7 +42,12 @@ const providers: Provider[] = [
   },
 ];
 
-export function PaymentModal({ isOpen, onClose, amount, onSuccess }: PaymentModalProps) {
+export function PaymentModal({
+  isOpen,
+  onClose,
+  amount,
+  onSuccess,
+}: PaymentModalProps) {
   const [selectedProvider, setSelectedProvider] = useState<string>("paystack");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -77,7 +82,7 @@ export function PaymentModal({ isOpen, onClose, amount, onSuccess }: PaymentModa
         const paymentWindow = window.open(
           data.data.authorizationUrl,
           "_blank",
-          "width=500,height=700,scrollbars=yes,resizable=yes"
+          "width=500,height=700,scrollbars=yes,resizable=yes",
         );
 
         // Poll for window close (user completed or cancelled payment)
@@ -95,7 +100,7 @@ export function PaymentModal({ isOpen, onClose, amount, onSuccess }: PaymentModa
           try {
             const verifyRes = await fetch(
               `${API_URL}/api/wallet/verify/${data.data.reference}?provider=${selectedProvider}`,
-              { headers: { Authorization: `Bearer ${token}` } }
+              { headers: { Authorization: `Bearer ${token}` } },
             );
             const verifyData = await verifyRes.json();
             if (verifyData.success && verifyData.data.status === "completed") {
@@ -117,21 +122,27 @@ export function PaymentModal({ isOpen, onClose, amount, onSuccess }: PaymentModa
 
   return (
     <div
-      className="fixed inset-0 flex items-center justify-center z-[1000] p-4 bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 flex items-center justify-center z-[1000] p-4 bg-black/50 backdrop-blur-sm w-screen h-screen top-0 left-0"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <FadeIn>
-        <div
-          className="bg-white rounded-[20px] p-8 max-w-[420px] w-full shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] relative"
-        >
+        <div className="bg-white rounded-[20px] p-8 max-w-[420px] w-full shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] relative">
           {/* Close Button */}
           <button
             onClick={onClose}
             className="absolute top-4 right-4 w-8 h-8 rounded-full border-none bg-gray-100 cursor-pointer flex items-center justify-center transition-all duration-200 hover:bg-gray-200"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth={2} strokeLinecap="round">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#6B7280"
+              strokeWidth={2}
+              strokeLinecap="round"
+            >
               <path d="M18 6L6 18M6 6l12 12" />
             </svg>
           </button>
@@ -140,9 +151,19 @@ export function PaymentModal({ isOpen, onClose, amount, onSuccess }: PaymentModa
           <div className="mb-6">
             <div
               className="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
-              style={{ background: `linear-gradient(135deg, ${config.colors.primary}15, ${config.colors.primary}08)` }}
+              style={{
+                background: `linear-gradient(135deg, ${config.colors.primary}15, ${config.colors.primary}08)`,
+              }}
             >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={config.colors.primary} strokeWidth={2} strokeLinecap="round">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke={config.colors.primary}
+                strokeWidth={2}
+                strokeLinecap="round"
+              >
                 <rect x="2" y="5" width="20" height="14" rx="2" />
                 <path d="M2 10h20" />
               </svg>
@@ -156,9 +177,7 @@ export function PaymentModal({ isOpen, onClose, amount, onSuccess }: PaymentModa
           </div>
 
           {/* Amount Display */}
-          <div
-            className="p-4 bg-gray-50 rounded-xl mb-6 text-center"
-          >
+          <div className="p-4 bg-gray-50 rounded-xl mb-6 text-center">
             <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-[0.1em]">
               Amount
             </span>
@@ -183,7 +202,10 @@ export function PaymentModal({ isOpen, onClose, amount, onSuccess }: PaymentModa
                   className="flex items-center gap-3 p-4 rounded-xl cursor-pointer transition-all duration-200 w-full text-left"
                   style={{
                     border: `2px solid ${selectedProvider === provider.id ? provider.color : "#E5E7EB"}`,
-                    backgroundColor: selectedProvider === provider.id ? `${provider.color}08` : "#FFFFFF",
+                    backgroundColor:
+                      selectedProvider === provider.id
+                        ? `${provider.color}08`
+                        : "#FFFFFF",
                   }}
                   onMouseEnter={(e) => {
                     if (selectedProvider !== provider.id) {
@@ -214,11 +236,22 @@ export function PaymentModal({ isOpen, onClose, amount, onSuccess }: PaymentModa
                     className="w-5 h-5 rounded-full flex items-center justify-center"
                     style={{
                       border: `2px solid ${selectedProvider === provider.id ? provider.color : "#D1D5DB"}`,
-                      backgroundColor: selectedProvider === provider.id ? provider.color : "transparent",
+                      backgroundColor:
+                        selectedProvider === provider.id
+                          ? provider.color
+                          : "transparent",
                     }}
                   >
                     {selectedProvider === provider.id && (
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={3} strokeLinecap="round">
+                      <svg
+                        width="10"
+                        height="10"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="white"
+                        strokeWidth={3}
+                        strokeLinecap="round"
+                      >
                         <path d="M20 6L9 17l-5-5" />
                       </svg>
                     )}
@@ -230,10 +263,16 @@ export function PaymentModal({ isOpen, onClose, amount, onSuccess }: PaymentModa
 
           {/* Error Message */}
           {error && (
-            <div
-              className="px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-xs font-medium mb-4 flex items-center gap-2"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+            <div className="px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-xs font-medium mb-4 flex items-center gap-2">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2}
+                strokeLinecap="round"
+              >
                 <circle cx="12" cy="12" r="10" />
                 <path d="M12 8v4M12 16h.01" />
               </svg>
@@ -272,14 +311,30 @@ export function PaymentModal({ isOpen, onClose, amount, onSuccess }: PaymentModa
                   viewBox="0 0 24 24"
                   style={{ animation: "spin 1s linear infinite" }}
                 >
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" fill="none" strokeDasharray="31.4 31.4" />
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    fill="none"
+                    strokeDasharray="31.4 31.4"
+                  />
                 </svg>
                 Processing...
               </>
             ) : (
               <>
                 Pay {formatNaira(amount)}
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                >
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
               </>
@@ -287,10 +342,16 @@ export function PaymentModal({ isOpen, onClose, amount, onSuccess }: PaymentModa
           </button>
 
           {/* Security Note */}
-          <div
-            className="mt-4 flex items-center justify-center gap-2 text-[11px] text-gray-400"
-          >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+          <div className="mt-4 flex items-center justify-center gap-2 text-[11px] text-gray-400">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              strokeLinecap="round"
+            >
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
               <path d="M7 11V7a5 5 0 0110 0v4" />
             </svg>
@@ -301,8 +362,12 @@ export function PaymentModal({ isOpen, onClose, amount, onSuccess }: PaymentModa
 
       <style jsx>{`
         @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
         }
       `}</style>
     </div>

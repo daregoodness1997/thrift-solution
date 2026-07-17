@@ -61,6 +61,7 @@ model User {
   jobListings            JobListing[]
   jobApplications        JobApplication[]    @relation("Applicant")
   loans                  Loan[]              @relation("Borrower")
+  loanRepayments         LoanRepayment[]
   circleAccounts         CircleAccount[]
   circlePayoutRequests   CirclePayoutRequest[] @relation("CirclePayoutRequestUser")
   reviewedPayoutRequests CirclePayoutRequest[] @relation("ReviewedBy")
@@ -166,16 +167,23 @@ model Transaction {
   amount       Float
   groupId      String?   @map("group_id")
   donationId   String?   @map("donation_id")
+  loanId       String?   @map("loan_id")
   reference    String    @unique
   status       String    @default("pending")
   description  String?
+  metadata     Json?
+  reversalOf   String?   @map("reversal_of")
+  reversedAt   DateTime? @map("reversed_at")
   deletedAt    DateTime? @map("deleted_at")
   createdAt    DateTime  @default(now()) @map("created_at")
 
   user     User      @relation(fields: [userId], references: [id], onDelete: Restrict)
   donation Donation? @relation(fields: [donationId], references: [id], onDelete: SetNull)
+  loan     Loan?     @relation(fields: [loanId], references: [id], onDelete: SetNull)
 
   @@index([userId])
+  @@index([loanId])
+  @@index([reversalOf])
   @@map("transactions")
 }
 
@@ -450,6 +458,15 @@ model Loan {
   termMonths     Int       @map("term_months")
   monthlyPayment Float     @map("monthly_payment")
   totalRepayment Float     @map("total_repayment")
+  processingFeeType String?  @map("processing_fee_type")
+  processingFeeValue Float?  @map("processing_fee_value")
+  processingFee  Float?     @map("processing_fee")
+  disbursedAmount Float?   @map("disbursed_amount")
+  paidAmount     Float     @default(0) @map("paid_amount")
+  principalPaid  Float     @default(0) @map("principal_paid")
+  interestPaid   Float     @default(0) @map("interest_paid")
+  outstandingBalance Float @default(0) @map("outstanding_balance")
+  nextDueDate    DateTime? @map("next_due_date")
   purpose        String?
   status         String    @default("pending")
   approvedAt     DateTime? @map("approved_at")
@@ -459,11 +476,57 @@ model Loan {
   createdAt      DateTime  @default(now()) @map("created_at")
   updatedAt      DateTime  @default(now()) @updatedAt @map("updated_at")
 
-  borrower User @relation("Borrower", fields: [borrowerId], references: [id], onDelete: Restrict)
+  borrower User              @relation("Borrower", fields: [borrowerId], references: [id], onDelete: Restrict)
+  schedule LoanScheduleItem[]
+  repayments LoanRepayment[]
+  transactions Transaction[]
 
   @@index([borrowerId])
   @@index([status])
   @@map("loans")
+}
+
+model LoanScheduleItem {
+  id            String    @id @default(uuid())
+  loanId        String    @map("loan_id")
+  installmentNo  Int      @map("installment_no")
+  dueDate       DateTime  @map("due_date")
+  principal     Float
+  interest      Float
+  totalDue      Float     @map("total_due")
+  principalPaid Float     @default(0) @map("principal_paid")
+  interestPaid  Float     @default(0) @map("interest_paid")
+  status        String    @default("pending")
+  paidAt        DateTime? @map("paid_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  loan Loan @relation(fields: [loanId], references: [id], onDelete: Cascade)
+
+  @@unique([loanId, installmentNo])
+  @@index([loanId])
+  @@index([status])
+  @@map("loan_schedule_items")
+}
+
+model LoanRepayment {
+  id          String   @id @default(uuid())
+  loanId      String   @map("loan_id")
+  borrowerId  String   @map("borrower_id")
+  amount      Float
+  principal   Float
+  interest    Float
+  method      String   @default("wallet") @map("method")
+  reference   String   @unique
+  status      String   @default("completed")
+  note        String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  loan     Loan @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  borrower User @relation(fields: [borrowerId], references: [id], onDelete: Restrict)
+
+  @@index([loanId])
+  @@index([borrowerId])
+  @@map("loan_repayments")
 }
 
 model Circle {
@@ -476,10 +539,13 @@ model Circle {
   totalWeeks          Int?      @map("total_weeks")
   durationMonths      Int       @map("duration_months")
   interestRateAnnual  Float     @map("interest_rate_annual")
-  maxAccountsPerUser  Int       @default(10) @map("max_accounts_per_user")
+  maxAccountsPerUser  Int       @default(0) @map("max_accounts_per_user")
+  maxSubscribers      Int?      @map("max_subscribers")
   autoPayout          Boolean   @default(false) @map("auto_payout")
   payoutMode          String    @default("auto") @map("payout_mode")
   blockPayoutOnDefault Boolean  @default(true) @map("block_payout_on_default")
+  processingFeeType String?  @map("processing_fee_type")
+  processingFeeValue Float?  @map("processing_fee_value")
   status              String    @default("active")
   deletedAt           DateTime? @map("deleted_at")
   createdAt           DateTime  @default(now()) @map("created_at")
@@ -496,6 +562,7 @@ model CircleAccount {
   userId                    String    @map("user_id")
   principalAmount           Float     @map("principal_amount")
   interestEarned            Float     @default(0) @map("interest_earned")
+  processingFee             Float     @default(0) @map("processing_fee")
   totalWithdrawn            Float     @default(0) @map("total_withdrawn")
   status                    String    @default("active")
   weeksContributed          Int       @default(0) @map("weeks_contributed")
@@ -504,6 +571,8 @@ model CircleAccount {
   startDate                 DateTime  @map("start_date")
   maturityDate              DateTime  @map("maturity_date")
   lastInterestCalculation   DateTime? @map("last_interest_calculation")
+  fundedByTxnRef            String?   @map("funded_by_txn_ref")
+  reversedAt                DateTime? @map("reversed_at")
   deletedAt                 DateTime? @map("deleted_at")
   createdAt                 DateTime  @default(now()) @map("created_at")
   updatedAt                 DateTime  @default(now()) @updatedAt @map("updated_at")

@@ -32,6 +32,7 @@ import { webhookRouter } from "./routes/webhook";
 import { circleInterestJob } from "./jobs/circleInterestJob";
 import { circleContributionJob } from "./jobs/circleContributionJob";
 import { virtualAccountGenerationJob } from "./jobs/virtualAccountJob";
+import { paymentReversalReconciliationJob } from "./jobs/paymentReversalJob";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -81,6 +82,7 @@ app.use("/api/webhooks", webhookRouter);
 cron.schedule("0 0 * * 0", circleInterestJob);
 cron.schedule("0 1 * * 0", circleContributionJob);
 cron.schedule("0 2 * * *", virtualAccountGenerationJob);
+cron.schedule("0 3 * * *", paymentReversalReconciliationJob);
 
 app.listen(PORT, () => {
   console.log(`Backend server running on http://localhost:${PORT}`);

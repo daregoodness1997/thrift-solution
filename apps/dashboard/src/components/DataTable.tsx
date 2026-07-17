@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
+import Pagination from "@/components/Pagination";
 
 export interface Column<T> {
   key: string;
@@ -44,25 +45,6 @@ export function DataTable<T>({
   minWidth,
 }: DataTableProps<T>) {
   const { page, total, totalPages } = pagination;
-
-  const getVisiblePages = () => {
-    const pages: (number | "...")[] = [];
-    if (totalPages <= 5) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i);
-    } else {
-      pages.push(1);
-      if (page > 3) pages.push("...");
-      const start = Math.max(2, page - 1);
-      const end = Math.min(totalPages - 1, page + 1);
-      for (let i = start; i <= end; i++) pages.push(i);
-      if (page < totalPages - 2) pages.push("...");
-      pages.push(totalPages);
-    }
-    return pages;
-  };
-
-  const startItem = total === 0 ? 0 : (page - 1) * pagination.limit + 1;
-  const endItem = Math.min(page * pagination.limit, total);
 
   if (loading) {
     return (
@@ -121,51 +103,13 @@ export function DataTable<T>({
         </table>
       </div>
 
-      {totalPages > 1 && (
-        <div className="flex flex-wrap justify-between items-center px-6 py-4 border-t border-gray-100 gap-3">
-          <span className="text-[11px] text-gray-400 font-mono">
-            Showing {startItem}–{endItem} of {total}
-          </span>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => onPageChange(page - 1)}
-              disabled={page <= 1}
-              className="px-2.5 py-1.5 rounded-md text-[11px] font-semibold border border-[#EAEAEA] bg-white transition-all duration-150"
-              style={{ cursor: page <= 1 ? "not-allowed" : "pointer", color: page <= 1 ? "#D1D5DB" : "#717171" }}
-            >
-              Prev
-            </button>
-            {getVisiblePages().map((p, i) =>
-              p === "..." ? (
-                <span key={`dots-${i}`} className="px-1.5 py-1.5 text-[11px] text-[#D1D5DB]">
-                  ...
-                </span>
-              ) : (
-                <button
-                  key={p}
-                  onClick={() => onPageChange(p as number)}
-                  className="px-2.5 py-1.5 rounded-md text-[11px] font-semibold cursor-pointer transition-all duration-150"
-                  style={{
-                    border: `1px solid ${p === page ? accentColor : "#EAEAEA"}`,
-                    backgroundColor: p === page ? accentColor : "#ffffff",
-                    color: p === page ? "#ffffff" : "#717171",
-                  }}
-                >
-                  {p}
-                </button>
-              )
-            )}
-            <button
-              onClick={() => onPageChange(page + 1)}
-              disabled={page >= totalPages}
-              className="px-2.5 py-1.5 rounded-md text-[11px] font-semibold border border-[#EAEAEA] bg-white transition-all duration-150"
-              style={{ cursor: page >= totalPages ? "not-allowed" : "pointer", color: page >= totalPages ? "#D1D5DB" : "#717171" }}
-            >
-              Next
-            </button>
-          </div>
-        </div>
-      )}
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        total={total}
+        limit={pagination.limit}
+        onPageChange={onPageChange}
+      />
     </div>
   );
 }

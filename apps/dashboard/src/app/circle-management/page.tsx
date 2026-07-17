@@ -5,6 +5,7 @@ import { config, BrandConfig } from "@thrift/config";
 import { Card, Button, ColorfulBadge, FadeIn, FadeInUp, StaggerChildren } from "@thrift/ui";
 import { formatNaira } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
+import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
 import Pagination from "@/components/Pagination";
 
@@ -21,40 +22,13 @@ interface Circle {
   durationMonths: number;
   interestRateAnnual: number;
   maxAccountsPerUser: number;
+  maxSubscribers?: number | null;
   autoPayout: boolean;
   payoutMode: string;
   blockPayoutOnDefault: boolean;
   status: string;
   _count?: { accounts: number };
 }
-
-interface CircleFormData {
-  name: string;
-  description: string;
-  cycleType: "deposit" | "weekly_contribution";
-  amount: string;
-  weeklyAmount: string;
-  totalWeeks: string;
-  durationMonths: string;
-  interestRateAnnual: string;
-  maxAccountsPerUser: string;
-  payoutMode: "auto" | "clearance";
-  blockPayoutOnDefault: boolean;
-}
-
-const emptyForm: CircleFormData = {
-  name: "",
-  description: "",
-  cycleType: "deposit",
-  amount: "",
-  weeklyAmount: "",
-  totalWeeks: "",
-  durationMonths: "",
-  interestRateAnnual: "",
-  maxAccountsPerUser: "10",
-  payoutMode: "auto",
-  blockPayoutOnDefault: true,
-};
 
 function formatDuration(months: number) {
   if (months < 12) return `${months}mo`;
@@ -65,6 +39,7 @@ function formatDuration(months: number) {
 
 export default function CircleManagementPage() {
   const { token } = useAuth();
+  const router = useRouter();
   const [cfg] = useState<BrandConfig>(fallback);
   const [circles, setCircles] = useState<Circle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -72,10 +47,6 @@ export default function CircleManagementPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
-  const [showModal, setShowModal] = useState(false);
-  const [editingCircle, setEditingCircle] = useState<Circle | null>(null);
-  const [form, setForm] = useState<CircleFormData>(emptyForm);
-  const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [runningJob, setRunningJob] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
@@ -114,80 +85,12 @@ export default function CircleManagementPage() {
     setTimeout(() => setMessage(null), 4000);
   };
 
-  const openCreateModal = () => {
-    setEditingCircle(null);
-    setForm(emptyForm);
-    setShowModal(true);
+  const openCreate = () => {
+    router.push("/circle-management/new");
   };
 
-  const openEditModal = (circle: Circle) => {
-    setEditingCircle(circle);
-    setForm({
-      name: circle.name,
-      description: circle.description || "",
-      cycleType: circle.cycleType === "weekly_contribution" ? "weekly_contribution" : "deposit",
-      amount: String(circle.amount || ""),
-      weeklyAmount: circle.weeklyAmount != null ? String(circle.weeklyAmount) : "",
-      totalWeeks: circle.totalWeeks != null ? String(circle.totalWeeks) : "",
-      durationMonths: String(circle.durationMonths),
-      interestRateAnnual: String(circle.interestRateAnnual),
-      maxAccountsPerUser: String(circle.maxAccountsPerUser),
-      payoutMode: circle.payoutMode === "clearance" ? "clearance" : "auto",
-      blockPayoutOnDefault: circle.blockPayoutOnDefault ?? true,
-    });
-    setShowModal(true);
-  };
-
-  const handleSave = async () => {
-    const isWeekly = form.cycleType === "weekly_contribution";
-    if (!form.name || !form.durationMonths || !form.interestRateAnnual) {
-      showMessage("error", "Name, duration, and interest rate are required");
-      return;
-    }
-    if (!isWeekly && !form.amount) {
-      showMessage("error", "Deposit amount is required for deposit cycles");
-      return;
-    }
-    if (isWeekly && (!form.weeklyAmount || !form.totalWeeks)) {
-      showMessage("error", "Weekly amount and total weeks are required for weekly cycles");
-      return;
-    }
-    setSaving(true);
-    try {
-      const body = {
-        name: form.name,
-        description: form.description || undefined,
-        cycleType: form.cycleType,
-        amount: Number(form.amount) || 0,
-        weeklyAmount: isWeekly ? Number(form.weeklyAmount) : undefined,
-        totalWeeks: isWeekly ? Number(form.totalWeeks) : undefined,
-        durationMonths: Number(form.durationMonths),
-        interestRateAnnual: Number(form.interestRateAnnual),
-        maxAccountsPerUser: Number(form.maxAccountsPerUser) || 10,
-        payoutMode: form.payoutMode,
-        blockPayoutOnDefault: form.blockPayoutOnDefault,
-      };
-
-      const url = editingCircle ? `${API_URL}/api/circles/${editingCircle.id}` : `${API_URL}/api/circles`;
-      const method = editingCircle ? "PUT" : "POST";
-
-      const res = await fetch(url, {
-        method,
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json();
-      if (data.success) {
-        showMessage("success", editingCircle ? "Circle updated successfully" : "Circle created successfully");
-        setShowModal(false);
-        fetchCircles();
-      } else {
-        showMessage("error", data.error || "Failed to save circle");
-      }
-    } catch {
-      showMessage("error", "Failed to save circle");
-    }
-    setSaving(false);
+  const openEdit = (circle: Circle) => {
+    router.push(`/circle-management/${circle.id}/edit`);
   };
 
   const handleToggleStatus = async (circle: Circle) => {
@@ -257,7 +160,7 @@ export default function CircleManagementPage() {
             <Button variant="secondary" size="sm" disabled={runningJob} onClick={handleRunInterestJob}>
               {runningJob ? "Running..." : "Run Interest Job"}
             </Button>
-            <Button variant="primary" size="sm" onClick={openCreateModal}>
+            <Button variant="primary" size="sm" onClick={openCreate}>
               + New Circle
             </Button>
           </div>
@@ -321,8 +224,8 @@ export default function CircleManagementPage() {
                     <th className="pb-3 text-left font-semibold">Duration</th>
                     <th className="pb-3 text-left font-semibold">Interest Rate</th>
                     <th className="pb-3 text-left font-semibold">Payout</th>
-                    <th className="pb-3 text-left font-semibold">Max Accounts</th>
-                    <th className="pb-3 text-left font-semibold">Accounts</th>
+                    <th className="pb-3 text-left font-semibold">Max/User</th>
+                    <th className="pb-3 text-left font-semibold">Subscribers</th>
                     <th className="pb-3 text-right font-semibold">Status</th>
                     <th className="pb-3 text-right font-semibold">Actions</th>
                   </tr>
@@ -360,8 +263,13 @@ export default function CircleManagementPage() {
                           );
                         })()}
                       </td>
-                      <td className="py-3 font-mono text-gray-500">{circle.maxAccountsPerUser}</td>
-                      <td className="py-3 font-mono text-gray-500">{circle._count?.accounts || 0}</td>
+                      <td className="py-3 font-mono text-gray-500">{circle.maxAccountsPerUser > 0 ? circle.maxAccountsPerUser : "∞"}</td>
+                      <td className="py-3 font-mono text-gray-500">
+                        {circle._count?.accounts || 0}
+                        {circle.maxSubscribers != null && (
+                          <span className="text-gray-400"> / {circle.maxSubscribers}</span>
+                        )}
+                      </td>
                       <td className="py-3 text-right">
                         <span className="rounded-md px-2 py-0.5 font-mono text-[9px] font-bold uppercase"
                           style={{ backgroundColor: circle.status === "active" ? "#ECFDF5" : "#FFFBEB", color: circle.status === "active" ? "#059669" : "#D97706", border: `1px solid ${circle.status === "active" ? "#A7F3D0" : "#FDE68A"}` }}>
@@ -370,7 +278,7 @@ export default function CircleManagementPage() {
                       </td>
                       <td className="py-3 text-right">
                         <div className="flex justify-end gap-1.5">
-                          <button onClick={() => openEditModal(circle)}
+                          <button onClick={() => openEdit(circle)}
                             className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold"
                             style={{ border: `1px solid ${cfg.colors.primary}30`, backgroundColor: `${cfg.colors.primary}08`, color: cfg.colors.primary }}>
                             Edit
@@ -391,196 +299,6 @@ export default function CircleManagementPage() {
           <Pagination page={page} totalPages={totalPages} total={total} limit={LIMIT} onPageChange={setPage} loading={loading} />
         </Card>
       </FadeInUp>
-
-      {showModal && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 p-4" onClick={() => setShowModal(false)}>
-          <div className="max-h-[90vh] w-full max-w-[480px] overflow-y-auto rounded-2xl bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.15)]" onClick={(e) => e.stopPropagation()}>
-            <h3 className="mb-1 text-base font-semibold text-brand-dark">
-              {editingCircle ? "Edit Circle" : "Create New Circle"}
-            </h3>
-            <p className="mb-6 text-[12px] text-gray-500">
-              {editingCircle ? "Update circle configuration below." : "Configure a new circle savings product."}
-            </p>
-
-            <div className="flex flex-col gap-4">
-              <div>
-                <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Name *</label>
-                <input type="text" value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-                  placeholder="e.g. Gold Circle"
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-[13px] outline-none" />
-              </div>
-
-              <div>
-                <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Description</label>
-                <textarea value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
-                  placeholder="Optional description"
-                  rows={2}
-                  className="w-full resize-y rounded-lg border border-gray-200 px-3 py-2 text-[13px] outline-none" />
-              </div>
-
-              <div>
-                <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Cycle Type *</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {([
-                    { v: "deposit", label: "Lump Deposit", desc: "One-time deposit" },
-                    { v: "weekly_contribution", label: "Weekly", desc: "Auto weekly debit" },
-                  ] as const).map((opt) => (
-                    <button key={opt.v} type="button" onClick={() => setForm((p) => ({ ...p, cycleType: opt.v }))}
-                      className="cursor-pointer rounded-lg border p-3 text-left"
-                      style={{ borderColor: form.cycleType === opt.v ? cfg.colors.primary : "#e5e7eb", backgroundColor: form.cycleType === opt.v ? `${cfg.colors.primary}08` : "#fff" }}>
-                      <span className="block text-[12px] font-semibold text-brand-dark">{opt.label}</span>
-                      <span className="text-[10px] text-gray-500">{opt.desc}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {form.cycleType === "deposit" ? (
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Deposit Amount *</label>
-                    <input type="number" value={form.amount} onChange={(e) => setForm((p) => ({ ...p, amount: e.target.value }))}
-                      placeholder="e.g. 25000"
-                      className="w-full rounded-lg border border-gray-200 px-3 py-2 font-mono text-[13px] outline-none" />
-                  </div>
-                  <div>
-                    <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Duration (months) *</label>
-                    <input type="number" value={form.durationMonths} onChange={(e) => setForm((p) => ({ ...p, durationMonths: e.target.value }))}
-                      placeholder="e.g. 12"
-                      className="w-full rounded-lg border border-gray-200 px-3 py-2 font-mono text-[13px] outline-none" />
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Weekly Amount *</label>
-                      <input type="number" value={form.weeklyAmount} onChange={(e) => setForm((p) => ({ ...p, weeklyAmount: e.target.value }))}
-                        placeholder="e.g. 5000"
-                        className="w-full rounded-lg border border-gray-200 px-3 py-2 font-mono text-[13px] outline-none" />
-                    </div>
-                    <div>
-                      <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Total Weeks *</label>
-                      <input type="number" value={form.totalWeeks} onChange={(e) => setForm((p) => ({ ...p, totalWeeks: e.target.value }))}
-                        placeholder="e.g. 52"
-                        className="w-full rounded-lg border border-gray-200 px-3 py-2 font-mono text-[13px] outline-none" />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Duration (months) *</label>
-                    <input type="number" value={form.durationMonths} onChange={(e) => setForm((p) => ({ ...p, durationMonths: e.target.value }))}
-                      placeholder="e.g. 12"
-                      className="w-full rounded-lg border border-gray-200 px-3 py-2 font-mono text-[13px] outline-none" />
-                  </div>
-                  <p className="rounded-lg bg-blue-50 px-3 py-2 text-[11px] text-blue-700">
-                    Missed weekly debits create a default requiring 2× clearance to resolve.
-                  </p>
-                </>
-              )}
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Interest Rate (% p.a.) *</label>
-                  <input type="number" step="0.1" value={form.interestRateAnnual} onChange={(e) => setForm((p) => ({ ...p, interestRateAnnual: e.target.value }))}
-                    placeholder="e.g. 10"
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 font-mono text-[13px] outline-none" />
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Max Accounts/User</label>
-                  <input type="number" value={form.maxAccountsPerUser} onChange={(e) => setForm((p) => ({ ...p, maxAccountsPerUser: e.target.value }))}
-                    placeholder="10"
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 font-mono text-[13px] outline-none" />
-                </div>
-              </div>
-
-              <div>
-                <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Payout Mode *</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {([
-                    { v: "auto", label: "Auto", desc: "Credit wallet on maturity" },
-                    { v: "clearance", label: "Clearance", desc: "Admin reviews & disburses" },
-                  ] as const).map((opt) => (
-                    <button key={opt.v} type="button" onClick={() => setForm((p) => ({ ...p, payoutMode: opt.v }))}
-                      className="cursor-pointer rounded-lg border p-3 text-left"
-                      style={{ borderColor: form.payoutMode === opt.v ? cfg.colors.primary : "#e5e7eb", backgroundColor: form.payoutMode === opt.v ? `${cfg.colors.primary}08` : "#fff" }}>
-                      <span className="block text-[12px] font-semibold text-brand-dark">{opt.label}</span>
-                      <span className="text-[10px] text-gray-500">{opt.desc}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between rounded-lg bg-gray-50 p-4">
-                <div>
-                  <span className="block text-[12px] font-semibold text-brand-dark">Block Payout on Default</span>
-                  <span className="text-[11px] text-gray-500">{form.blockPayoutOnDefault ? "Outstanding defaults block maturity payouts" : "Payouts proceed regardless of defaults"}</span>
-                </div>
-                <button type="button" onClick={() => setForm((p) => ({ ...p, blockPayoutOnDefault: !p.blockPayoutOnDefault }))}
-                  style={{ width: "44px", height: "24px", borderRadius: "12px", border: "none", cursor: "pointer", position: "relative", backgroundColor: form.blockPayoutOnDefault ? "#059669" : "#D1D5DB" }}>
-                  <span style={{ position: "absolute", top: "2px", left: form.blockPayoutOnDefault ? "22px" : "2px", width: "20px", height: "20px", borderRadius: "50%", backgroundColor: "#fff", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }} />
-                </button>
-              </div>
-
-              {((form.cycleType === "deposit" && form.amount) || (form.cycleType === "weekly_contribution" && form.weeklyAmount && form.totalWeeks)) && form.interestRateAnnual && form.durationMonths && (
-                <div className="rounded-xl bg-gray-50 p-4 text-[12px]">
-                  {(() => {
-                    const isWeekly = form.cycleType === "weekly_contribution";
-                    const principal = isWeekly
-                      ? Number(form.weeklyAmount) * Number(form.totalWeeks)
-                      : Number(form.amount);
-                    return (
-                      <>
-                        <div className="mb-1.5 font-semibold text-brand-dark">Preview</div>
-                        {isWeekly ? (
-                          <div className="mb-1 flex justify-between">
-                            <span className="text-gray-500">Contribution</span>
-                            <span className="font-mono font-semibold">{formatNaira(Number(form.weeklyAmount))}/wk × {form.totalWeeks}</span>
-                          </div>
-                        ) : (
-                          <div className="mb-1 flex justify-between">
-                            <span className="text-gray-500">Deposit</span>
-                            <span className="font-mono font-semibold">{formatNaira(Number(form.amount))}</span>
-                          </div>
-                        )}
-                        <div className="mb-1 flex justify-between">
-                          <span className="text-gray-500">Total Principal</span>
-                          <span className="font-mono font-semibold">{formatNaira(principal)}</span>
-                        </div>
-                        <div className="mb-1 flex justify-between">
-                          <span className="text-gray-500">Duration</span>
-                          <span className="font-medium">{formatDuration(Number(form.durationMonths))}</span>
-                        </div>
-                        <div className="mb-1 flex justify-between">
-                          <span className="text-gray-500">Annual Rate</span>
-                          <span className="font-medium">{form.interestRateAnnual}%</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-500">Est. Maturity Value</span>
-                          <span className="font-mono font-bold text-emerald-600">
-                            {formatNaira(principal * (1 + (Number(form.interestRateAnnual) / 100) * (Number(form.durationMonths) / 12)))}
-                          </span>
-                        </div>
-                      </>
-                    );
-                  })()}
-                </div>
-              )}
-            </div>
-
-            <div className="mt-6 flex gap-3">
-              <button onClick={() => setShowModal(false)}
-                className="flex-1 cursor-pointer rounded-lg border border-gray-200 bg-white px-2.5 py-2.5 text-[13px] font-medium">
-                Cancel
-              </button>
-              <button onClick={handleSave} disabled={saving}
-                className="flex-1 cursor-pointer rounded-lg px-2.5 py-2.5 text-[13px] font-semibold text-white"
-                style={{ backgroundColor: cfg.colors.primary, opacity: saving ? 0.5 : 1 }}>
-                {saving ? "Saving..." : editingCircle ? "Update Circle" : "Create Circle"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -10,12 +10,25 @@ import { PageHeader } from "@/components/PageHeader";
 import { Skeleton, SkeletonCard } from "@/components/Skeleton";
 import { LoanCalculator } from "@/components/LoanCalculator";
 import Pagination from "@/components/Pagination";
+import { useRouter } from "next/navigation";
 
 const fallback = config;
 
 interface Loan {
   id: string; amount: number; interestRate: number; termMonths: number; monthlyPayment: number; totalRepayment: number;
+  disbursedAmount?: number | null; paidAmount?: number; outstandingBalance?: number; nextDueDate?: string;
+  processingFee?: number | null; processingFeeType?: string | null; processingFeeValue?: number | null;
   purpose?: string; status: string; approvedAt?: string; disbursedAt?: string; completedAt?: string; createdAt: string;
+}
+
+interface ScheduleItem {
+  id: string; installmentNo: number; dueDate: string; principal: number; interest: number; totalDue: number;
+  principalPaid: number; interestPaid: number; status: string; paidAt?: string;
+}
+
+interface Repayment {
+  id: string; amount: number; principal: number; interest: number; method: string; reference: string;
+  status: string; note?: string; createdAt: string;
 }
 
 const STATUS_COLORS: Record<string, string> = { pending: "#D97706", approved: "#059669", disbursed: "#2563EB", completed: "#059669", rejected: "#DC2626", defaulted: "#DC2626" };
@@ -23,6 +36,7 @@ const TERM_PRESETS = [3, 6, 12, 24, 36];
 
 export default function LoansPage() {
   const { token } = useAuth();
+  const router = useRouter();
   const [cfg, setCfg] = useState<BrandConfig>(fallback);
   const [loans, setLoans] = useState<Loan[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,10 +44,11 @@ export default function LoansPage() {
   const [amount, setAmount] = useState("");
   const [termMonths, setTermMonths] = useState("12");
   const [purpose, setPurpose] = useState("");
+  const [feeType, setFeeType] = useState<"fixed" | "percent" | "">("");
+  const [feeValue, setFeeValue] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-  const [expandedLoan, setExpandedLoan] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState("all");
   const [totalPages, setTotalPages] = useState(1);
@@ -89,7 +104,7 @@ export default function LoansPage() {
       const res = await fetch(`${API_URL}/api/loans`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ amount: amt, termMonths: months, purpose: purpose.trim() || undefined }),
+        body: JSON.stringify({ amount: amt, termMonths: months, purpose: purpose.trim() || undefined, processingFeeType: feeType || undefined, processingFeeValue: feeValue ? Number(feeValue) : undefined }),
       });
       const data = await res.json();
       if (data.success) {
@@ -169,6 +184,18 @@ export default function LoansPage() {
                 <textarea value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder="e.g. Business expansion, Education, Medical" rows={3} className="box-border w-full resize-y rounded-xl border border-gray-200 px-3 py-2.5 text-[13px] outline-none" />
               </div>
 
+              <div className="mb-4">
+                <label className="mb-1.5 block text-xs font-semibold text-brand-dark">Processing Fee (optional)</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <select value={feeType} onChange={(e) => setFeeType(e.target.value as "fixed" | "percent" | "")} className="box-border w-full rounded-xl border border-gray-200 px-3 py-2.5 text-[13px] outline-none">
+                    <option value="">None</option>
+                    <option value="fixed">Fixed (&#8358;)</option>
+                    <option value="percent">Percent of loan (%)</option>
+                  </select>
+                  <input type="number" step="0.01" value={feeValue} onChange={(e) => setFeeValue(e.target.value)} disabled={!feeType} placeholder={feeType === "percent" ? "e.g. 2" : "e.g. 1000"} className="box-border w-full rounded-xl border border-gray-200 px-3 py-2.5 font-mono text-[13px] outline-none disabled:bg-gray-100" />
+                </div>
+              </div>
+
               {error && <div className="mb-3 text-xs text-red-600">{error}</div>}
               {success && <div className="mb-3 text-xs text-emerald-600">Loan request submitted!</div>}
               <Button type="submit" variant="primary" size="md" disabled={submitting || !!activeLoan}>{submitting ? "Submitting..." : "Request Loan"}</Button>
@@ -207,35 +234,50 @@ export default function LoansPage() {
                 ))}
               </div>
             </div>
-            <div className="flex flex-col gap-3">
-              {filteredLoans.map((loan) => (
-                <div key={loan.id} className="rounded-xl border border-gray-100 p-4 transition-all" style={{ backgroundColor: expandedLoan === loan.id ? "#FAF9F5" : "#ffffff" }}>
-                  <div className="flex cursor-pointer flex-wrap items-center justify-between gap-3" onClick={() => setExpandedLoan(expandedLoan === loan.id ? null : loan.id)}>
-                    <div className="flex items-center gap-4">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100 font-mono text-[11px] font-bold" style={{ color: cfg.colors.primary }}>{formatNaira(loan.amount).split(" ")[0]}</div>
-                      <div>
-                        <span className="block font-mono text-sm font-semibold text-brand-dark">{formatNaira(loan.amount)}</span>
-                        <span className="text-[11px] text-gray-400">{formatTerm(loan.termMonths)} &middot; 5% APR &middot; {new Date(loan.createdAt).toLocaleDateString("en-US", { month: "short", year: "numeric" })}</span>
-                      </div>
-                    </div>
-                    <span className="rounded-md px-2 py-0.5 font-mono text-[9px] font-bold uppercase" style={{ color: STATUS_COLORS[loan.status], backgroundColor: `${STATUS_COLORS[loan.status]}12` }}>{loan.status}</span>
-                  </div>
-
-                  {expandedLoan === loan.id && (
-                    <div className="mt-4 border-t border-gray-100 pt-4">
-                      <div className="grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-4 text-xs">
-                        <div><span className="mb-1 block text-gray-400">Monthly Payment</span><span className="font-mono font-semibold" style={{ color: cfg.colors.primary }}>{formatNaira(loan.monthlyPayment)}</span></div>
-                        <div><span className="mb-1 block text-gray-400">Total Repayment</span><span className="font-mono font-semibold text-brand-dark">{formatNaira(loan.totalRepayment)}</span></div>
-                        <div><span className="mb-1 block text-gray-400">Interest Rate</span><span className="font-semibold text-brand-dark">5% APR</span></div>
-                        <div><span className="mb-1 block text-gray-400">Purpose</span><span className="font-medium text-brand-dark">{loan.purpose || "Not specified"}</span></div>
-                      </div>
-                      {loan.approvedAt && <p className="mt-3 text-[11px] text-emerald-600">Approved on {new Date(loan.approvedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</p>}
-                      {loan.disbursedAt && <p className="mt-1 text-[11px] text-blue-600">Disbursed on {new Date(loan.disbursedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</p>}
-                      {loan.completedAt && <p className="mt-1 text-[11px] text-emerald-600">Completed on {new Date(loan.completedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}</p>}
-                    </div>
-                  )}
-                </div>
-              ))}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-[13px]">
+                <thead>
+                  <tr className="border-b border-gray-100 text-[11px] uppercase tracking-[0.05em] text-gray-400">
+                    <th className="px-3 py-3 font-semibold">Loan</th>
+                    <th className="px-3 py-3 font-semibold">Term</th>
+                    <th className="px-3 py-3 text-right font-semibold">Monthly</th>
+                    <th className="px-3 py-3 text-right font-semibold">Outstanding</th>
+                    <th className="px-3 py-3 font-semibold">Next Due</th>
+                    <th className="px-3 py-3 font-semibold">Status</th>
+                    <th className="px-3 py-3 text-right font-semibold"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredLoans.map((loan) => (
+                    <tr
+                      key={loan.id}
+                      onClick={() => router.push(`/loans/${loan.id}`)}
+                      className="cursor-pointer border-b border-gray-50 transition-colors hover:bg-gray-50/60"
+                    >
+                      <td className="px-3 py-3.5">
+                        <div className="font-mono text-[13px] font-semibold text-brand-dark">{formatNaira(loan.amount)}</div>
+                        <div className="text-[11px] text-gray-400">{loan.interestRate}% APR &middot; {new Date(loan.createdAt).toLocaleDateString("en-US", { month: "short", year: "numeric" })}</div>
+                      </td>
+                      <td className="px-3 py-3.5 text-[13px] text-gray-600">{formatTerm(loan.termMonths)}</td>
+                      <td className="px-3 py-3.5 text-right font-mono text-[13px] text-brand-dark">{formatNaira(loan.monthlyPayment)}</td>
+                      <td className="px-3 py-3.5 text-right font-mono text-[13px] text-gray-700">
+                        {loan.status === "disbursed" && loan.outstandingBalance !== undefined ? formatNaira(loan.outstandingBalance) : "—"}
+                      </td>
+                      <td className="px-3 py-3.5 text-[12px] text-gray-600">
+                        {loan.status === "disbursed" && loan.nextDueDate
+                          ? new Date(loan.nextDueDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                          : "—"}
+                      </td>
+                      <td className="px-3 py-3.5">
+                        <span className="rounded-md px-2 py-0.5 font-mono text-[9px] font-bold uppercase" style={{ color: STATUS_COLORS[loan.status], backgroundColor: `${STATUS_COLORS[loan.status]}12` }}>{loan.status}</span>
+                      </td>
+                      <td className="px-3 py-3.5 text-right">
+                        <span className="text-[12px] font-semibold" style={{ color: cfg.colors.primary }}>View &rarr;</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
             <Pagination page={page} totalPages={totalPages} total={total} limit={LIMIT} onPageChange={setPage} loading={loading} />
           </Card>

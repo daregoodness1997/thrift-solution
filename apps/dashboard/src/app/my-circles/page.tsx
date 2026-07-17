@@ -53,6 +53,7 @@ const ACCOUNT_STATUS_COLORS: Record<string, string> = {
   matured: "#F59E0B",
   withdrawn: "#6B7280",
   early_withdrawn: "#DC2626",
+  reversed: "#DC2626",
 };
 
 const ACCOUNT_STATUS_BG: Record<string, string> = {
@@ -60,9 +61,10 @@ const ACCOUNT_STATUS_BG: Record<string, string> = {
   matured: "#FFFBEB",
   withdrawn: "#F3F4F6",
   early_withdrawn: "#FEF2F2",
+  reversed: "#FEF2F2",
 };
 
-type StatusFilter = "all" | "active" | "matured" | "withdrawn";
+type StatusFilter = "all" | "active" | "matured" | "withdrawn" | "reversed";
 
 function formatDuration(months: number) {
   if (months < 12) return `${months}mo`;
@@ -98,12 +100,19 @@ function getTransactionTypeColor(type: string) {
     case "circle_deposit": return "#7C3AED";
     case "circle_interest": return "#D97706";
     case "circle_withdrawal": return "#0891B2";
+    case "circle_reversal": return "#DC2626";
     default: return "#717171";
   }
 }
 
 function getTransactionTypeLabel(type: string) {
-  return type.split("_").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+  switch (type) {
+    case "circle_reversal": return "Reversal (Payment Reversed)";
+    case "circle_deposit": return "Deposit";
+    case "circle_interest": return "Interest";
+    case "circle_withdrawal": return "Withdrawal";
+    default: return type.split("_").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+  }
 }
 
 export default function MyCirclesPage() {
@@ -244,7 +253,7 @@ export default function MyCirclesPage() {
       </StaggerChildren>
 
       <div className="mb-6 flex flex-wrap gap-2">
-        {(["all", "active", "matured", "withdrawn"] as StatusFilter[]).map((filter) => {
+        {(["all", "active", "matured", "withdrawn", "reversed"] as StatusFilter[]).map((filter) => {
           const count = filter === "all" ? stats.total : myAccounts.filter((a) => a.status === filter).length;
           return (
             <button key={filter} onClick={() => setStatusFilter(filter)}
@@ -426,8 +435,8 @@ export default function MyCirclesPage() {
                                             {getTransactionTypeLabel(tx.type)}
                                           </span>
                                         </td>
-                                        <td className="px-3 py-2 text-right font-mono font-semibold" style={{ color: tx.type === "circle_withdrawal" ? "#DC2626" : tx.type === "circle_interest" ? "#10B981" : cfg.colors.primary }}>
-                                          {tx.type === "circle_withdrawal" ? "-" : "+"}{formatNaira(tx.amount)}
+                                        <td className="px-3 py-2 text-right font-mono font-semibold" style={{ color: tx.type === "circle_withdrawal" || tx.type === "circle_reversal" ? "#DC2626" : tx.type === "circle_interest" ? "#10B981" : cfg.colors.primary }}>
+                                          {tx.type === "circle_withdrawal" || tx.type === "circle_reversal" ? "-" : "+"}{formatNaira(tx.amount)}
                                         </td>
                                         <td className="px-3 py-2">
                                           <span className="rounded-[0.375rem] px-2 py-0.5 text-[9px] font-semibold uppercase" style={{ color: tx.status === "completed" ? "#059669" : "#D97706", backgroundColor: tx.status === "completed" ? "#ECFDF5" : "#FFFBEB" }}>
@@ -440,6 +449,12 @@ export default function MyCirclesPage() {
                                 </tbody>
                               </table>
                             )}
+                          </div>
+                        )}
+
+                        {account.status === "reversed" && (
+                          <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[12px] font-medium text-red-700">
+                            This subscription was reversed because the linked payment was reversed or refunded. Any funds debited for it have been returned to your wallet.
                           </div>
                         )}
 

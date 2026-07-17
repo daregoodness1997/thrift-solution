@@ -8,7 +8,8 @@
     "start": "node dist/index.js",
     "lint": "eslint src/",
     "typecheck": "tsc --project tsconfig.check.json",
-    "regenerate:flw-va": "tsx src/scripts/regenerate-flutterwave-va.ts"
+    "regenerate:flw-va": "tsx src/scripts/regenerate-flutterwave-va.ts",
+    "test:circle-flow": "tsx src/scripts/test-circle-flow.ts"
   },
   "dependencies": {
     "@thrift/db": "workspace:*",

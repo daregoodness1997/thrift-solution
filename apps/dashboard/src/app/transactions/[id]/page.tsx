@@ -43,6 +43,7 @@ export default function TransactionDetailPage() {
   const [transaction, setTransaction] = useState<TransactionDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
   const txId = params.id as string;
@@ -149,8 +150,11 @@ export default function TransactionDetailPage() {
     }
   }
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text).catch(() => {});
+  const copyToClipboard = (text: string, key: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedKey(key);
+      setTimeout(() => setCopiedKey((k) => (k === key ? null : k)), 1500);
+    }).catch(() => {});
   };
 
   return (
@@ -222,15 +226,26 @@ export default function TransactionDetailPage() {
                   )}
                   {row.copyable && (
                     <button
-                      onClick={() => copyToClipboard(row.value)}
-                      className="shrink-0 cursor-pointer rounded-[0.25rem] border-0 bg-transparent p-1 text-gray-400"
+                      onClick={() => copyToClipboard(row.value, row.label)}
+                      className="group relative shrink-0 cursor-pointer rounded-[0.25rem] border-0 bg-transparent p-1 text-gray-400 transition-colors duration-150 hover:text-brand-primary"
                       title="Copy to clipboard"
                     >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
-                    </svg>
-                  </button>
-                )}
+                    {copiedKey === row.label ? (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ color: "#059669" }}>
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    ) : (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                      </svg>
+                    )}
+                      <span
+                        className={`pointer-events-none absolute -top-7 right-0 whitespace-nowrap rounded-md bg-brand-dark px-2 py-1 text-[10px] font-semibold text-white transition-opacity duration-150 ${copiedKey === row.label ? "opacity-100" : "opacity-0"}`}
+                      >
+                        Copied!
+                      </span>
+                    </button>
+                  )}
               </div>
             </div>
           ))}

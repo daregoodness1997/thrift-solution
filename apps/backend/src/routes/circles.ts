@@ -28,6 +28,7 @@ import {
   getDefaultsByUser,
   clearCircleDefault,
 } from "@thrift/db";
+import { prisma } from "@thrift/db";
 import { getPaymentProvider } from "../services/payments";
 
 export const circlesRouter = Router();
@@ -171,13 +172,38 @@ circlesRouter.get("/:id", authMiddleware, async (req, res) => {
 
 circlesRouter.post("/:id/open", authMiddleware, async (req, res) => {
   try {
-    const count = Math.max(1, Math.min(Number(req.body?.count) || 1, 10));
+    const circle = await getCircleById(req.params.id);
+    if (!circle) {
+      res.status(404).json({ success: false, error: "Circle not found" });
+      return;
+    }
+    const maxPerUser = circle.maxAccountsPerUser > 0 ? circle.maxAccountsPerUser : Infinity;
+    const count = Math.max(1, Math.min(Number(req.body?.count) || 1, maxPerUser));
+
+    // Link the subscription to the wallet funding that paid for it so a later
+    // payment reversal can unwind the subscription automatically. Prefer an
+    // explicit reference from the client; otherwise fall back to the user's
+    // most recent completed wallet-funding transaction.
+    let fundedByTxnRef: string | undefined = req.body?.fundedByTxnRef;
+    if (!fundedByTxnRef) {
+      const lastFunding = await prisma.transaction.findFirst({
+        where: {
+          userId: req.user!.userId,
+          type: { in: ["wallet_funding", "funding"] },
+          status: "completed",
+        },
+        orderBy: { createdAt: "desc" },
+        select: { reference: true },
+      });
+      fundedByTxnRef = lastFunding?.reference;
+    }
+
     const accounts = [];
     let lastError: Error | null = null;
 
     for (let i = 0; i < count; i++) {
       try {
-        const account = await openCircleAccount(req.params.id, req.user!.userId);
+        const account = await openCircleAccount(req.params.id, req.user!.userId, fundedByTxnRef);
         accounts.push(account);
       } catch (err) {
         lastError = err instanceof Error ? err : new Error("Failed to open circle account");
@@ -231,7 +257,8 @@ circlesRouter.post("/", adminMiddleware, async (req, res) => {
   try {
     const {
       name, description, cycleType, amount, weeklyAmount, totalWeeks,
-      durationMonths, interestRateAnnual, maxAccountsPerUser, autoPayout, payoutMode, blockPayoutOnDefault,
+      durationMonths, interestRateAnnual, maxAccountsPerUser, maxSubscribers, autoPayout, payoutMode, blockPayoutOnDefault,
+      processingFeeType, processingFeeValue,
     } = req.body;
 
     const resolvedType = cycleType === "weekly_contribution" ? "weekly_contribution" : "deposit";
@@ -259,9 +286,12 @@ circlesRouter.post("/", adminMiddleware, async (req, res) => {
       durationMonths: Number(durationMonths),
       interestRateAnnual: Number(interestRateAnnual),
       maxAccountsPerUser: maxAccountsPerUser ? Number(maxAccountsPerUser) : undefined,
+      maxSubscribers: maxSubscribers != null && maxSubscribers !== "" ? Number(maxSubscribers) : undefined,
       autoPayout: autoPayout === true || autoPayout === "true",
       payoutMode: payoutMode === "clearance" || payoutMode === "auto" ? payoutMode : undefined,
       blockPayoutOnDefault: blockPayoutOnDefault !== undefined ? (blockPayoutOnDefault === true || blockPayoutOnDefault === "true") : undefined,
+      processingFeeType: processingFeeType === "fixed" || processingFeeType === "percent" ? processingFeeType : undefined,
+      processingFeeValue: processingFeeValue != null && processingFeeValue !== "" ? Number(processingFeeValue) : undefined,
     });
 
     res.status(201).json({ success: true, data: circle });
@@ -276,7 +306,8 @@ circlesRouter.put("/:id", adminMiddleware, async (req, res) => {
   try {
     const {
       name, description, cycleType, amount, weeklyAmount, totalWeeks,
-      durationMonths, interestRateAnnual, maxAccountsPerUser, autoPayout, payoutMode, blockPayoutOnDefault, status,
+      durationMonths, interestRateAnnual, maxAccountsPerUser, maxSubscribers, autoPayout, payoutMode, blockPayoutOnDefault, status,
+      processingFeeType, processingFeeValue,
     } = req.body;
 
     const circle = await updateCircle(req.params.id, {
@@ -289,9 +320,12 @@ circlesRouter.put("/:id", adminMiddleware, async (req, res) => {
       durationMonths: durationMonths ? Number(durationMonths) : undefined,
       interestRateAnnual: interestRateAnnual ? Number(interestRateAnnual) : undefined,
       maxAccountsPerUser: maxAccountsPerUser ? Number(maxAccountsPerUser) : undefined,
+      maxSubscribers: maxSubscribers != null && maxSubscribers !== "" ? Number(maxSubscribers) : undefined,
       autoPayout: autoPayout !== undefined ? (autoPayout === true || autoPayout === "true") : undefined,
       payoutMode: payoutMode === "clearance" || payoutMode === "auto" ? payoutMode : undefined,
       blockPayoutOnDefault: blockPayoutOnDefault !== undefined ? (blockPayoutOnDefault === true || blockPayoutOnDefault === "true") : undefined,
+      processingFeeType: processingFeeType === "fixed" || processingFeeType === "percent" ? processingFeeType : (processingFeeType === null ? null : undefined),
+      processingFeeValue: processingFeeValue != null && processingFeeValue !== "" ? Number(processingFeeValue) : (processingFeeValue === null ? null : undefined),
       status,
     });
 
@@ -319,6 +353,17 @@ circlesRouter.post("/admin/run-contribution-job", adminMiddleware, async (_req, 
   } catch (err) {
     console.error("Run contribution job error:", err);
     res.status(500).json({ success: false, error: "Failed to run contribution job" });
+  }
+});
+
+circlesRouter.post("/admin/run-reversal-reconciliation", adminMiddleware, async (_req, res) => {
+  try {
+    const { paymentReversalReconciliationJob } = await import("../jobs/paymentReversalJob");
+    const result = await paymentReversalReconciliationJob();
+    res.json({ success: true, data: result });
+  } catch (err) {
+    console.error("Run reversal reconciliation error:", err);
+    res.status(500).json({ success: false, error: "Failed to run reversal reconciliation" });
   }
 });
 

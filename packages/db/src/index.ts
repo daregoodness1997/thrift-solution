@@ -120,9 +120,26 @@ export {
   getAllLoans,
   updateLoan,
   calculateLoanTerms,
+  disburseLoan,
+  getLoanSchedule,
+  recordLoanRepayment,
+  getLoanRepayments,
+  findLoanRepaymentByReference,
+  recordLoanRepaymentByReference,
+  liquidateLoan,
+  adminSettleLoan,
 } from "./services/loans";
 
-export { getWalletBalance, debitWallet, creditWallet } from "./services/wallet";
+export { getWalletBalance, getWalletBreakdown, debitWallet, creditWallet } from "./services/wallet";
+
+export {
+  findFundingTransactionByReference,
+  findCircleAccountsByFundingRef,
+  reverseWalletCredit,
+  reverseCircleAccount,
+  reverseDonationOrTransaction,
+  processPaymentReversal,
+} from "./services/reversals";
 
 export {
   createCircle,

@@ -59,6 +59,7 @@ const STATUS_STYLES: Record<string, { color: string; bg: string }> = {
   matured: { color: "#F59E0B", bg: "#FFFBEB" },
   withdrawn: { color: "#6B7280", bg: "#F3F4F6" },
   early_withdrawn: { color: "#DC2626", bg: "#FEF2F2" },
+  reversed: { color: "#DC2626", bg: "#FEF2F2" },
 };
 
 function formatDate(d: string) {
@@ -396,6 +397,11 @@ export default function AccountDetailPage() {
         </div>
 
         <div className="mt-6 flex flex-wrap gap-2">
+          {account.status === "reversed" && (
+            <div className="w-full rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[12px] font-medium text-red-700">
+              This subscription was reversed because the linked payment was reversed or refunded. Any funds debited for it have been returned to your wallet.
+            </div>
+          )}
           {account.status === "active" && (
             <>
               <Button

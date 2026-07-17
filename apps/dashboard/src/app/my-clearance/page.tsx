@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { config, BrandConfig } from "@thrift/config";
-import { Card, ColorfulBadge, FadeIn, FadeInUp, StaggerChildren } from "@thrift/ui";
+import { Card, ColorfulBadge, FadeInUp, StatCard, StaggerChildren } from "@thrift/ui";
 import { formatNaira } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
-import Pagination from "@/components/Pagination";
+import { DataTable, Column, PaginationInfo } from "@/components/DataTable";
 
-const fallback = config;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 interface ClearanceItem {
   id: string;
@@ -40,15 +40,31 @@ interface PayoutRequest {
   };
 }
 
-const statusStyles: Record<string, { bg: string; color: string; border: string }> = {
-  cleared: { bg: "#EFF6FF", color: "#2563EB", border: "#BFDBFE" },
-  approved: { bg: "#ECFDF5", color: "#059669", border: "#A7F3D0" },
-  disbursed: { bg: "#ECFDF5", color: "#059669", border: "#A7F3D0" },
-  disbursement_failed: { bg: "#FEF2F2", color: "#DC2626", border: "#FECACA" },
-  pending: { bg: "#FFFBEB", color: "#D97706", border: "#FDE68A" },
-  declined: { bg: "#FEF2F2", color: "#DC2626", border: "#FECACA" },
-  upcoming: { bg: "#F3F4F6", color: "#6B7280", border: "#E5E7EB" },
+const statusColor = (status: string) => {
+  switch (status) {
+    case "cleared":
+    case "disbursed":
+    case "approved": return "#059669";
+    case "disbursement_failed":
+    case "declined": return "#DC2626";
+    case "pending": return "#D97706";
+    default: return "#717171";
+  }
 };
+
+const PAGE_SIZE = 20;
+
+type ClearanceRow =
+  | (ClearanceItem & { _type: "group" })
+  | (PayoutRequest & { _type: "circle" });
+
+function normalizeGroup(c: ClearanceItem): ClearanceRow {
+  return { ...c, _type: "group" };
+}
+
+function normalizeCircle(r: PayoutRequest): ClearanceRow {
+  return { ...r, _type: "circle" };
+}
 
 export default function MyClearancePage() {
   const { token } = useAuth();
@@ -58,17 +74,14 @@ export default function MyClearancePage() {
   const [clearances, setClearances] = useState<ClearanceItem[]>([]);
   const [stats, setStats] = useState({ totalPayouts: 0, totalContributed: 0 });
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalItems, setTotalItems] = useState(0);
-  const LIMIT = 20;
+
+  const [paginatedItems, setPaginatedItems] = useState<ClearanceItem[]>([]);
+  const [listLoading, setListLoading] = useState(false);
+  const [pagination, setPagination] = useState<PaginationInfo>({ page: 1, limit: PAGE_SIZE, total: 0, totalPages: 1 });
 
   const [payoutRequests, setPayoutRequests] = useState<PayoutRequest[]>([]);
-  const [prPage, setPrPage] = useState(1);
-  const [prTotalPages, setPrTotalPages] = useState(1);
-  const [prTotal, setPrTotal] = useState(0);
-
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+  const [prLoading, setPrLoading] = useState(false);
+  const [prPagination, setPrPagination] = useState<PaginationInfo>({ page: 1, limit: PAGE_SIZE, total: 0, totalPages: 1 });
 
   const fetchClearances = useCallback(async () => {
     if (!token) { setLoading(false); return; }
@@ -83,236 +96,246 @@ export default function MyClearancePage() {
     setLoading(false);
   }, [token, API_URL]);
 
-  const [paginatedItems, setPaginatedItems] = useState<ClearanceItem[]>([]);
-  const [listLoading, setListLoading] = useState(false);
-
   const fetchPaginatedList = useCallback(async () => {
     if (!token) return;
     setListLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/clearances/list?page=${page}&limit=${LIMIT}`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${API_URL}/api/clearances/list?page=${pagination.page}&limit=${PAGE_SIZE}`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
       if (data.success) {
         setPaginatedItems(data.data.items || []);
-        setTotalPages(data.data.totalPages || 1);
-        setTotalItems(data.data.total || 0);
+        setPagination({ page: data.data.page || pagination.page, limit: data.data.limit || PAGE_SIZE, total: data.data.total || 0, totalPages: data.data.totalPages || 1 });
       }
     } catch {}
     setListLoading(false);
-  }, [token, page, API_URL]);
+  }, [token, pagination.page, API_URL]);
 
   const fetchPayoutRequests = useCallback(async () => {
     if (!token) return;
+    setPrLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/circles/payout-requests/my?page=${prPage}&limit=${LIMIT}`, {
+      const res = await fetch(`${API_URL}/api/circles/payout-requests/my?page=${prPagination.page}&limit=${PAGE_SIZE}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
       if (data.success) {
         setPayoutRequests(data.data.items || []);
-        setPrTotalPages(data.data.totalPages || 1);
-        setPrTotal(data.data.total || 0);
+        setPrPagination({ page: data.data.page || prPagination.page, limit: data.data.limit || PAGE_SIZE, total: data.data.total || 0, totalPages: data.data.totalPages || 1 });
       }
     } catch {}
-  }, [token, prPage, API_URL]);
+    setPrLoading(false);
+  }, [token, prPagination.page, API_URL]);
 
   useEffect(() => { fetchClearances(); }, [fetchClearances]);
   useEffect(() => { fetchPaginatedList(); }, [fetchPaginatedList]);
   useEffect(() => { fetchPayoutRequests(); }, [fetchPayoutRequests]);
 
-  const nextPayout = clearances.find((c) => c.status === "pending");
   const pendingRequests = payoutRequests.filter((r) => r.status === "pending");
+
+  const groupColumns: Column<ClearanceRow>[] = [
+    {
+      key: "group",
+      header: "Group",
+      render: (row) =>
+        row._type === "group" ? (
+          <div>
+            <span className="block font-medium text-brand-dark">{row.groupName}</span>
+            <span className="text-[11px] text-gray-500">Cycle {row.cycleNumber} payout</span>
+          </div>
+        ) : null,
+    },
+    {
+      key: "contributed",
+      header: "My Contribution",
+      mono: true,
+      render: (row) =>
+        row._type === "group" ? (
+          <span className="font-semibold text-brand-dark">{formatNaira(row.contributed)}</span>
+        ) : null,
+    },
+    {
+      key: "payout",
+      header: "Payout Amount",
+      align: "right",
+      mono: true,
+      render: (row) =>
+        row._type === "group" ? (
+          <span className="font-semibold text-emerald-600">{formatNaira(row.payoutAmount)}</span>
+        ) : null,
+    },
+    {
+      key: "clearedDate",
+      header: "Cleared On",
+      align: "right",
+      mono: true,
+      render: (row) =>
+        row._type === "group" ? (
+          row.clearedDate ? (
+            <span className="text-gray-500">
+              {new Date(row.clearedDate).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+            </span>
+          ) : (
+            <span className="text-gray-300">—</span>
+          )
+        ) : null,
+    },
+    {
+      key: "status",
+      header: "Status",
+      align: "right",
+      render: (row) =>
+        row._type === "group" ? (
+          <span className="rounded-[0.375rem] px-2 py-0.5 text-[9px] font-bold capitalize" style={{ color: statusColor(row.status), backgroundColor: `${statusColor(row.status)}12` }}>
+            {row.status}
+          </span>
+        ) : null,
+    },
+  ];
+
+  const circleColumns: Column<ClearanceRow>[] = [
+    {
+      key: "circle",
+      header: "Circle",
+      render: (row) =>
+        row._type === "circle" ? (
+          <div>
+            <span className="block font-medium text-brand-dark">{row.circleAccount.circle.name}</span>
+            <span className="text-[11px] text-gray-500">
+              {formatNaira(row.circleAccount.principalAmount)} &middot; {row.circleAccount.circle.interestRateAnnual}% p.a.
+            </span>
+          </div>
+        ) : null,
+    },
+    {
+      key: "principal",
+      header: "Principal",
+      mono: true,
+      render: (row) =>
+        row._type === "circle" ? (
+          <span className="font-semibold" style={{ color: cfg.colors.primary }}>{formatNaira(row.circleAccount.principalAmount)}</span>
+        ) : null,
+    },
+    {
+      key: "interest",
+      header: "Interest",
+      mono: true,
+      render: (row) =>
+        row._type === "circle" ? (
+          <span className="font-semibold text-emerald-600">{formatNaira(row.circleAccount.interestEarned)}</span>
+        ) : null,
+    },
+    {
+      key: "total",
+      header: "Total Payout",
+      mono: true,
+      render: (row) =>
+        row._type === "circle" ? (
+          <span className="font-semibold text-brand-dark">{formatNaira(row.amount)}</span>
+        ) : null,
+    },
+    {
+      key: "requested",
+      header: "Requested",
+      align: "right",
+      mono: true,
+      render: (row) =>
+        row._type === "circle" ? (
+          <span className="text-gray-500">
+            {new Date(row.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+          </span>
+        ) : null,
+    },
+    {
+      key: "status",
+      header: "Status",
+      align: "right",
+      render: (row) =>
+        row._type === "circle" ? (
+          <span className="rounded-[0.375rem] px-2 py-0.5 text-[9px] font-bold capitalize" style={{ color: statusColor(row.status), backgroundColor: `${statusColor(row.status)}12` }}>
+            {row.status}
+          </span>
+        ) : null,
+    },
+  ];
+
+  const columns = activeTab === "group" ? groupColumns : circleColumns;
+  const rows: ClearanceRow[] =
+    activeTab === "group" ? paginatedItems.map(normalizeGroup) : payoutRequests.map(normalizeCircle);
+
+  const activePagination = activeTab === "group" ? pagination : prPagination;
+  const activeLoading = activeTab === "group" ? listLoading : prLoading;
+  const setActivePage = (page: number) => {
+    if (activeTab === "group") setPagination((p) => ({ ...p, page }));
+    else setPrPagination((p) => ({ ...p, page }));
+  };
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-[900px] p-[clamp(1rem,3vw,2rem)]">
+      <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
         <div className="p-16 text-center text-[13px] text-gray-400">Loading clearances...</div>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-[900px] p-[clamp(1rem,3vw,2rem)]">
+    <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
       <PageHeader
-        badgeLabel="Member Portal"
+        badgeLabel="Clearance History"
+        badgeColor={cfg.colors.accent}
         heading="My"
         accentText="Clearance"
         description="Track your payout clearances and circle progress."
       />
 
-      <StaggerChildren staggerDelay={100} className="mb-8 grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
-        <Card padding="1.25rem">
-          <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-400">Total Payouts Received</span>
-          <span className="mt-1 block font-mono text-2xl font-bold text-emerald-600">{formatNaira(stats.totalPayouts)}</span>
-        </Card>
-        <Card padding="1.25rem">
-          <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-400">Total Contributed</span>
-          <span className="mt-1 block font-mono text-2xl font-bold text-brand-dark">{formatNaira(stats.totalContributed)}</span>
-        </Card>
-        <Card padding="1.25rem">
-          <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-400">Pending Requests</span>
-          <span className="mt-1 block font-mono text-2xl font-bold" style={{ color: pendingRequests.length > 0 ? cfg.colors.primary : "#999" }}>
-            {pendingRequests.length}
-          </span>
-          {pendingRequests.length > 0 && <span className="text-[10px] text-gray-500">Awaiting approval</span>}
-        </Card>
+      <StaggerChildren staggerDelay={100} className="mb-8 grid grid-cols-3 gap-6">
+        <StatCard label="Total Payouts Received" value={formatNaira(stats.totalPayouts)} change="All time" positive variant="default" />
+        <StatCard label="Total Contributed" value={formatNaira(stats.totalContributed)} change="To circles" positive variant="warm" />
+        <StatCard label="Pending Requests" value={String(pendingRequests.length)} change={pendingRequests.length > 0 ? "Awaiting approval" : "All clear"} positive variant={pendingRequests.length > 0 ? "warm" : "default"} />
       </StaggerChildren>
-
-      <div className="mb-6 flex gap-2">
-        <button onClick={() => setActiveTab("group")}
-          className="cursor-pointer rounded-full border-[1.5px] px-5 py-2 text-xs font-semibold transition-all"
-          style={{ backgroundColor: activeTab === "group" ? cfg.colors.primary : "#ffffff", color: activeTab === "group" ? "#ffffff" : "#717171", borderColor: activeTab === "group" ? cfg.colors.primary : "#EAEAEA" }}>
-          Group Clearances
-        </button>
-        <button onClick={() => setActiveTab("circle")}
-          className="cursor-pointer rounded-full border-[1.5px] px-5 py-2 text-xs font-semibold transition-all"
-          style={{ backgroundColor: activeTab === "circle" ? cfg.colors.primary : "#ffffff", color: activeTab === "circle" ? "#ffffff" : "#717171", borderColor: activeTab === "circle" ? cfg.colors.primary : "#EAEAEA" }}>
-          Circle Payouts
-        </button>
-      </div>
-
-      {activeTab === "group" && (
-        <FadeInUp delay={300}>
-          <Card padding="1.5rem" className="mb-6">
-            <div className="mb-4">
-              <ColorfulBadge label="Clearance History" color={cfg.colors.primary} />
-              <h2 className="mt-2 text-lg font-medium text-brand-dark">My Payout Clearances</h2>
-            </div>
-            {(listLoading && paginatedItems.length === 0) ? (
-              <div className="p-8 text-center text-[13px] text-gray-400">Loading...</div>
-            ) : paginatedItems.length === 0 ? (
-              <div className="p-8 text-center text-[13px] text-gray-400">
-                No clearances yet. Join a circle to start earning payouts.
-              </div>
-            ) : (
-              <div className="flex flex-col gap-4">
-                {paginatedItems.map((c) => {
-                  const st = statusStyles[c.status] || statusStyles.pending;
-                  return (
-                    <div key={c.id} className="rounded-xl p-5 transition-all hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)]"
-                      style={{ border: `1px solid ${st.border}`, backgroundColor: st.bg + "30" }}>
-                      <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
-                        <div>
-                          <span className="block text-[13px] font-semibold text-[#2D2D2D]">{c.groupName}</span>
-                          <span className="text-[11px] text-gray-500">Cycle {c.cycleNumber} payout</span>
-                        </div>
-                        <span className="rounded-md border px-2 py-0.5 text-[9px] font-bold capitalize" style={{ backgroundColor: st.bg, color: st.color, borderColor: st.border }}>{c.status}</span>
-                      </div>
-
-                      <div className="mb-3 grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-3">
-                        <div>
-                          <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-400">Payout Amount</span>
-                          <span className="mt-0.5 block font-mono text-base font-bold text-emerald-600">{formatNaira(c.payoutAmount)}</span>
-                        </div>
-                        <div>
-                          <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-400">My Contribution</span>
-                          <span className="mt-0.5 block font-mono text-base font-bold text-[#2D2D2D]">{formatNaira(c.contributed)}</span>
-                        </div>
-                        {c.clearedDate && (
-                          <div>
-                            <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-400">Cleared On</span>
-                          <span className="mt-0.5 block font-mono text-xs font-medium text-[#2D2D2D]">
-                              {new Date(c.clearedDate).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-            <Pagination page={page} totalPages={totalPages} total={totalItems} limit={LIMIT} onPageChange={setPage} loading={listLoading} />
-          </Card>
-        </FadeInUp>
-      )}
-
-      {activeTab === "circle" && (
-        <FadeInUp delay={300}>
-          <Card padding="1.5rem" className="mb-6">
-            <div className="mb-4">
-              <ColorfulBadge label="Circle Payout Requests" color={cfg.colors.primary} />
-              <h2 className="mt-2 text-lg font-medium text-brand-dark">My Circle Payout Requests</h2>
-            </div>
-
-            {payoutRequests.length === 0 ? (
-              <div className="p-8 text-center text-[13px] text-gray-400">
-                No circle payout requests yet. Maturity payouts will appear here when requested.
-              </div>
-            ) : (
-              <div className="flex flex-col gap-4">
-                {payoutRequests.map((r) => {
-                  const st = statusStyles[r.status] || statusStyles.pending;
-                  return (
-                    <div key={r.id} className="rounded-xl p-5 transition-all hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)]"
-                      style={{ border: `1px solid ${st.border}`, backgroundColor: st.bg + "30" }}>
-                      <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
-                        <div>
-                          <span className="block text-[13px] font-semibold text-[#2D2D2D]">{r.circleAccount.circle.name}</span>
-                          <span className="text-[11px] text-gray-500">
-                            {formatNaira(r.circleAccount.principalAmount)} &middot; {r.circleAccount.circle.interestRateAnnual}% p.a.
-                          </span>
-                        </div>
-                        <span className="rounded-md border px-2 py-0.5 text-[9px] font-bold capitalize" style={{ backgroundColor: st.bg, color: st.color, borderColor: st.border }}>{r.status}</span>
-                      </div>
-
-                      <div className="mb-2 grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-3">
-                        <div>
-                          <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-400">Principal</span>
-                          <span className="mt-0.5 block font-mono text-sm font-bold" style={{ color: cfg.colors.primary }}>{formatNaira(r.circleAccount.principalAmount)}</span>
-                        </div>
-                        <div>
-                          <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-400">Interest Earned</span>
-                          <span className="mt-0.5 block font-mono text-sm font-bold text-emerald-600">{formatNaira(r.circleAccount.interestEarned)}</span>
-                        </div>
-                        <div>
-                          <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-400">Total Payout</span>
-                          <span className="mt-0.5 block font-mono text-sm font-bold text-[#2D2D2D]">{formatNaira(r.amount)}</span>
-                        </div>
-                        <div>
-                          <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-400">Requested</span>
-                          <span className="mt-0.5 block font-mono text-xs font-medium text-[#2D2D2D]">
-                            {new Date(r.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
-                          </span>
-                        </div>
-                      </div>
-
-                      {r.note && (
-                        <div className="mt-2 rounded-lg bg-red-50 p-3 text-[11px] text-red-600">
-                          Note: {r.note}
-                        </div>
-                      )}
-
-                      {r.status === "pending" && (
-                        <div className="mt-3 text-[11px] font-medium text-amber-600">
-                          Waiting for admin review...
-                        </div>
-                      )}
-                      {r.status === "cleared" && (
-                        <div className="mt-3 text-[11px] font-medium text-blue-600">
-                          Cleared — awaiting disbursement.
-                        </div>
-                      )}
-                      {r.status === "disbursed" && (
-                        <div className="mt-3 text-[11px] font-medium text-emerald-600">
-                          Disbursed{r.disbursedAt ? ` on ${new Date(r.disbursedAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}` : ""}{r.disbursementRef ? ` · Ref ${r.disbursementRef}` : ""}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-            <Pagination page={prPage} totalPages={prTotalPages} total={prTotal} limit={LIMIT} onPageChange={setPrPage} />
-          </Card>
-        </FadeInUp>
-      )}
 
       <FadeInUp delay={400}>
         <Card padding="1.5rem">
+          <div className="mb-6 flex items-center justify-between border-b border-gray-100 pb-4">
+            <div>
+              <ColorfulBadge label={activeTab === "group" ? "Group Clearances" : "Circle Payouts"} color={cfg.colors.primary} />
+              <h2 className="mt-2 text-[1.125rem] font-medium text-brand-dark">
+                {activeTab === "group" ? "My Payout Clearances" : "My Circle Payout Requests"}
+              </h2>
+            </div>
+            <div className="flex gap-1 rounded-lg bg-[#F5F7F5] p-1">
+              {(["group", "circle"] as const).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setActiveTab(t)}
+                  className="cursor-pointer rounded-[0.375rem] border-0 px-3 py-1.5 text-[11px] font-semibold transition-all duration-200"
+                  style={{
+                    backgroundColor: activeTab === t ? "#ffffff" : "transparent",
+                    color: activeTab === t ? cfg.colors.primary : "#717171",
+                  }}
+                >
+                  {t === "group" ? "Group" : "Circle"}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <DataTable
+            columns={columns}
+            data={rows}
+            pagination={activePagination}
+            onPageChange={setActivePage}
+            loading={activeLoading}
+            emptyMessage={activeTab === "group" ? "No clearances yet. Join a circle to start earning payouts." : "No circle payout requests yet. Maturity payouts will appear here when requested."}
+            accentColor={cfg.colors.accent}
+          />
+        </Card>
+      </FadeInUp>
+
+      <FadeInUp delay={500} className="mt-6">
+        <Card padding="1.5rem">
           <div className="mb-4">
             <ColorfulBadge label="How It Works" color={cfg.colors.accent} />
-            <h2 className="mt-2 text-lg font-medium text-brand-dark">Clearance Process</h2>
+            <h2 className="mt-2 text-[1.125rem] font-medium text-brand-dark">Clearance Process</h2>
           </div>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
             {[
