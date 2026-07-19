@@ -140,7 +140,7 @@ export default function ReferralsPage() {
   };
 
   const shareUrl = `https://arosco.com/register?ref=${referralCode}`;
-  const shareText = `Join Arosco using my referral code ${referralCode} and start saving together! ${shareUrl}`;
+  const shareText = `Join GFW using my referral code ${referralCode} and start saving together! ${shareUrl}`;
 
   const tierProgress = (() => {
     if (!stats) return 0;

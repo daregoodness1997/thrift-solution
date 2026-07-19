@@ -295,7 +295,7 @@ export default function Dashboard() {
       <PageHeader
         badgeLabel="Member Portal"
         heading={`Welcome back, ${displayName}`}
-        description="Your Arosco savings dashboard"
+        description="Your GFW savings dashboard"
         right={
           <div className="flex flex-wrap gap-3">
             {(virtualAccounts.length > 0 || user?.accountNumber) && (

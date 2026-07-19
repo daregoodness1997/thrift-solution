@@ -32,7 +32,7 @@ export default function About() {
               Modernizing <span className="bg-gradient-to-r from-brand-primary to-brand-accent bg-clip-text text-transparent italic">Ajo</span>, one circle at a time.
             </h1>
             <p className="mx-auto mt-4 max-w-xl text-base font-light leading-relaxed text-brand-muted">
-              Arosco is a digital platform for traditional communal thrift
+              GFW is a digital platform for traditional communal thrift
               savings. We bring the trust and discipline of Ajo into the modern
               era with transparent tracking, secure escrow, and smart
               automation.
@@ -72,7 +72,7 @@ export default function About() {
             <span className="bg-gradient-to-r from-brand-primary to-brand-accent bg-clip-text text-transparent italic">secure way to save together</span>.
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-sm font-light leading-relaxed text-brand-muted">
-            Arosco makes it easy to create, manage, and participate in Ajo
+            GFW makes it easy to create, manage, and participate in Ajo
             circles — with the transparency and security the modern era demands.
           </p>
         </div>

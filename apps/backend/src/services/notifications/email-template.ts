@@ -28,7 +28,7 @@ interface BrandTheme {
 }
 
 const BRAND: BrandTheme = {
-  name: "Arosco",
+  name: "GFW",
   tagline: "Community savings, collective prosperity.",
   logo: "/logo.svg",
   contact: { email: "hello@arosco.app", website: "https://arosco.app" },

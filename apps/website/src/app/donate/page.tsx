@@ -35,7 +35,7 @@ const impactItems = [
 const testimonials = [
   {
     name: "Chidi O.",
-    text: "Donating through Arosco was seamless. I could choose exactly where my money goes and track the impact in real time.",
+    text: "Donating through GFW was seamless. I could choose exactly where my money goes and track the impact in real time.",
     color: "#1D4ED8",
   },
   {

@@ -69,7 +69,7 @@ chatRouter.post("/conversations/:id/messages", authMiddleware, async (req, res) 
             url: `${dashboardUrl}/chat/${req.params.id}`,
           },
         },
-        sms: { message: `Arosco: New message from ${req.user!.email}.` },
+        sms: { message: `GFW: New message from ${req.user!.email}.` },
       });
     }
 

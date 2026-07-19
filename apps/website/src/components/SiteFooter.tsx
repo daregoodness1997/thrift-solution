@@ -69,7 +69,7 @@ export function SiteFooter() {
         </div>
 
         <div className="flex flex-col items-center gap-4 border-t border-brand-dark/80 pt-6 text-xs text-gray-500 sm:flex-row sm:justify-between">
-          <span>&copy; {year} Arosco. Built for communal prosperity.</span>
+          <span>&copy; {year} GFW. Built for communal prosperity.</span>
           <div className="flex items-center gap-4">
             <a href="#" aria-label="Website" className="transition-colors hover:text-white"><Globe className="h-4 w-4" /></a>
             <a href="#" aria-label="Community" className="transition-colors hover:text-white"><MessageCircle className="h-4 w-4" /></a>

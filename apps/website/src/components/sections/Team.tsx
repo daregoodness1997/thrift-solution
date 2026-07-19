@@ -4,7 +4,7 @@ const team = [
   {
     name: "Osarodion Francis",
     role: "Chief Executive Officer",
-    bio: "Leads Arosco's vision to modernize communal thrift savings across Africa.",
+    bio: "Leads GFW's vision to modernize communal thrift savings across Africa.",
     location: "Lagos, Nigeria",
     photo: "/ceo.jpeg",
   },
@@ -18,7 +18,7 @@ const team = [
   {
     name: "Helen Sunday",
     role: "Head of Department",
-    bio: "Owns the teams and processes that deliver a reliable Arosco experience.",
+    bio: "Owns the teams and processes that deliver a reliable GFW experience.",
     location: "Lagos, Nigeria",
     photo: "/hod.jpeg",
   },
@@ -32,35 +32,35 @@ const team = [
   {
     name: "Nwaogu Chinedu",
     role: "Coordinator",
-    bio: "Connects our circles and helps communities get the most from Arosco.",
+    bio: "Connects our circles and helps communities get the most from GFW.",
     location: "Lagos, Nigeria",
     photo: "/cordinator.jpeg",
   },
   {
     name: "Korede Awe",
     role: "Field Coordinator",
-    bio: "Brings Arosco to communities on the ground, one circle at a time.",
+    bio: "Brings GFW to communities on the ground, one circle at a time.",
     location: "Lagos, Nigeria",
     photo: "/cord-1.jpeg",
   },
   {
     name: "Sam Imoje",
     role: "Director",
-    bio: "Brings Arosco to communities on the ground, one circle at a time.",
+    bio: "Brings GFW to communities on the ground, one circle at a time.",
     location: "Germany",
     photo: "/director-2.jpeg",
   },
   {
     name: "Omoruwa Oghagbon",
     role: "Director",
-    bio: "Brings Arosco to communities on the ground, one circle at a time.",
+    bio: "Brings GFW to communities on the ground, one circle at a time.",
     location: "Italy",
     photo: "/director-1.jpeg",
   },
   {
     name: "Courage Omoruyi",
     role: "Community Manager",
-    bio: "Brings Arosco to communities on the ground, one circle at a time.",
+    bio: "Brings GFW to communities on the ground, one circle at a time.",
     location: "Lagos, Nigeria",
     photo: "/cord-2.jpeg",
   },
@@ -76,7 +76,7 @@ export function Team() {
             <>
               Meet the people behind{" "}
               <span className="bg-gradient-to-r from-brand-primary to-brand-accent bg-clip-text text-transparent">
-                Arosco
+                GFW
               </span>
             </>
           }

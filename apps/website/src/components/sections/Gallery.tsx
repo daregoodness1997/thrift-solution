@@ -2,9 +2,9 @@ import { Quote, MapPin } from "lucide-react";
 import { Container, SectionHeading, Badge } from "@/components/ui/Section";
 
 const testimonials = [
-  { name: "Adaeze N.", role: "Circle Leader", text: "Arosco helped me organize our church thrift group. Everyone pays on time, and we've completed five full cycles without a single default.", color: "#1D4ED8" },
+  { name: "Adaeze N.", role: "Circle Leader", text: "GFW helped me organize our church thrift group. Everyone pays on time, and we've completed five full cycles without a single default.", color: "#1D4ED8" },
   { name: "Tunde O.", role: "Member", text: "I used my Ajo payout to fund my small business. Having a structured savings system made all the difference.", color: "#0EA5E9" },
-  { name: "Funke A.", role: "Circle Organizer", text: "Managing contributions used to be a nightmare of spreadsheets. Arosco automates everything — reminders, tracking, and payouts.", color: "#1E3A8A" },
+  { name: "Funke A.", role: "Circle Organizer", text: "Managing contributions used to be a nightmare of spreadsheets. GFW automates everything — reminders, tracking, and payouts.", color: "#1E3A8A" },
 ];
 
 const locations = [
@@ -26,7 +26,7 @@ export function Gallery() {
               </span>
             </>
           }
-          description="From family circles to market cooperatives, communities across Nigeria are saving together on Arosco."
+          description="From family circles to market cooperatives, communities across Nigeria are saving together on GFW."
         />
 
         <div className="mt-14 grid grid-cols-1 gap-6 md:grid-cols-3">

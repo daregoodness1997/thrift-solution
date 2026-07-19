@@ -5,7 +5,7 @@ import { Plus, Minus } from "lucide-react";
 import { Container, SectionHeading } from "@/components/ui/Section";
 
 const faqs = [
-  { q: "What is Arosco (Ajo)?", a: "Arosco is a digital platform for traditional Nigerian communal thrift savings. Members contribute a fixed amount each cycle and take turns receiving the total pot — built on trust and community." },
+  { q: "What is GFW (Ajo)?", a: "GFW is a digital platform for traditional Nigerian communal thrift savings. Members contribute a fixed amount each cycle and take turns receiving the total pot — built on trust and community." },
   { q: "How is my money protected?", a: "Contributions are held in secure escrow until payout time. Funds are released only to the designated recipient when the cycle closes, and every transaction is tracked transparently." },
   { q: "What if a member doesn't pay?", a: "Members with missed payments receive automatic reminders. Their trust score is affected, and circle leaders can set policies for handling defaults." },
   { q: "Can I join multiple circles?", a: "Yes. You can be a member of as many circles as you can manage. Your dashboard tracks all active circles and contribution schedules." },

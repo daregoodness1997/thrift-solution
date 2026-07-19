@@ -5,12 +5,12 @@ const dashboardUrl = () => process.env.DASHBOARD_URL || "http://localhost:3001";
 
 export async function sendWelcomeEmail(to: string, name: string): Promise<void> {
   const rendered = renderBrandedEmail({
-    title: `Welcome to Arosco, ${name}!`,
+    title: `Welcome to GFW, ${name}!`,
     preheader: "Your account is verified and ready",
-    bodyText: `Hi ${name},\n\nThanks for joining Arosco — community savings, collective prosperity. Your account is now verified and ready to use. Explore circles, savings groups, and more from your dashboard.`,
+    bodyText: `Hi ${name},\n\nThanks for joining GFW — community savings, collective prosperity. Your account is now verified and ready to use. Explore circles, savings groups, and more from your dashboard.`,
     cta: { label: "Go to dashboard", url: dashboardUrl() },
   });
-  await sendEmail({ to, subject: "Welcome to Arosco", htmlBody: rendered.html, textBody: rendered.text });
+  await sendEmail({ to, subject: "Welcome to GFW", htmlBody: rendered.html, textBody: rendered.text });
 }
 
 export async function sendPasswordResetEmail(
@@ -30,7 +30,7 @@ export async function sendPasswordResetEmail(
     bodyHtml,
     cta: { label: "Reset password", url: link },
   });
-  await sendEmail({ to, subject: "Reset your Arosco password", htmlBody: rendered.html, textBody: rendered.text });
+  await sendEmail({ to, subject: "Reset your GFW password", htmlBody: rendered.html, textBody: rendered.text });
 }
 
 function escapeHtml(input: string): string {

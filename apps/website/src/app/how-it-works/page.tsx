@@ -9,7 +9,7 @@ const steps = [
 ];
 
 const faqs = [
-  { q: "What is Arosco?", a: "Arosco (also called Ajo) is a traditional Nigerian communal thrift savings system. Members contribute a fixed amount each cycle and take turns receiving the total pot. It's built on trust and community." },
+  { q: "What is GFW?", a: "GFW (also called Ajo) is a traditional Nigerian communal thrift savings system. Members contribute a fixed amount each cycle and take turns receiving the total pot. It's built on trust and community." },
   { q: "How is my money protected?", a: "Contributions are held in a secure escrow until payout time. Funds are released only to the designated recipient when the cycle closes." },
   { q: "What if a member doesn't pay?", a: "Members with missed payments receive automatic reminders. Their trust score is affected, and circle leaders can set policies for handling defaults." },
   { q: "Can I join multiple circles?", a: "Yes. You can be a member of as many circles as you can manage. Your dashboard tracks all your active circles and contribution schedules." },
@@ -23,7 +23,7 @@ export default function HowItWorks() {
           <div className="mx-auto max-w-2xl text-center">
             <Badge>Simple Process</Badge>
             <h1 className="mt-4 font-display text-4xl font-bold tracking-tight text-brand-dark sm:text-5xl">
-              How <span className="bg-gradient-to-r from-brand-primary to-brand-accent bg-clip-text text-transparent italic">Arosco</span> works
+              How <span className="bg-gradient-to-r from-brand-primary to-brand-accent bg-clip-text text-transparent italic">GFW</span> works
             </h1>
             <p className="mt-4 text-base font-light text-brand-muted">
               Three simple steps to start saving with your community.

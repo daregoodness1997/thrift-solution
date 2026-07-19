@@ -1,6 +1,6 @@
 import { generateSecret, generateURI, verifySync, type VerifyResult } from "otplib";
 
-const ISSUER = "Arosco";
+const ISSUER = "GFW";
 
 export function generateTotpSecret(): string {
   return generateSecret();

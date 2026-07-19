@@ -35,7 +35,7 @@ export function BentoSocialProof() {
               </span>
             </>
           }
-          description="Real circles, real faces, real results. Here's a glimpse of the communities building wealth together on Arosco."
+          description="Real circles, real faces, real results. Here's a glimpse of the communities building wealth together on GFW."
         />
 
         <div className="mt-14 grid grid-cols-2 gap-4 md:gap-5 lg:grid-cols-6 lg:grid-rows-3">

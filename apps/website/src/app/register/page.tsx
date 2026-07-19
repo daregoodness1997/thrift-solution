@@ -270,7 +270,7 @@ function WebsiteRegisterPage() {
       <div className="flex flex-col justify-center bg-gradient-to-br from-brand-secondary via-brand-primary to-[#0B1220] p-10 text-center lg:flex-[0_0_42%] lg:p-16">
         <div className="mx-auto max-w-sm">
           <h1 className="font-display text-3xl font-light text-white">
-            Join Arosco<br />
+            Join GFW<br />
             <span className="italic text-brand-accent">in three easy steps</span>
           </h1>
           <p className="mt-4 text-sm text-white/60">

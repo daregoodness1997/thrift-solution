@@ -31,8 +31,8 @@ export interface BrandConfig {
 }
 
 const defaultConfig: BrandConfig = {
-  name: "Arosco",
-  tagline: "Community savings, collective prosperity.",
+  name: "GFW",
+  tagline: "Global Freedom Worldwide — community savings, collective prosperity.",
   logo: "/logo.png",
   favicon: "/favicon.ico",
   colors: {

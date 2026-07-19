@@ -56,7 +56,7 @@ export default function Marketplace() {
 
         <div className="mt-16 rounded-3xl border border-brand-primary/10 bg-gradient-to-br from-brand-primary/[0.05] to-brand-accent/[0.05] p-10">
           <h2 className="text-xl font-semibold text-brand-dark">Popular Circle Types</h2>
-          <p className="mt-1 text-sm font-light text-brand-muted">Communities already saving together on Arosco.</p>
+          <p className="mt-1 text-sm font-light text-brand-muted">Communities already saving together on GFW.</p>
           <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {circles.map((c, i) => (
               <div key={c.name} className="rounded-2xl border-t-[3px] border-brand-primary/30 bg-white p-6 shadow-sm">
