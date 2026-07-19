@@ -50,10 +50,14 @@ export function PaymentModal({
 }: PaymentModalProps) {
   const [selectedProvider, setSelectedProvider] =
     useState<string>("flutterwave");
+  const [amountInput, setAmountInput] = useState<string>(String(amount));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   if (!isOpen) return null;
+
+  const parsedAmount = Number(amountInput);
+  const isValidAmount = parsedAmount > 0 && !Number.isNaN(parsedAmount);
 
   const handlePayment = async () => {
     setLoading(true);
@@ -73,7 +77,7 @@ export function PaymentModal({
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ amount, provider: selectedProvider }),
+        body: JSON.stringify({ amount: parsedAmount, provider: selectedProvider }),
       });
 
       const data = await res.json();
@@ -177,17 +181,38 @@ export function PaymentModal({
             </p>
           </div>
 
-          {/* Amount Display */}
-          <div className="p-4 bg-gray-50 rounded-xl mb-6 text-center">
+          {/* Amount Input */}
+          <div className="p-4 bg-gray-50 rounded-xl mb-6">
             <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-[0.1em]">
               Amount
             </span>
-            <div
-              className="text-[1.75rem] font-mono font-bold mt-1"
-              style={{ color: config.colors.primary }}
-            >
-              {formatNaira(amount)}
+            <div className="flex items-center gap-2 mt-1">
+              <span
+                className="text-[1.75rem] font-mono font-bold"
+                style={{ color: config.colors.primary }}
+              >
+                ₦
+              </span>
+              <div
+                contentEditable
+                suppressContentEditableWarning
+                role="textbox"
+                inputMode="numeric"
+                onInput={(e) => {
+                  setAmountInput(e.currentTarget.textContent || "");
+                  setError(null);
+                }}
+                className="flex-1 bg-transparent text-[1.75rem] font-mono font-bold outline-none border-none w-full break-words"
+                style={{ color: config.colors.primary }}
+              >
+                {amountInput}
+              </div>
             </div>
+            {!isValidAmount && (
+              <span className="text-[11px] text-red-500 mt-1 block">
+                Enter a valid amount greater than ₦0
+              </span>
+            )}
           </div>
 
           {/* Provider Selection */}
@@ -284,7 +309,7 @@ export function PaymentModal({
           {/* Pay Button */}
           <button
             onClick={handlePayment}
-            disabled={loading}
+            disabled={loading || !isValidAmount}
             className="w-full p-4 rounded-xl text-sm font-semibold border-none text-white flex items-center justify-center gap-2 transition-all duration-200"
             style={{
               backgroundColor: config.colors.primary,
@@ -326,7 +351,7 @@ export function PaymentModal({
               </>
             ) : (
               <>
-                Pay {formatNaira(amount)}
+                 Pay {formatNaira(isValidAmount ? parsedAmount : 0)}
                 <svg
                   width="16"
                   height="16"
