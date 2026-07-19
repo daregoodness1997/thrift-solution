@@ -158,6 +158,25 @@ export default function RegisterForm() {
         verifyPayment(reference, storedToken);
       }
     }
+
+    const mode = searchParams.get("mode");
+    const qEmail = searchParams.get("email");
+    const qUserId = searchParams.get("userId");
+    if (mode === "verify" && qUserId) {
+      setUserId(qUserId);
+      if (qEmail) setEmail(qEmail);
+      setOtpSent(true);
+      setStep(1);
+    } else if (mode === "pay" && qUserId) {
+      setUserId(qUserId);
+      if (qEmail) setEmail(qEmail);
+      const qToken = searchParams.get("token");
+      if (qToken) {
+        localStorage.setItem("token", qToken);
+        setToken(qToken);
+      }
+      setStep(2);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -234,6 +253,22 @@ export default function RegisterForm() {
       setError("Network error. Please try again.");
     }
     setLoading(false);
+  };
+
+  const handleResendOtp = async () => {
+    if (!email) return;
+    try {
+      const res = await fetch(`${API_URL}/api/auth/resend-verification`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (data.success) toast.success("Verification code resent to your email");
+      else toast.error(data.error || "Failed to resend code");
+    } catch {
+      toast.error("Network error. Please try again.");
+    }
   };
 
   // ── Step 2: Payment ────────────────────────────────────────────────
@@ -439,8 +474,11 @@ export default function RegisterForm() {
                 {loading ? "Verifying..." : "Verify Email & Continue"}
               </button>
               <p className="text-[11px] text-gray-400 mt-3 text-center">
-                Didn't get it? Check spam or contact support.
-              </p>
+                 Didn't get it?{" "}
+                 <button type="button" onClick={handleResendOtp} className="underline bg-none border-none cursor-pointer p-0" style={{ color: config.colors.primary }}>
+                   Resend code
+                 </button>
+               </p>
             </div>
           )}
 

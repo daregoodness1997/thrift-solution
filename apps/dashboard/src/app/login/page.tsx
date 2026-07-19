@@ -25,6 +25,12 @@ export default function LoginPage() {
     setLoading(false);
     if (result.error) {
       toast.error(result.error);
+    } else if (result.data?.needsVerification) {
+      toast.success("A new verification code has been sent to your email");
+      window.location.href = `/register?mode=verify&userId=${encodeURIComponent(result.data.userId)}&email=${encodeURIComponent(result.data.email)}`;
+    } else if (result.data?.needsPayment) {
+      toast.success("Please complete your registration fee payment");
+      window.location.href = `/register?mode=pay&userId=${encodeURIComponent(result.data.userId)}&email=${encodeURIComponent(result.data.email)}&token=${encodeURIComponent(result.data.token)}`;
     } else {
       toast.success("Welcome back!");
       window.location.href = "/";

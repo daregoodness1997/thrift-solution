@@ -36,6 +36,7 @@ function publicUser(user: {
   emailVerified: boolean;
   phoneVerified: boolean;
   twoFactorEnabled: boolean;
+  registrationFeePaid: boolean;
 }) {
   return {
     id: user.id,
@@ -47,6 +48,7 @@ function publicUser(user: {
     emailVerified: user.emailVerified,
     phoneVerified: user.phoneVerified,
     twoFactorEnabled: user.twoFactorEnabled,
+    registrationFeePaid: user.registrationFeePaid,
   };
 }
 
@@ -333,7 +335,48 @@ authRouter.post("/login", async (req, res) => {
       return;
     }
 
+    if (!user.emailVerified) {
+      await issueOtp({
+        userId: user.id,
+        type: "email_verification",
+        channel: "email",
+        destination: user.email,
+        title: "Verify your email",
+        actionLabel: "verify your email address",
+      });
+      res.json({
+        success: true,
+        data: {
+          needsVerification: true,
+          emailVerified: false,
+          registrationFeePaid: user.registrationFeePaid,
+          userId: user.id,
+          email: user.email,
+          message: "A new verification code has been sent to your email",
+        },
+      });
+      return;
+    }
+
     const token = signToken({ userId: user.id, email: user.email });
+
+    if (!user.registrationFeePaid) {
+      res.json({
+        success: true,
+        data: {
+          needsPayment: true,
+          emailVerified: true,
+          registrationFeePaid: false,
+          userId: user.id,
+          email: user.email,
+          token,
+          message: "Please complete your registration fee payment to continue",
+          user: publicUser(user),
+        },
+      });
+      return;
+    }
+
     res.json({ success: true, data: { user: publicUser(user), token } });
   } catch (err) {
     console.error("Login error:", err);
