@@ -9,7 +9,15 @@
     "lint": "eslint src/",
     "typecheck": "tsc --project tsconfig.check.json",
     "regenerate:flw-va": "tsx src/scripts/regenerate-flutterwave-va.ts",
-    "test:circle-flow": "tsx src/scripts/test-circle-flow.ts"
+    "test:circle-flow": "tsx src/scripts/test-circle-flow.ts",
+    "db:generate": "pnpm --filter @thrift/db db:generate",
+    "db:migrate": "pnpm --filter @thrift/db db:migrate",
+    "db:deploy": "pnpm --filter @thrift/db exec prisma migrate deploy",
+    "db:push": "pnpm --filter @thrift/db db:push",
+    "db:studio": "pnpm --filter @thrift/db db:studio",
+    "seed:admin": "tsx src/seed-admin.ts",
+    "migrate:prod": "pnpm db:deploy && pnpm db:generate && pnpm build",
+    "deploy:prod": "pnpm migrate:prod && pnpm start"
   },
   "dependencies": {
     "@thrift/db": "workspace:*",
