@@ -306,22 +306,6 @@ export default function RegisterForm() {
       >
         <div className="absolute -top-[10%] -right-[10%] w-[300px] h-[300px] rounded-full border border-[rgba(255,255,255,0.06)]" />
         <div className="absolute -bottom-[15%] -left-[10%] w-[400px] h-[400px] rounded-full border border-[rgba(255,255,255,0.04)]" />
-        <div className="relative z-10 text-center max-w-[320px]">
-          <a href="/" className="block mb-12 no-underline">
-            <span className="text-2xl font-extrabold tracking-[-0.05em] text-white">
-              {config.name.toUpperCase().replace(/\s+/g, "")}
-            </span>
-          </a>
-          <h1 className="text-[clamp(1.5rem,3vw,2rem)] font-light text-white leading-[1.3] mb-4">
-            Start your<br />
-            <span className="font-display font-medium" style={{ color: config.colors.accent }}>
-              savings journey
-            </span>
-          </h1>
-          <p className="text-[13px] text-white/60 leading-[1.6]">
-            Three quick steps: create your account, pay the one-time ₦{REG_FEE.toLocaleString()} registration fee, and verify your identity to unlock your virtual account.
-          </p>
-        </div>
       </div>
 
       {/* Right Panel */}

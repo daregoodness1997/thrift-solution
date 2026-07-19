@@ -46,39 +46,6 @@ export default function LoginPage() {
         <div className="absolute -top-[10%] -right-[10%] w-[300px] h-[300px] rounded-full border border-[rgba(255,255,255,0.06)]" />
         <div className="absolute -bottom-[15%] -left-[10%] w-[400px] h-[400px] rounded-full border border-[rgba(255,255,255,0.04)]" />
         <div className="absolute top-[20%] left-[10%] w-[150px] h-[150px] rounded-full bg-white/[0.03]" />
-
-        <div className="relative z-10 text-center max-w-[320px]">
-          <a href="/" className="block mb-12 no-underline">
-            <span className="text-2xl font-extrabold tracking-[-0.05em] text-white">
-              {config.name.toUpperCase().replace(/\s+/g, "")}
-            </span>
-          </a>
-
-          <h1 className="text-[clamp(1.5rem,3vw,2rem)] font-light text-white leading-[1.3] mb-4">
-            Welcome back to<br />
-            <span className="font-display font-medium" style={{ color: config.colors.accent }}>
-              {config.tagline.split(",")[0]}
-            </span>
-          </h1>
-
-          <p className="text-[13px] text-white/60 leading-[1.6]">
-            Continue managing your savings circles, tracking contributions, and growing together.
-          </p>
-
-          {/* Stats */}
-          <div className="flex gap-8 justify-center mt-12">
-            {[
-              { value: "50K+", label: "Members" },
-              { value: "₦2B+", label: "Saved" },
-              { value: "10K+", label: "Circles" },
-            ].map((stat) => (
-              <div key={stat.label} className="text-center">
-                <span className="block text-[1.25rem] font-bold" style={{ color: config.colors.accent }}>{stat.value}</span>
-                <span className="text-[10px] text-white/50 uppercase tracking-[0.1em]">{stat.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
 
       {/* Right Panel — Form */}

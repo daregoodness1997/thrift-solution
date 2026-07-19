@@ -49,22 +49,6 @@ export default function ForgotPasswordPage() {
           backgroundPosition: "center",
         }}
       >
-        <div className="relative z-10 text-center max-w-[320px]">
-          <a href="/" className="block mb-12 no-underline">
-            <span className="text-2xl font-extrabold tracking-[-0.05em] text-white">
-              {config.name.toUpperCase().replace(/\s+/g, "")}
-            </span>
-          </a>
-          <h1 className="text-[clamp(1.5rem,3vw,2rem)] font-light text-white leading-[1.3] mb-4">
-            Forgot your<br />
-            <span className="font-display font-medium" style={{ color: config.colors.accent }}>
-              password?
-            </span>
-          </h1>
-          <p className="text-[13px] text-white/60 leading-[1.6]">
-            No worries — we&apos;ll send you a secure link and code to reset it.
-          </p>
-        </div>
       </div>
 
       <div className="flex-1 flex items-center justify-center p-8">
