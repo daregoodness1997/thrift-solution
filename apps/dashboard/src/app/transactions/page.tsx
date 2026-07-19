@@ -77,6 +77,8 @@ export default function TransactionsPage() {
       case "circle_deposit": return "#7C3AED";
       case "circle_contribution": return "#7C3AED";
       case "circle_withdrawal": return "#0891B2";
+      case "circle_payout": return "#0891B2";
+      case "loan_payout": return "#0891B2";
       case "circle_interest": return "#D97706";
       case "circle_processing_fee": return "#D97706";
       default: return "#717171";
@@ -147,7 +149,7 @@ export default function TransactionsPage() {
       align: "right",
       mono: true,
       render: (t) => (
-        <span className="font-semibold" style={{ color: t.type === "payout" || t.type === "funding" || t.type === "circle_withdrawal" || t.type === "circle_interest" || t.type === "referral_earning" ? "#059669" : "#2D2D2D" }}>
+        <span className="font-semibold" style={{ color: t.type === "payout" || t.type === "funding" || t.type === "circle_withdrawal" || t.type === "circle_payout" || t.type === "loan_payout" || t.type === "circle_interest" || t.type === "referral_earning" ? "#059669" : "#2D2D2D" }}>
           {formatNaira(t.amount)}
         </span>
       ),

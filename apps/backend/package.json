@@ -11,6 +11,7 @@
     "typecheck": "tsc --project tsconfig.check.json",
     "regenerate:flw-va": "tsx src/scripts/regenerate-flutterwave-va.ts",
     "test:circle-flow": "tsx src/scripts/test-circle-flow.ts",
+    "backfill:payout-txns": "tsx src/scripts/backfill-payout-transactions.ts",
     "db:generate": "pnpm --filter @thrift/db db:generate",
     "db:migrate": "pnpm --filter @thrift/db db:migrate",
     "db:deploy": "pnpm --filter @thrift/db exec prisma migrate deploy",

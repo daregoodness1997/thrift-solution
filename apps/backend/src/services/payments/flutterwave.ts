@@ -126,6 +126,13 @@ export const flutterwaveProvider: PaymentProvider = {
   },
 
   async initiateTransfer(params: VirtualAccountTransferParams): Promise<VirtualAccountTransferResult> {
+    // Flutterwave sandbox rejects real bank transfers. When running on a TEST
+    // key, route to their designated test account so disbursement can be
+    // exercised end-to-end in development. Live keys use the real details.
+    const isTestKey = FLW_SECRET.includes("_TEST") || FLW_SECRET.includes("-TEST");
+    const accountBank = isTestKey ? "044" : params.bankCode;
+    const accountNumber = isTestKey ? "0690000031" : params.accountNumber;
+
     let response: Response;
     try {
       response = await fetch(`${FLW_BASE}/transfers`, {
@@ -135,8 +142,8 @@ export const flutterwaveProvider: PaymentProvider = {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          account_bank: params.bankCode,
-          account_number: params.accountNumber,
+          account_bank: accountBank,
+          account_number: accountNumber,
           amount: params.amount,
           currency: "NGN",
           reference: params.reference,
@@ -151,7 +158,12 @@ export const flutterwaveProvider: PaymentProvider = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const data: any = await response.json();
     if (data.status !== "success") {
-      throw new Error(data.message || "Flutterwave transfer failed");
+      const detail =
+        data?.errors?.[0]?.message ||
+        (data?.data && typeof data.data === "object" ? data.data.complete_message || data.data.message : undefined) ||
+        data.message;
+      console.error("Flutterwave transfer error:", JSON.stringify(data));
+      throw new Error(detail || "Flutterwave transfer failed");
     }
 
     const flwStatus: string = data.data?.status || "";

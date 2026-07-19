@@ -94,6 +94,8 @@ export default function WalletPage() {
     switch (type) {
       case "wallet_funding": return "Wallet Funding";
       case "circle_withdrawal": return "Circle Payout";
+      case "circle_payout": return "Circle Payout";
+      case "loan_payout": return "Loan Disbursement";
       case "circle_interest": return "Circle Interest";
       case "circle_processing_fee": return "Processing Fee";
       case "circle_deposit": return "Circle Deposit";

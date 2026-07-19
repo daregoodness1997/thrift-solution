@@ -242,6 +242,20 @@ export async function disburseLoan(
       data: schedule.map((s) => ({ ...s, loanId: id })),
     });
 
+    const txnRef =
+      opts?.disbursementRef || `LOANDIS-${Date.now().toString(36)}-${nodeCrypto.randomBytes(6).toString("hex")}`;
+    await tx.transaction.create({
+      data: {
+        userId: loan.borrowerId,
+        loanId: id,
+        type: "loan_payout",
+        amount,
+        reference: txnRef,
+        status: opts?.disbursementStatus === "pending" ? "pending" : "completed",
+        description: "Loan disbursement sent to your bank account",
+      },
+    });
+
     return created;
   });
 }
@@ -280,7 +294,7 @@ export async function disburseLoanViaFlutterwave(
   }
 
   const amount = resolveDisbursedAmount(loan, disbursedAmount);
-  const reference = `LOAN-DISBURSE-${id}-${Date.now()}-${nodeCrypto.randomBytes(4).toString("hex")}`;
+  const reference = `LOANDIS-${Date.now().toString(36)}-${nodeCrypto.randomBytes(6).toString("hex")}`;
 
   let result: { status: string; providerRef?: string };
   try {

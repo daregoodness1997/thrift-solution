@@ -773,7 +773,7 @@ export async function disburseCirclePayoutRequestViaFlutterwave(
     throw new Error("User has no saved bank account number and bank code for transfer");
   }
 
-  const reference = `CIRCLE-DISBURSE-${requestId}-${Date.now()}-${nodeCrypto.randomBytes(4).toString("hex")}`;
+  const reference = `CIRDIS-${Date.now().toString(36)}-${nodeCrypto.randomBytes(6).toString("hex")}`;
 
   let result: { status: string; providerRef?: string };
   try {
@@ -798,17 +798,28 @@ export async function disburseCirclePayoutRequestViaFlutterwave(
   }
 
   const succeeded = result.status === "completed" || result.status === "pending";
+  const txnStatus = result.status === "completed" ? "completed" : result.status === "pending" ? "pending" : "failed";
 
   return prisma.$transaction(async (tx) => {
     if (succeeded) {
       await finalizeDisbursedAccount(tx, request);
     }
+    await tx.transaction.create({
+      data: {
+        userId: request.userId,
+        type: "circle_payout",
+        amount: request.amount,
+        reference,
+        status: txnStatus,
+        description: `Circle payout from ${request.circleAccount.circle.name} sent to your bank account`,
+      },
+    });
     return tx.circlePayoutRequest.update({
       where: { id: requestId },
       data: {
         status: succeeded ? "disbursed" : "disbursement_failed",
         disbursementMethod: "flutterwave",
-        disbursementStatus: result.status === "completed" ? "completed" : result.status === "pending" ? "pending" : "failed",
+        disbursementStatus: txnStatus,
         disbursementRef: result.providerRef || reference,
         disbursedById: adminId,
         disbursedAt: new Date(),
@@ -824,7 +835,7 @@ export async function markCirclePayoutRequestDisbursed(
 ) {
   const request = await prisma.circlePayoutRequest.findUnique({
     where: { id: requestId },
-    include: { circleAccount: true },
+    include: { circleAccount: { include: { circle: true } } },
   });
   if (!request) throw new Error("Payout request not found");
   if (request.status !== "cleared") throw new Error("Request must be cleared before it can be marked disbursed");
@@ -832,15 +843,28 @@ export async function markCirclePayoutRequestDisbursed(
     throw new Error("Provide a proof URL or a transfer reference");
   }
 
+  const reference =
+    data.reference || `CIRDIS-${Date.now().toString(36)}-${nodeCrypto.randomBytes(6).toString("hex")}`;
+
   return prisma.$transaction(async (tx) => {
     await finalizeDisbursedAccount(tx, request);
+    await tx.transaction.create({
+      data: {
+        userId: request.userId,
+        type: "circle_payout",
+        amount: request.amount,
+        reference,
+        status: "completed",
+        description: `Circle payout from ${request.circleAccount.circle.name} sent to your bank account`,
+      },
+    });
     return tx.circlePayoutRequest.update({
       where: { id: requestId },
       data: {
         status: "disbursed",
         disbursementMethod: "manual",
         disbursementStatus: "completed",
-        disbursementRef: data.reference || undefined,
+        disbursementRef: reference,
         disbursementProofUrl: data.proofUrl || undefined,
         disbursementNote: data.note || undefined,
         disbursedById: adminId,
