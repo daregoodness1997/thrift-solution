@@ -64,8 +64,8 @@ export function Analytics() {
                 <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="saveFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#3D7A52" stopOpacity={0.7} />
-                      <stop offset="100%" stopColor="#3D7A52" stopOpacity={0.02} />
+                      <stop offset="0%" stopColor="#3B82F6" stopOpacity={0.7} />
+                      <stop offset="100%" stopColor="#3B82F6" stopOpacity={0.02} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
@@ -73,7 +73,7 @@ export function Analytics() {
                   <YAxis tick={{ fill: "#9CA3AF", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `₦${v}K`} />
                   <Tooltip
                     contentStyle={{
-                      background: "#0A1A12",
+                      background: "#0B1220",
                       border: "1px solid rgba(255,255,255,0.1)",
                       borderRadius: 12,
                       color: "#fff",
@@ -84,7 +84,7 @@ export function Analytics() {
                   <Area
                     type="monotone"
                     dataKey="saved"
-                    stroke="#B8860B"
+                    stroke="#0EA5E9"
                     strokeWidth={2.5}
                     fill="url(#saveFill)"
                   />

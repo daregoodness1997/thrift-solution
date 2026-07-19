@@ -2,12 +2,12 @@ import { Handshake, Wallet, Award, HeartHandshake, LineChart, ShieldCheck } from
 import { Container, SectionHeading, Badge } from "@/components/ui/Section";
 
 const features = [
-  { icon: Handshake, title: "Ajo Circles", desc: "Join or create contribution groups. Members contribute a fixed amount each cycle and take turns receiving the full pot.", color: "#2D5A3D" },
-  { icon: Wallet, title: "Thrift Collections", desc: "Track every contribution in real time. Transparent ledgers so every member sees exactly where the money goes.", color: "#B8860B" },
-  { icon: Award, title: "Trust Score", desc: "Build your reputation through consistent contributions. A visible trust score backed by your actual payment history.", color: "#3D7A52" },
-  { icon: HeartHandshake, title: "Donations", desc: "Donate funds or items to support your circles and community. Multiple payment providers, instant confirmation.", color: "#C99A2E" },
-  { icon: LineChart, title: "Savings Tracker", desc: "Monitor total contributions, payouts, and savings growth. See your financial discipline in real numbers.", color: "#1E3D2A" },
-  { icon: ShieldCheck, title: "Secure Escrow", desc: "Contributions are held in secure escrow until payout time. Funds are protected until every member has paid.", color: "#3D7A52" },
+  { icon: Handshake, title: "Ajo Circles", desc: "Join or create contribution groups. Members contribute a fixed amount each cycle and take turns receiving the full pot.", color: "#1D4ED8" },
+  { icon: Wallet, title: "Thrift Collections", desc: "Track every contribution in real time. Transparent ledgers so every member sees exactly where the money goes.", color: "#0EA5E9" },
+  { icon: Award, title: "Trust Score", desc: "Build your reputation through consistent contributions. A visible trust score backed by your actual payment history.", color: "#3B82F6" },
+  { icon: HeartHandshake, title: "Donations", desc: "Donate funds or items to support your circles and community. Multiple payment providers, instant confirmation.", color: "#38BDF8" },
+  { icon: LineChart, title: "Savings Tracker", desc: "Monitor total contributions, payouts, and savings growth. See your financial discipline in real numbers.", color: "#1E3A8A" },
+  { icon: ShieldCheck, title: "Secure Escrow", desc: "Contributions are held in secure escrow until payout time. Funds are protected until every member has paid.", color: "#3B82F6" },
 ];
 
 export function Features() {

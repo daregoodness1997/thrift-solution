@@ -7,16 +7,16 @@
   --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
-  /* Arosco brand palette (adapted from flutterwave-us template) */
-  --color-brand-primary: #2D5A3D;   /* deep green */
-  --color-brand-secondary: #1E3D2A; /* forest */
-  --color-brand-sage: #3D7A52;      /* lighter green */
-  --color-brand-accent: #B8860B;     /* gold */
-  --color-brand-gold: #C99A2E;      /* brighter gold */
-  --color-brand-dark: #0A1A12;      /* near-black green */
-  --color-brand-cream: #F8F6F0;     /* warm off-white */
-  --color-brand-surface: #EFEAE0;
-  --color-brand-muted: #5A5A5A;
+  /* Blue brand palette (adapted from flutterwave-us template) */
+  --color-brand-primary: #1D4ED8;   /* deep blue */
+  --color-brand-secondary: #1E3A8A; /* navy */
+  --color-brand-sage: #3B82F6;      /* lighter blue */
+  --color-brand-accent: #0EA5E9;     /* sky accent */
+  --color-brand-gold: #38BDF8;      /* brighter sky */
+  --color-brand-dark: #0B1220;      /* near-black navy */
+  --color-brand-cream: #F5F8FF;     /* cool off-white */
+  --color-brand-surface: #EAF1FB;
+  --color-brand-muted: #51607A;
 }
 
 *,

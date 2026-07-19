@@ -315,7 +315,7 @@ export default function EditListingPage() {
                     </button>
                   </div>
                 ) : (
-                  <button type="button" onClick={() => fileRef.current?.click()} className="w-full cursor-pointer rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-8 text-center transition-all hover:border-brand-primary hover:bg-[#2D5A3D05]">
+                  <button type="button" onClick={() => fileRef.current?.click()} className="w-full cursor-pointer rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-8 text-center transition-all hover:border-brand-primary hover:bg-[#1D4ED805]">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth={1.5} className="mx-auto mb-2"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
                     <span className="block text-xs text-gray-500">Click to upload product image</span>
                     <span className="mt-1 block text-[10px] text-gray-500">JPEG, PNG, WebP, or GIF up to 10MB</span>

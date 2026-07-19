@@ -4,11 +4,18 @@ import { ThemeProvider } from "@thrift/ui";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/lib/auth-context";
 import { DashboardShell } from "@/components/DashboardShell";
+import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: `${config.name} — Dashboard`,
   description: `Manage your savings with ${config.name}.`,
+  manifest: "/site.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: config.name,
+  },
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
@@ -32,6 +39,7 @@ export default function RootLayout({
             <DashboardShell>{children}</DashboardShell>
           </AuthProvider>
           <Toaster position="top-right" richColors />
+          <ServiceWorkerRegister />
         </ThemeProvider>
       </body>
     </html>

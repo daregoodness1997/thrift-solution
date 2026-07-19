@@ -1,16 +1,16 @@
 {
   "name": "Global Freedom",
   "tagline": "Smart saving, smarter living.",
-  "logo": "/logo.svg",
+  "logo": "/logo.png",
   "favicon": "/favicon.ico",
   "colors": {
-    "primary": "#10b981",
-    "secondary": "#059669",
-    "accent": "#34d399",
-    "background": "#ffffff",
-    "surface": "#f9fafb",
-    "text": "#111827",
-    "textMuted": "#6b7280"
+    "primary": "#1D4ED8",
+    "secondary": "#1E3A8A",
+    "accent": "#0EA5E9",
+    "background": "#F5F8FF",
+    "surface": "#EAF1FB",
+    "text": "#0B1220",
+    "textMuted": "#51607A"
   },
   "contact": {
     "email": "hello@thriftsolution.com",

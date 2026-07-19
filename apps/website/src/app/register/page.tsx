@@ -267,7 +267,7 @@ function WebsiteRegisterPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-brand-cream pt-20 lg:flex-row">
-      <div className="flex flex-col justify-center bg-gradient-to-br from-brand-secondary via-brand-primary to-[#1a4a30] p-10 text-center lg:flex-[0_0_42%] lg:p-16">
+      <div className="flex flex-col justify-center bg-gradient-to-br from-brand-secondary via-brand-primary to-[#0B1220] p-10 text-center lg:flex-[0_0_42%] lg:p-16">
         <div className="mx-auto max-w-sm">
           <h1 className="font-display text-3xl font-light text-white">
             Join Arosco<br />

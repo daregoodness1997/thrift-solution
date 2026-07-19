@@ -33,13 +33,13 @@ const BRAND: BrandTheme = {
   logo: "/logo.svg",
   contact: { email: "hello@arosco.app", website: "https://arosco.app" },
   colors: {
-    primary: "#2D5A3D",
-    secondary: "#1E3D2A",
-    accent: "#B8860B",
-    background: "#F8F6F0",
-    surface: "#EFEAE0",
-    text: "#1A1A1A",
-    textMuted: "#5A5A5A",
+    primary: "#1D4ED8",
+    secondary: "#1E3A8A",
+    accent: "#0EA5E9",
+    background: "#F5F8FF",
+    surface: "#EAF1FB",
+    text: "#0B1220",
+    textMuted: "#51607A",
   },
 };
 

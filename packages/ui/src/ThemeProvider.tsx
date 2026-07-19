@@ -12,7 +12,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         "--color-text": config.colors.text,
         "--color-text-muted": config.colors.textMuted,
         minHeight: "100vh",
-        background: `linear-gradient(180deg, ${config.colors.background} 0%, #EDE8DC 50%, ${config.colors.background} 100%)`,
+        background: `linear-gradient(180deg, ${config.colors.background} 0%, #EAF1FB 50%, ${config.colors.background} 100%)`,
         color: config.colors.text,
         fontFamily: "'Inter', ui-sans-serif, system-ui, sans-serif",
         lineHeight: 1.6,

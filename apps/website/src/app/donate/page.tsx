@@ -36,17 +36,17 @@ const testimonials = [
   {
     name: "Chidi O.",
     text: "Donating through Arosco was seamless. I could choose exactly where my money goes and track the impact in real time.",
-    color: "#4A5D4E",
+    color: "#1D4ED8",
   },
   {
     name: "Blessing E.",
     text: "I love that I can donate items directly. The process is simple and I get confirmation right away.",
-    color: "#8A7D73",
+    color: "#0EA5E9",
   },
   {
     name: "Ibrahim K.",
     text: "The multiple payment options make it so convenient. I use Paystack and it processes instantly.",
-    color: "#3D4D40",
+    color: "#1E3A8A",
   },
 ];
 

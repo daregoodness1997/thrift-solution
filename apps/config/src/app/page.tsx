@@ -9,7 +9,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const fallback: BrandConfig = {
   name: "Thrift Solution",
   tagline: "Smart saving, smarter living.",
-  logo: "/logo.svg",
+  logo: "/logo.png",
   favicon: "/favicon.ico",
   colors: {
     primary: "#4A5D4E",
@@ -210,7 +210,7 @@ export default function ConfigPage() {
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
                 <Field label="Logo Path">
-                  <TextInput value={config.logo} onChange={(v) => set("logo", v)} placeholder="/logo.svg" />
+                  <TextInput value={config.logo} onChange={(v) => set("logo", v)} placeholder="/logo.png" />
                 </Field>
                 <Field label="Favicon Path">
                   <TextInput value={config.favicon} onChange={(v) => set("favicon", v)} placeholder="/favicon.ico" />

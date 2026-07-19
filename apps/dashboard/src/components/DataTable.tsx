@@ -41,7 +41,7 @@ export function DataTable<T>({
   loading = false,
   emptyMessage = "No data found.",
   emptyAction,
-  accentColor = "#4A5D4E",
+  accentColor = "#1D4ED8",
   minWidth,
 }: DataTableProps<T>) {
   const { page, total, totalPages } = pagination;

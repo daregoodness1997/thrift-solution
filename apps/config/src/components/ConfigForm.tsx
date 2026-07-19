@@ -54,7 +54,7 @@ export function ConfigForm({ config, onChange, onSave, saving }: Props) {
           <Input label="Tagline" value={config.tagline} onChange={(e) => set("tagline", e.target.value)} />
         </FieldRow>
         <FieldRow>
-          <Input label="Logo Path" value={config.logo} onChange={(e) => set("logo", e.target.value)} placeholder="/logo.svg" />
+          <Input label="Logo Path" value={config.logo} onChange={(e) => set("logo", e.target.value)} placeholder="/logo.png" />
           <Input label="Favicon Path" value={config.favicon} onChange={(e) => set("favicon", e.target.value)} placeholder="/favicon.ico" />
         </FieldRow>
       </Section>
