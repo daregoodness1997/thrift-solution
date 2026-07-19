@@ -131,6 +131,11 @@ export default function RegisterForm() {
   const [error, setError] = useState("");
 
   const [virtualAccount, setVirtualAccount] = useState<{ accountNumber: string; bankName: string; bankCode?: string } | null>(null);
+  const [kycResult, setKycResult] = useState<{
+    verifiedName?: string;
+    identity?: Record<string, any>;
+    creditScore?: number;
+  } | null>(null);
 
   const passwordStrength = (() => {
     if (!password) return { level: 0, label: "", color: "" };
@@ -319,6 +324,11 @@ export default function RegisterForm() {
         setError(data.error || "KYC verification failed");
       } else {
         setVirtualAccount(data.data.virtualAccount || null);
+        setKycResult({
+          verifiedName: data.data.verifiedName,
+          identity: data.data.identity,
+          creditScore: data.data.creditScore,
+        });
         setStep(4);
         toast.success("Account created & verified!");
       }
@@ -530,8 +540,45 @@ export default function RegisterForm() {
             <div>
               <div className="p-6 bg-emerald-50 rounded-xl mb-6 border border-emerald-200">
                 <div className="text-[13px] font-semibold text-emerald-600 mb-3">✓ Identity verified & KYC approved</div>
+
+                {kycResult?.verifiedName && (
+                  <div className="text-xs text-emerald-800 mb-3">
+                    <span className="text-gray-500">Verified Name: </span>
+                    <strong>{kycResult.verifiedName}</strong>
+                  </div>
+                )}
+
+                {kycResult?.identity && (
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-emerald-800 mb-3">
+                    {kycResult.identity.bvn && (
+                      <div><span className="text-gray-500">BVN: </span><strong className="font-mono">{kycResult.identity.bvn}</strong></div>
+                    )}
+                    {kycResult.identity.nin && (
+                      <div><span className="text-gray-500">NIN: </span><strong className="font-mono">{kycResult.identity.nin}</strong></div>
+                    )}
+                    {kycResult.identity.dateOfBirth && (
+                      <div><span className="text-gray-500">Date of Birth: </span><strong>{kycResult.identity.dateOfBirth}</strong></div>
+                    )}
+                    {kycResult.identity.gender && (
+                      <div><span className="text-gray-500">Gender: </span><strong className="capitalize">{kycResult.identity.gender}</strong></div>
+                    )}
+                    {kycResult.identity.phoneNumber && (
+                      <div><span className="text-gray-500">Phone: </span><strong>{kycResult.identity.phoneNumber}</strong></div>
+                    )}
+                    {kycResult.identity.email && (
+                      <div className="col-span-2 truncate"><span className="text-gray-500">Email: </span><strong>{kycResult.identity.email}</strong></div>
+                    )}
+                    {kycResult.identity.enrollmentBank && (
+                      <div className="col-span-2"><span className="text-gray-500">Enrollment Bank: </span><strong>{kycResult.identity.enrollmentBank}</strong></div>
+                    )}
+                    {kycResult.identity.address && (
+                      <div className="col-span-2"><span className="text-gray-500">Address: </span><strong>{kycResult.identity.address}</strong></div>
+                    )}
+                  </div>
+                )}
+
                 {virtualAccount ? (
-                  <div className="text-xs text-emerald-800">
+                  <div className="text-xs text-emerald-800 border-t border-emerald-200 pt-3">
                     <div className="mb-2">
                       <span className="text-gray-500">Virtual Account: </span>
                       <strong className="font-mono">{virtualAccount.accountNumber}</strong>
@@ -539,7 +586,7 @@ export default function RegisterForm() {
                     <div><span className="text-gray-500">Bank: </span><strong>{virtualAccount.bankName}</strong></div>
                   </div>
                 ) : (
-                  <div className="text-xs text-emerald-800">Your virtual account will be created shortly.</div>
+                  <div className="text-xs text-emerald-800 border-t border-emerald-200 pt-3">Your virtual account will be created shortly.</div>
                 )}
               </div>
               <button onClick={() => { window.location.href = "/"; }}

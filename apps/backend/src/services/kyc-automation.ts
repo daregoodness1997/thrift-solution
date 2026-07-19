@@ -33,6 +33,22 @@ export interface AutomatedKycResult {
   kycId: string;
   status: string;
   creditScore?: number;
+  verifiedName?: string;
+  identity?: {
+    bvn?: string;
+    nin?: string;
+    firstName?: string;
+    lastName?: string;
+    middleName?: string;
+    fullName?: string;
+    dateOfBirth?: string;
+    phoneNumber?: string;
+    email?: string;
+    gender?: string;
+    address?: string;
+    enrollmentBank?: string;
+    registrationDate?: string;
+  };
   virtualAccount?: {
     accountNumber: string;
     bankName: string;
@@ -200,10 +216,28 @@ export async function runAutomatedKyc({
     console.error("[KYC] Virtual account creation failed:", err);
   }
 
+  const identity: AutomatedKycResult["identity"] = {
+    bvn: sanitisedBvn,
+    nin: sanitisedNin,
+    firstName: bvnRes.data?.firstName || ninRes.data?.firstName,
+    lastName: bvnRes.data?.lastName || ninRes.data?.lastName,
+    middleName: bvnRes.data?.middleName || ninRes.data?.middleName,
+    fullName: verifiedName,
+    dateOfBirth: bvnRes.data?.dateOfBirth || ninRes.data?.dateOfBirth,
+    phoneNumber: bvnRes.data?.phoneNumber || ninRes.data?.phoneNumber,
+    email: bvnRes.data?.email || ninRes.data?.email,
+    gender: ninRes.data?.gender,
+    address: ninRes.data?.address,
+    enrollmentBank: bvnRes.data?.enrollmentBank,
+    registrationDate: bvnRes.data?.registrationDate,
+  };
+
   return {
     kycId: kyc.id,
     status: kyc.status,
     creditScore: (creditReport?.computedScore as number | undefined) ?? undefined,
+    verifiedName,
+    identity,
     virtualAccount,
   };
 }

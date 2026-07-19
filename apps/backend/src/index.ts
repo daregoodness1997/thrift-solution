@@ -87,6 +87,10 @@ cron.schedule("0 1 * * 0", circleContributionJob);
 cron.schedule("0 2 * * *", virtualAccountGenerationJob);
 cron.schedule("0 3 * * *", paymentReversalReconciliationJob);
 
+import { seedNavigation } from "./seed-navigation-run";
+
+seedNavigation().catch((err) => console.error("Navigation seed failed:", err));
+
 app.listen(PORT, () => {
   console.log(`Backend server running on ${PORT}`);
 });
