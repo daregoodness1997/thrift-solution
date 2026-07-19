@@ -765,6 +765,7 @@ export async function disburseCirclePayoutRequestViaFlutterwave(
     include: { circleAccount: { include: { circle: true } }, user: true },
   });
   if (!request) throw new Error("Payout request not found");
+  if (request.status === "disbursing") throw new Error("A disbursement for this request is already in progress");
   if (request.status !== "cleared") throw new Error("Request must be cleared before disbursement");
   if (request.disbursementStatus === "completed") throw new Error("Request is already disbursed");
 
@@ -797,11 +798,14 @@ export async function disburseCirclePayoutRequestViaFlutterwave(
     throw new Error(`Disbursement failed: ${message}`);
   }
 
-  const succeeded = result.status === "completed" || result.status === "pending";
+  const accepted = result.status === "completed" || result.status === "pending";
   const txnStatus = result.status === "completed" ? "completed" : result.status === "pending" ? "pending" : "failed";
 
   return prisma.$transaction(async (tx) => {
-    if (succeeded) {
+    // Only finalize (mark account withdrawn) once the transfer is CONFIRMED
+    // completed. Pending transfers can still fail, so we wait for the
+    // `transfer` webhook to finalize via reconcileCirclePayoutDisbursementByRef.
+    if (result.status === "completed") {
       await finalizeDisbursedAccount(tx, request);
     }
     await tx.transaction.create({
@@ -817,7 +821,7 @@ export async function disburseCirclePayoutRequestViaFlutterwave(
     return tx.circlePayoutRequest.update({
       where: { id: requestId },
       data: {
-        status: succeeded ? "disbursed" : "disbursement_failed",
+        status: result.status === "completed" ? "disbursed" : accepted ? "disbursing" : "disbursement_failed",
         disbursementMethod: "flutterwave",
         disbursementStatus: txnStatus,
         disbursementRef: result.providerRef || reference,
@@ -898,8 +902,15 @@ export async function reconcileCirclePayoutDisbursementByRef(
       where: { id: request.id },
       data: {
         disbursementStatus: status,
-        status: status === "completed" ? "disbursed" : "disbursement_failed",
+        // A failed transfer returns the request to `cleared` so an admin can
+        // retry; a completed transfer finalizes it as `disbursed`.
+        status: status === "completed" ? "disbursed" : "cleared",
       },
+    });
+    // Keep the user-facing payout transaction in sync.
+    await tx.transaction.updateMany({
+      where: { userId: request.userId, type: "circle_payout", reference, status: { not: status } },
+      data: { status },
     });
     return true;
   });

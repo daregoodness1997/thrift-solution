@@ -358,9 +358,32 @@ export async function reconcileLoanDisbursementByRef(
   if (!loan) return false;
   if (loan.disbursementStatus === status) return true;
 
-  await prisma.loan.update({
-    where: { id: loan.id },
-    data: { disbursementStatus: status },
+  await prisma.$transaction(async (tx) => {
+    if (status === "failed") {
+      // A pending transfer that later fails: unwind the disbursement so the
+      // loan can be retried. Remove the generated schedule and reset balances.
+      await tx.loanScheduleItem.deleteMany({ where: { loanId: loan.id } });
+      await tx.loan.update({
+        where: { id: loan.id },
+        data: {
+          status: "approved",
+          disbursementStatus: "failed",
+          disbursedAt: null,
+          disbursedAmount: null,
+          outstandingBalance: 0,
+          nextDueDate: null,
+        },
+      });
+    } else {
+      await tx.loan.update({
+        where: { id: loan.id },
+        data: { disbursementStatus: status },
+      });
+    }
+    await tx.transaction.updateMany({
+      where: { loanId: loan.id, type: "loan_payout", reference, status: { not: status } },
+      data: { status },
+    });
   });
   return true;
 }

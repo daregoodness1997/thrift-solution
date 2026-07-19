@@ -165,6 +165,7 @@ export default function TransactionsPage() {
     { key: "referral_earning", label: "Referrals" },
     { key: "circle_deposit", label: "Circle Deposits" },
     { key: "circle_withdrawal", label: "Circle Withdrawals" },
+    { key: "circle_payout", label: "Circle Payouts" },
     { key: "circle_interest", label: "Circle Interest" },
   ];
 
