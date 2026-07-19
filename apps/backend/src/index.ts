@@ -36,7 +36,7 @@ import { paymentReversalReconciliationJob } from "./jobs/paymentReversalJob";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
-const LOCAL_UPLOAD_DIR = process.env.LOCAL_UPLOAD_DIR || './uploads';
+const LOCAL_UPLOAD_DIR = process.env.LOCAL_UPLOAD_DIR || "./uploads";
 
 app.use(cors());
 app.use(
@@ -48,10 +48,13 @@ app.use(
   }),
 );
 
-app.use("/uploads", express.static(path.resolve(LOCAL_UPLOAD_DIR), {
-  maxAge: "1d",
-  etag: true,
-}));
+app.use(
+  "/uploads",
+  express.static(path.resolve(LOCAL_UPLOAD_DIR), {
+    maxAge: "1d",
+    etag: true,
+  }),
+);
 
 app.use("/api/health", healthRouter);
 app.use("/api/config", configRouter);
@@ -85,5 +88,5 @@ cron.schedule("0 2 * * *", virtualAccountGenerationJob);
 cron.schedule("0 3 * * *", paymentReversalReconciliationJob);
 
 app.listen(PORT, () => {
-  console.log(`Backend server running on http://localhost:${PORT}`);
+  console.log(`Backend server running on ${PORT}`);
 });
