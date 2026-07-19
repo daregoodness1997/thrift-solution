@@ -34,6 +34,8 @@ const SOFT_DELETE_MODELS = [
   "navigationItem",
   "roleNavigation",
   "notification",
+  "ticket",
+  "ticketMessage",
 ];
 
 prisma.$use(async (params, next) => {

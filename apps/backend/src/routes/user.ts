@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { authMiddleware } from "../middleware/auth";
-import { getUserProfile, updateUserProfile, getUserGroups, setUserBankDetails } from "@thrift/db";
+import { getUserProfile, updateUserProfile, getUserGroups, setUserBankDetails, findUserByBankAccountNumber } from "@thrift/db";
+import { resolveAccountNumber } from "../services/payments";
 
 export const userRouter = Router();
 
@@ -50,6 +51,58 @@ userRouter.put("/bank-details", authMiddleware, async (req, res) => {
   } catch (err) {
     console.error("Update bank details error:", err);
     res.status(500).json({ success: false, error: "Failed to update bank details" });
+  }
+});
+
+// Resolve bank + account holder details from a supplied account number, just
+// like bank apps do (account name enquiry). Also detects if the account belongs
+// to another Thrift Solution user so transfers can be flagged in-app.
+userRouter.post("/resolve-account", authMiddleware, async (req, res) => {
+  try {
+    const { accountNumber, bankCode } = req.body;
+
+    if (!accountNumber || !/^\d{6,15}$/.test(String(accountNumber).trim())) {
+      res.status(400).json({ success: false, error: "A valid account number is required" });
+      return;
+    }
+    if (!bankCode || !/^\d{2,6}$/.test(String(bankCode).trim())) {
+      res.status(400).json({ success: false, error: "A valid bank code is required" });
+      return;
+    }
+
+    let resolution;
+    try {
+      resolution = await resolveAccountNumber({
+        accountNumber: String(accountNumber).trim(),
+        bankCode: String(bankCode).trim(),
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Could not resolve account";
+      res.status(502).json({ success: false, error: message });
+      return;
+    }
+
+    const thriftUser = await findUserByBankAccountNumber(resolution.accountNumber);
+
+    res.json({
+      success: true,
+      data: {
+        accountNumber: resolution.accountNumber,
+        accountName: resolution.accountName,
+        bankName: resolution.bankName,
+        bankCode: resolution.bankCode,
+        isThriftUser: Boolean(thriftUser),
+        thriftUser: thriftUser
+          ? {
+              name: thriftUser.name,
+              accountNumber: thriftUser.accountNumber,
+            }
+          : null,
+      },
+    });
+  } catch (err) {
+    console.error("Resolve account error:", err);
+    res.status(500).json({ success: false, error: "Failed to resolve account" });
   }
 });
 

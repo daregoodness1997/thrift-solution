@@ -160,7 +160,7 @@ authRouter.post("/verify-email", async (req, res) => {
       console.error("Welcome email error:", err);
     }
 
-    const token = signToken({ userId: user.id, email: user.email });
+    const token = signToken({ userId: user.id, email: user.email, role: user.role });
     res.json({
       success: true,
       data: { user: publicUser(user), token, emailVerified: true },
@@ -335,7 +335,14 @@ authRouter.post("/login", async (req, res) => {
       return;
     }
 
-    if (!user.emailVerified) {
+    const isStaff =
+      user.role === "admin" ||
+      user.role === "superadmin" ||
+      user.role === "support" ||
+      user.role === "moderator" ||
+      user.role === "finance";
+
+    if (!isStaff && !user.emailVerified) {
       await issueOtp({
         userId: user.id,
         type: "email_verification",
@@ -358,9 +365,9 @@ authRouter.post("/login", async (req, res) => {
       return;
     }
 
-    const token = signToken({ userId: user.id, email: user.email });
+    const token = signToken({ userId: user.id, email: user.email, role: user.role });
 
-    if (!user.registrationFeePaid) {
+    if (!isStaff && !user.registrationFeePaid) {
       res.json({
         success: true,
         data: {
@@ -414,7 +421,7 @@ authRouter.post("/2fa/verify", async (req, res) => {
       return;
     }
 
-    const token = signToken({ userId: user.id, email: user.email });
+    const token = signToken({ userId: user.id, email: user.email, role: user.role });
     res.json({ success: true, data: { user: publicUser(user), token } });
   } catch (err) {
     console.error("2FA verify error:", err);

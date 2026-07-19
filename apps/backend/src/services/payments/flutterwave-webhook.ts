@@ -11,6 +11,8 @@ import {
   creditWallet,
   updateVirtualAccountLastTransfer,
   processPaymentReversal,
+  reconcileLoanDisbursementByRef,
+  reconcileCirclePayoutDisbursementByRef,
 } from "@thrift/db";
 
 const REVERSED_STATUSES = ["reversed", "refunded", "chargeback", "failed"];
@@ -119,15 +121,28 @@ async function handleChargeCompleted(data: Record<string, any>): Promise<void> {
 /** Handle a `transfer` lifecycle event (payout settlements to bank accounts). */
 async function handleTransfer(data: Record<string, any>): Promise<void> {
   const reference = data.reference as string | undefined;
-  if (!reference) return;
+  const providerRef = data.id != null ? String(data.id) : undefined;
 
   const success = ["SUCCESSFUL", "successful", "completed"].includes(data.status);
   const failed = ["FAILED", "failed", "rejected"].includes(data.status);
+  if (!success && !failed) return;
 
-  const transaction = await findTransactionByReference(reference);
-  if (transaction) {
-    if (success) await updateTransactionStatus(transaction.id, "completed");
-    if (failed) await updateTransactionStatus(transaction.id, "failed");
+  const status = success ? "completed" : "failed";
+
+  if (reference) {
+    const transaction = await findTransactionByReference(reference);
+    if (transaction) {
+      await updateTransactionStatus(transaction.id, status);
+    }
+  }
+
+  // Loan and circle disbursements store either our own reference or the
+  // provider's transfer id as `disbursementRef`. Try both.
+  for (const ref of [reference, providerRef].filter((r): r is string => Boolean(r))) {
+    const loanMatched = await reconcileLoanDisbursementByRef(ref, status);
+    if (loanMatched) return;
+    const circleMatched = await reconcileCirclePayoutDisbursementByRef(ref, status);
+    if (circleMatched) return;
   }
 }
 

@@ -7,6 +7,8 @@ import type {
   VirtualAccountResult,
   VirtualAccountTransferParams,
   VirtualAccountTransferResult,
+  ResolveAccountParams,
+  ResolveAccountResult,
 } from "./types";
 
 const FLW_SECRET = process.env.FLUTTERWAVE_SECRET_KEY || "";
@@ -138,7 +140,7 @@ export const flutterwaveProvider: PaymentProvider = {
           amount: params.amount,
           currency: "NGN",
           reference: params.reference,
-          narration: "Thrift Solution circle payout",
+          narration: params.narration || "Thrift Solution payout",
         }),
       });
     } catch (err) {
@@ -164,6 +166,35 @@ export const flutterwaveProvider: PaymentProvider = {
       status,
       reference: params.reference,
       providerRef: data.data?.id ? String(data.data.id) : undefined,
+    };
+  },
+
+  async resolveAccount(params: ResolveAccountParams): Promise<ResolveAccountResult> {
+    let response: Response;
+    try {
+      response = await fetch(
+        `${FLW_BASE}/accounts/resolve?account_number=${encodeURIComponent(params.accountNumber)}&bank_code=${encodeURIComponent(params.bankCode)}`,
+        {
+          method: "GET",
+          headers: { Authorization: `Bearer ${FLW_SECRET}` },
+        },
+      );
+    } catch (err) {
+      const cause = err instanceof Error ? err.message : String(err);
+      throw new Error(`Failed to connect to Flutterwave API: ${cause}`);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data: any = await response.json();
+    if (data.status !== "success") {
+      throw new Error(data.message || "Flutterwave account resolution failed");
+    }
+
+    return {
+      accountNumber: data.data.account_number,
+      accountName: data.data.account_name,
+      bankCode: params.bankCode,
+      bankName: data.data.bank_name || "",
     };
   },
 };

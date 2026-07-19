@@ -71,6 +71,10 @@ model User {
   notificationPreferences NotificationPreference?
   verificationTokens      VerificationToken[]
 
+  tickets                 Ticket[]          @relation("TicketUser")
+  assignedTickets         Ticket[]          @relation("TicketAssignee")
+  ticketMessages          TicketMessage[]
+
   @@map("users")
 }
 
@@ -462,6 +466,11 @@ model Loan {
   processingFeeValue Float?  @map("processing_fee_value")
   processingFee  Float?     @map("processing_fee")
   disbursedAmount Float?   @map("disbursed_amount")
+  disbursementMethod String? @map("disbursement_method")
+  disbursementStatus String? @map("disbursement_status")
+  disbursementRef    String? @map("disbursement_ref")
+  disbursementNote   String? @map("disbursement_note")
+  disbursedById      String? @map("disbursed_by_id")
   paidAmount     Float     @default(0) @map("paid_amount")
   principalPaid  Float     @default(0) @map("principal_paid")
   interestPaid   Float     @default(0) @map("interest_paid")
@@ -791,4 +800,65 @@ model VerificationToken {
   @@index([userId])
   @@index([code])
   @@map("verification_tokens")
+}
+
+model TicketCategory {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  slug        String   @unique
+  isActive    Boolean  @default(true) @map("is_active")
+  position    Int      @default(0)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+
+  tickets Ticket[]
+
+  @@map("ticket_categories")
+}
+
+model Ticket {
+  id          String          @id @default(uuid())
+  subject     String
+  description String          @db.Text
+  status      String          @default("open")
+  priority    String          @default("normal")
+  categoryId  String?         @map("category_id")
+  userId      String          @map("user_id")
+  assigneeId  String?         @map("assignee_id")
+  closedAt    DateTime?       @map("closed_at")
+  deletedAt   DateTime?       @map("deleted_at")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @default(now()) @updatedAt @map("updated_at")
+
+  category TicketCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  user     User            @relation("TicketUser", fields: [userId], references: [id], onDelete: Cascade)
+  assignee User?           @relation("TicketAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  messages TicketMessage[]
+
+  @@index([userId])
+  @@index([assigneeId])
+  @@index([status])
+  @@index([priority])
+  @@index([categoryId])
+  @@index([createdAt])
+  @@map("tickets")
+}
+
+model TicketMessage {
+  id        String   @id @default(uuid())
+  ticketId  String   @map("ticket_id")
+  userId    String   @map("user_id")
+  body      String   @db.Text
+  isInternal Boolean  @default(false) @map("is_internal")
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@index([userId])
+  @@map("ticket_messages")
 }

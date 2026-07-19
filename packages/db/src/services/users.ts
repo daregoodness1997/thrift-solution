@@ -9,6 +9,18 @@ export async function findUserById(id: string) {
   return prisma.user.findUnique({ where: { id } });
 }
 
+export async function findUserByBankAccountNumber(bankAccountNumber: string) {
+  return prisma.user.findFirst({
+    where: { bankAccountNumber, deletedAt: null },
+    select: {
+      id: true,
+      name: true,
+      accountNumber: true,
+      email: true,
+    },
+  });
+}
+
 async function generateAccountNumber(): Promise<string> {
   const lastUser = await prisma.user.findFirst({
     orderBy: { createdAt: "desc" },

@@ -41,6 +41,7 @@ export interface VirtualAccountTransferParams {
   bankCode: string;
   amount: number;
   reference: string;
+  narration?: string;
 }
 
 export interface VirtualAccountTransferResult {
@@ -49,10 +50,23 @@ export interface VirtualAccountTransferResult {
   providerRef?: string;
 }
 
+export interface ResolveAccountParams {
+  accountNumber: string;
+  bankCode: string;
+}
+
+export interface ResolveAccountResult {
+  accountNumber: string;
+  accountName: string;
+  bankCode: string;
+  bankName: string;
+}
+
 export interface PaymentProvider {
   name: string;
   initializePayment(params: PaymentInitParams): Promise<PaymentInitResult>;
   verifyPayment(reference: string): Promise<PaymentVerificationResult>;
   createVirtualAccount?(params: VirtualAccountParams): Promise<VirtualAccountResult>;
   initiateTransfer?(params: VirtualAccountTransferParams): Promise<VirtualAccountTransferResult>;
+  resolveAccount?(params: ResolveAccountParams): Promise<ResolveAccountResult>;
 }

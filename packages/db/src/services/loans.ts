@@ -185,15 +185,33 @@ function generateSchedule(
   return items;
 }
 
-export async function disburseLoan(id: string, disbursedAmount?: number) {
-  const loan = await prisma.loan.findUnique({ where: { id } });
-  if (!loan) throw new Error("Loan not found");
-  if (loan.status !== "approved") throw new Error("Only approved loans can be disbursed");
-
+function resolveDisbursedAmount(
+  loan: { amount: number; processingFee: number | null },
+  disbursedAmount?: number,
+) {
   const requested = disbursedAmount ?? loan.amount;
   const processingFee = loan.processingFee ?? 0;
   const amount = Math.round((requested - processingFee) * 100) / 100;
   if (amount <= 0) throw new Error("Disbursed amount must be greater than the processing fee");
+  return amount;
+}
+
+export async function disburseLoan(
+  id: string,
+  disbursedAmount?: number,
+  opts?: {
+    method?: string;
+    disbursementStatus?: string;
+    disbursementRef?: string;
+    disbursementNote?: string;
+    disbursedById?: string;
+  },
+) {
+  const loan = await prisma.loan.findUnique({ where: { id } });
+  if (!loan) throw new Error("Loan not found");
+  if (loan.status !== "approved") throw new Error("Only approved loans can be disbursed");
+
+  const amount = resolveDisbursedAmount(loan, disbursedAmount);
   const monthlyRate = loan.interestRate / 100 / 12;
   const schedule = generateSchedule(
     amount,
@@ -212,6 +230,11 @@ export async function disburseLoan(id: string, disbursedAmount?: number) {
         disbursedAmount: amount,
         outstandingBalance: amount,
         nextDueDate: schedule[0]?.dueDate ?? null,
+        disbursementMethod: opts?.method ?? "manual",
+        disbursementStatus: opts?.disbursementStatus ?? "completed",
+        disbursementRef: opts?.disbursementRef,
+        disbursementNote: opts?.disbursementNote,
+        disbursedById: opts?.disbursedById,
       },
     });
 
@@ -221,6 +244,111 @@ export async function disburseLoan(id: string, disbursedAmount?: number) {
 
     return created;
   });
+}
+
+/**
+ * Disburse an approved loan by transferring the (net of processing fee) amount
+ * to the borrower's saved bank account via a payout provider (Flutterwave).
+ *
+ * The `transfer` callback performs the actual provider call so the db package
+ * stays decoupled from the HTTP client. The loan is only marked `disbursed`
+ * (and a repayment schedule generated) when the transfer succeeds or is
+ * accepted as pending. A failed transfer leaves the loan `approved` and records
+ * the failure metadata so an admin can retry.
+ */
+export async function disburseLoanViaFlutterwave(
+  id: string,
+  adminId: string,
+  transfer: (params: {
+    accountNumber: string;
+    bankCode: string;
+    amount: number;
+    reference: string;
+  }) => Promise<{ status: string; providerRef?: string }>,
+  disbursedAmount?: number,
+) {
+  const loan = await prisma.loan.findUnique({
+    where: { id },
+    include: { borrower: true },
+  });
+  if (!loan) throw new Error("Loan not found");
+  if (loan.status !== "approved") throw new Error("Only approved loans can be disbursed");
+
+  const borrower = loan.borrower;
+  if (!borrower.bankAccountNumber || !borrower.bankCode) {
+    throw new Error("Borrower has no saved bank account number and bank code for transfer");
+  }
+
+  const amount = resolveDisbursedAmount(loan, disbursedAmount);
+  const reference = `LOAN-DISBURSE-${id}-${Date.now()}-${nodeCrypto.randomBytes(4).toString("hex")}`;
+
+  let result: { status: string; providerRef?: string };
+  try {
+    result = await transfer({
+      accountNumber: borrower.bankAccountNumber,
+      bankCode: borrower.bankCode,
+      amount,
+      reference,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Transfer failed";
+    await prisma.loan.update({
+      where: { id },
+      data: {
+        disbursementMethod: "flutterwave",
+        disbursementStatus: "failed",
+        disbursementRef: reference,
+        disbursementNote: message,
+        disbursedById: adminId,
+      },
+    });
+    throw new Error(`Disbursement failed: ${message}`);
+  }
+
+  const succeeded = result.status === "completed" || result.status === "pending";
+  if (!succeeded) {
+    await prisma.loan.update({
+      where: { id },
+      data: {
+        disbursementMethod: "flutterwave",
+        disbursementStatus: "failed",
+        disbursementRef: result.providerRef || reference,
+        disbursementNote: `Provider returned status "${result.status}"`,
+        disbursedById: adminId,
+      },
+    });
+    throw new Error(`Disbursement failed: provider returned status "${result.status}"`);
+  }
+
+  return disburseLoan(id, disbursedAmount, {
+    method: "flutterwave",
+    disbursementStatus: result.status === "completed" ? "completed" : "pending",
+    disbursementRef: result.providerRef || reference,
+    disbursedById: adminId,
+  });
+}
+
+/**
+ * Reconcile a loan disbursement transfer from a Flutterwave `transfer` webhook.
+ * Matches the loan by its stored `disbursementRef` (either our own reference or
+ * the provider ref) and updates the disbursement status. Returns true when a
+ * matching loan was found and updated.
+ */
+export async function reconcileLoanDisbursementByRef(
+  reference: string,
+  status: "completed" | "failed",
+): Promise<boolean> {
+  const loan = await prisma.loan.findFirst({
+    where: { disbursementRef: reference, disbursementMethod: "flutterwave" },
+  });
+  if (!loan) return false;
+  if (loan.disbursementStatus === status) return true;
+
+  await prisma.loan.update({
+    where: { id: loan.id },
+    data: { disbursementStatus: status },
+  });
+  return true;
 }
 
 export async function getLoanSchedule(loanId: string) {

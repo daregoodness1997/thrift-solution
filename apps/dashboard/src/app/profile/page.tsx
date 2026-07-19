@@ -9,7 +9,7 @@ import {
   FadeInUp,
   StaggerChildren,
 } from "@thrift/ui";
-import { formatNaira } from "@thrift/utils";
+import { formatNaira, NIGERIAN_BANKS, getBankByCode } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
 
@@ -101,6 +101,11 @@ export default function ProfilePage() {
   const [savingBank, setSavingBank] = useState(false);
   const [bankSaved, setBankSaved] = useState(false);
   const [bankError, setBankError] = useState("");
+  const [resolving, setResolving] = useState(false);
+  const [resolvedName, setResolvedName] = useState("");
+  const [resolvedBankName, setResolvedBankName] = useState("");
+  const [resolveError, setResolveError] = useState("");
+  const [matchedUser, setMatchedUser] = useState<{ name: string; accountNumber: string } | null>(null);
   const [virtualAccount, setVirtualAccount] = useState<{
     accountNumber: string;
     bankName: string;
@@ -189,7 +194,7 @@ export default function ProfilePage() {
           bankName: bankName.trim(),
           bankCode: bankCode.trim() || undefined,
           bankAccountNumber: bankAccountNumber.trim(),
-          bankAccountName: bankAccountName.trim() || undefined,
+          bankAccountName: (bankAccountName.trim() || resolvedName || undefined),
         }),
       });
       const data = await res.json();
@@ -204,6 +209,42 @@ export default function ProfilePage() {
       setBankError("Failed to save bank details");
     }
     setSavingBank(false);
+  };
+
+  const handleResolveAccount = async () => {
+    if (!token || !bankCode || bankAccountNumber.trim().length < 6) return;
+    setResolveError("");
+    setResolvedName("");
+    setMatchedUser(null);
+    setResolving(true);
+    try {
+      const res = await fetch(`${API_URL}/api/user/resolve-account`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          accountNumber: bankAccountNumber.trim(),
+          bankCode: bankCode.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setResolvedName(data.data.accountName);
+        setResolvedBankName(data.data.bankName);
+        setBankName(data.data.bankName || bankName);
+        setBankAccountName(data.data.accountName);
+        if (data.data.isThriftUser && data.data.thriftUser) {
+          setMatchedUser({
+            name: data.data.thriftUser.name,
+            accountNumber: data.data.thriftUser.accountNumber,
+          });
+        }
+      } else {
+        setResolveError(data.error || "Could not verify account");
+      }
+    } catch {
+      setResolveError("Failed to verify account. Please try again.");
+    }
+    setResolving(false);
   };
 
   const handleCopyAccount = async () => {
@@ -599,30 +640,83 @@ export default function ProfilePage() {
           </p>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] uppercase tracking-[0.1em] text-gray-400 font-bold">Bank Name</label>
-              <input value={bankName} onChange={(e) => setBankName(e.target.value)} placeholder="e.g. GTBank"
+              <label className="text-[10px] uppercase tracking-[0.1em] text-gray-400 font-bold">Bank</label>
+              <select
+                value={bankCode}
+                onChange={(e) => {
+                  const code = e.target.value;
+                  setBankCode(code);
+                  const bank = getBankByCode(code);
+                  setBankName(bank ? bank.name : "");
+                  setResolvedBankName("");
+                  setResolvedName("");
+                  setMatchedUser(null);
+                  setResolveError("");
+                }}
                 className="bg-white border rounded-xl px-3 py-2 text-xs text-brand-dark outline-none font-sans"
-                style={{ border: `1px solid ${cfg.colors.primary}30` }} />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] uppercase tracking-[0.1em] text-gray-400 font-bold">Bank Code</label>
-              <input value={bankCode} onChange={(e) => setBankCode(e.target.value)} placeholder="e.g. 058"
-                className="bg-white border rounded-xl px-3 py-2 text-xs text-brand-dark outline-none font-mono"
-                style={{ border: `1px solid ${cfg.colors.primary}30` }} />
+                style={{ border: `1px solid ${cfg.colors.primary}30` }}
+              >
+                <option value="">Select bank</option>
+                {NIGERIAN_BANKS.map((b) => (
+                  <option key={b.code} value={b.code}>
+                    {b.name}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-[10px] uppercase tracking-[0.1em] text-gray-400 font-bold">Account Number</label>
-              <input value={bankAccountNumber} onChange={(e) => setBankAccountNumber(e.target.value)} placeholder="10-digit NUBAN"
-                className="bg-white border rounded-xl px-3 py-2 text-xs text-brand-dark outline-none font-mono"
-                style={{ border: `1px solid ${cfg.colors.primary}30` }} />
+              <div className="flex gap-2">
+                <input
+                  value={bankAccountNumber}
+                  onChange={(e) => {
+                    setBankAccountNumber(e.target.value);
+                    setResolvedName("");
+                    setMatchedUser(null);
+                    setResolveError("");
+                  }}
+                  placeholder="10-digit NUBAN"
+                  maxLength={15}
+                  className="flex-1 bg-white border rounded-xl px-3 py-2 text-xs text-brand-dark outline-none font-mono"
+                  style={{ border: `1px solid ${cfg.colors.primary}30` }}
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleResolveAccount}
+                  disabled={resolving || !bankCode || bankAccountNumber.trim().length < 6}
+                >
+                  {resolving ? "Verifying..." : "Verify"}
+                </Button>
+              </div>
             </div>
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-1.5 md:col-span-2">
               <label className="text-[10px] uppercase tracking-[0.1em] text-gray-400 font-bold">Account Name</label>
-              <input value={bankAccountName} onChange={(e) => setBankAccountName(e.target.value)} placeholder="Account holder name"
+              <input
+                value={bankAccountName}
+                onChange={(e) => setBankAccountName(e.target.value)}
+                placeholder={resolvedName ? resolvedName : "Resolved automatically after verify"}
                 className="bg-white border rounded-xl px-3 py-2 text-xs text-brand-dark outline-none font-sans"
-                style={{ border: `1px solid ${cfg.colors.primary}30` }} />
+                style={{ border: `1px solid ${resolvedName ? "#059669" : cfg.colors.primary}30` }}
+              />
+              {resolvedName && (
+                <span className="text-[10px] text-emerald-600 font-medium">
+                  ✓ Verified: {resolvedName} {resolvedBankName ? `· ${resolvedBankName}` : ""}
+                </span>
+              )}
             </div>
           </div>
+          {matchedUser && (
+            <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-xs font-medium text-emerald-700">
+              This account belongs to a Thrift Solution member: <strong>{matchedUser.name}</strong> ({matchedUser.accountNumber}).
+              Transfers to this account will be processed in-app.
+            </div>
+          )}
+          {resolveError && (
+            <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-xs font-medium text-red-600">
+              {resolveError}
+            </div>
+          )}
           {bankError && (
             <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-xs font-medium text-red-600">
               {bankError}

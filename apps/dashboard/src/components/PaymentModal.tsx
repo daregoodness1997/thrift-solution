@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { config } from "@thrift/config";
 import { FadeIn } from "@thrift/ui";
 import { formatNaira } from "@thrift/utils";
@@ -51,10 +51,18 @@ export function PaymentModal({
   const [selectedProvider, setSelectedProvider] =
     useState<string>("flutterwave");
   const [amountInput, setAmountInput] = useState<string>(String(amount));
+  const amountRef = useRef<HTMLDivElement | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   if (!isOpen) return null;
+
+  useEffect(() => {
+    if (amountRef.current) {
+      amountRef.current.textContent = String(amount);
+      setAmountInput(String(amount));
+    }
+  }, [isOpen, amount]);
 
   const parsedAmount = Number(amountInput);
   const isValidAmount = parsedAmount > 0 && !Number.isNaN(parsedAmount);
@@ -194,6 +202,7 @@ export function PaymentModal({
                 ₦
               </span>
               <div
+                ref={amountRef}
                 contentEditable
                 suppressContentEditableWarning
                 role="textbox"
@@ -204,9 +213,7 @@ export function PaymentModal({
                 }}
                 className="flex-1 bg-transparent text-[1.75rem] font-mono font-bold outline-none border-none w-full break-words"
                 style={{ color: config.colors.primary }}
-              >
-                {amountInput}
-              </div>
+              />
             </div>
             {!isValidAmount && (
               <span className="text-[11px] text-red-500 mt-1 block">

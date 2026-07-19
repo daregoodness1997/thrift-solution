@@ -629,3 +629,85 @@ export const CIRCLE_DEFAULT_CONFIG = {
   INTEREST_CALCULATION_MINUTE: 0,
   EARLY_WITHDRAWAL_PENALTY_RATE: 1, // forfeit 100% of interest
 } as const;
+
+export type TicketStatus = "open" | "in_progress" | "waiting_customer" | "resolved" | "closed";
+
+export type TicketPriority = "low" | "normal" | "high" | "urgent";
+
+export const TICKET_STATUS_CONFIG: Record<TicketStatus, { label: string; color: string; bg: string; border: string }> = {
+  open: { label: "Open", color: "#2563EB", bg: "#EFF6FF", border: "#BFDBFE" },
+  in_progress: { label: "In Progress", color: "#7C3AED", bg: "#F5F3FF", border: "#E9D5FF" },
+  waiting_customer: { label: "Waiting on Customer", color: "#D97706", bg: "#FFFBEB", border: "#FDE68A" },
+  resolved: { label: "Resolved", color: "#059669", bg: "#ECFDF5", border: "#A7F3D0" },
+  closed: { label: "Closed", color: "#717171", bg: "#F3F4F6", border: "#E5E7EB" },
+};
+
+export const TICKET_PRIORITY_CONFIG: Record<TicketPriority, { label: string; color: string; bg: string; border: string }> = {
+  low: { label: "Low", color: "#717171", bg: "#F3F4F6", border: "#E5E7EB" },
+  normal: { label: "Normal", color: "#2563EB", bg: "#EFF6FF", border: "#BFDBFE" },
+  high: { label: "High", color: "#D97706", bg: "#FFFBEB", border: "#FDE68A" },
+  urgent: { label: "Urgent", color: "#DC2626", bg: "#FEF2F2", border: "#FECACA" },
+};
+
+export interface TicketCategory {
+  id: string;
+  name: string;
+  description: string | null;
+  slug: string;
+  isActive: boolean;
+  position: number;
+}
+
+export interface TicketMessage {
+  id: string;
+  ticketId: string;
+  userId: string;
+  userName: string;
+  body: string;
+  isInternal: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Ticket {
+  id: string;
+  subject: string;
+  description: string;
+  status: TicketStatus;
+  priority: TicketPriority;
+  categoryId: string | null;
+  categoryName: string | null;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  assigneeId: string | null;
+  assigneeName: string | null;
+  messageCount: number;
+  createdAt: string;
+  updatedAt: string;
+  closedAt: string | null;
+}
+
+export interface TicketWithMessages extends Ticket {
+  messages: TicketMessage[];
+}
+
+export interface TicketListResponse {
+  items: Ticket[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface TicketStats {
+  total: number;
+  open: number;
+  inProgress: number;
+  waitingCustomer: number;
+  resolved: number;
+  closed: number;
+  unassigned: number;
+  urgent: number;
+  byCategory: { categoryId: string | null; categoryName: string | null; count: number }[];
+}

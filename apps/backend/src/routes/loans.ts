@@ -10,6 +10,7 @@ import {
   updateLoan,
   calculateLoanTerms,
   disburseLoan,
+  disburseLoanViaFlutterwave,
   getLoanSchedule,
   getLoanRepayments,
   recordLoanRepayment,
@@ -461,13 +462,51 @@ loansRouter.put("/:id/disburse", requireAdmin, async (req, res) => {
     }
 
     const disbursedAmount = req.body.amount ? Number(req.body.amount) : undefined;
-    const updated = await disburseLoan(req.params.id, disbursedAmount);
+    const updated = await disburseLoan(req.params.id, disbursedAmount, {
+      method: "manual",
+      disbursedById: req.user?.userId,
+    });
 
     await createAuditLog({ ...actor(req), action: "loan.disburse", entity: "loan", entityId: loan.id, metadata: { amount: loan.amount } });
     res.json({ success: true, data: updated });
   } catch (err) {
     console.error("Disburse loan error:", err);
     res.status(500).json({ success: false, error: "Failed to disburse loan" });
+  }
+});
+
+loansRouter.put("/:id/disburse/flutterwave", requireAdmin, async (req, res) => {
+  try {
+    const loan = await getLoanById(req.params.id);
+    if (!loan) {
+      res.status(404).json({ success: false, error: "Loan not found" });
+      return;
+    }
+    if (loan.status !== "approved") {
+      res.status(400).json({ success: false, error: "Only approved loans can be disbursed" });
+      return;
+    }
+
+    const provider = getPaymentProvider("flutterwave");
+    if (!provider.initiateTransfer) {
+      res.status(400).json({ success: false, error: "Flutterwave transfers are not available" });
+      return;
+    }
+
+    const disbursedAmount = req.body.amount ? Number(req.body.amount) : undefined;
+    const updated = await disburseLoanViaFlutterwave(
+      req.params.id,
+      req.user!.userId,
+      (params) => provider.initiateTransfer!({ ...params, narration: "Thrift Solution loan disbursement" }),
+      disbursedAmount,
+    );
+
+    await createAuditLog({ ...actor(req), action: "loan.disburse.flutterwave", entity: "loan", entityId: loan.id, metadata: { amount: updated.disbursedAmount, ref: updated.disbursementRef } });
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to disburse loan";
+    console.error("Disburse loan via Flutterwave error:", err);
+    res.status(400).json({ success: false, error: message });
   }
 });
 

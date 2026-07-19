@@ -850,6 +850,37 @@ export async function markCirclePayoutRequestDisbursed(
   });
 }
 
+/**
+ * Reconcile a circle payout disbursement transfer from a Flutterwave `transfer`
+ * webhook. Matches the payout request by its stored `disbursementRef` and
+ * updates the disbursement status. Returns true when a match was found.
+ */
+export async function reconcileCirclePayoutDisbursementByRef(
+  reference: string,
+  status: "completed" | "failed",
+): Promise<boolean> {
+  const request = await prisma.circlePayoutRequest.findFirst({
+    where: { disbursementRef: reference, disbursementMethod: "flutterwave" },
+    include: { circleAccount: true },
+  });
+  if (!request) return false;
+  if (request.disbursementStatus === status) return true;
+
+  return prisma.$transaction(async (tx) => {
+    if (status === "completed" && request.circleAccount.status !== "withdrawn") {
+      await finalizeDisbursedAccount(tx, request);
+    }
+    await tx.circlePayoutRequest.update({
+      where: { id: request.id },
+      data: {
+        disbursementStatus: status,
+        status: status === "completed" ? "disbursed" : "disbursement_failed",
+      },
+    });
+    return true;
+  });
+}
+
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 export async function processWeeklyContributionForAccount(circleAccountId: string) {

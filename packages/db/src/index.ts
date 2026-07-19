@@ -2,7 +2,7 @@ export { prisma, softDelete } from "./services/prisma";
 
 export { getConfig, saveConfig } from "./services/config";
 
-export { findUserByEmail, findUserById, createUser, setEmailVerified, setPhoneVerified, setTotpSecret, setTwoFactorEnabled, updatePasswordHash, setUserIdentity, setUserBankDetails, setRegistrationProgress } from "./services/users";
+export { findUserByEmail, findUserById, findUserByBankAccountNumber, createUser, setEmailVerified, setPhoneVerified, setTotpSecret, setTwoFactorEnabled, updatePasswordHash, setUserIdentity, setUserBankDetails, setRegistrationProgress } from "./services/users";
 
 export {
   createVerificationToken,
@@ -68,14 +68,6 @@ export { getClearancesForUser, getClearanceStats } from "./services/clearances";
 export { getDefaultsForUser } from "./services/defaults";
 
 export {
-  getUserConversations,
-  getConversationMessages,
-  sendMessage,
-  createConversation,
-  getOrCreateConversation,
-} from "./services/chat";
-
-export {
   getWhatsappGroups,
   getAllWhatsappGroups,
   createWhatsappGroup,
@@ -121,6 +113,8 @@ export {
   updateLoan,
   calculateLoanTerms,
   disburseLoan,
+  disburseLoanViaFlutterwave,
+  reconcileLoanDisbursementByRef,
   getLoanSchedule,
   recordLoanRepayment,
   getLoanRepayments,
@@ -166,6 +160,7 @@ export {
   clearCirclePayoutRequest,
   disburseCirclePayoutRequestViaFlutterwave,
   markCirclePayoutRequestDisbursed,
+  reconcileCirclePayoutDisbursementByRef,
   getOutstandingDefaults,
   processWeeklyContributionForAccount,
   runWeeklyContributionJob,
@@ -237,3 +232,34 @@ export {
   getAllDonationsAdmin,
   getDonationStatsAdmin,
 } from "./services/admin-oversight";
+
+export {
+  listTicketCategories,
+  getAllTicketCategories,
+  createTicketCategory,
+  updateTicketCategory,
+  deleteTicketCategory,
+  createTicket,
+  listTickets,
+  getTicketById,
+  updateTicket,
+  assignTicket,
+  deleteTicket,
+  addTicketMessage,
+  softDeleteTicketMessage,
+  getTicketStats,
+} from "./services/support";
+
+export type {
+  TicketStatus,
+  TicketPriority,
+  TicketCategoryRecord,
+  TicketSummary,
+  TicketDetail,
+  TicketMessageRecord,
+  TicketStats,
+  CreateTicketInput,
+  ListTicketsOptions,
+  UpdateTicketInput,
+  AddTicketMessageInput,
+} from "./services/support";

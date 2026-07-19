@@ -22,3 +22,6 @@ export function formatDate(date: Date): string {
 export function generateId(): string {
   return crypto.randomUUID();
 }
+
+export { NIGERIAN_BANKS, getBankByCode } from "./banks";
+export type { Bank } from "./banks";

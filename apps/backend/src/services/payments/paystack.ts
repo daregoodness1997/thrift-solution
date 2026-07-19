@@ -5,6 +5,8 @@ import type {
   PaymentVerificationResult,
   VirtualAccountParams,
   VirtualAccountResult,
+  ResolveAccountParams,
+  ResolveAccountResult,
 } from "./types";
 
 const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY || "";
@@ -121,6 +123,34 @@ export const paystackProvider: PaymentProvider = {
         bankCode: dvaData.data.bank.id?.toString(),
         reference: params.reference,
         providerRef: dvaData.data.id?.toString(),
+      };
+    } catch (err) {
+      const cause = err instanceof Error ? err.message : String(err);
+      throw new Error(`Failed to connect to Paystack API: ${cause}`);
+    }
+  },
+
+  async resolveAccount(params: ResolveAccountParams): Promise<ResolveAccountResult> {
+    try {
+      const response = await fetch(
+        `${PAYSTACK_BASE}/bank/resolve?account_number=${encodeURIComponent(params.accountNumber)}&bank_code=${encodeURIComponent(params.bankCode)}`,
+        {
+          method: "GET",
+          headers: { Authorization: `Bearer ${PAYSTACK_SECRET}` },
+        },
+      );
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const data: any = await response.json();
+      if (!data.status) {
+        throw new Error(data.message || "Paystack account resolution failed");
+      }
+
+      return {
+        accountNumber: data.data.account_number,
+        accountName: data.data.account_name,
+        bankCode: params.bankCode,
+        bankName: data.data.bank_name || "",
       };
     } catch (err) {
       const cause = err instanceof Error ? err.message : String(err);
