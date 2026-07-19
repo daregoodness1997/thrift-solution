@@ -22,24 +22,24 @@ interface Provider {
 }
 
 const providers: Provider[] = [
-  {
-    id: "paystack",
-    name: "Paystack",
-    icon: "💳",
-    color: "#43A047",
-  },
+  // {
+  //   id: "paystack",
+  //   name: "Paystack",
+  //   icon: "💳",
+  //   color: "#43A047",
+  // },
   {
     id: "flutterwave",
     name: "Flutterwave",
     icon: "🌊",
     color: "#F5A623",
   },
-  {
-    id: "nomba",
-    name: "Nomba",
-    icon: "💰",
-    color: "#7B68EE",
-  },
+  // {
+  //   id: "nomba",
+  //   name: "Nomba",
+  //   icon: "💰",
+  //   color: "#7B68EE",
+  // },
 ];
 
 export function PaymentModal({
@@ -48,7 +48,8 @@ export function PaymentModal({
   amount,
   onSuccess,
 }: PaymentModalProps) {
-  const [selectedProvider, setSelectedProvider] = useState<string>("paystack");
+  const [selectedProvider, setSelectedProvider] =
+    useState<string>("flutterwave");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
