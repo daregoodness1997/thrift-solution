@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "tsx watch src/index.ts",
+    "prebuild": "pnpm --filter @thrift/image-upload build",
     "build": "tsc",
     "start": "node dist/index.js",
     "lint": "eslint src/",
