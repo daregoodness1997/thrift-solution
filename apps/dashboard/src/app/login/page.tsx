@@ -35,7 +35,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex bg-brand-cream">
       {/* Left Panel — Brand */}
       <div
-        className="hidden md:flex flex-col justify-center items-center p-12 relative overflow-hidden"
+        className="hidden md:flex w-1/2 flex-col justify-center items-center p-12 relative overflow-hidden"
         style={{
           backgroundImage: "url('https://images.unsplash.com/photo-1556742502-ec7c0e9f34b1?auto=format&fit=crop&w=1200&q=80')",
           backgroundSize: "cover",
