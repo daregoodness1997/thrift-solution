@@ -599,7 +599,7 @@ export default function Dashboard() {
               color: "rgba(255,255,255,0.08)",
               textTransform: "uppercase"
             }}>
-              AROSCO
+              GFW
             </div>
 
             {/* Success Notification */}
