@@ -45,8 +45,8 @@ const defaultConfig: BrandConfig = {
     textMuted: "#51607A",
   },
   contact: {
-    email: "hello@arosco.app",
-    website: "https://arosco.app",
+    email: "hello@globalfreedomworldwide.com",
+    website: "https://app.globalfreedomworldwide.com",
   },
 };
 

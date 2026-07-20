@@ -4,9 +4,9 @@ import { useState } from "react";
 import { Copy, Check, Code2, Webhook, KeyRound } from "lucide-react";
 import { Container, SectionHeading, Badge } from "@/components/ui/Section";
 
-const code = `import { Arosco } from "@arosco/sdk";
+const code = `import { Gfw } from "@gfw/sdk";
 
-const client = new Arosco(process.env.AROSCO_API_KEY);
+const client = new Gfw(process.env.GFW_API_KEY);
 
 // Create a new Ajo circle
 const circle = await client.circles.create({
@@ -87,14 +87,14 @@ export function DeveloperFocus() {
             </div>
             <pre className="overflow-x-auto p-5 font-mono text-[12.5px] leading-relaxed text-gray-200">
               <code>
-                <span className="text-purple-400">import</span> {"{ Arosco }"}{" "}
+                <span className="text-purple-400">import</span> {"{ Gfw }"}{" "}
                 <span className="text-purple-400">from</span>{" "}
-                <span className="text-green-300">&quot;@arosco/sdk&quot;</span>;
+                <span className="text-green-300">&quot;@gfw/sdk&quot;</span>;
                 {"\n\n"}
                 <span className="text-purple-400">const</span> client ={" "}
                 <span className="text-purple-400">new</span>{" "}
-                <span className="text-sky-300">Arosco</span>(
-                <span className="text-orange-300">process.env.AROSCO_API_KEY</span>);
+                <span className="text-sky-300">Gfw</span>(
+                <span className="text-orange-300">process.env.GFW_API_KEY</span>);
                 {"\n\n"}
                 <span className="text-gray-500">// Create a new Ajo circle</span>
                 {"\n"}

@@ -49,7 +49,7 @@ export function SiteFooter() {
             <ul className="space-y-2.5 text-xs">
               <li><Link href="/how-it-works" className="transition-colors hover:text-white">FAQ</Link></li>
               <li><Link href="/donate" className="transition-colors hover:text-white">Support a Cause</Link></li>
-              <li><a href="mailto:hello@arosco.app" className="transition-colors hover:text-white">Contact Sales</a></li>
+              <li><a href="mailto:hello@globalfreedomworldwide.com" className="transition-colors hover:text-white">Contact Sales</a></li>
             </ul>
           </div>
 
@@ -73,8 +73,8 @@ export function SiteFooter() {
           <div className="flex items-center gap-4">
             <a href="#" aria-label="Website" className="transition-colors hover:text-white"><Globe className="h-4 w-4" /></a>
             <a href="#" aria-label="Community" className="transition-colors hover:text-white"><MessageCircle className="h-4 w-4" /></a>
-            <a href="mailto:hello@arosco.app" aria-label="Email" className="transition-colors hover:text-white"><Mail className="h-4 w-4" /></a>
-            <a href="mailto:hello@arosco.app" aria-label="Send" className="transition-colors hover:text-white"><Send className="h-4 w-4" /></a>
+            <a href="mailto:hello@globalfreedomworldwide.com" aria-label="Email" className="transition-colors hover:text-white"><Mail className="h-4 w-4" /></a>
+            <a href="mailto:hello@globalfreedomworldwide.com" aria-label="Send" className="transition-colors hover:text-white"><Send className="h-4 w-4" /></a>
           </div>
           <div className="flex items-center gap-1.5">
             <span>Crafted with</span>

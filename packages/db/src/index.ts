@@ -2,7 +2,7 @@ export { prisma, softDelete } from "./services/prisma";
 
 export { getConfig, saveConfig } from "./services/config";
 
-export { findUserByEmail, findUserById, findUserByBankAccountNumber, createUser, setEmailVerified, setPhoneVerified, setTotpSecret, setTwoFactorEnabled, updatePasswordHash, setUserIdentity, setUserBankDetails, setRegistrationProgress } from "./services/users";
+export { findUserByEmail, findUserById, findUserByBankAccountNumber, createUser, setEmailVerified, setPhoneVerified, setTotpSecret, setTwoFactorEnabled, setEmail2faEnabled, updatePasswordHash, setUserIdentity, setUserBankDetails, setRegistrationProgress } from "./services/users";
 
 export {
   createVerificationToken,
@@ -12,6 +12,14 @@ export {
 } from "./services/verification-tokens";
 
 export type { VerificationType, VerificationChannel } from "./services/verification-tokens";
+
+export {
+  createRefreshToken,
+  findRefreshToken,
+  deleteRefreshToken,
+  deleteUserRefreshTokens,
+  deleteExpiredRefreshTokens,
+} from "./services/refresh-tokens";
 
 export {
   createDonation,

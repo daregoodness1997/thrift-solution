@@ -34,6 +34,7 @@ model User {
   phoneVerifiedAt DateTime? @map("phone_verified_at")
   totpSecret      String?   @map("totp_secret")
   twoFactorEnabled Boolean  @default(false) @map("two_factor_enabled")
+  email2faEnabled Boolean  @default(false) @map("email_2fa_enabled")
   bvn             String?   @map("bvn")
   nin             String?   @map("nin")
   bankName        String?   @map("bank_name")
@@ -70,6 +71,7 @@ model User {
   notifications          Notification[]
   notificationPreferences NotificationPreference?
   verificationTokens      VerificationToken[]
+  refreshTokens           RefreshToken[]
 
   tickets                 Ticket[]          @relation("TicketUser")
   assignedTickets         Ticket[]          @relation("TicketAssignee")
@@ -861,4 +863,18 @@ model TicketMessage {
   @@index([ticketId])
   @@index([userId])
   @@map("ticket_messages")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@map("refresh_tokens")
 }

@@ -91,6 +91,19 @@ export default function SettingsPage() {
       </Card>
 
       <Card padding="1.5rem" className="mb-4">
+        <h3 className="text-[9px] uppercase tracking-[0.1em] text-gray-400 font-bold mb-4">Security</h3>
+        <div className="flex justify-between items-center">
+          <div>
+            <span className="text-xs font-medium text-brand-dark block">Two-Factor Authentication</span>
+            <span className="text-[11px] text-gray-500 font-light">Secure your account with email or authenticator app 2FA.</span>
+          </div>
+          <a href="/settings/security" className="px-4 py-1.5 rounded-full text-[11px] font-semibold cursor-pointer border border-gray-200 bg-white no-underline" style={{ color: config.colors.primary }}>
+            Manage
+          </a>
+        </div>
+      </Card>
+
+      <Card padding="1.5rem" className="mb-4">
         <h3 className="text-[9px] uppercase tracking-[0.1em] text-gray-400 font-bold mb-4">Notifications</h3>
         {prefs ? (
           <div className="flex flex-col">

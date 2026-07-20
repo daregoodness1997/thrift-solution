@@ -93,7 +93,7 @@ export default function About() {
           <h2 className="text-xl font-semibold text-brand-dark">Get In Touch</h2>
           <p className="mt-2 text-sm font-light text-brand-muted">Have questions? We&apos;d love to hear from you.</p>
           <div className="mt-4">
-            <Button href="mailto:hello@arosco.app">hello@arosco.app</Button>
+            <Button href="mailto:hello@globalfreedomworldwide.com">hello@globalfreedomworldwide.com</Button>
           </div>
         </div>
       </Container>

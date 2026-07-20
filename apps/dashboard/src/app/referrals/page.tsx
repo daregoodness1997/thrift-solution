@@ -139,7 +139,7 @@ export default function ReferralsPage() {
     } catch {}
   };
 
-  const shareUrl = `https://arosco.com/register?ref=${referralCode}`;
+  const shareUrl = `https://app.globalfreedomworldwide.com/register?ref=${referralCode}`;
   const shareText = `Join GFW using my referral code ${referralCode} and start saving together! ${shareUrl}`;
 
   const tierProgress = (() => {

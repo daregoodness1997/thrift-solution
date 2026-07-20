@@ -69,7 +69,7 @@ export async function createUser(data: { email: string; name: string; passwordHa
 export async function setEmailVerified(userId: string) {
   return prisma.user.update({
     where: { id: userId },
-    data: { emailVerified: true, emailVerifiedAt: new Date() },
+    data: { emailVerified: true, emailVerifiedAt: new Date(), email2faEnabled: true, twoFactorEnabled: true },
   });
 }
 
@@ -86,6 +86,10 @@ export async function setTotpSecret(userId: string, secret: string) {
 
 export async function setTwoFactorEnabled(userId: string, enabled: boolean) {
   return prisma.user.update({ where: { id: userId }, data: { twoFactorEnabled: enabled } });
+}
+
+export async function setEmail2faEnabled(userId: string, enabled: boolean) {
+  return prisma.user.update({ where: { id: userId }, data: { email2faEnabled: enabled } });
 }
 
 export async function updatePasswordHash(userId: string, passwordHash: string) {

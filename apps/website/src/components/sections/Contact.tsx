@@ -37,7 +37,7 @@ export function Contact() {
                 <HeartHandshake className="h-4 w-4" /> Make a Donation
               </Link>
               <a
-                href="mailto:hello@arosco.app"
+                href="mailto:hello@globalfreedomworldwide.com"
                 className="flex items-center gap-2 rounded-full border border-white/30 px-8 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/10"
               >
                 Contact Us <ArrowRight className="h-4 w-4" />

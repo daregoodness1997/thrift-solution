@@ -19,7 +19,15 @@ declare global {
 }
 
 export function signToken(payload: AuthPayload): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: "15m" });
+}
+
+export function signRefreshToken(userId: string): string {
+  return jwt.sign({ userId, type: "refresh" }, JWT_SECRET, { expiresIn: "7d" });
+}
+
+export function verifyRefreshToken(token: string): { userId: string; type: string } {
+  return jwt.verify(token, JWT_SECRET) as { userId: string; type: string };
 }
 
 export function signChallengeToken(userId: string): string {

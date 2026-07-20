@@ -31,7 +31,7 @@ const BRAND: BrandTheme = {
   name: "GFW",
   tagline: "Community savings, collective prosperity.",
   logo: "/logo.svg",
-  contact: { email: "hello@arosco.app", website: "https://arosco.app" },
+  contact: { email: "hello@globalfreedomworldwide.com", website: "https://app.globalfreedomworldwide.com" },
   colors: {
     primary: "#1D4ED8",
     secondary: "#1E3A8A",

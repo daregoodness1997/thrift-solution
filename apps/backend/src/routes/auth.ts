@@ -13,11 +13,16 @@ import {
   setPhoneVerified,
   setTotpSecret,
   setTwoFactorEnabled,
+  setEmail2faEnabled,
   updatePasswordHash,
   deleteVerificationTokens,
+  createRefreshToken,
+  findRefreshToken,
+  deleteRefreshToken,
+  deleteUserRefreshTokens,
   prisma,
 } from "@thrift/db";
-import { signToken, signChallengeToken, verifyChallengeToken, authMiddleware } from "../middleware/auth";
+import { signToken, signRefreshToken, verifyRefreshToken, signChallengeToken, verifyChallengeToken, authMiddleware } from "../middleware/auth";
 import { issueOtp, verifyOtp } from "../services/auth/otp";
 import { generateTotpSecret, getTotpUri, verifyTotp } from "../services/auth/totp";
 import { sendWelcomeEmail, sendPasswordResetEmail } from "../services/auth/emails";
@@ -25,6 +30,17 @@ import { sendWelcomeEmail, sendPasswordResetEmail } from "../services/auth/email
 export const authRouter = Router();
 
 const dashboardUrl = () => process.env.DASHBOARD_URL || "http://localhost:3001";
+
+const REFRESH_TOKEN_EXPIRY_DAYS = 7;
+
+async function issueTokenPair(user: { id: string; email: string; role: string }) {
+  const token = signToken({ userId: user.id, email: user.email, role: user.role });
+  const refreshToken = signRefreshToken(user.id);
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + REFRESH_TOKEN_EXPIRY_DAYS);
+  await createRefreshToken(user.id, refreshToken, expiresAt);
+  return { token, refreshToken };
+}
 
 function publicUser(user: {
   id: string;
@@ -36,6 +52,7 @@ function publicUser(user: {
   emailVerified: boolean;
   phoneVerified: boolean;
   twoFactorEnabled: boolean;
+  email2faEnabled: boolean;
   registrationFeePaid: boolean;
 }) {
   return {
@@ -48,6 +65,7 @@ function publicUser(user: {
     emailVerified: user.emailVerified,
     phoneVerified: user.phoneVerified,
     twoFactorEnabled: user.twoFactorEnabled,
+    email2faEnabled: user.email2faEnabled,
     registrationFeePaid: user.registrationFeePaid,
   };
 }
@@ -160,10 +178,10 @@ authRouter.post("/verify-email", async (req, res) => {
       console.error("Welcome email error:", err);
     }
 
-    const token = signToken({ userId: user.id, email: user.email, role: user.role });
+    const { token, refreshToken } = await issueTokenPair(user);
     res.json({
       success: true,
-      data: { user: publicUser(user), token, emailVerified: true },
+      data: { user: publicUser(user), token, refreshToken, emailVerified: true },
     });
   } catch (err) {
     console.error("Verify email error:", err);
@@ -294,14 +312,125 @@ authRouter.post("/disable-2fa", authMiddleware, async (req, res) => {
       res.status(400).json({ success: false, error: "Valid code is required to disable 2FA" });
       return;
     }
-    await prisma.user.update({
+    const updated = await prisma.user.update({
       where: { id: user.id },
       data: { twoFactorEnabled: false, totpSecret: null },
     });
-    res.json({ success: true, data: { twoFactorEnabled: false } });
+    const hasOther2fa = updated.email2faEnabled;
+    if (!hasOther2fa) {
+      await setTwoFactorEnabled(user.id, false);
+    }
+    res.json({ success: true, data: { twoFactorEnabled: hasOther2fa, totpEnabled: false } });
   } catch (err) {
     console.error("Disable 2FA error:", err);
     res.status(500).json({ success: false, error: "Failed to disable 2FA" });
+  }
+});
+
+authRouter.post("/setup-email-2fa", authMiddleware, async (req, res) => {
+  try {
+    const user = await findUserById(req.user!.userId);
+    if (!user) {
+      res.status(404).json({ success: false, error: "User not found" });
+      return;
+    }
+    const code = await issueOtp({
+      userId: user.id,
+      type: "two_factor",
+      channel: "email",
+      destination: user.email,
+      title: "Your 2FA verification code",
+      actionLabel: "verify your email for two-factor authentication",
+      ttlMs: 5 * 60 * 1000,
+    });
+    res.json({
+      success: true,
+      data: { message: "Verification code sent to your email", email: user.email },
+    });
+  } catch (err) {
+    console.error("Setup email 2FA error:", err);
+    res.status(500).json({ success: false, error: "Failed to send verification code" });
+  }
+});
+
+authRouter.post("/verify-email-2fa", authMiddleware, async (req, res) => {
+  try {
+    const { code } = req.body;
+    if (!code) {
+      res.status(400).json({ success: false, error: "Code is required" });
+      return;
+    }
+    const user = await findUserById(req.user!.userId);
+    if (!user) {
+      res.status(404).json({ success: false, error: "User not found" });
+      return;
+    }
+    const ok = await verifyOtp(user.id, "two_factor", code);
+    if (!ok) {
+      res.status(400).json({ success: false, error: "Invalid or expired code" });
+      return;
+    }
+    await setEmail2faEnabled(user.id, true);
+    await setTwoFactorEnabled(user.id, true);
+    res.json({ success: true, data: { email2faEnabled: true, twoFactorEnabled: true } });
+  } catch (err) {
+    console.error("Verify email 2FA error:", err);
+    res.status(500).json({ success: false, error: "Failed to enable email 2FA" });
+  }
+});
+
+authRouter.post("/disable-email-2fa", authMiddleware, async (req, res) => {
+  try {
+    const { code } = req.body;
+    if (!code) {
+      res.status(400).json({ success: false, error: "Code is required to disable email 2FA" });
+      return;
+    }
+    const user = await findUserById(req.user!.userId);
+    if (!user) {
+      res.status(404).json({ success: false, error: "User not found" });
+      return;
+    }
+    const ok = await verifyOtp(user.id, "two_factor", code);
+    if (!ok) {
+      res.status(400).json({ success: false, error: "Invalid or expired code" });
+      return;
+    }
+    await setEmail2faEnabled(user.id, false);
+    const hasOther2fa = !!user.totpSecret;
+    if (!hasOther2fa) {
+      await setTwoFactorEnabled(user.id, false);
+    }
+    res.json({ success: true, data: { email2faEnabled: false, twoFactorEnabled: hasOther2fa } });
+  } catch (err) {
+    console.error("Disable email 2FA error:", err);
+    res.status(500).json({ success: false, error: "Failed to disable email 2FA" });
+  }
+});
+
+authRouter.post("/send-email-2fa-code", authMiddleware, async (req, res) => {
+  try {
+    const user = await findUserById(req.user!.userId);
+    if (!user) {
+      res.status(404).json({ success: false, error: "User not found" });
+      return;
+    }
+    const code = await issueOtp({
+      userId: user.id,
+      type: "two_factor",
+      channel: "email",
+      destination: user.email,
+      title: "Your 2FA verification code",
+      actionLabel: "complete two-factor authentication",
+      ttlMs: 5 * 60 * 1000,
+    });
+    res.json({
+      success: true,
+      data: { message: "Verification code sent to your email" },
+    });
+  } catch (err) {
+    console.error("Send email 2FA code error:", err);
+    res.status(500).json({ success: false, error: "Failed to send verification code" });
   }
 });
 
@@ -326,11 +455,14 @@ authRouter.post("/login", async (req, res) => {
       return;
     }
 
-    if (user.twoFactorEnabled && user.totpSecret) {
+    if (user.twoFactorEnabled && (user.totpSecret || user.email2faEnabled)) {
       const challengeToken = signChallengeToken(user.id);
+      const availableMethods: string[] = [];
+      if (user.totpSecret) availableMethods.push("totp");
+      if (user.email2faEnabled) availableMethods.push("email");
       res.json({
         success: true,
-        data: { twoFactorRequired: true, challengeToken, user: publicUser(user) },
+        data: { twoFactorRequired: true, challengeToken, availableMethods, user: publicUser(user) },
       });
       return;
     }
@@ -365,9 +497,8 @@ authRouter.post("/login", async (req, res) => {
       return;
     }
 
-    const token = signToken({ userId: user.id, email: user.email, role: user.role });
-
     if (!isStaff && !user.registrationFeePaid) {
+      const { token, refreshToken } = await issueTokenPair(user);
       res.json({
         success: true,
         data: {
@@ -377,6 +508,7 @@ authRouter.post("/login", async (req, res) => {
           userId: user.id,
           email: user.email,
           token,
+          refreshToken,
           message: "Please complete your registration fee payment to continue",
           user: publicUser(user),
         },
@@ -384,7 +516,8 @@ authRouter.post("/login", async (req, res) => {
       return;
     }
 
-    res.json({ success: true, data: { user: publicUser(user), token } });
+    const { token, refreshToken } = await issueTokenPair(user);
+    res.json({ success: true, data: { user: publicUser(user), token, refreshToken } });
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).json({ success: false, error: "Login failed" });
@@ -393,7 +526,7 @@ authRouter.post("/login", async (req, res) => {
 
 authRouter.post("/2fa/verify", async (req, res) => {
   try {
-    const { challengeToken, code } = req.body;
+    const { challengeToken, code, method } = req.body;
     if (!challengeToken || !code) {
       res.status(400).json({ success: false, error: "Challenge token and code are required" });
       return;
@@ -412,17 +545,34 @@ authRouter.post("/2fa/verify", async (req, res) => {
     }
 
     const user = await findUserById(payload.userId);
-    if (!user || !user.totpSecret) {
-      res.status(400).json({ success: false, error: "2FA is not set up" });
-      return;
-    }
-    if (!verifyTotp(user.totpSecret, code)) {
-      res.status(401).json({ success: false, error: "Invalid code" });
+    if (!user) {
+      res.status(400).json({ success: false, error: "User not found" });
       return;
     }
 
-    const token = signToken({ userId: user.id, email: user.email, role: user.role });
-    res.json({ success: true, data: { user: publicUser(user), token } });
+    if (method === "email") {
+      if (!user.email2faEnabled) {
+        res.status(400).json({ success: false, error: "Email 2FA is not enabled" });
+        return;
+      }
+      const ok = await verifyOtp(user.id, "two_factor", code);
+      if (!ok) {
+        res.status(401).json({ success: false, error: "Invalid or expired code" });
+        return;
+      }
+    } else {
+      if (!user.totpSecret) {
+        res.status(400).json({ success: false, error: "TOTP 2FA is not set up" });
+        return;
+      }
+      if (!verifyTotp(user.totpSecret, code)) {
+        res.status(401).json({ success: false, error: "Invalid code" });
+        return;
+      }
+    }
+
+    const { token, refreshToken } = await issueTokenPair(user);
+    res.json({ success: true, data: { user: publicUser(user), token, refreshToken } });
   } catch (err) {
     console.error("2FA verify error:", err);
     res.status(500).json({ success: false, error: "2FA verification failed" });
@@ -518,11 +668,72 @@ authRouter.get("/me", authMiddleware, async (req, res) => {
         emailVerified: user.emailVerified,
         phoneVerified: user.phoneVerified,
         twoFactorEnabled: user.twoFactorEnabled,
+        email2faEnabled: user.email2faEnabled,
         kycStatus: kyc?.status || "none",
       },
     });
   } catch (err) {
     console.error("Me error:", err);
     res.status(500).json({ success: false, error: "Failed to fetch user" });
+  }
+});
+
+authRouter.post("/refresh", async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+    if (!refreshToken) {
+      res.status(400).json({ success: false, error: "Refresh token is required" });
+      return;
+    }
+
+    let payload;
+    try {
+      payload = verifyRefreshToken(refreshToken);
+    } catch {
+      res.status(401).json({ success: false, error: "Invalid or expired refresh token" });
+      return;
+    }
+
+    if (payload.type !== "refresh") {
+      res.status(401).json({ success: false, error: "Invalid token type" });
+      return;
+    }
+
+    const storedToken = await findRefreshToken(refreshToken);
+    if (!storedToken) {
+      res.status(401).json({ success: false, error: "Refresh token not found" });
+      return;
+    }
+
+    if (new Date(storedToken.expiresAt) < new Date()) {
+      await deleteRefreshToken(refreshToken);
+      res.status(401).json({ success: false, error: "Refresh token expired" });
+      return;
+    }
+
+    const user = await findUserById(payload.userId);
+    if (!user) {
+      res.status(401).json({ success: false, error: "User not found" });
+      return;
+    }
+
+    await deleteRefreshToken(refreshToken);
+
+    const { token, refreshToken: newRefreshToken } = await issueTokenPair(user);
+
+    res.json({ success: true, data: { token, refreshToken: newRefreshToken } });
+  } catch (err) {
+    console.error("Refresh error:", err);
+    res.status(500).json({ success: false, error: "Token refresh failed" });
+  }
+});
+
+authRouter.post("/logout", authMiddleware, async (req, res) => {
+  try {
+    await deleteUserRefreshTokens(req.user!.userId);
+    res.json({ success: true, data: { message: "Logged out successfully" } });
+  } catch (err) {
+    console.error("Logout error:", err);
+    res.status(500).json({ success: false, error: "Logout failed" });
   }
 });

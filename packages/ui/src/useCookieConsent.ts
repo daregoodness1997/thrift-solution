@@ -9,7 +9,7 @@ export interface CookiePreferences {
   personalization: boolean;
 }
 
-const COOKIE_CONSENT_KEY = "arosco_cookie_consent";
+const COOKIE_CONSENT_KEY = "gfw_cookie_consent";
 const COOKIE_EXPIRY_DAYS = 365;
 
 function setCookie(name: string, value: string, days: number) {
