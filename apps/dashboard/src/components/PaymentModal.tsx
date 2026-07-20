@@ -55,14 +55,14 @@ export function PaymentModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  if (!isOpen) return null;
-
   useEffect(() => {
-    if (amountRef.current) {
+    if (isOpen && amountRef.current) {
       amountRef.current.textContent = String(amount);
       setAmountInput(String(amount));
     }
   }, [isOpen, amount]);
+
+  if (!isOpen) return null;
 
   const parsedAmount = Number(amountInput);
   const isValidAmount = parsedAmount > 0 && !Number.isNaN(parsedAmount);
