@@ -36,6 +36,7 @@ import {
   getDonationStatsAdmin,
   updateDonationStatus,
   prisma,
+  createWhatsappGroup,
 } from "@thrift/db";
 
 export const adminRouter = Router();
@@ -642,5 +643,105 @@ adminRouter.patch("/donations/:id/status", requireAdmin, async (req, res) => {
   } catch (err) {
     console.error("Update donation error:", err);
     res.status(500).json({ success: false, error: "Failed to update donation" });
+  }
+});
+
+// WhatsApp Groups Admin CRUD
+adminRouter.get("/whatsapp-groups", requireAdmin, async (req, res) => {
+  try {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 50;
+    const search = (req.query.search as string) || undefined;
+
+    const where: Record<string, unknown> = {};
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
+        { circleName: { contains: search, mode: "insensitive" } },
+      ];
+    }
+
+    const [items, total] = await Promise.all([
+      prisma.whatsappGroup.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.whatsappGroup.count({ where }),
+    ]);
+
+    res.json({ success: true, data: { items, total, page, limit, totalPages: Math.ceil(total / limit) } });
+  } catch (err) {
+    console.error("Admin whatsapp groups error:", err);
+    res.status(500).json({ success: false, error: "Failed to fetch WhatsApp groups" });
+  }
+});
+
+adminRouter.post("/whatsapp-groups", requireAdmin, async (req, res) => {
+  try {
+    const { name, description, circleName, inviteLink } = req.body;
+    if (!name) {
+      res.status(400).json({ success: false, error: "Group name is required" });
+      return;
+    }
+    const group = await createWhatsappGroup({ name, description, circleName, inviteLink });
+    await createAuditLog({
+      ...actor(req),
+      action: "whatsappGroup.create",
+      entity: "whatsappGroup",
+      entityId: group.id,
+      metadata: { name, circleName },
+    });
+    res.status(201).json({ success: true, data: group });
+  } catch (err) {
+    console.error("Admin create whatsapp group error:", err);
+    res.status(500).json({ success: false, error: "Failed to create WhatsApp group" });
+  }
+});
+
+adminRouter.patch("/whatsapp-groups/:id", requireAdmin, async (req, res) => {
+  try {
+    const { name, description, circleName, inviteLink, pinned } = req.body;
+    const group = await prisma.whatsappGroup.update({
+      where: { id: req.params.id },
+      data: {
+        ...(name !== undefined && { name }),
+        ...(description !== undefined && { description }),
+        ...(circleName !== undefined && { circleName }),
+        ...(inviteLink !== undefined && { inviteLink }),
+        ...(pinned !== undefined && { pinned }),
+      },
+    });
+    await createAuditLog({
+      ...actor(req),
+      action: "whatsappGroup.update",
+      entity: "whatsappGroup",
+      entityId: group.id,
+      metadata: { name, circleName, pinned },
+    });
+    res.json({ success: true, data: group });
+  } catch (err) {
+    console.error("Admin update whatsapp group error:", err);
+    res.status(500).json({ success: false, error: "Failed to update WhatsApp group" });
+  }
+});
+
+adminRouter.delete("/whatsapp-groups/:id", requireAdmin, async (req, res) => {
+  try {
+    await prisma.whatsappGroup.delete({
+      where: { id: req.params.id },
+    });
+    await createAuditLog({
+      ...actor(req),
+      action: "whatsappGroup.delete",
+      entity: "whatsappGroup",
+      entityId: req.params.id,
+    });
+    res.json({ success: true, data: { message: "Group deleted" } });
+  } catch (err) {
+    console.error("Admin delete whatsapp group error:", err);
+    res.status(500).json({ success: false, error: "Failed to delete WhatsApp group" });
   }
 });
