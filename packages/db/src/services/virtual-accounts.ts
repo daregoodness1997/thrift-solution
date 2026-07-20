@@ -151,3 +151,15 @@ export async function hasVirtualAccount(userId: string): Promise<boolean> {
   });
   return count > 0;
 }
+
+/**
+ * Soft-deletes all active virtual accounts for a user.
+ * Used during regeneration to free the unique constraint before creating a new VA.
+ */
+export async function deleteVirtualAccountsByUser(userId: string): Promise<number> {
+  const result = await prisma.virtualAccount.updateMany({
+    where: { userId, deletedAt: null },
+    data: { deletedAt: new Date() },
+  });
+  return result.count;
+}

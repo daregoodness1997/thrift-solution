@@ -197,6 +197,7 @@ export {
   updateVirtualAccountStatus,
   updateVirtualAccountLastTransfer,
   deleteVirtualAccount,
+  deleteVirtualAccountsByUser,
   getUsersWithoutVirtualAccounts,
   hasVirtualAccountForProvider,
   hasVirtualAccount,
