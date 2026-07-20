@@ -27,6 +27,7 @@ import {
   getDefaultsByAccount,
   getDefaultsByUser,
   clearCircleDefault,
+  getCircleAnalytics,
 } from "@thrift/db";
 import { prisma } from "@thrift/db";
 import { getPaymentProvider } from "../services/payments";
@@ -167,6 +168,20 @@ circlesRouter.get("/:id", authMiddleware, async (req, res) => {
   } catch (err) {
     console.error("Get circle error:", err);
     res.status(500).json({ success: false, error: "Failed to fetch circle" });
+  }
+});
+
+circlesRouter.get("/:id/analytics", adminMiddleware, async (req, res) => {
+  try {
+    const analytics = await getCircleAnalytics(req.params.id);
+    if (!analytics.circle) {
+      res.status(404).json({ success: false, error: "Circle not found" });
+      return;
+    }
+    res.json({ success: true, data: analytics });
+  } catch (err) {
+    console.error("Get circle analytics error:", err);
+    res.status(500).json({ success: false, error: "Failed to fetch circle analytics" });
   }
 });
 

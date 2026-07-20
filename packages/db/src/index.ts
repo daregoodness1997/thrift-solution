@@ -175,6 +175,7 @@ export {
   getDefaultsByAccount,
   getDefaultsByUser,
   clearCircleDefault,
+  getCircleAnalytics,
 } from "./services/circles";
 
 export {

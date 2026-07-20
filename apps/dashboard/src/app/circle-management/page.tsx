@@ -278,6 +278,11 @@ export default function CircleManagementPage() {
                       </td>
                       <td className="py-3 text-right">
                         <div className="flex justify-end gap-1.5">
+                          <button onClick={() => router.push(`/circle-management/${circle.id}`)}
+                            className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold"
+                            style={{ border: `1px solid #BFDBFE`, backgroundColor: "#EFF6FF", color: "#2563EB" }}>
+                            View
+                          </button>
                           <button onClick={() => openEdit(circle)}
                             className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold"
                             style={{ border: `1px solid ${cfg.colors.primary}30`, backgroundColor: `${cfg.colors.primary}08`, color: cfg.colors.primary }}>

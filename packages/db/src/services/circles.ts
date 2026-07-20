@@ -1129,3 +1129,76 @@ export async function clearCircleDefault(defaultId: string, userId: string) {
     });
   });
 }
+
+export async function getCircleAnalytics(circleId: string) {
+  const now = new Date();
+  const nearMaturityThreshold = new Date();
+  nearMaturityThreshold.setDate(now.getDate() + 14);
+
+  const [
+    circle,
+    subscribed,
+    nearMaturity,
+    matured,
+    payoutPending,
+    awaitingClearance,
+    payoutCompleted,
+    totalPrincipal,
+    totalInterest,
+  ] = await Promise.all([
+    prisma.circle.findUnique({
+      where: { id: circleId },
+      include: { _count: { select: { accounts: true } } },
+    }),
+    prisma.circleAccount.count({
+      where: { circleId, status: "active" },
+    }),
+    prisma.circleAccount.count({
+      where: {
+        circleId,
+        status: "active",
+        maturityDate: { lte: nearMaturityThreshold, gt: now },
+      },
+    }),
+    prisma.circleAccount.count({
+      where: { circleId, status: "matured" },
+    }),
+    prisma.circlePayoutRequest.count({
+      where: {
+        circleAccount: { circleId },
+        status: "pending",
+      },
+    }),
+    prisma.circlePayoutRequest.count({
+      where: {
+        circleAccount: { circleId },
+        status: "cleared",
+      },
+    }),
+    prisma.circlePayoutRequest.count({
+      where: {
+        circleAccount: { circleId },
+        status: { in: ["approved", "disbursed", "disbursing"] },
+      },
+    }),
+    prisma.circleAccount.aggregate({
+      where: { circleId, status: { in: ["active", "matured"] } },
+      _sum: { principalAmount: true, interestEarned: true },
+    }),
+  ]);
+
+  return {
+    circle,
+    stats: {
+      subscribed,
+      nearMaturity,
+      matured,
+      payoutPending,
+      awaitingClearance,
+      payoutCompleted,
+      totalPrincipal: totalPrincipal._sum.principalAmount || 0,
+      totalInterest: totalInterest._sum.interestEarned || 0,
+      totalMaturityValue: (totalPrincipal._sum.principalAmount || 0) + (totalInterest._sum.interestEarned || 0),
+    },
+  };
+}
