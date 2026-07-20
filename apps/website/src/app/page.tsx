@@ -16,7 +16,6 @@ export default function Home() {
       <Logos />
       <Features />
       <Analytics />
-      <DeveloperFocus />
       <Gallery />
       <BentoSocialProof />
       <Team />
