@@ -136,7 +136,7 @@ model GroupMember {
 
 model Donation {
   id                String    @id @default(uuid())
-  userId            String    @map("user_id")
+  userId            String?   @map("user_id")
   type              String
   amount            Float?
   currency          String    @default("NGN")
@@ -150,12 +150,14 @@ model Donation {
   paymentReference  String?   @map("payment_reference")
   paymentUrl        String?   @map("payment_url")
   groupId           String?   @map("group_id")
+  donorEmail        String?   @map("donor_email")
+  donorName         String?   @map("donor_name")
   notes             String?
   deletedAt         DateTime? @map("deleted_at")
   createdAt         DateTime  @default(now()) @map("created_at")
   updatedAt         DateTime  @default(now()) @updatedAt @map("updated_at")
 
-  user  User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+  user  User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
   group Group? @relation(fields: [groupId], references: [id], onDelete: SetNull)
 
   transactions Transaction[]

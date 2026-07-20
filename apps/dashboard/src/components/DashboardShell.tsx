@@ -146,7 +146,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   }, [user, loading, isAuthPage, router]);
 
   useEffect(() => {
-    if (!loading && user && !user.registrationFeePaid && !isAuthPage) {
+    if (!loading && user && user.role === "member" && !user.registrationFeePaid && !isAuthPage) {
       router.push(`/register?mode=pay&userId=${user.id}&email=${encodeURIComponent(user.email)}&token=${token}`);
     }
   }, [user, loading, isAuthPage, router, token]);

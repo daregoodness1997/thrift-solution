@@ -18,7 +18,7 @@ function CallbackContent() {
       setStatus("failed");
       return;
     }
-    fetch(`${API_URL}/api/donations/verify/${reference}?provider=${provider}`)
+    fetch(`${API_URL}/api/donations/public/verify/${reference}?provider=${provider}`)
       .then((r) => r.json())
       .then((data) => {
         if (data.success && data.data.status === "completed") {

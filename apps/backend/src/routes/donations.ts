@@ -21,6 +21,109 @@ export const donationsRouter = Router();
 
 const API_URL = process.env.API_URL || "http://localhost:4000";
 const DASHBOARD_URL = process.env.DASHBOARD_URL || "http://localhost:3001";
+const WEBSITE_URL = process.env.WEBSITE_URL || "http://localhost:3000";
+
+// Public donation endpoint (no auth required - for website visitors)
+donationsRouter.post("/public", async (req, res) => {
+  try {
+    const { amount, provider, notes, email, name, callbackUrl } = req.body;
+
+    if (!amount || amount <= 0) {
+      res.status(400).json({ success: false, error: "A valid amount is required" });
+      return;
+    }
+
+    if (!provider) {
+      res.status(400).json({ success: false, error: "Payment provider is required" });
+      return;
+    }
+
+    if (!email) {
+      res.status(400).json({ success: false, error: "Email is required" });
+      return;
+    }
+
+    const paymentProvider = getPaymentProvider(provider);
+    const reference = `DON-PUB-${Date.now()}-${crypto.randomBytes(4).toString("hex")}`;
+    const redirectCallback = callbackUrl || `${WEBSITE_URL}/donate/callback?provider=${provider}`;
+
+    const { prisma } = await import("@thrift/db");
+    const donation = await prisma.donation.create({
+      data: {
+        type: "monetary",
+        amount: parseFloat(amount),
+        currency: "NGN",
+        paymentProvider: provider,
+        paymentReference: reference,
+        notes: notes || undefined,
+        donorEmail: email,
+        donorName: name || undefined,
+        status: "pending",
+      },
+    });
+
+    const paymentResult = await paymentProvider.initializePayment({
+      amount: parseFloat(amount),
+      email,
+      reference,
+      callbackUrl: redirectCallback,
+      metadata: { donationId: donation.id, email, name },
+    });
+
+    await prisma.donation.update({
+      where: { id: donation.id },
+      data: { paymentUrl: paymentResult.authorizationUrl },
+    });
+
+    res.status(201).json({
+      success: true,
+      data: {
+        donation: { id: donation.id, reference, amount: parseFloat(amount), provider },
+        authorizationUrl: paymentResult.authorizationUrl,
+      },
+    });
+  } catch (err) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    console.error("Create public donation error:", error.message);
+    if (error.cause) console.error("  Cause:", error.cause);
+    res.status(500).json({ success: false, error: error.message || "Failed to create donation" });
+  }
+});
+
+// Public verify endpoint for website callback
+donationsRouter.get("/public/verify/:reference", async (req, res) => {
+  try {
+    const { reference } = req.params;
+    const provider = (req.query.provider as string) || "paystack";
+
+    const paymentProvider = getPaymentProvider(provider);
+    const verification = await paymentProvider.verifyPayment(reference);
+
+    const { prisma } = await import("@thrift/db");
+    const donation = await prisma.donation.findFirst({
+      where: { paymentReference: reference },
+    });
+
+    if (donation && verification.status === "completed") {
+      await prisma.donation.update({
+        where: { id: donation.id },
+        data: { status: "completed" },
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        status: verification.status,
+        amount: verification.amount,
+        reference: verification.reference,
+      },
+    });
+  } catch (err) {
+    console.error("Verify public payment error:", err);
+    res.status(500).json({ success: false, error: "Payment verification failed" });
+  }
+});
 
 // Create a monetary donation (initiates payment)
 donationsRouter.post("/", authMiddleware, async (req, res) => {

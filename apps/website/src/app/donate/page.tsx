@@ -75,17 +75,23 @@ export default function DonatePage() {
     setError("");
     try {
       const token = localStorage.getItem("token");
+      const isAuth = !!token;
+      const endpoint = isAuth ? `${API_URL}/api/donations` : `${API_URL}/api/donations/public`;
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
       };
       if (token) headers.Authorization = `Bearer ${token}`;
-      const res = await fetch(`${API_URL}/api/donations`, {
+      const callbackUrl = `${window.location.origin}/donate/callback?provider=${provider}`;
+      const res = await fetch(endpoint, {
         method: "POST",
         headers,
         body: JSON.stringify({
           amount: parseFloat(selectedAmount),
           provider,
           notes: notes || undefined,
+          email: email.trim(),
+          name: name.trim() || undefined,
+          callbackUrl,
         }),
       });
       const data = await res.json();

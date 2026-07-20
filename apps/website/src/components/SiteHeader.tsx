@@ -51,6 +51,8 @@ const navLinks = [
   { label: "Donate", href: "/donate" },
 ];
 
+const DASHBOARD_URL = process.env.NEXT_PUBLIC_DASHBOARD_URL || "http://localhost:3001";
+
 export function SiteHeader() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -142,18 +144,18 @@ export function SiteHeader() {
         </nav>
 
         <div className="hidden items-center gap-4 lg:flex">
-          <Link
-            href="/dashboard"
+          <a
+            href={`${DASHBOARD_URL}/login`}
             className="text-sm font-semibold text-brand-dark transition-colors hover:text-brand-primary"
           >
             Sign In
-          </Link>
-          <Link
-            href="/register"
+          </a>
+          <a
+            href={`${DASHBOARD_URL}/register`}
             className="flex items-center gap-1.5 rounded-full bg-brand-primary px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-brand-primary/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-brand-secondary"
           >
             Join a Circle <ArrowRight className="h-4 w-4" />
-          </Link>
+          </a>
         </div>
 
         <button
@@ -219,21 +221,21 @@ export function SiteHeader() {
           </div>
 
           <div className="mt-8 flex flex-col gap-3 pb-10">
-            <Link
-              href="/dashboard"
+            <a
+              href={`${DASHBOARD_URL}/login`}
               onClick={() => setIsMobileMenuOpen(false)}
               className="w-full rounded-full border border-gray-200 py-3 text-center text-sm font-semibold text-gray-700"
             >
               Sign In
-            </Link>
-            <Link
-              href="/register"
+            </a>
+            <a
+              href={`${DASHBOARD_URL}/register`}
               onClick={() => setIsMobileMenuOpen(false)}
               className="flex w-full items-center justify-center gap-2 rounded-full bg-brand-primary py-3 text-sm font-semibold text-white shadow-md"
             >
               <span className="text-white">Join a Circle</span>
               <ArrowRight className="h-4 w-4. bg-white" />
-            </Link>
+            </a>
           </div>
         </div>
       )}
