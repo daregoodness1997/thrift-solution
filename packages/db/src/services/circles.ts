@@ -1143,8 +1143,7 @@ export async function getCircleAnalytics(circleId: string) {
     payoutPending,
     awaitingClearance,
     payoutCompleted,
-    totalPrincipal,
-    totalInterest,
+    totals,
   ] = await Promise.all([
     prisma.circle.findUnique({
       where: { id: circleId },
@@ -1196,9 +1195,9 @@ export async function getCircleAnalytics(circleId: string) {
       payoutPending,
       awaitingClearance,
       payoutCompleted,
-      totalPrincipal: totalPrincipal._sum.principalAmount || 0,
-      totalInterest: totalInterest._sum.interestEarned || 0,
-      totalMaturityValue: (totalPrincipal._sum.principalAmount || 0) + (totalInterest._sum.interestEarned || 0),
+      totalPrincipal: totals._sum.principalAmount || 0,
+      totalInterest: totals._sum.interestEarned || 0,
+      totalMaturityValue: (totals._sum.principalAmount || 0) + (totals._sum.interestEarned || 0),
     },
   };
 }
