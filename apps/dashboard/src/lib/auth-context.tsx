@@ -14,6 +14,7 @@ interface AuthUser {
   kycStatus?: string;
   email2faEnabled?: boolean;
   twoFactorEnabled?: boolean;
+  registrationFeePaid?: boolean;
 }
 
 interface AuthContextType {

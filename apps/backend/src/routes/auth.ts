@@ -670,6 +670,7 @@ authRouter.get("/me", authMiddleware, async (req, res) => {
         twoFactorEnabled: user.twoFactorEnabled,
         email2faEnabled: user.email2faEnabled,
         kycStatus: kyc?.status || "none",
+        registrationFeePaid: user.registrationFeePaid,
       },
     });
   } catch (err) {
