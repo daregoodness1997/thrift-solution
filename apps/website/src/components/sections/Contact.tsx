@@ -25,12 +25,6 @@ export function Contact() {
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Link
-                href="/pricing"
-                className="rounded-full bg-white px-8 py-3.5 text-sm font-semibold text-brand-primary transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
-              >
-                View Plans
-              </Link>
-              <Link
                 href="/donate"
                 className="flex items-center gap-2 rounded-full border border-white/30 px-8 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/10"
               >
