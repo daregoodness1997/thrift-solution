@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, ShieldCheck, Sparkles } from "lucide-react";
-import { DASHBOARD_URL } from "../SiteHeader";
+
+export const DASHBOARD_URL =
+  process.env.NEXT_PUBLIC_DASHBOARD_URL ||
+  "https://app.globalfreedomworldwide.com";
 
 export function Hero() {
   return (
@@ -73,7 +76,6 @@ export function Hero() {
           >
             <a
               href={`${DASHBOARD_URL}/login`}
-              target="_blank"
               className="flex items-center justify-center gap-2 rounded-full bg-brand-accent px-8 py-4 font-bold text-white shadow-lg shadow-brand-accent/25 transition-all duration-300 hover:-translate-y-0.5 hover:bg-brand-gold hover:shadow-xl"
             >
               Start a Circle <ArrowRight className="h-5 w-5" />
