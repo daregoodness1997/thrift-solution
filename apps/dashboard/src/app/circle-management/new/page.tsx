@@ -121,9 +121,14 @@ export default function NewCirclePage() {
       });
       const data = await res.json();
       if (data.success) {
-        const circleId = data.data.id;
+        const circleId = data.data?.id;
+        if (!circleId) {
+          toast.error("Circle created but ID not returned");
+          router.push("/circle-management");
+          return;
+        }
         for (const addon of addons) {
-          await fetch(`${API_URL}/api/circles/${circleId}/addons`, {
+          const addonRes = await fetch(`${API_URL}/api/circles/${circleId}/addons`, {
             method: "POST",
             headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -134,6 +139,10 @@ export default function NewCirclePage() {
               imageUrl: addon.imageUrl || undefined,
             }),
           });
+          const addonData = await addonRes.json();
+          if (!addonData.success) {
+            console.error("Failed to create addon:", addon.name, addonData.error);
+          }
         }
         toast.success("Circle created successfully");
         router.push("/circle-management");
