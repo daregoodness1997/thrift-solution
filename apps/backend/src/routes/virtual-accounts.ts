@@ -332,4 +332,75 @@ router.post("/webhook/nomba", async (req: Request, res: Response) => {
   });
 });
 
+router.post("/reconcile", authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      res.status(401).json({ error: "Authentication required" });
+      return;
+    }
+
+    const { virtualAccountId, sinceHours = 24 } = req.body;
+    if (!virtualAccountId) {
+      res.status(400).json({ error: "Virtual account ID is required" });
+      return;
+    }
+
+    const accounts = await getVirtualAccountsByUser(userId);
+    const virtualAccount = accounts.find((va) => va.id === virtualAccountId);
+    if (!virtualAccount) {
+      res.status(404).json({ error: "Virtual account not found" });
+      return;
+    }
+
+    const paymentProvider = getPaymentProvider(virtualAccount.provider);
+    if (!paymentProvider || !paymentProvider.checkVirtualAccountTransfers) {
+      res.status(400).json({ error: `${virtualAccount.provider} does not support transfer checking` });
+      return;
+    }
+
+    const recentTransfers = await paymentProvider.checkVirtualAccountTransfers(
+      virtualAccount.accountNumber,
+      sinceHours
+    );
+
+    let creditedCount = 0;
+    const results: Array<{ reference: string; amount: number; status: string }> = [];
+
+    for (const transfer of recentTransfers) {
+      const reference = transfer.reference;
+      const description = `Wallet funding via ${virtualAccount.provider} virtual account ${virtualAccount.accountNumber} (manual reconciliation)`;
+
+      try {
+        await creditWallet(virtualAccount.userId, transfer.amount, "wallet_funding", description, reference);
+        await updateVirtualAccountLastTransfer(virtualAccount.id);
+        creditedCount++;
+        results.push({ reference, amount: transfer.amount, status: "credited" });
+      } catch (err) {
+        if (isUniqueViolation(err)) {
+          results.push({ reference, amount: transfer.amount, status: "already_processed" });
+        } else {
+          results.push({ reference, amount: transfer.amount, status: "error" });
+          console.error("Error crediting wallet for transfer:", transfer.reference, err);
+        }
+      }
+    }
+
+    res.json({
+      success: true,
+      data: {
+        virtualAccountId: virtualAccount.id,
+        accountNumber: virtualAccount.accountNumber,
+        transfersFound: recentTransfers.length,
+        transfersCredited: creditedCount,
+        results,
+      },
+    });
+  } catch (err) {
+    console.error("Virtual account reconciliation error:", err);
+    const message = err instanceof Error ? err.message : "Failed to reconcile payments";
+    res.status(500).json({ error: message });
+  }
+});
+
 export { router as virtualAccountsRouter };

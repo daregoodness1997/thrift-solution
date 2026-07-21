@@ -50,6 +50,15 @@ export interface VirtualAccountTransferResult {
   providerRef?: string;
 }
 
+export interface VirtualAccountTransaction {
+  id: string;
+  amount: number;
+  reference: string;
+  status: "completed" | "pending" | "failed";
+  createdAt: string;
+  accountNumber: string;
+}
+
 export interface ResolveAccountParams {
   accountNumber: string;
   bankCode: string;
@@ -69,4 +78,5 @@ export interface PaymentProvider {
   createVirtualAccount?(params: VirtualAccountParams): Promise<VirtualAccountResult>;
   initiateTransfer?(params: VirtualAccountTransferParams): Promise<VirtualAccountTransferResult>;
   resolveAccount?(params: ResolveAccountParams): Promise<ResolveAccountResult>;
+  checkVirtualAccountTransfers?(accountNumber: string, sinceHours?: number): Promise<VirtualAccountTransaction[]>;
 }

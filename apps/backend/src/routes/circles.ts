@@ -279,7 +279,7 @@ circlesRouter.post("/", adminMiddleware, async (req, res) => {
     const {
       name, description, cycleType, amount, weeklyAmount, totalWeeks,
       durationMonths, interestRateAnnual, maxAccountsPerUser, maxSubscribers, autoPayout, payoutMode, blockPayoutOnDefault,
-      processingFeeType, processingFeeValue,
+      processingFeeType, processingFeeValue, initialWeeksCount, defaultPenaltyType, defaultPenaltyValue,
     } = req.body;
 
     const resolvedType = cycleType === "weekly_contribution" ? "weekly_contribution" : "deposit";
@@ -313,6 +313,9 @@ circlesRouter.post("/", adminMiddleware, async (req, res) => {
       blockPayoutOnDefault: blockPayoutOnDefault !== undefined ? (blockPayoutOnDefault === true || blockPayoutOnDefault === "true") : undefined,
       processingFeeType: processingFeeType === "fixed" || processingFeeType === "percent" ? processingFeeType : undefined,
       processingFeeValue: processingFeeValue != null && processingFeeValue !== "" ? Number(processingFeeValue) : undefined,
+      initialWeeksCount: initialWeeksCount ? Number(initialWeeksCount) : undefined,
+      defaultPenaltyType: defaultPenaltyType === "fixed" ? "fixed" : "percent",
+      defaultPenaltyValue: defaultPenaltyValue != null && defaultPenaltyValue !== "" ? Number(defaultPenaltyValue) : undefined,
     });
 
     res.status(201).json({ success: true, data: circle });
@@ -328,7 +331,7 @@ circlesRouter.put("/:id", adminMiddleware, async (req, res) => {
     const {
       name, description, cycleType, amount, weeklyAmount, totalWeeks,
       durationMonths, interestRateAnnual, maxAccountsPerUser, maxSubscribers, autoPayout, payoutMode, blockPayoutOnDefault, status,
-      processingFeeType, processingFeeValue,
+      processingFeeType, processingFeeValue, initialWeeksCount, defaultPenaltyType, defaultPenaltyValue,
     } = req.body;
 
     const circle = await updateCircle(req.params.id, {
@@ -347,6 +350,9 @@ circlesRouter.put("/:id", adminMiddleware, async (req, res) => {
       blockPayoutOnDefault: blockPayoutOnDefault !== undefined ? (blockPayoutOnDefault === true || blockPayoutOnDefault === "true") : undefined,
       processingFeeType: processingFeeType === "fixed" || processingFeeType === "percent" ? processingFeeType : (processingFeeType === null ? null : undefined),
       processingFeeValue: processingFeeValue != null && processingFeeValue !== "" ? Number(processingFeeValue) : (processingFeeValue === null ? null : undefined),
+      initialWeeksCount: initialWeeksCount ? Number(initialWeeksCount) : undefined,
+      defaultPenaltyType: defaultPenaltyType === "fixed" ? "fixed" : "percent",
+      defaultPenaltyValue: defaultPenaltyValue != null && defaultPenaltyValue !== "" ? Number(defaultPenaltyValue) : undefined,
       status,
     });
 

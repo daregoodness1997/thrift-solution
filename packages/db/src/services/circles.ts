@@ -65,6 +65,9 @@ export async function createCircle(data: {
   blockPayoutOnDefault?: boolean;
   processingFeeType?: "fixed" | "percent" | null;
   processingFeeValue?: number | null;
+  initialWeeksCount?: number;
+  defaultPenaltyType?: "percent" | "fixed";
+  defaultPenaltyValue?: number;
 }) {
   const cycleType = data.cycleType === "weekly_contribution" ? "weekly_contribution" : "deposit";
   if (cycleType === "weekly_contribution") {
@@ -77,6 +80,9 @@ export async function createCircle(data: {
   }
   const payoutMode = resolvePayoutMode(data.payoutMode, data.autoPayout);
   const { processingFeeType, processingFeeValue } = resolveProcessingFee(data.processingFeeType, data.processingFeeValue);
+  const initialWeeksCount = data.initialWeeksCount != null && data.initialWeeksCount > 0 ? data.initialWeeksCount : 3;
+  const defaultPenaltyType = data.defaultPenaltyType === "fixed" ? "fixed" : "percent";
+  const defaultPenaltyValue = data.defaultPenaltyValue != null && data.defaultPenaltyValue >= 0 ? data.defaultPenaltyValue : 100;
   return prisma.circle.create({
     data: {
       name: data.name,
@@ -94,6 +100,9 @@ export async function createCircle(data: {
       blockPayoutOnDefault: data.blockPayoutOnDefault,
       processingFeeType,
       processingFeeValue,
+      initialWeeksCount,
+      defaultPenaltyType,
+      defaultPenaltyValue,
     },
   });
 }
@@ -186,6 +195,9 @@ export async function updateCircle(id: string, data: {
   blockPayoutOnDefault?: boolean;
   processingFeeType?: "fixed" | "percent" | null;
   processingFeeValue?: number | null;
+  initialWeeksCount?: number;
+  defaultPenaltyType?: "percent" | "fixed";
+  defaultPenaltyValue?: number;
   status?: string;
 }) {
   const patch: Record<string, unknown> = { ...data };
@@ -233,7 +245,8 @@ export async function openCircleAccount(circleId: string, userId: string, funded
   }
 
   const isWeekly = circle.cycleType === "weekly_contribution";
-  const initialDebit = isWeekly ? (circle.weeklyAmount ?? 0) : circle.amount;
+  const initialWeeksCount = isWeekly ? (circle.initialWeeksCount != null && circle.initialWeeksCount > 0 ? circle.initialWeeksCount : 3) : 1;
+  const initialDebit = isWeekly ? (circle.weeklyAmount ?? 0) * initialWeeksCount : circle.amount;
 
   const processingFee = computeProcessingFee(
     (circle.processingFeeType as "fixed" | "percent" | null | undefined),
@@ -262,7 +275,7 @@ export async function openCircleAccount(circleId: string, userId: string, funded
         userId,
         principalAmount: initialDebit,
         processingFee,
-        weeksContributed: isWeekly ? 1 : 0,
+        weeksContributed: isWeekly ? initialWeeksCount : 0,
         lastContributionAttempt: isWeekly ? now : null,
         startDate: now,
         maturityDate,
@@ -283,7 +296,9 @@ export async function openCircleAccount(circleId: string, userId: string, funded
         amount: initialDebit,
         reference,
         status: "completed",
-        description: `${isWeekly ? "Week 1 contribution" : "Deposit"} into ${circle.name} [${circleAccount.id}]`,
+        description: isWeekly
+          ? `Initial ${initialWeeksCount} weeks contribution into ${circle.name} [${circleAccount.id}]`
+          : `Deposit into ${circle.name} [${circleAccount.id}]`,
       },
     });
 
@@ -302,16 +317,18 @@ export async function openCircleAccount(circleId: string, userId: string, funded
     }
 
     if (isWeekly) {
-      await tx.circleContribution.create({
-        data: {
-          circleAccountId: circleAccount.id,
-          userId,
-          weekNumber: 1,
-          amount: initialDebit,
-          type: "weekly",
-          transactionId: txn.id,
-        },
-      });
+      for (let week = 1; week <= initialWeeksCount; week++) {
+        await tx.circleContribution.create({
+          data: {
+            circleAccountId: circleAccount.id,
+            userId,
+            weekNumber: week,
+            amount: circle.weeklyAmount ?? 0,
+            type: "weekly",
+            transactionId: txn.id,
+          },
+        });
+      }
     }
 
     return circleAccount;
@@ -1033,6 +1050,15 @@ export async function processWeeklyContributionForAccount(circleAccountId: strin
       });
       charged++;
     } else {
+      const penaltyType = account.circle.defaultPenaltyType || "percent";
+      const penaltyValue = account.circle.defaultPenaltyValue != null ? account.circle.defaultPenaltyValue : 100;
+      let clearanceAmount: number;
+      if (penaltyType === "percent") {
+        const totalPercent = 100 + penaltyValue;
+        clearanceAmount = Math.round(weeklyAmount * (totalPercent / 100) * 100) / 100;
+      } else {
+        clearanceAmount = Math.round((weeklyAmount + penaltyValue) * 100) / 100;
+      }
       await prisma.$transaction(async (tx) => {
         await tx.circleDefault.create({
           data: {
@@ -1040,7 +1066,7 @@ export async function processWeeklyContributionForAccount(circleAccountId: strin
             userId: account.userId,
             weekNumber,
             amountDue: weeklyAmount,
-            clearanceAmount: weeklyAmount * 2,
+            clearanceAmount,
             status: "outstanding",
           },
         });

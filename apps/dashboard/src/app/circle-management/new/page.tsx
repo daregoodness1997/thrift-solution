@@ -26,6 +26,9 @@ interface CircleFormData {
   blockPayoutOnDefault: boolean;
   processingFeeType: "fixed" | "percent" | "";
   processingFeeValue: string;
+  initialWeeksCount: string;
+  defaultPenaltyType: "percent" | "fixed";
+  defaultPenaltyValue: string;
 }
 
 interface AddonFormData {
@@ -51,6 +54,9 @@ const emptyForm: CircleFormData = {
   blockPayoutOnDefault: true,
   processingFeeType: "",
   processingFeeValue: "",
+  initialWeeksCount: "3",
+  defaultPenaltyType: "percent",
+  defaultPenaltyValue: "100",
 };
 
 function formatDuration(months: number) {
@@ -112,6 +118,9 @@ export default function NewCirclePage() {
         blockPayoutOnDefault: form.blockPayoutOnDefault,
         processingFeeType: form.processingFeeType || undefined,
         processingFeeValue: form.processingFeeValue ? Number(form.processingFeeValue) : undefined,
+        initialWeeksCount: isWeekly ? Number(form.initialWeeksCount) || 3 : undefined,
+        defaultPenaltyType: form.defaultPenaltyType,
+        defaultPenaltyValue: Number(form.defaultPenaltyValue) || 100,
       };
 
       const res = await fetch(`${API_URL}/api/circles`, {
@@ -240,8 +249,65 @@ export default function NewCirclePage() {
                     Maturity: ~{Math.ceil(Number(form.totalWeeks) / 4.345)} month(s) ({form.totalWeeks} weeks from start).
                   </p>
                 )}
+                <div className="rounded-lg border border-gray-200 p-4">
+                  <div className="mb-2">
+                    <label className="block text-[11px] font-semibold text-brand-dark">Initial Weeks Collection</label>
+                    <p className="text-[11px] text-gray-500">Number of weeks collected upfront when a user joins</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <input type="number" min={1} max={Number(form.totalWeeks) || 52} value={form.initialWeeksCount} onChange={(e) => setForm((p) => ({ ...p, initialWeeksCount: e.target.value }))}
+                      className="w-24 rounded-lg border border-gray-200 px-3 py-2 font-mono text-[13px] outline-none" />
+                    <span className="text-[11px] text-gray-500">weeks</span>
+                    {form.weeklyAmount && Number(form.weeklyAmount) > 0 && form.initialWeeksCount && Number(form.initialWeeksCount) > 0 && (
+                      <span className="ml-auto text-[11px] font-semibold text-brand-dark">
+                        Upfront: {formatNaira(Number(form.weeklyAmount) * Number(form.initialWeeksCount))}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="rounded-lg border border-gray-200 p-4">
+                  <div className="mb-2">
+                    <label className="block text-[11px] font-semibold text-brand-dark">Default Penalty</label>
+                    <p className="text-[11px] text-gray-500">Extra charge applied when a weekly payment is missed</p>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Type</label>
+                      <select value={form.defaultPenaltyType} onChange={(e) => setForm((p) => ({ ...p, defaultPenaltyType: e.target.value as "percent" | "fixed" }))}
+                        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-[13px] outline-none">
+                        <option value="percent">Percent (%)</option>
+                        <option value="fixed">Fixed (₦)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Value</label>
+                      <input type="number" step="0.01" value={form.defaultPenaltyValue} onChange={(e) => setForm((p) => ({ ...p, defaultPenaltyValue: e.target.value }))}
+                        placeholder={form.defaultPenaltyType === "percent" ? "e.g. 100" : "e.g. 500"}
+                        className="w-full rounded-lg border border-gray-200 px-3 py-2 font-mono text-[13px] outline-none" />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Clearance Cost</label>
+                      <div className="rounded-lg bg-gray-50 px-3 py-2 font-mono text-[13px]">
+                        {(() => {
+                          const weekly = Number(form.weeklyAmount) || 0;
+                          const val = Number(form.defaultPenaltyValue) || 0;
+                          if (weekly <= 0) return "—";
+                          const clearance = form.defaultPenaltyType === "percent"
+                            ? weekly * (1 + val / 100)
+                            : weekly + val;
+                          return formatNaira(Math.round(clearance * 100) / 100);
+                        })()}
+                      </div>
+                    </div>
+                  </div>
+                  <p className="mt-2 text-[10px] text-gray-400">
+                    {form.defaultPenaltyType === "percent" && Number(form.defaultPenaltyValue) === 100
+                      ? "At 100%, clearance = 2× the missed weekly amount (current behavior)"
+                      : `Clearance = weekly amount + ${form.defaultPenaltyType === "percent" ? `${form.defaultPenaltyValue}%` : formatNaira(Number(form.defaultPenaltyValue) || 0)}`}
+                  </p>
+                </div>
                 <p className="rounded-lg bg-blue-50 px-3 py-2 text-[11px] text-blue-700">
-                  Missed weekly debits create a default requiring 2× clearance to resolve.
+                  Missed weekly debits create a default with configurable penalty clearance.
                 </p>
               </>
             )}

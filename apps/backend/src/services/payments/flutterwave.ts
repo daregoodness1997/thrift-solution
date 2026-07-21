@@ -9,6 +9,7 @@ import type {
   VirtualAccountTransferResult,
   ResolveAccountParams,
   ResolveAccountResult,
+  VirtualAccountTransaction,
 } from "./types";
 
 const FLW_SECRET = process.env.FLUTTERWAVE_SECRET_KEY || "";
@@ -208,5 +209,46 @@ export const flutterwaveProvider: PaymentProvider = {
       bankCode: params.bankCode,
       bankName: data.data.bank_name || "",
     };
+  },
+
+  async checkVirtualAccountTransfers(accountNumber: string, sinceHours = 24): Promise<VirtualAccountTransaction[]> {
+    const hoursAgo = new Date(Date.now() - sinceHours * 60 * 60 * 1000).toISOString();
+    
+    let response: Response;
+    try {
+      response = await fetch(
+        `${FLW_BASE}/transactions?from=${hoursAgo}&status=successful`,
+        {
+          headers: { Authorization: `Bearer ${FLW_SECRET}` },
+        },
+      );
+    } catch (err) {
+      const cause = err instanceof Error ? err.message : String(err);
+      throw new Error(`Failed to connect to Flutterwave API: ${cause}`);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data: any = await response.json();
+    if (data.status !== "success") {
+      throw new Error(data.message || "Flutterwave transaction fetch failed");
+    }
+
+    const transactions: any[] = data.data || [];
+    const filtered = transactions.filter(
+      (tx: any) =>
+        tx.amount &&
+        (tx.account_number === accountNumber ||
+          tx.meta?.account_number === accountNumber ||
+          tx.narration?.includes(accountNumber))
+    );
+
+    return filtered.map((tx: any) => ({
+      id: String(tx.id),
+      amount: tx.amount,
+      reference: tx.tx_ref || `va_flw_${tx.id}`,
+      status: "completed" as const,
+      createdAt: tx.created_at,
+      accountNumber: tx.account_number || accountNumber,
+    }));
   },
 };

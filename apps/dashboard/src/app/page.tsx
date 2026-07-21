@@ -105,6 +105,13 @@ export default function Dashboard() {
   const [bvn, setBvn] = useState("");
   const [creatingVirtualAccount, setCreatingVirtualAccount] = useState(false);
   const [copiedAccount, setCopiedAccount] = useState<string | null>(null);
+  const [reconciling, setReconciling] = useState<string | null>(null);
+  const [reconcileResult, setReconcileResult] = useState<{
+    success: boolean;
+    transfersFound: number;
+    transfersCredited: number;
+    message: string;
+  } | null>(null);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -255,6 +262,76 @@ export default function Dashboard() {
       setCopiedAccount(accountNumber);
       setTimeout(() => setCopiedAccount(null), 2000);
     } catch {}
+  };
+
+  const handleReconcilePayment = async (virtualAccountId: string) => {
+    if (!token) return;
+
+    setReconciling(virtualAccountId);
+    setReconcileResult(null);
+
+    try {
+      const res = await fetch(`${API_URL}/api/virtual-accounts/reconcile`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          virtualAccountId,
+          sinceHours: 24,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setReconcileResult({
+          success: true,
+          transfersFound: data.data.transfersFound,
+          transfersCredited: data.data.transfersCredited,
+          message:
+            data.data.transfersCredited > 0
+              ? `Successfully credited ${data.data.transfersCredited} transfer(s) to your wallet!`
+              : data.data.transfersFound > 0
+                ? "Found transfer(s) but they were already processed."
+                : "No recent transfers found. Please wait for the bank transfer to complete.",
+        });
+
+        if (data.data.transfersCredited > 0) {
+          const balanceRes = await fetch(`${API_URL}/api/wallet/balance`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const balanceData = await balanceRes.json();
+          if (balanceData.success) {
+            setWalletBalance(balanceData.data.balance);
+            setBalanceAnimating(true);
+            setConfettiVisible(true);
+            setTimeout(() => {
+              setBalanceAnimating(false);
+              setConfettiVisible(false);
+            }, 3000);
+          }
+        }
+      } else {
+        setReconcileResult({
+          success: false,
+          transfersFound: 0,
+          transfersCredited: 0,
+          message: data.error || "Failed to reconcile payments",
+        });
+      }
+    } catch {
+      setReconcileResult({
+        success: false,
+        transfersFound: 0,
+        transfersCredited: 0,
+        message: "Network error. Please try again.",
+      });
+    }
+
+    setTimeout(() => setReconcileResult(null), 5000);
+    setReconciling(null);
   };
 
   const handleReferralCopy = async () => {
@@ -465,8 +542,51 @@ export default function Dashboard() {
                       <span className="rounded-full border border-gray-200 bg-gray-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-gray-500">
                         {user.accountTier} tier
                       </span>
+              )}
+
+              {reconcileResult && (
+                <div
+                  style={{
+                    marginTop: "0.75rem",
+                    padding: "0.75rem",
+                    borderRadius: "8px",
+                    backgroundColor: reconcileResult.success
+                      ? "rgba(5, 150, 105, 0.15)"
+                      : "rgba(220, 38, 38, 0.15)",
+                    border: `1px solid ${reconcileResult.success ? "rgba(5, 150, 105, 0.3)" : "rgba(220, 38, 38, 0.3)"}`,
+                    color: reconcileResult.success ? "#6EE7B7" : "#FCA5A5",
+                    fontSize: "11px",
+                    fontWeight: 500,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                  }}
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                  >
+                    {reconcileResult.success ? (
+                      <>
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                        <path d="M22 4L12 14.01l-3-3" />
+                      </>
+                    ) : (
+                      <>
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M12 8v4M12 16h.01" />
+                      </>
                     )}
-                  </div>
+                  </svg>
+                  {reconcileResult.message}
+                </div>
+              )}
+            </div>
                   <span className="mt-0.5 block text-xs text-gray-500">
                     {user.kycStatus === "rejected"
                       ? "Your previous submission was rejected. Please resubmit your documents."
@@ -1226,56 +1346,131 @@ export default function Dashboard() {
                       key={va.id}
                       style={{
                         display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
+                        flexDirection: "column",
+                        gap: "0.5rem",
                         padding: "0.625rem",
                         backgroundColor: "rgba(255,255,255,0.08)",
                         borderRadius: "8px",
                         border: "1px solid rgba(255,255,255,0.1)",
                       }}
                     >
-                      <div>
-                        <div
-                          style={{
-                            fontSize: "12px",
-                            fontFamily: "'JetBrains Mono', monospace",
-                            fontWeight: 600,
-                            color: "#ffffff",
-                          }}
-                        >
-                          {va.accountNumber}
-                        </div>
-                        <div
-                          style={{
-                            fontSize: "10px",
-                            color: "rgba(255,255,255,0.6)",
-                          }}
-                        >
-                          {va.bankName}
-                        </div>
-                      </div>
-                      <button
-                        onClick={() =>
-                          handleCopyAccount(va.accountNumber, va.bankName)
-                        }
+                      <div
                         style={{
-                          fontSize: "9px",
-                          fontWeight: 600,
-                          color: "#ffffff",
-                          backgroundColor:
-                            copiedAccount === va.accountNumber
-                              ? "#059669"
-                              : "rgba(255,255,255,0.12)",
-                          border: "none",
-                          borderRadius: "4px",
-                          padding: "0.25rem 0.5rem",
-                          cursor: "pointer",
-                          transition: "all 0.2s ease",
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
                         }}
                       >
-                        {copiedAccount === va.accountNumber
-                          ? "Copied!"
-                          : "Copy"}
+                        <div>
+                          <div
+                            style={{
+                              fontSize: "12px",
+                              fontFamily: "'JetBrains Mono', monospace",
+                              fontWeight: 600,
+                              color: "#ffffff",
+                            }}
+                          >
+                            {va.accountNumber}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: "10px",
+                              color: "rgba(255,255,255,0.6)",
+                            }}
+                          >
+                            {va.bankName}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() =>
+                            handleCopyAccount(va.accountNumber, va.bankName)
+                          }
+                          style={{
+                            fontSize: "9px",
+                            fontWeight: 600,
+                            color: "#ffffff",
+                            backgroundColor:
+                              copiedAccount === va.accountNumber
+                                ? "#059669"
+                                : "rgba(255,255,255,0.12)",
+                            border: "none",
+                            borderRadius: "4px",
+                            padding: "0.25rem 0.5rem",
+                            cursor: "pointer",
+                            transition: "all 0.2s ease",
+                          }}
+                        >
+                          {copiedAccount === va.accountNumber
+                            ? "Copied!"
+                            : "Copy"}
+                        </button>
+                      </div>
+                      <button
+                        onClick={() => handleReconcilePayment(va.id)}
+                        disabled={reconciling === va.id}
+                        style={{
+                          fontSize: "10px",
+                          fontWeight: 600,
+                          color: reconciling === va.id ? "rgba(255,255,255,0.5)" : "#ffffff",
+                          backgroundColor: reconciling === va.id ? "rgba(255,255,255,0.08)" : "rgba(5, 150, 105, 0.2)",
+                          border: "1px solid rgba(5, 150, 105, 0.3)",
+                          borderRadius: "6px",
+                          padding: "0.5rem",
+                          cursor: reconciling === va.id ? "not-allowed" : "pointer",
+                          transition: "all 0.2s ease",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "0.375rem",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (reconciling !== va.id) {
+                            e.currentTarget.style.backgroundColor = "rgba(5, 150, 105, 0.3)";
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (reconciling !== va.id) {
+                            e.currentTarget.style.backgroundColor = "rgba(5, 150, 105, 0.2)";
+                          }
+                        }}
+                      >
+                        {reconciling === va.id ? (
+                          <>
+                            <svg
+                              width="12"
+                              height="12"
+                              viewBox="0 0 24 24"
+                              style={{ animation: "spin 1s linear infinite" }}
+                            >
+                              <circle
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="3"
+                                fill="none"
+                                strokeDasharray="31.4 31.4"
+                              />
+                            </svg>
+                            Checking...
+                          </>
+                        ) : (
+                          <>
+                            <svg
+                              width="12"
+                              height="12"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth={2}
+                              strokeLinecap="round"
+                            >
+                              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                              <path d="M22 4L12 14.01l-3-3" />
+                            </svg>
+                            I have paid
+                          </>
+                        )}
                       </button>
                     </div>
                   ))}
@@ -1290,6 +1485,49 @@ export default function Dashboard() {
                       +{virtualAccounts.length - 2} more accounts
                     </span>
                   )}
+                </div>
+              )}
+
+              {reconcileResult && (
+                <div
+                  style={{
+                    marginTop: "0.75rem",
+                    padding: "0.75rem",
+                    borderRadius: "8px",
+                    backgroundColor: reconcileResult.success
+                      ? "rgba(5, 150, 105, 0.15)"
+                      : "rgba(220, 38, 38, 0.15)",
+                    border: `1px solid ${reconcileResult.success ? "rgba(5, 150, 105, 0.3)" : "rgba(220, 38, 38, 0.3)"}`,
+                    color: reconcileResult.success ? "#6EE7B7" : "#FCA5A5",
+                    fontSize: "11px",
+                    fontWeight: 500,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                  }}
+                >
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                  >
+                    {reconcileResult.success ? (
+                      <>
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                        <path d="M22 4L12 14.01l-3-3" />
+                      </>
+                    ) : (
+                      <>
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M12 8v4M12 16h.01" />
+                      </>
+                    )}
+                  </svg>
+                  {reconcileResult.message}
                 </div>
               )}
             </div>
