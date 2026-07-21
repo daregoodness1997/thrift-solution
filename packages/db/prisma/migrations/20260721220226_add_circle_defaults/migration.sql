@@ -1,7 +1,16 @@
 -- AlterTable
-ALTER TABLE "circles" ADD COLUMN     "default_penalty_type" TEXT NOT NULL DEFAULT 'percent',
-ADD COLUMN     "default_penalty_value" DOUBLE PRECISION NOT NULL DEFAULT 100,
-ADD COLUMN     "initial_weeks_count" INTEGER NOT NULL DEFAULT 3;
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='circles' AND column_name='default_penalty_type') THEN
+    ALTER TABLE "circles" ADD COLUMN "default_penalty_type" TEXT NOT NULL DEFAULT 'percent';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='circles' AND column_name='default_penalty_value') THEN
+    ALTER TABLE "circles" ADD COLUMN "default_penalty_value" DOUBLE PRECISION NOT NULL DEFAULT 100;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='circles' AND column_name='initial_weeks_count') THEN
+    ALTER TABLE "circles" ADD COLUMN "initial_weeks_count" INTEGER NOT NULL DEFAULT 3;
+  END IF;
+END $$;
 
 -- CreateTable
 CREATE TABLE "circle_addons" (
