@@ -50,6 +50,7 @@ export default function AdminVirtualAccountsPage() {
   const [generating, setGenerating] = useState(false);
   const [regen, setRegen] = useState<RegenerateModal>({ open: false, va: null, provider: "flutterwave", reason: "" });
   const [regenerating, setRegenerating] = useState(false);
+  const [reconciling, setReconciling] = useState(false);
 
   useEffect(() => {
     if (!authLoading && user && !isAdmin) router.replace("/");
@@ -139,6 +140,27 @@ export default function AdminVirtualAccountsPage() {
     setRegenerating(false);
   };
 
+  const reconcileAll = async () => {
+    setReconciling(true);
+    try {
+      const res = await fetch(`${API_URL}/api/admin/virtual-accounts/reconcile-all`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ sinceHours: 24 }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        show("success", `Reconciled ${data.data.totalTransfersCredited} transfer(s) across ${data.data.accountsProcessed} account(s)`);
+        fetchAll();
+      } else {
+        show("error", data.error || "Failed to reconcile");
+      }
+    } catch {
+      show("error", "Failed to reconcile payments");
+    }
+    setReconciling(false);
+  };
+
   if (authLoading || !isAdmin) return null;
 
   return (
@@ -162,6 +184,11 @@ export default function AdminVirtualAccountsPage() {
               className="cursor-pointer whitespace-nowrap rounded-lg border border-[#16A34A40] bg-[#16A34A0F] px-3 py-2 text-[12px] font-semibold text-[#16A34A]"
               style={{ opacity: generating ? 0.5 : 1 }}>
               {generating ? "Generating..." : "Generate missing"}
+            </button>
+            <button onClick={reconcileAll} disabled={reconciling}
+              className="cursor-pointer whitespace-nowrap rounded-lg border border-[#2563EB40] bg-[#2563EB0F] px-3 py-2 text-[12px] font-semibold text-[#2563EB]"
+              style={{ opacity: reconciling ? 0.5 : 1 }}>
+              {reconciling ? "Reconciling..." : "Reconcile all"}
             </button>
           </div>
 

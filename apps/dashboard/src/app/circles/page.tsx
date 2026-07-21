@@ -40,7 +40,7 @@ interface CircleAccount {
   startDate: string;
   maturityDate: string;
   lastInterestCalculation?: string;
-  circle: { id: string; name: string; cycleType?: string; amount: number; weeklyAmount?: number | null; totalWeeks?: number | null; durationMonths: number; interestRateAnnual: number; autoPayout?: boolean; payoutMode?: string };
+  circle: { id: string; name: string; cycleType?: string; amount: number; weeklyAmount?: number | null; totalWeeks?: number | null; durationMonths: number; interestRateAnnual: number; autoPayout?: boolean; payoutMode?: string; blockPayoutOnDefault?: boolean; defaultPenaltyType?: string | null; defaultPenaltyValue?: number | null };
 }
 
 function circleOpenCost(c: { cycleType?: string; amount: number; weeklyAmount?: number | null }) {
@@ -50,6 +50,22 @@ function circleOpenCost(c: { cycleType?: string; amount: number; weeklyAmount?: 
 function isAutoPayout(c: { autoPayout?: boolean; payoutMode?: string }) {
   if (c.payoutMode) return c.payoutMode === "auto";
   return !!c.autoPayout;
+}
+
+function computeClearanceAmount(weeklyAmount: number, penaltyType?: string | null, penaltyValue?: number | null) {
+  const pt = penaltyType || "percent";
+  const pv = penaltyValue != null ? penaltyValue : 100;
+  if (pt === "percent") {
+    return Math.round(weeklyAmount * (1 + pv / 100) * 100) / 100;
+  }
+  return Math.round((weeklyAmount + pv) * 100) / 100;
+}
+
+function formatClearanceLabel(penaltyType?: string | null, penaltyValue?: number | null) {
+  const pt = penaltyType || "percent";
+  const pv = penaltyValue != null ? penaltyValue : 100;
+  if (pt === "percent") return `${100 + pv}%`;
+  return `+${formatNaira(pv)}`;
 }
 
 const ACCOUNT_STATUS_COLORS: Record<string, string> = {
@@ -351,28 +367,35 @@ export default function CirclesPage() {
                               </>
                             )}
                           </div>
-                          {account.circle.cycleType === "weekly_contribution" && (account.weeksDefaulted ?? 0) > 0 && (
-                            <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-[11px] text-red-700">
-                              You have {account.weeksDefaulted} missed contribution(s). Resolve them on the <a href="/my-defaults" className="font-semibold underline">My Defaults</a> page (2× clearance applies).
-                            </div>
-                          )}
+                           {account.circle.cycleType === "weekly_contribution" && (account.weeksDefaulted ?? 0) > 0 && (
+                             <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-[11px] text-red-700">
+                               You have {account.weeksDefaulted} missed contribution(s). Resolve them on the <a href="/my-defaults" className="font-semibold underline">My Defaults</a> page ({formatClearanceLabel(account.circle.defaultPenaltyType, account.circle.defaultPenaltyValue)} clearance applies).
+                             </div>
+                           )}
 
-                          <div className="flex flex-wrap gap-2">
-                            {account.status === "active" && (
-                              <>
-                                <Button variant="primary" size="sm" disabled={claiming === account.id || daysUntil(account.maturityDate) > 0} onClick={() => handleClaim(account.id)}>
-                                  {claiming === account.id ? "Processing..." : daysUntil(account.maturityDate) > 0 ? `Matures in ${daysUntil(account.maturityDate)}d` : isAutoPayout(account.circle) ? "Claim Maturity" : "Request Payout"}
-                                </Button>
-                                <Button variant="secondary" size="sm" disabled={withdrawing === account.id} onClick={() => handleWithdraw(account.id)}>
-                                  {withdrawing === account.id ? "Withdrawing..." : "Early Withdraw (Forfeit Interest)"}
-                                </Button>
-                              </>
-                            )}
-                            {account.status === "matured" && (
-                              <Button variant="primary" size="sm" disabled={claiming === account.id} onClick={() => handleClaim(account.id)}>
-                                {claiming === account.id ? "Processing..." : isAutoPayout(account.circle) ? "Claim Maturity Payout" : "Request Payout"}
-                              </Button>
-                            )}
+                           <div className="flex flex-wrap gap-2">
+                             {(() => {
+                               const hasOutstandingDefaults = (account.weeksDefaulted ?? 0) > 0 && account.circle.blockPayoutOnDefault !== false;
+                               return (
+                                 <>
+                                   {account.status === "active" && (
+                                     <>
+                                       <Button variant="primary" size="sm" disabled={claiming === account.id || daysUntil(account.maturityDate) > 0 || hasOutstandingDefaults} onClick={() => handleClaim(account.id)}>
+                                         {claiming === account.id ? "Processing..." : daysUntil(account.maturityDate) > 0 ? `Matures in ${daysUntil(account.maturityDate)}d` : hasOutstandingDefaults ? "Clear Defaults First" : isAutoPayout(account.circle) ? "Claim Maturity" : "Request Payout"}
+                                       </Button>
+                                       <Button variant="secondary" size="sm" disabled={withdrawing === account.id} onClick={() => handleWithdraw(account.id)}>
+                                         {withdrawing === account.id ? "Withdrawing..." : "Early Withdraw (Forfeit Interest)"}
+                                       </Button>
+                                     </>
+                                   )}
+                                   {account.status === "matured" && (
+                                     <Button variant="primary" size="sm" disabled={claiming === account.id || hasOutstandingDefaults} onClick={() => handleClaim(account.id)}>
+                                       {claiming === account.id ? "Processing..." : hasOutstandingDefaults ? "Clear Defaults First" : isAutoPayout(account.circle) ? "Claim Maturity Payout" : "Request Payout"}
+                                     </Button>
+                                   )}
+                                 </>
+                               );
+                             })()}
                           </div>
                         </div>
                       )}

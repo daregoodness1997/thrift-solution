@@ -21,8 +21,15 @@ interface CircleDefault {
   createdAt: string;
   circleAccount: {
     id: string;
-    circle: { id: string; name: string; weeklyAmount?: number | null };
+    circle: { id: string; name: string; weeklyAmount?: number | null; defaultPenaltyType?: string | null; defaultPenaltyValue?: number | null };
   };
+}
+
+function formatClearanceLabel(penaltyType?: string | null, penaltyValue?: number | null) {
+  const pt = penaltyType || "percent";
+  const pv = penaltyValue != null ? penaltyValue : 100;
+  if (pt === "percent") return `${100 + pv}%`;
+  return `+₦${pv.toLocaleString()}`;
 }
 
 const statusStyles: Record<string, { bg: string; color: string; border: string }> = {
@@ -169,7 +176,7 @@ export default function MyDefaultsPage() {
                         <span className="mt-0.5 block font-mono text-sm font-bold text-[#2D2D2D]">{formatNaira(d.amountDue)}</span>
                       </div>
                       <div>
-                        <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-400">Clearance (2×)</span>
+                        <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-400">Clearance ({formatClearanceLabel(d.circleAccount.circle.defaultPenaltyType, d.circleAccount.circle.defaultPenaltyValue)})</span>
                         <span className="mt-0.5 block font-mono text-base font-bold text-red-600">{formatNaira(d.clearanceAmount)}</span>
                       </div>
                       {d.clearedAt && (
@@ -207,8 +214,9 @@ export default function MyDefaultsPage() {
           </div>
           <p className="text-[12px] leading-relaxed text-gray-500">
             When your wallet has insufficient funds on a weekly contribution date, that week is recorded as a default.
-            To resolve it and keep your account eligible for payout, you must clear it by paying <strong>2×</strong> the
-            missed weekly amount. The base contribution is credited to your circle principal.
+            To resolve it and keep your account eligible for payout, you must clear it by paying the clearance amount,
+            which is the missed weekly amount plus a penalty configured by the circle admin. The base contribution is
+            credited to your circle principal.
           </p>
         </Card>
       </FadeInUp>

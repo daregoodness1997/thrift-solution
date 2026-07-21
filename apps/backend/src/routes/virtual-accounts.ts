@@ -403,4 +403,84 @@ router.post("/reconcile", authMiddleware, async (req: Request, res: Response) =>
   }
 });
 
+router.post("/reconcile-all", authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+    const isAdmin = req.user?.role === "admin" || req.user?.role === "superadmin";
+
+    if (!userId) {
+      res.status(401).json({ error: "Authentication required" });
+      return;
+    }
+
+    const { sinceHours = 24 } = req.body;
+
+    let accounts: any[];
+    if (isAdmin) {
+      accounts = await getVirtualAccountsByUser(userId);
+    } else {
+      accounts = await getVirtualAccountsByUser(userId);
+    }
+
+    let totalFound = 0;
+    let totalCredited = 0;
+    const userResults: Array<{ userId: string; accountNumber: string; found: number; credited: number }> = [];
+
+    for (const va of accounts) {
+      const paymentProvider = getPaymentProvider(va.provider);
+      if (!paymentProvider || !paymentProvider.checkVirtualAccountTransfers) {
+        continue;
+      }
+
+      try {
+        const recentTransfers = await paymentProvider.checkVirtualAccountTransfers(
+          va.accountNumber,
+          sinceHours
+        );
+
+        let creditedCount = 0;
+        for (const transfer of recentTransfers) {
+          const reference = transfer.reference;
+          const description = `Wallet funding via ${va.provider} virtual account ${va.accountNumber} (manual reconciliation)`;
+
+          try {
+            await creditWallet(va.userId, transfer.amount, "wallet_funding", description, reference);
+            await updateVirtualAccountLastTransfer(va.id);
+            creditedCount++;
+          } catch (err) {
+            if (!isUniqueViolation(err)) {
+              console.error("Error crediting wallet for transfer:", transfer.reference, err);
+            }
+          }
+        }
+
+        totalFound += recentTransfers.length;
+        totalCredited += creditedCount;
+        userResults.push({
+          userId: va.userId,
+          accountNumber: va.accountNumber,
+          found: recentTransfers.length,
+          credited: creditedCount,
+        });
+      } catch (err) {
+        console.error(`Error reconciling account ${va.accountNumber}:`, err);
+      }
+    }
+
+    res.json({
+      success: true,
+      data: {
+        accountsProcessed: accounts.length,
+        totalTransfersFound: totalFound,
+        totalTransfersCredited: totalCredited,
+        results: userResults,
+      },
+    });
+  } catch (err) {
+    console.error("Virtual account reconciliation error:", err);
+    const message = err instanceof Error ? err.message : "Failed to reconcile payments";
+    res.status(500).json({ error: message });
+  }
+});
+
 export { router as virtualAccountsRouter };

@@ -37,7 +37,10 @@ import {
   updateDonationStatus,
   prisma,
   createWhatsappGroup,
+  creditWallet,
+  updateVirtualAccountLastTransfer,
 } from "@thrift/db";
+import { getPaymentProvider } from "../services/payments";
 
 export const adminRouter = Router();
 
@@ -506,6 +509,87 @@ adminRouter.post("/virtual-accounts/:userId/regenerate", requireAdmin, async (re
   } catch (err) {
     console.error("Regenerate virtual account error:", err);
     res.status(500).json({ success: false, error: err instanceof Error ? err.message : "Failed to regenerate virtual account" });
+  }
+});
+
+adminRouter.post("/virtual-accounts/reconcile-all", requireAdmin, async (req, res) => {
+  try {
+    const { sinceHours = 24 } = req.body;
+
+    const allAccounts = await getAllVirtualAccounts({ page: 1, limit: 10000, status: "active" });
+    const accounts = allAccounts.items || [];
+
+    let totalFound = 0;
+    let totalCredited = 0;
+    const results: Array<{ userId: string; accountNumber: string; provider: string; found: number; credited: number }> = [];
+
+    for (const va of accounts) {
+      const paymentProvider = getPaymentProvider(va.provider);
+      if (!paymentProvider || !paymentProvider.checkVirtualAccountTransfers) {
+        continue;
+      }
+
+      try {
+        const recentTransfers = await paymentProvider.checkVirtualAccountTransfers(
+          va.accountNumber,
+          sinceHours
+        );
+
+        let creditedCount = 0;
+        for (const transfer of recentTransfers) {
+          const reference = transfer.reference;
+          const description = `Wallet funding via ${va.provider} virtual account ${va.accountNumber} (admin reconciliation)`;
+
+          try {
+            await creditWallet(va.userId, transfer.amount, "wallet_funding", description, reference);
+            await updateVirtualAccountLastTransfer(va.id);
+            creditedCount++;
+          } catch (err) {
+            const isDuplicate = typeof err === "object" && err !== null && "code" in err && (err as { code?: string }).code === "P2002";
+            if (!isDuplicate) {
+              console.error("Error crediting wallet for transfer:", transfer.reference, err);
+            }
+          }
+        }
+
+        totalFound += recentTransfers.length;
+        totalCredited += creditedCount;
+        results.push({
+          userId: va.userId,
+          accountNumber: va.accountNumber,
+          provider: va.provider,
+          found: recentTransfers.length,
+          credited: creditedCount,
+        });
+      } catch (err) {
+        console.error(`Error reconciling account ${va.accountNumber}:`, err);
+      }
+    }
+
+    await createAuditLog({
+      ...actor(req),
+      action: "virtualAccount.reconcileAll",
+      entity: "virtualAccount",
+      metadata: {
+        sinceHours,
+        accountsProcessed: accounts.length,
+        totalFound,
+        totalCredited,
+      },
+    });
+
+    res.json({
+      success: true,
+      data: {
+        accountsProcessed: accounts.length,
+        totalTransfersFound: totalFound,
+        totalTransfersCredited: totalCredited,
+        results,
+      },
+    });
+  } catch (err) {
+    console.error("Admin virtual account reconciliation error:", err);
+    res.status(500).json({ success: false, error: err instanceof Error ? err.message : "Failed to reconcile payments" });
   }
 });
 

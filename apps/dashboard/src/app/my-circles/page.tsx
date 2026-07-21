@@ -22,12 +22,19 @@ interface CircleAccount {
   startDate: string;
   maturityDate: string;
   lastInterestCalculation?: string;
-  circle: { id: string; name: string; cycleType?: string; amount: number; weeklyAmount?: number | null; totalWeeks?: number | null; durationMonths: number; interestRateAnnual: number; autoPayout?: boolean; payoutMode?: string };
+  circle: { id: string; name: string; cycleType?: string; amount: number; weeklyAmount?: number | null; totalWeeks?: number | null; durationMonths: number; interestRateAnnual: number; autoPayout?: boolean; payoutMode?: string; blockPayoutOnDefault?: boolean; defaultPenaltyType?: string | null; defaultPenaltyValue?: number | null };
 }
 
 function isAutoPayout(c: { autoPayout?: boolean; payoutMode?: string }) {
   if (c.payoutMode) return c.payoutMode === "auto";
   return !!c.autoPayout;
+}
+
+function formatClearanceLabel(penaltyType?: string | null, penaltyValue?: number | null) {
+  const pt = penaltyType || "percent";
+  const pv = penaltyValue != null ? penaltyValue : 100;
+  if (pt === "percent") return `${100 + pv}%`;
+  return `+₦${pv.toLocaleString()}`;
 }
 
 interface InterestLog {
@@ -362,7 +369,7 @@ export default function MyCirclesPage() {
 
                           {(account.weeksDefaulted ?? 0) > 0 && (
                             <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-[11px] text-red-700">
-                              You have {account.weeksDefaulted} missed contribution(s). Clear them on the <a href="/my-defaults" className="font-semibold underline">My Defaults</a> page (2× clearance applies).
+                              You have {account.weeksDefaulted} missed contribution(s). Clear them on the <a href="/my-defaults" className="font-semibold underline">My Defaults</a> page ({formatClearanceLabel(account.circle.defaultPenaltyType, account.circle.defaultPenaltyValue)} clearance applies).
                             </div>
                           )}
 

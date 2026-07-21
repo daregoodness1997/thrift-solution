@@ -356,7 +356,7 @@ export async function getCircleAccountsByUser(userId: string, opts?: { page?: nu
     prisma.circleAccount.findMany({
       where,
       include: {
-        circle: { select: { id: true, name: true, cycleType: true, amount: true, weeklyAmount: true, totalWeeks: true, durationMonths: true, interestRateAnnual: true, autoPayout: true, payoutMode: true } },
+        circle: { select: { id: true, name: true, cycleType: true, amount: true, weeklyAmount: true, totalWeeks: true, durationMonths: true, interestRateAnnual: true, autoPayout: true, payoutMode: true, blockPayoutOnDefault: true, defaultPenaltyType: true, defaultPenaltyValue: true } },
       },
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * limit,
@@ -1178,7 +1178,7 @@ export async function clearCircleDefault(defaultId: string, userId: string) {
         amount: record.clearanceAmount,
         reference,
         status: "completed",
-        description: `Cleared week ${record.weekNumber} default (2x) for ${record.circleAccount.circle.name} [${record.circleAccountId}]`,
+        description: `Cleared week ${record.weekNumber} default for ${record.circleAccount.circle.name} [${record.circleAccountId}]`,
       },
     });
 

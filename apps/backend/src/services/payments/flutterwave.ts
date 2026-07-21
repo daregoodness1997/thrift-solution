@@ -212,12 +212,12 @@ export const flutterwaveProvider: PaymentProvider = {
   },
 
   async checkVirtualAccountTransfers(accountNumber: string, sinceHours = 24): Promise<VirtualAccountTransaction[]> {
-    const hoursAgo = new Date(Date.now() - sinceHours * 60 * 60 * 1000).toISOString();
+    const fromTimestamp = Math.floor((Date.now() - sinceHours * 60 * 60 * 1000) / 1000);
     
     let response: Response;
     try {
       response = await fetch(
-        `${FLW_BASE}/transactions?from=${hoursAgo}&status=successful`,
+        `${FLW_BASE}/transactions?from=${fromTimestamp}&status=successful`,
         {
           headers: { Authorization: `Bearer ${FLW_SECRET}` },
         },
