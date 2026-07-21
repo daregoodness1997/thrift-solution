@@ -2,6 +2,7 @@ import { Router } from "express";
 import bcrypt from "bcryptjs";
 import {
   findUserByEmail,
+  findUserByPhone,
   createUser,
   findUserById,
   findUserByReferralCode,
@@ -32,6 +33,23 @@ export const authRouter = Router();
 const dashboardUrl = () => process.env.DASHBOARD_URL || "http://localhost:3001";
 
 const REFRESH_TOKEN_EXPIRY_DAYS = 7;
+
+function normalizePhoneForLogin(phone: string): string {
+  let digits = phone.replace(/\D/g, "");
+  if (digits.startsWith("00234")) {
+    digits = digits.slice(2);
+  }
+  if (digits.startsWith("0") && digits.length === 11) {
+    return "234" + digits.slice(1);
+  }
+  if (digits.startsWith("234") && digits.length === 12) {
+    return digits;
+  }
+  if (digits.length === 10 && /^[1-9]/.test(digits)) {
+    return "234" + digits;
+  }
+  return digits;
+}
 
 async function issueTokenPair(user: { id: string; email: string; role: string }) {
   const token = signToken({ userId: user.id, email: user.email, role: user.role });
@@ -436,16 +454,29 @@ authRouter.post("/send-email-2fa-code", authMiddleware, async (req, res) => {
 
 authRouter.post("/login", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, phone, password } = req.body;
 
-    if (!email || !password) {
-      res.status(400).json({ success: false, error: "Email and password are required" });
+    if (!password) {
+      res.status(400).json({ success: false, error: "Password is required" });
       return;
     }
 
-    const user = await findUserByEmail(email);
-    if (!user) {
-      res.status(401).json({ success: false, error: "Invalid email or password" });
+    let user;
+    if (phone) {
+      const normalizedPhone = normalizePhoneForLogin(phone);
+      user = await findUserByPhone(normalizedPhone);
+      if (!user) {
+        res.status(401).json({ success: false, error: "Invalid phone number or password" });
+        return;
+      }
+    } else if (email) {
+      user = await findUserByEmail(email);
+      if (!user) {
+        res.status(401).json({ success: false, error: "Invalid email or password" });
+        return;
+      }
+    } else {
+      res.status(400).json({ success: false, error: "Email or phone number is required" });
       return;
     }
 

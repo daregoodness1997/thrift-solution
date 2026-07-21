@@ -21,7 +21,7 @@ interface AuthContextType {
   user: AuthUser | null;
   token: string | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<{ error?: string; data?: any }>;
+  login: (identifier: { email?: string; phone?: string }, password: string) => Promise<{ error?: string; data?: any }>;
   register: (data: { email: string; name: string; password: string; referralCode?: string }) => Promise<{ error?: string }>;
   logout: () => void;
   refreshToken: () => Promise<boolean>;
@@ -115,12 +115,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => clearRefreshTimer();
   }, [fetchUser, scheduleTokenRefresh, clearRefreshTimer]);
 
-  const login = async (email: string, password: string) => {
+  const login = async (identifier: { email?: string; phone?: string }, password: string) => {
     try {
       const res = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ ...identifier, password }),
       });
       const data = await res.json();
       if (!data.success) return { error: data.error || "Login failed" };

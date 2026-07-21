@@ -2,7 +2,7 @@ export { prisma, softDelete } from "./services/prisma";
 
 export { getConfig, saveConfig } from "./services/config";
 
-export { findUserByEmail, findUserById, findUserByBankAccountNumber, createUser, setEmailVerified, setPhoneVerified, setTotpSecret, setTwoFactorEnabled, setEmail2faEnabled, updatePasswordHash, setUserIdentity, setUserBankDetails, setRegistrationProgress } from "./services/users";
+export { findUserByEmail, findUserByPhone, findUserById, findUserByBankAccountNumber, createUser, setEmailVerified, setPhoneVerified, setTotpSecret, setTwoFactorEnabled, setEmail2faEnabled, updatePasswordHash, setUserIdentity, setUserBankDetails, setRegistrationProgress } from "./services/users";
 
 export {
   createVerificationToken,
