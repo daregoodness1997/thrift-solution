@@ -7,7 +7,7 @@ export const navigationRouter = Router();
 function adminMiddleware(req: any, res: any, next: any) {
   authMiddleware(req, res, async () => {
     const user = await findUserById(req.user!.userId);
-    if (!user || user.role !== "admin") {
+    if (!user || (user.role !== "admin" && user.role !== "superadmin")) {
       res.status(403).json({ success: false, error: "Admin access required" });
       return;
     }

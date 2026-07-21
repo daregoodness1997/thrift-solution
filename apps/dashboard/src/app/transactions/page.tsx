@@ -161,12 +161,18 @@ export default function TransactionsPage() {
     { key: "contribution", label: "Contributions" },
     { key: "payout", label: "Payouts" },
     { key: "funding", label: "Funding" },
+    { key: "wallet_funding", label: "Wallet Funding" },
+    { key: "wallet_funding_reversal", label: "Funding Reversed" },
     { key: "donation", label: "Donations" },
     { key: "referral_earning", label: "Referrals" },
     { key: "circle_deposit", label: "Circle Deposits" },
+    { key: "circle_contribution", label: "Circle Contributions" },
     { key: "circle_withdrawal", label: "Circle Withdrawals" },
     { key: "circle_payout", label: "Circle Payouts" },
     { key: "circle_interest", label: "Circle Interest" },
+    { key: "circle_processing_fee", label: "Processing Fees" },
+    { key: "circle_reversal", label: "Circle Reversed" },
+    { key: "loan_payout", label: "Loan Payouts" },
   ];
 
   return (
