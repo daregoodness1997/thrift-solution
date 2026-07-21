@@ -119,10 +119,9 @@ export default function PhoneInput({
       )}
       <div className="relative">
         <div
-          className="flex items-center w-full py-[0.6875rem] rounded-[0.625rem] border text-[13px] text-brand-dark outline-none"
+          className="flex items-center w-full rounded-[0.625rem] border text-[13px] text-brand-dark outline-none"
           style={{
             borderColor: invalid ? "#FECACA" : "#E5E7EB",
-            paddingLeft: "0.5rem",
           }}
           onFocus={(e) => {
             e.currentTarget.style.borderColor = config.colors.primary;
@@ -136,13 +135,13 @@ export default function PhoneInput({
           <button
             type="button"
             onClick={() => setIsOpen(!isOpen)}
-            className="flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-gray-50 transition bg-none border-none cursor-pointer"
+            className="flex items-center gap-1.5 px-2 rounded-l-[0.625rem] hover:bg-gray-50 transition bg-none border-none cursor-pointer"
           >
-            <span className="text-lg">{selectedCountry.flag}</span>
+            <span className="text-base">{selectedCountry.flag}</span>
             <span className="text-xs font-medium text-gray-600">{selectedCountry.dialCode}</span>
             <svg
-              width="12"
-              height="12"
+              width="10"
+              height="10"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -153,7 +152,7 @@ export default function PhoneInput({
             </svg>
           </button>
 
-          <div className="w-px h-6 bg-gray-200 mx-1" />
+          <div className="w-px h-5 bg-gray-200" />
 
           <input
             type="tel"
@@ -161,7 +160,7 @@ export default function PhoneInput({
             onChange={handlePhoneChange}
             placeholder={placeholder}
             autoComplete="tel"
-            className="flex-1 py-1 px-2 text-[13px] text-brand-dark outline-none bg-transparent"
+            className="flex-1 py-[0.6875rem] px-[0.875rem] text-[13px] text-brand-dark outline-none bg-transparent"
           />
         </div>
 
