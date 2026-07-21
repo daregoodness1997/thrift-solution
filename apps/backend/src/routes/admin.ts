@@ -40,7 +40,6 @@ import {
   creditWallet,
   updateVirtualAccountLastTransfer,
 } from "@thrift/db";
-import { getPaymentProvider } from "../services/payments";
 
 export const adminRouter = Router();
 
