@@ -1197,10 +1197,21 @@ export async function getCircleAnalytics(circleId: string) {
     awaitingClearance,
     payoutCompleted,
     totals,
+    earlyWithdrawn,
+    withdrawn,
+    totalDefaults,
+    outstandingDefaults,
+    clearedDefaults,
+    totalContributions,
+    recentAccounts,
+    interestLogs,
   ] = await Promise.all([
     prisma.circle.findUnique({
       where: { id: circleId },
-      include: { _count: { select: { accounts: true } } },
+      include: { 
+        _count: { select: { accounts: true } },
+        addons: { where: { status: "active" } },
+      },
     }),
     prisma.circleAccount.count({
       where: { circleId, status: "active" },
@@ -1236,8 +1247,88 @@ export async function getCircleAnalytics(circleId: string) {
     prisma.circleAccount.aggregate({
       where: { circleId, status: { in: ["active", "matured"] } },
       _sum: { principalAmount: true, interestEarned: true },
+      _avg: { principalAmount: true, interestEarned: true },
+    }),
+    prisma.circleAccount.count({
+      where: { circleId, status: "early_withdrawn" },
+    }),
+    prisma.circleAccount.count({
+      where: { circleId, status: "withdrawn" },
+    }),
+    prisma.circleDefault.count({
+      where: { circleAccount: { circleId } },
+    }),
+    prisma.circleDefault.count({
+      where: { circleAccount: { circleId }, status: "outstanding" },
+    }),
+    prisma.circleDefault.count({
+      where: { circleAccount: { circleId }, status: "cleared" },
+    }),
+    prisma.circleContribution.count({
+      where: { circleAccount: { circleId } },
+    }),
+    prisma.circleAccount.findMany({
+      where: { circleId },
+      include: {
+        user: { select: { id: true, name: true, email: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+    }),
+    prisma.circleInterestLog.groupBy({
+      by: ["calculatedAt"],
+      where: { circleAccount: { circleId } },
+      _sum: { amount: true },
+      _count: true,
+      orderBy: { calculatedAt: "desc" },
+      take: 20,
     }),
   ]);
+
+  const monthlyGrowth: Array<{ month: string; count: number; principal: number }> = [];
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(now.getMonth() - 6);
+
+  const accountsByMonth = await prisma.circleAccount.groupBy({
+    by: ["createdAt"],
+    where: { circleId, createdAt: { gte: sixMonthsAgo } },
+    _count: true,
+    _sum: { principalAmount: true },
+    orderBy: { createdAt: "asc" },
+  });
+
+  const monthMap = new Map<string, { count: number; principal: number }>();
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    monthMap.set(key, { count: 0, principal: 0 });
+  }
+
+  for (const item of accountsByMonth) {
+    const d = new Date(item.createdAt);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const existing = monthMap.get(key) || { count: 0, principal: 0 };
+    existing.count += item._count;
+    existing.principal += item._sum?.principalAmount || 0;
+    monthMap.set(key, existing);
+  }
+
+  for (const [key, val] of monthMap.entries()) {
+    const [year, month] = key.split("-");
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    monthlyGrowth.push({
+      month: `${monthNames[parseInt(month) - 1]} ${year}`,
+      count: val.count,
+      principal: Math.round(val.principal * 100) / 100,
+    });
+  }
+
+  const statusDistribution = [
+    { status: "active", count: subscribed, label: "Active" },
+    { status: "matured", count: matured, label: "Matured" },
+    { status: "withdrawn", count: withdrawn, label: "Withdrawn" },
+    { status: "early_withdrawn", count: earlyWithdrawn, label: "Early Withdrawn" },
+  ];
 
   return {
     circle,
@@ -1251,6 +1342,102 @@ export async function getCircleAnalytics(circleId: string) {
       totalPrincipal: totals._sum.principalAmount || 0,
       totalInterest: totals._sum.interestEarned || 0,
       totalMaturityValue: (totals._sum.principalAmount || 0) + (totals._sum.interestEarned || 0),
+      avgPrincipal: totals._avg.principalAmount || 0,
+      avgInterest: totals._avg.interestEarned || 0,
+      earlyWithdrawn,
+      withdrawn,
+      totalDefaults,
+      outstandingDefaults,
+      clearedDefaults,
+      totalContributions,
+      defaultRate: totalDefaults > 0 ? Math.round((outstandingDefaults / totalDefaults) * 100) : 0,
     },
+    monthlyGrowth,
+    statusDistribution,
+    recentAccounts,
+    interestLogs,
+  };
+}
+
+export async function getCircleAccountsPaginated(circleId: string, params: {
+  page?: number;
+  limit?: number;
+  status?: string;
+}) {
+  const { page = 1, limit = 20, status } = params;
+  const where: Record<string, unknown> = { circleId };
+  if (status) where.status = status;
+
+  const [items, total] = await Promise.all([
+    prisma.circleAccount.findMany({
+      where,
+      include: {
+        user: { select: { id: true, name: true, email: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.circleAccount.count({ where }),
+  ]);
+
+  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+}
+
+export async function getCircleInterestBreakdown(circleId: string) {
+  const now = new Date();
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(now.getDate() - 30);
+
+  const [logs, totalInterest] = await Promise.all([
+    prisma.circleInterestLog.findMany({
+      where: {
+        circleAccount: { circleId },
+        calculatedAt: { gte: thirtyDaysAgo },
+      },
+      include: {
+        circleAccount: {
+          include: {
+            user: { select: { id: true, name: true, email: true } },
+          },
+        },
+      },
+      orderBy: { calculatedAt: "desc" },
+      take: 50,
+    }),
+    prisma.circleInterestLog.aggregate({
+      where: { circleAccount: { circleId } },
+      _sum: { amount: true },
+      _count: true,
+      _avg: { amount: true },
+    }),
+  ]);
+
+  const dailyInterest: Array<{ date: string; amount: number }> = [];
+  const dayMap = new Map<string, number>();
+
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().split("T")[0];
+    dayMap.set(key, 0);
+  }
+
+  for (const log of logs) {
+    const key = log.calculatedAt.toISOString().split("T")[0];
+    const existing = dayMap.get(key) || 0;
+    dayMap.set(key, existing + log.amount);
+  }
+
+  for (const [key, val] of dayMap.entries()) {
+    dailyInterest.push({ date: key, amount: Math.round(val * 100) / 100 });
+  }
+
+  return {
+    logs,
+    totalInterest: totalInterest._sum.amount || 0,
+    totalLogs: totalInterest._count,
+    avgInterestPerLog: totalInterest._avg.amount || 0,
+    dailyInterest,
   };
 }

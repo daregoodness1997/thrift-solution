@@ -212,6 +212,29 @@ adminRouter.get("/transactions/stats", requireAdmin, async (_req, res) => {
   }
 });
 
+adminRouter.get("/transactions/:id", requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const transaction = await prisma.transaction.findUnique({
+      where: { id },
+      include: {
+        donation: true,
+        user: {
+          select: { id: true, name: true, email: true },
+        },
+      },
+    });
+    if (!transaction) {
+      res.status(404).json({ success: false, error: "Transaction not found" });
+      return;
+    }
+    res.json({ success: true, data: transaction });
+  } catch (err) {
+    console.error("Admin transaction detail error:", err);
+    res.status(500).json({ success: false, error: "Failed to fetch transaction" });
+  }
+});
+
 /* ---------------- Referral earnings ---------------- */
 
 adminRouter.get("/referrals", requireAdmin, async (req, res) => {

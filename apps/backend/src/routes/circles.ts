@@ -32,6 +32,8 @@ import {
   getCircleAddons,
   updateCircleAddon,
   deleteCircleAddon,
+  getCircleAccountsPaginated,
+  getCircleInterestBreakdown,
 } from "@thrift/db";
 import { prisma } from "@thrift/db";
 import { getPaymentProvider } from "../services/payments";
@@ -577,5 +579,28 @@ circlesRouter.delete("/:id/addons/:addonId", adminMiddleware, async (req, res) =
   } catch (err) {
     console.error("Delete circle addon error:", err);
     res.status(500).json({ success: false, error: "Failed to delete circle addon" });
+  }
+});
+
+circlesRouter.get("/:id/accounts-list", adminMiddleware, async (req, res) => {
+  try {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 20;
+    const status = req.query.status as string | undefined;
+    const result = await getCircleAccountsPaginated(req.params.id, { page, limit, status });
+    res.json({ success: true, data: result });
+  } catch (err) {
+    console.error("Get circle accounts error:", err);
+    res.status(500).json({ success: false, error: "Failed to fetch circle accounts" });
+  }
+});
+
+circlesRouter.get("/:id/interest-breakdown", adminMiddleware, async (req, res) => {
+  try {
+    const result = await getCircleInterestBreakdown(req.params.id);
+    res.json({ success: true, data: result });
+  } catch (err) {
+    console.error("Get interest breakdown error:", err);
+    res.status(500).json({ success: false, error: "Failed to fetch interest breakdown" });
   }
 });

@@ -117,6 +117,7 @@ export default function AdminTransactionsPage() {
                     <th className="pb-3 text-left font-semibold">Status</th>
                     <th className="pb-3 text-left font-semibold">Date</th>
                     <th className="pb-3 text-left font-semibold">Reference</th>
+                    <th className="pb-3 text-right font-semibold"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -131,6 +132,14 @@ export default function AdminTransactionsPage() {
                       <td className="py-3"><StatusBadge status={t.status} /></td>
                       <td className="py-3 text-gray-500">{formatDate(new Date(t.createdAt))}</td>
                       <td className="py-3 font-mono text-[10px] text-gray-500">{t.reference || "—"}</td>
+                      <td className="py-3 text-right">
+                        <button
+                          onClick={() => router.push(`/admin/transactions/${t.id}`)}
+                          className="cursor-pointer rounded-md border border-gray-200 bg-white px-3 py-1 text-[10px] font-semibold text-brand-dark transition-colors hover:bg-gray-50"
+                        >
+                          View
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

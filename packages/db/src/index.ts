@@ -180,6 +180,8 @@ export {
   getCircleAddons,
   updateCircleAddon,
   deleteCircleAddon,
+  getCircleAccountsPaginated,
+  getCircleInterestBreakdown,
 } from "./services/circles";
 
 export {
