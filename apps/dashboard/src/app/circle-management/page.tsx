@@ -28,6 +28,7 @@ interface Circle {
   blockPayoutOnDefault: boolean;
   status: string;
   _count?: { accounts: number };
+  addons?: Array<{ id: string; name: string; estimatedCost: number }>;
 }
 
 function formatDuration(months: number) {
@@ -226,6 +227,7 @@ export default function CircleManagementPage() {
                     <th className="pb-3 text-left font-semibold">Payout</th>
                     <th className="pb-3 text-left font-semibold">Max/User</th>
                     <th className="pb-3 text-left font-semibold">Subscribers</th>
+                    <th className="pb-3 text-left font-semibold">Addons</th>
                     <th className="pb-3 text-right font-semibold">Status</th>
                     <th className="pb-3 text-right font-semibold">Actions</th>
                   </tr>
@@ -268,6 +270,25 @@ export default function CircleManagementPage() {
                         {circle._count?.accounts || 0}
                         {circle.maxSubscribers != null && (
                           <span className="text-gray-400"> / {circle.maxSubscribers}</span>
+                        )}
+                      </td>
+                      <td className="py-3">
+                        {circle.addons && circle.addons.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {circle.addons.slice(0, 2).map((a) => (
+                              <span key={a.id} className="rounded-md px-2 py-0.5 font-mono text-[9px] font-bold"
+                                style={{ backgroundColor: "#FEF3C7", color: "#D97706", border: "1px solid #FDE68A" }}>
+                                {a.name}
+                              </span>
+                            ))}
+                            {circle.addons.length > 2 && (
+                              <span className="rounded-md px-2 py-0.5 font-mono text-[9px] text-gray-500">
+                                +{circle.addons.length - 2} more
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-[11px] text-gray-400">—</span>
                         )}
                       </td>
                       <td className="py-3 text-right">

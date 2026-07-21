@@ -2,6 +2,53 @@ import nodeCrypto from "node:crypto";
 import { prisma } from "./prisma";
 import { getWalletBalance } from "./wallet";
 
+export async function createCircleAddon(data: {
+  circleId: string;
+  name: string;
+  description?: string;
+  quantity?: number;
+  estimatedCost: number;
+  imageUrl?: string;
+}) {
+  return prisma.circleAddon.create({
+    data: {
+      circleId: data.circleId,
+      name: data.name,
+      description: data.description,
+      quantity: data.quantity ?? 1,
+      estimatedCost: data.estimatedCost,
+      imageUrl: data.imageUrl,
+    },
+  });
+}
+
+export async function getCircleAddons(circleId: string) {
+  return prisma.circleAddon.findMany({
+    where: { circleId, status: "active" },
+    orderBy: { createdAt: "asc" },
+  });
+}
+
+export async function updateCircleAddon(id: string, data: {
+  name?: string;
+  description?: string;
+  quantity?: number;
+  estimatedCost?: number;
+  imageUrl?: string;
+  status?: string;
+}) {
+  return prisma.circleAddon.update({
+    where: { id },
+    data,
+  });
+}
+
+export async function deleteCircleAddon(id: string) {
+  return prisma.circleAddon.delete({
+    where: { id },
+  });
+}
+
 export async function createCircle(data: {
   name: string;
   description?: string;
@@ -82,7 +129,10 @@ function resolvePayoutMode(payoutMode?: string, autoPayout?: boolean): string {
 export async function getCircleById(id: string) {
   return prisma.circle.findUnique({
     where: { id },
-    include: { _count: { select: { accounts: true } } },
+    include: { 
+      _count: { select: { accounts: true } },
+      addons: { where: { status: "active" }, orderBy: { createdAt: "asc" } },
+    },
   });
 }
 
@@ -98,7 +148,10 @@ export async function getAllCircles(params: {
   const [items, total] = await Promise.all([
     prisma.circle.findMany({
       where,
-      include: { _count: { select: { accounts: true } } },
+      include: { 
+        _count: { select: { accounts: true } },
+        addons: { where: { status: "active" }, select: { id: true, name: true, estimatedCost: true } },
+      },
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * limit,
       take: limit,

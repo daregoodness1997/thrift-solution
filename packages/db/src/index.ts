@@ -176,6 +176,10 @@ export {
   getDefaultsByUser,
   clearCircleDefault,
   getCircleAnalytics,
+  createCircleAddon,
+  getCircleAddons,
+  updateCircleAddon,
+  deleteCircleAddon,
 } from "./services/circles";
 
 export {

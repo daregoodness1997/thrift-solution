@@ -28,6 +28,10 @@ import {
   getDefaultsByUser,
   clearCircleDefault,
   getCircleAnalytics,
+  createCircleAddon,
+  getCircleAddons,
+  updateCircleAddon,
+  deleteCircleAddon,
 } from "@thrift/db";
 import { prisma } from "@thrift/db";
 import { getPaymentProvider } from "../services/payments";
@@ -512,5 +516,66 @@ circlesRouter.post("/admin/payout-requests/:id/mark-disbursed", adminMiddleware,
     const message = err instanceof Error ? err.message : "Failed to mark payout request as disbursed";
     console.error("Mark disbursed error:", err);
     res.status(400).json({ success: false, error: message });
+  }
+});
+
+circlesRouter.get("/:id/addons", authMiddleware, async (req, res) => {
+  try {
+    const addons = await getCircleAddons(req.params.id);
+    res.json({ success: true, data: addons });
+  } catch (err) {
+    console.error("Get circle addons error:", err);
+    res.status(500).json({ success: false, error: "Failed to fetch circle addons" });
+  }
+});
+
+circlesRouter.post("/:id/addons", adminMiddleware, async (req, res) => {
+  try {
+    const { name, description, quantity, estimatedCost, imageUrl } = req.body;
+    if (!name || estimatedCost == null) {
+      res.status(400).json({ success: false, error: "name and estimatedCost are required" });
+      return;
+    }
+    const addon = await createCircleAddon({
+      circleId: req.params.id,
+      name,
+      description,
+      quantity: quantity ?? 1,
+      estimatedCost: Number(estimatedCost),
+      imageUrl,
+    });
+    res.status(201).json({ success: true, data: addon });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to create circle addon";
+    console.error("Create circle addon error:", err);
+    res.status(400).json({ success: false, error: message });
+  }
+});
+
+circlesRouter.put("/:id/addons/:addonId", adminMiddleware, async (req, res) => {
+  try {
+    const { name, description, quantity, estimatedCost, imageUrl, status } = req.body;
+    const addon = await updateCircleAddon(req.params.addonId, {
+      name,
+      description,
+      quantity: quantity != null ? Number(quantity) : undefined,
+      estimatedCost: estimatedCost != null ? Number(estimatedCost) : undefined,
+      imageUrl,
+      status,
+    });
+    res.json({ success: true, data: addon });
+  } catch (err) {
+    console.error("Update circle addon error:", err);
+    res.status(500).json({ success: false, error: "Failed to update circle addon" });
+  }
+});
+
+circlesRouter.delete("/:id/addons/:addonId", adminMiddleware, async (req, res) => {
+  try {
+    await deleteCircleAddon(req.params.addonId);
+    res.json({ success: true, data: { id: req.params.addonId } });
+  } catch (err) {
+    console.error("Delete circle addon error:", err);
+    res.status(500).json({ success: false, error: "Failed to delete circle addon" });
   }
 });

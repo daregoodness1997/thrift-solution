@@ -28,6 +28,14 @@ interface CircleFormData {
   processingFeeValue: string;
 }
 
+interface AddonFormData {
+  name: string;
+  description: string;
+  quantity: string;
+  estimatedCost: string;
+  imageUrl: string;
+}
+
 const emptyForm: CircleFormData = {
   name: "",
   description: "",
@@ -58,6 +66,8 @@ export default function NewCirclePage() {
   const [cfg, setCfg] = useState<BrandConfig>(fallback);
   const [form, setForm] = useState<CircleFormData>(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [addons, setAddons] = useState<AddonFormData[]>([]);
+  const [showAddonForm, setShowAddonForm] = useState(false);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -111,6 +121,20 @@ export default function NewCirclePage() {
       });
       const data = await res.json();
       if (data.success) {
+        const circleId = data.data.id;
+        for (const addon of addons) {
+          await fetch(`${API_URL}/api/circles/${circleId}/addons`, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: addon.name,
+              description: addon.description || undefined,
+              quantity: Number(addon.quantity) || 1,
+              estimatedCost: Number(addon.estimatedCost),
+              imageUrl: addon.imageUrl || undefined,
+            }),
+          });
+        }
         toast.success("Circle created successfully");
         router.push("/circle-management");
       } else {
@@ -283,6 +307,101 @@ export default function NewCirclePage() {
                 style={{ width: "44px", height: "24px", borderRadius: "12px", border: "none", cursor: "pointer", position: "relative", backgroundColor: form.blockPayoutOnDefault ? "#059669" : "#D1D5DB" }}>
                 <span style={{ position: "absolute", top: "2px", left: form.blockPayoutOnDefault ? "22px" : "2px", width: "20px", height: "20px", borderRadius: "50%", backgroundColor: "#fff", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }} />
               </button>
+            </div>
+
+            <div>
+              <div className="mb-3 flex items-center justify-between">
+                <div>
+                  <label className="block text-[11px] font-semibold text-brand-dark">Maturity Addons (Rewards)</label>
+                  <p className="text-[11px] text-gray-500">Optional items members receive when circle matures (e.g., bag of rice, groundnut oil)</p>
+                </div>
+                <button type="button" onClick={() => setShowAddonForm(!showAddonForm)}
+                  className="cursor-pointer rounded-lg px-3 py-1.5 text-[11px] font-semibold"
+                  style={{ border: `1px solid ${cfg.colors.primary}30`, backgroundColor: `${cfg.colors.primary}08`, color: cfg.colors.primary }}>
+                  {showAddonForm ? "Cancel" : "+ Add Reward"}
+                </button>
+              </div>
+
+              {showAddonForm && (
+                <div className="mb-3 rounded-lg border border-gray-200 p-4">
+                  <div className="mb-3 grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Item Name *</label>
+                      <input type="text" id="addon-name" placeholder="e.g., Bag of Rice (10kg)"
+                        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-[13px] outline-none" />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Estimated Cost (₦) *</label>
+                      <input type="number" id="addon-cost" placeholder="e.g., 8000"
+                        className="w-full rounded-lg border border-gray-200 px-3 py-2 font-mono text-[13px] outline-none" />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Quantity</label>
+                      <input type="number" id="addon-qty" placeholder="1" defaultValue="1"
+                        className="w-full rounded-lg border border-gray-200 px-3 py-2 font-mono text-[13px] outline-none" />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Image URL (optional)</label>
+                      <input type="text" id="addon-image" placeholder="https://..."
+                        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-[13px] outline-none" />
+                    </div>
+                  </div>
+                  <div className="mb-3">
+                    <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Description</label>
+                    <textarea id="addon-desc" placeholder="Optional description" rows={2}
+                      className="w-full resize-y rounded-lg border border-gray-200 px-3 py-2 text-[13px] outline-none" />
+                  </div>
+                  <button type="button" onClick={() => {
+                    const nameEl = document.getElementById("addon-name") as HTMLInputElement;
+                    const costEl = document.getElementById("addon-cost") as HTMLInputElement;
+                    const qtyEl = document.getElementById("addon-qty") as HTMLInputElement;
+                    const imageEl = document.getElementById("addon-image") as HTMLInputElement;
+                    const descEl = document.getElementById("addon-desc") as HTMLTextAreaElement;
+                    if (!nameEl?.value || !costEl?.value) {
+                      toast.error("Item name and estimated cost are required");
+                      return;
+                    }
+                    setAddons([...addons, {
+                      name: nameEl.value,
+                      description: descEl?.value || "",
+                      quantity: qtyEl?.value || "1",
+                      estimatedCost: costEl.value,
+                      imageUrl: imageEl?.value || "",
+                    }]);
+                    nameEl.value = "";
+                    costEl.value = "";
+                    qtyEl.value = "1";
+                    imageEl.value = "";
+                    descEl.value = "";
+                    setShowAddonForm(false);
+                  }}
+                    className="cursor-pointer rounded-lg px-3 py-1.5 text-[11px] font-semibold"
+                    style={{ backgroundColor: cfg.colors.primary, color: "#fff" }}>
+                    Add to List
+                  </button>
+                </div>
+              )}
+
+              {addons.length > 0 && (
+                <div className="space-y-2">
+                  {addons.map((addon, idx) => (
+                    <div key={idx} className="flex items-center justify-between rounded-lg bg-gray-50 p-3">
+                      <div>
+                        <span className="block text-[12px] font-semibold text-brand-dark">{addon.name}</span>
+                        <span className="text-[11px] text-gray-500">
+                          Qty: {addon.quantity} × {formatNaira(Number(addon.estimatedCost))}
+                          {addon.description && ` — ${addon.description}`}
+                        </span>
+                      </div>
+                      <button type="button" onClick={() => setAddons(addons.filter((_, i) => i !== idx))}
+                        className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold"
+                        style={{ border: "1px solid #FECACA", backgroundColor: "#FEF2F2", color: "#DC2626" }}>
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {((form.cycleType === "deposit" && form.amount && form.durationMonths) || (form.cycleType === "weekly_contribution" && form.weeklyAmount && form.totalWeeks)) && form.interestRateAnnual && (
