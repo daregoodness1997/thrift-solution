@@ -5,6 +5,7 @@ import { Toaster } from "sonner";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { AdUnit } from "@/components/AdUnit";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -67,10 +68,22 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        {process.env.NEXT_PUBLIC_ADSENSE_PUB_ID && (
+          <script
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_PUB_ID}`}
+            crossOrigin="anonymous"
+          />
+        )}
+      </head>
       <body>
         <ScrollToTop />
         <SiteHeader />
         {children}
+        <div className="mx-auto max-w-7xl px-4 py-8">
+          <AdUnit slot="YOUR_AD_SLOT_ID" />
+        </div>
         <SiteFooter />
         <CookieConsent />
         <Toaster position="top-right" richColors />
