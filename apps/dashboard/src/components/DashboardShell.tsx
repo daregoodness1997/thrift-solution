@@ -200,6 +200,23 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   if (!user) return null;
 
+  const handleLogout = () => {
+    logout();
+    router.push("/login");
+  };
+
+  const handleWakeUp = async () => {
+    setWakeUpLoading(true);
+    setServerDown(false);
+    const success = await wakeUpServer();
+    setWakeUpLoading(false);
+    if (success) {
+      window.location.reload();
+    } else {
+      setServerDown(true);
+    }
+  };
+
   if (serverDown || wakeUpLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-brand-cream">
@@ -240,23 +257,6 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     .slice(0, 2);
 
   const displayName = user.name.split(" ")[0] + " " + (user.name.split(" ").slice(1)[0]?.[0] || "") + ".";
-
-  const handleLogout = () => {
-    logout();
-    router.push("/login");
-  };
-
-  const handleWakeUp = async () => {
-    setWakeUpLoading(true);
-    setServerDown(false);
-    const success = await wakeUpServer();
-    setWakeUpLoading(false);
-    if (success) {
-      window.location.reload();
-    } else {
-      setServerDown(true);
-    }
-  };
 
   return (
     <div className="flex min-h-screen bg-brand-cream">
