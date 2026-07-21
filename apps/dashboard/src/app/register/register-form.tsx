@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { config } from "@thrift/config";
+import PhoneInput from "@/components/PhoneInput";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const REG_FEE = parseInt(process.env.NEXT_PUBLIC_REGISTRATION_FEE || "4200", 10);
@@ -384,7 +385,7 @@ export default function RegisterForm() {
             <form onSubmit={handleBasic}>
               <TextField label="Full Name" icon={icons.user} type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Adaeze Nwankwo" autoComplete="name" />
               <TextField label="Email Address" icon={icons.mail} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="adaeze@email.com" autoComplete="email" />
-              <TextField label="Phone (optional)" icon={icons.phone} type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+234..." />
+              <PhoneInput label="Phone (optional)" value={phone} onChange={setPhone} placeholder="+234..." />
 
               <div className="mb-4">
                 <label className="block text-xs font-medium text-gray-700 mb-1.5">Password</label>
