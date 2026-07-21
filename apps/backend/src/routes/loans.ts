@@ -21,6 +21,8 @@ import {
   createAuditLog,
   findUserById,
   createTransaction,
+  updateTransactionPaymentUrl,
+  findTransactionByReference,
 } from "@thrift/db";
 
 export const loansRouter = Router();
@@ -270,6 +272,12 @@ loansRouter.post("/:id/pay", authMiddleware, async (req, res) => {
       },
     });
 
+    // Store payment URL on transaction for later resumption
+    const txn = await findTransactionByReference(reference);
+    if (txn) {
+      await updateTransactionPaymentUrl(txn.id, paymentResult.authorizationUrl, provider);
+    }
+
     res.status(201).json({
       success: true,
       data: { authorizationUrl: paymentResult.authorizationUrl, reference, amount },
@@ -383,6 +391,12 @@ loansRouter.post("/:id/liquidate", authMiddleware, async (req, res) => {
       callbackUrl,
       metadata: { loanId: loan.id, borrowerId: req.user!.userId, provider, scope: "liquidation" },
     });
+
+    // Store payment URL on transaction for later resumption
+    const txn = await findTransactionByReference(reference);
+    if (txn) {
+      await updateTransactionPaymentUrl(txn.id, paymentResult.authorizationUrl, provider);
+    }
 
     res.status(201).json({
       success: true,

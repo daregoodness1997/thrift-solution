@@ -72,9 +72,27 @@ export async function findTransactionByReference(reference: string) {
   return prisma.transaction.findUnique({ where: { reference } });
 }
 
+export async function findTransactionById(id: string) {
+  return prisma.transaction.findUnique({ where: { id } });
+}
+
 export async function updateTransactionStatus(id: string, status: string) {
   return prisma.transaction.update({
     where: { id },
     data: { status },
+  });
+}
+
+export async function updateTransactionPaymentUrl(id: string, paymentUrl: string, paymentProvider: string) {
+  return prisma.transaction.update({
+    where: { id },
+    data: { paymentUrl, paymentProvider },
+  });
+}
+
+export async function getPendingTransactions(userId: string) {
+  return prisma.transaction.findMany({
+    where: { userId, status: "pending", paymentUrl: { not: null } },
+    orderBy: { createdAt: "desc" },
   });
 }

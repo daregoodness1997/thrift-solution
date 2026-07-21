@@ -180,6 +180,8 @@ model Transaction {
   status       String    @default("pending")
   description  String?
   metadata     Json?
+  paymentUrl   String?   @map("payment_url")
+  paymentProvider String? @map("payment_provider")
   reversalOf   String?   @map("reversal_of")
   reversedAt   DateTime? @map("reversed_at")
   deletedAt    DateTime? @map("deleted_at")

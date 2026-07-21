@@ -350,50 +350,6 @@ export default function EditCirclePage() {
                     )}
                   </div>
                 </div>
-                <div className="rounded-lg border border-gray-200 p-4">
-                  <div className="mb-2">
-                    <label className="block text-[11px] font-semibold text-brand-dark">Default Penalty</label>
-                    <p className="text-[11px] text-gray-500">Extra charge applied when a weekly payment is missed</p>
-                  </div>
-                  <div className="grid grid-cols-3 gap-3">
-                    <div>
-                      <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Type</label>
-                      <select value={form.defaultPenaltyType} onChange={(e) => setForm((p) => ({ ...p!, defaultPenaltyType: e.target.value as "percent" | "fixed" }))}
-                        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-[13px] outline-none">
-                        <option value="percent">Percent (%)</option>
-                        <option value="fixed">Fixed (₦)</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Value</label>
-                      <input type="number" step="0.01" value={form.defaultPenaltyValue} onChange={(e) => setForm((p) => ({ ...p!, defaultPenaltyValue: e.target.value }))}
-                        placeholder={form.defaultPenaltyType === "percent" ? "e.g. 100" : "e.g. 500"}
-                        className="w-full rounded-lg border border-gray-200 px-3 py-2 font-mono text-[13px] outline-none" />
-                    </div>
-                    <div>
-                      <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Clearance Cost</label>
-                      <div className="rounded-lg bg-gray-50 px-3 py-2 font-mono text-[13px]">
-                        {(() => {
-                          const weekly = Number(form.weeklyAmount) || 0;
-                          const val = Number(form.defaultPenaltyValue) || 0;
-                          if (weekly <= 0) return "—";
-                          const clearance = form.defaultPenaltyType === "percent"
-                            ? weekly * (1 + val / 100)
-                            : weekly + val;
-                          return formatNaira(Math.round(clearance * 100) / 100);
-                        })()}
-                      </div>
-                    </div>
-                  </div>
-                  <p className="mt-2 text-[10px] text-gray-400">
-                    {form.defaultPenaltyType === "percent" && Number(form.defaultPenaltyValue) === 100
-                      ? "At 100%, clearance = 2× the missed weekly amount (current behavior)"
-                      : `Clearance = weekly amount + ${form.defaultPenaltyType === "percent" ? `${form.defaultPenaltyValue}%` : formatNaira(Number(form.defaultPenaltyValue) || 0)}`}
-                  </p>
-                </div>
-                <p className="rounded-lg bg-blue-50 px-3 py-2 text-[11px] text-blue-700">
-                  Missed weekly debits create a default with configurable penalty clearance.
-                </p>
               </>
             )}
 
@@ -458,15 +414,62 @@ export default function EditCirclePage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between rounded-lg bg-gray-50 p-4">
-              <div>
-                <span className="block text-[12px] font-semibold text-brand-dark">Block Payout on Default</span>
-                <span className="text-[11px] text-gray-500">{form.blockPayoutOnDefault ? "Outstanding defaults block maturity payouts" : "Payouts proceed regardless of defaults"}</span>
+            <div className="rounded-xl border border-gray-200 p-5">
+              <div className="mb-4">
+                <label className="block text-[11px] font-semibold text-brand-dark">Defaults & Penalties</label>
+                <p className="text-[11px] text-gray-500">Configure what happens when weekly contributions are missed</p>
               </div>
-              <button type="button" onClick={() => setForm((p) => ({ ...p!, blockPayoutOnDefault: !p!.blockPayoutOnDefault }))}
-                style={{ width: "44px", height: "24px", borderRadius: "12px", border: "none", cursor: "pointer", position: "relative", backgroundColor: form.blockPayoutOnDefault ? "#059669" : "#D1D5DB" }}>
-                <span style={{ position: "absolute", top: "2px", left: form.blockPayoutOnDefault ? "22px" : "2px", width: "20px", height: "20px", borderRadius: "50%", backgroundColor: "#fff", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }} />
-              </button>
+
+              <div className="mb-4 flex items-center justify-between rounded-lg bg-gray-50 p-3">
+                <div>
+                  <span className="block text-[12px] font-semibold text-brand-dark">Block Payout on Default</span>
+                  <span className="text-[11px] text-gray-500">{form.blockPayoutOnDefault ? "Outstanding defaults block maturity payouts" : "Payouts proceed regardless of defaults"}</span>
+                </div>
+                <button type="button" onClick={() => setForm((p) => ({ ...p!, blockPayoutOnDefault: !p!.blockPayoutOnDefault }))}
+                  style={{ width: "44px", height: "24px", borderRadius: "12px", border: "none", cursor: "pointer", position: "relative", backgroundColor: form.blockPayoutOnDefault ? "#059669" : "#D1D5DB" }}>
+                  <span style={{ position: "absolute", top: "2px", left: form.blockPayoutOnDefault ? "22px" : "2px", width: "20px", height: "20px", borderRadius: "50%", backgroundColor: "#fff", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }} />
+                </button>
+              </div>
+
+              {form.cycleType === "weekly_contribution" && (
+                <>
+                  <div className="mb-3 grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Penalty Type</label>
+                      <select value={form.defaultPenaltyType} onChange={(e) => setForm((p) => ({ ...p!, defaultPenaltyType: e.target.value as "percent" | "fixed" }))}
+                        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-[13px] outline-none">
+                        <option value="percent">Percent (%)</option>
+                        <option value="fixed">Fixed (₦)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Penalty Value</label>
+                      <input type="number" step="0.01" value={form.defaultPenaltyValue} onChange={(e) => setForm((p) => ({ ...p!, defaultPenaltyValue: e.target.value }))}
+                        placeholder={form.defaultPenaltyType === "percent" ? "e.g. 100" : "e.g. 500"}
+                        className="w-full rounded-lg border border-gray-200 px-3 py-2 font-mono text-[13px] outline-none" />
+                    </div>
+                    <div>
+                      <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Clearance Cost</label>
+                      <div className="rounded-lg bg-gray-50 px-3 py-2 font-mono text-[13px]">
+                        {(() => {
+                          const weekly = Number(form.weeklyAmount) || 0;
+                          const val = Number(form.defaultPenaltyValue) || 0;
+                          if (weekly <= 0) return "—";
+                          const clearance = form.defaultPenaltyType === "percent"
+                            ? weekly * (1 + val / 100)
+                            : weekly + val;
+                          return formatNaira(Math.round(clearance * 100) / 100);
+                        })()}
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-gray-400">
+                    {form.defaultPenaltyType === "percent" && Number(form.defaultPenaltyValue) === 100
+                      ? "At 100%, clearance = 2× the missed weekly amount"
+                      : `Clearance = weekly amount + ${form.defaultPenaltyType === "percent" ? `${form.defaultPenaltyValue}%` : formatNaira(Number(form.defaultPenaltyValue) || 0)}`}
+                  </p>
+                </>
+              )}
             </div>
 
             <div>

@@ -15,6 +15,8 @@ import {
   findGroupById,
   findTransactionByReference,
   updateTransactionStatus,
+  getPendingDonations,
+  updateDonationPaymentUrl,
 } from "@thrift/db";
 
 export const donationsRouter = Router();
@@ -344,6 +346,75 @@ donationsRouter.get("/verify/:reference", authMiddleware, async (req, res) => {
   } catch (err) {
     console.error("Verify payment error:", err);
     res.status(500).json({ success: false, error: "Payment verification failed" });
+  }
+});
+
+// Get pending donations for current user
+donationsRouter.get("/pending", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user!.userId;
+    const pendingDonations = await getPendingDonations(userId);
+
+    res.json({
+      success: true,
+      data: pendingDonations.map((d) => ({
+        id: d.id,
+        reference: d.paymentReference,
+        amount: d.amount,
+        type: d.type,
+        status: d.status,
+        paymentUrl: d.paymentUrl,
+        paymentProvider: d.paymentProvider,
+        createdAt: d.createdAt,
+      })),
+    });
+  } catch (err) {
+    console.error("Get pending donations error:", err);
+    res.status(500).json({ success: false, error: "Failed to fetch pending donations" });
+  }
+});
+
+// Resume a pending donation (returns the payment URL)
+donationsRouter.post("/:id/resume", authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user!.userId;
+
+    const donation = await findDonationById(id);
+    if (!donation || donation.userId !== userId) {
+      res.status(404).json({ success: false, error: "Donation not found" });
+      return;
+    }
+
+    if (donation.status !== "pending") {
+      res.status(400).json({
+        success: false,
+        error: `Cannot resume donation with status: ${donation.status}`,
+      });
+      return;
+    }
+
+    if (!donation.paymentUrl) {
+      res.status(400).json({
+        success: false,
+        error: "No payment URL available for this donation",
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: {
+        donationId: donation.id,
+        reference: donation.paymentReference,
+        amount: donation.amount,
+        paymentUrl: donation.paymentUrl,
+        paymentProvider: donation.paymentProvider,
+      },
+    });
+  } catch (err) {
+    console.error("Resume donation error:", err);
+    res.status(500).json({ success: false, error: "Failed to resume donation" });
   }
 });
 

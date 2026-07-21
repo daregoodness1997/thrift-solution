@@ -31,6 +31,20 @@ export async function updateDonationStatus(id: string, status: string) {
   return prisma.donation.update({ where: { id }, data: { status } });
 }
 
+export async function updateDonationPaymentUrl(id: string, paymentUrl: string, paymentProvider: string) {
+  return prisma.donation.update({
+    where: { id },
+    data: { paymentUrl, paymentProvider },
+  });
+}
+
+export async function getPendingDonations(userId: string) {
+  return prisma.donation.findMany({
+    where: { userId, status: "pending", paymentUrl: { not: null } },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
 export async function getUserDonations(userId: string, opts?: { limit?: number; offset?: number; type?: string }) {
   const limit = opts?.limit ?? 50;
   const offset = opts?.offset ?? 0;

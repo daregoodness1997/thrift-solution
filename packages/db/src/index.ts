@@ -26,6 +26,8 @@ export {
   findDonationById,
   findDonationByReference,
   updateDonationStatus,
+  updateDonationPaymentUrl,
+  getPendingDonations,
   getUserDonations,
   getDonationStats,
 } from "./services/donations";
@@ -38,7 +40,10 @@ export {
   getUserTransactionsFiltered,
   fundWallet,
   findTransactionByReference,
+  findTransactionById,
   updateTransactionStatus,
+  updateTransactionPaymentUrl,
+  getPendingTransactions,
 } from "./services/transactions";
 
 export {

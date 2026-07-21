@@ -11,6 +11,7 @@ import {
   setEmailVerified,
   setRegistrationProgress,
   prisma,
+  updateTransactionPaymentUrl,
 } from "@thrift/db";
 import { signToken, authMiddleware } from "../middleware/auth";
 import { issueOtp, verifyOtp } from "../services/auth/otp";
@@ -236,6 +237,12 @@ registrationRouter.post("/payment/initialize", authMiddleware, async (req, res) 
       metadata: { type: "registration_fee", userId: user.id },
       callbackUrl: `${DASHBOARD_URL}/register?reference=${encodeURIComponent(reference)}`,
     });
+
+    // Store payment URL on transaction for later resumption
+    const transaction = await prisma.transaction.findUnique({ where: { reference } });
+    if (transaction) {
+      await updateTransactionPaymentUrl(transaction.id, result.authorizationUrl, REGISTRATION_PROVIDER);
+    }
 
     await setRegistrationProgress(user.id, { step: 2 });
 

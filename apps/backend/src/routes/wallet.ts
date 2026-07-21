@@ -6,9 +6,12 @@ import {
   createTransaction,
   findUserById,
   findTransactionByReference,
+  findTransactionById,
   updateTransactionStatus,
+  updateTransactionPaymentUrl,
   getWalletBalance,
   getWalletBreakdown,
+  getPendingTransactions,
 } from "@thrift/db";
 
 export const walletRouter = Router();
@@ -90,6 +93,9 @@ walletRouter.post("/fund", authMiddleware, async (req, res) => {
       callbackUrl,
       metadata: { transactionId: transaction.id, userId, type: "wallet_funding" },
     });
+
+    // Store payment URL on transaction for later resumption
+    await updateTransactionPaymentUrl(transaction.id, paymentResult.authorizationUrl, provider);
 
     res.status(201).json({
       success: true,
@@ -212,5 +218,74 @@ walletRouter.post("/webhook/nomba", async (req, res) => {
   } catch (err) {
     console.error("Nomba webhook error:", err);
     res.sendStatus(500);
+  }
+});
+
+// Get pending transactions for current user
+walletRouter.get("/pending", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user!.userId;
+    const pendingTransactions = await getPendingTransactions(userId);
+
+    res.json({
+      success: true,
+      data: pendingTransactions.map((tx) => ({
+        id: tx.id,
+        reference: tx.reference,
+        amount: tx.amount,
+        type: tx.type,
+        status: tx.status,
+        paymentUrl: tx.paymentUrl,
+        paymentProvider: tx.paymentProvider,
+        createdAt: tx.createdAt,
+      })),
+    });
+  } catch (err) {
+    console.error("Get pending transactions error:", err);
+    res.status(500).json({ success: false, error: "Failed to fetch pending transactions" });
+  }
+});
+
+// Resume a pending transaction (returns the payment URL)
+walletRouter.post("/:id/resume", authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user!.userId;
+
+    const transaction = await findTransactionById(id);
+    if (!transaction || transaction.userId !== userId) {
+      res.status(404).json({ success: false, error: "Transaction not found" });
+      return;
+    }
+
+    if (transaction.status !== "pending") {
+      res.status(400).json({
+        success: false,
+        error: `Cannot resume transaction with status: ${transaction.status}`,
+      });
+      return;
+    }
+
+    if (!transaction.paymentUrl) {
+      res.status(400).json({
+        success: false,
+        error: "No payment URL available for this transaction",
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: {
+        transactionId: transaction.id,
+        reference: transaction.reference,
+        amount: transaction.amount,
+        paymentUrl: transaction.paymentUrl,
+        paymentProvider: transaction.paymentProvider,
+      },
+    });
+  } catch (err) {
+    console.error("Resume transaction error:", err);
+    res.status(500).json({ success: false, error: "Failed to resume transaction" });
   }
 });
