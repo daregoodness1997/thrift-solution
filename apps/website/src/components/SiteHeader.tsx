@@ -46,12 +46,14 @@ const platformLinks = [
 
 const navLinks = [
   { label: "How It Works", href: "/how-it-works" },
-  { label: "Pricing", href: "/pricing" },
+  // { label: "Pricing", href: "/pricing" },
   { label: "About", href: "/about" },
   { label: "Donate", href: "/donate" },
 ];
 
-const DASHBOARD_URL = process.env.NEXT_PUBLIC_DASHBOARD_URL || "http://localhost:3001";
+export const DASHBOARD_URL =
+  process.env.NEXT_PUBLIC_DASHBOARD_URL ||
+  "https://app.globalfreedomworldwide.com";
 
 export function SiteHeader() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
