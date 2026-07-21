@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { config, BrandConfig } from "@thrift/config";
 import {
@@ -21,6 +21,7 @@ import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
 import { Skeleton, SkeletonCard } from "@/components/Skeleton";
 import { PaymentModal } from "@/components/PaymentModal";
+import { fetchDeduped } from "@/lib/fetch-cache";
 
 const fallback = config;
 
@@ -112,6 +113,7 @@ export default function Dashboard() {
     transfersCredited: number;
     message: string;
   } | null>(null);
+  const hasFetchedDataRef = useRef(false);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -130,8 +132,7 @@ export default function Dashboard() {
   }, [user, router]);
 
   useEffect(() => {
-    fetch(`${API_URL}/api/config`)
-      .then((r) => r.json())
+    fetchDeduped(`${API_URL}/api/config`, undefined, 300_000)
       .then((data) => {
         if (data && data.name) setCfg((prev) => ({ ...prev, ...data }));
       })
@@ -144,32 +145,23 @@ export default function Dashboard() {
       return;
     }
     try {
-      const [profileRes, txRes, circlesRes, referralRes, vaRes] =
-        await Promise.all([
-          fetch(`${API_URL}/api/user/profile`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch(`${API_URL}/api/transactions?limit=5`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch(`${API_URL}/api/circles/accounts/my`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch(`${API_URL}/api/referrals/code`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch(`${API_URL}/api/virtual-accounts`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-        ]);
-
       const [profileData, txData, circlesData, referralData, vaData] =
         await Promise.all([
-          profileRes.json(),
-          txRes.json(),
-          circlesRes.json(),
-          referralRes.json(),
-          vaRes.json(),
+          fetchDeduped(`${API_URL}/api/user/profile`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }, 60_000),
+          fetchDeduped(`${API_URL}/api/transactions?limit=5`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }, 30_000),
+          fetchDeduped(`${API_URL}/api/circles/accounts/my`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }, 60_000),
+          fetchDeduped(`${API_URL}/api/referrals/code`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }, 120_000),
+          fetchDeduped(`${API_URL}/api/virtual-accounts`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }, 120_000),
         ]);
 
       if (profileData.success) {
@@ -185,7 +177,10 @@ export default function Dashboard() {
   }, [token, API_URL]);
 
   useEffect(() => {
-    fetchData();
+    if (!hasFetchedDataRef.current) {
+      hasFetchedDataRef.current = true;
+      fetchData();
+    }
   }, [fetchData]);
 
   const handleWalletFunding = async () => {

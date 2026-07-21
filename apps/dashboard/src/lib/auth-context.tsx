@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from "react";
+import { fetchDeduped } from "./fetch-cache";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -36,6 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const refreshTimeoutRef = useState<{ current: ReturnType<typeof setTimeout> | null }>({ current: null })[0];
+  const hasFetchedUserRef = useRef(false);
 
   const clearRefreshTimer = useCallback(() => {
     if (refreshTimeoutRef.current) {
@@ -80,10 +82,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUser = useCallback(async (tk: string) => {
     try {
-      const res = await fetch(`${API_URL}/api/auth/me`, {
+      const data = await fetchDeduped(`${API_URL}/api/auth/me`, {
         headers: { Authorization: `Bearer ${tk}` },
-      });
-      const data = await res.json();
+      }, 60_000);
       if (data.success && data.data) {
         setUser(data.data);
       } else {
@@ -103,13 +104,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const stored = localStorage.getItem("token");
     const storedRefreshToken = localStorage.getItem("refreshToken");
-    if (stored) {
+    if (stored && !hasFetchedUserRef.current) {
+      hasFetchedUserRef.current = true;
       setToken(stored);
       fetchUser(stored).finally(() => setLoading(false));
       if (storedRefreshToken) {
         scheduleTokenRefresh();
       }
-    } else {
+    } else if (!stored) {
       setLoading(false);
     }
     return () => clearRefreshTimer();

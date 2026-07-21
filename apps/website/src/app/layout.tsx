@@ -13,7 +13,8 @@ export const metadata: Metadata = {
     default: "GFW — Global Freedom Worldwide",
     template: "%s | GFW",
   },
-  description: "Global Freedom Worldwide — community savings, collective prosperity. Digital platform for traditional communal thrift savings (Ajo).",
+  description:
+    "Global Freedom Worldwide — community savings, collective prosperity. Digital platform for traditional communal thrift savings.",
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
@@ -35,7 +36,8 @@ export const metadata: Metadata = {
     url: "https://globalfreedomworldwide.com",
     siteName: "Global Freedom Worldwide",
     title: "GFW — Global Freedom Worldwide",
-    description: "Community savings, collective prosperity. Digital platform for traditional communal thrift savings (Ajo).",
+    description:
+      "Community savings, collective prosperity. Digital platform for traditional communal thrift savings (Ajo).",
     images: [
       {
         url: "/logo.png",

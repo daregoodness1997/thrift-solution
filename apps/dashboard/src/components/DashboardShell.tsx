@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { config } from "@thrift/config";
 import { useAuth } from "@/lib/auth-context";
 import { wakeUpServer } from "@/lib/wake-up";
 import { NotificationBell } from "@/components/NotificationBell";
+import { fetchDeduped } from "@/lib/fetch-cache";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -91,6 +92,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const [virtualAccount, setVirtualAccount] = useState<{ accountNumber: string; bankName: string } | null>(null);
   const [wakeUpLoading, setWakeUpLoading] = useState(false);
   const [serverDown, setServerDown] = useState(false);
+  const hasFetchedRef = useRef(false);
 
   const isAuthPage = AUTH_ROUTES.includes(pathname);
 
@@ -98,10 +100,9 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     if (!token) return;
     try {
       setNavLoading(true);
-      const res = await fetch(`${API_URL}/api/navigation`, {
+      const data = await fetchDeduped(`${API_URL}/api/navigation`, {
         headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
+      }, 120_000);
       if (data.success && data.data && data.data.length > 0) {
         setNavSections(data.data);
       } else if (isStaffRole(user?.role)) {
@@ -119,10 +120,9 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const fetchVirtualAccount = useCallback(async () => {
     if (!token) return;
     try {
-      const res = await fetch(`${API_URL}/api/virtual-accounts`, {
+      const data = await fetchDeduped(`${API_URL}/api/virtual-accounts`, {
         headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
+      }, 120_000);
       if (data.virtualAccounts && data.virtualAccounts.length > 0) {
         setVirtualAccount({
           accountNumber: data.virtualAccounts[0].accountNumber,
@@ -162,7 +162,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   }, [user, loading, isAuthPage, router, token]);
 
   useEffect(() => {
-    if (user && token) {
+    if (user && token && !hasFetchedRef.current) {
+      hasFetchedRef.current = true;
       fetchNavigation();
       fetchVirtualAccount();
     }
