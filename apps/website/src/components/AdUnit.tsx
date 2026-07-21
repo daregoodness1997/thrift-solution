@@ -22,6 +22,7 @@ export function AdUnit({
   fullWidthResponsive = true,
 }: AdUnitProps) {
   const pubId = process.env.NEXT_PUBLIC_ADSENSE_PUB_ID;
+  const slotId = process.env.NEXT_PUBLIC_ADSENSE_SLOT_ID || slot;
 
   useEffect(() => {
     try {
@@ -38,7 +39,7 @@ export function AdUnit({
       className={`adsbygoogle ${className}`}
       style={{ display: "block" }}
       data-ad-client={pubId}
-      data-ad-slot={slot}
+      data-ad-slot={slotId}
       data-ad-format={format}
       data-full-width-responsive={fullWidthResponsive}
     />
