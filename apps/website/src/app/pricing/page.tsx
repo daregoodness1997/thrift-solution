@@ -2,6 +2,12 @@ import { Check } from "lucide-react";
 import { formatNaira } from "@thrift/utils";
 import { Container, SectionHeading, Badge } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Pricing — GFW Circle Plans",
+  description: "Start free with up to 5 members. Upgrade for unlimited circles, secure escrow, and advanced analytics. Plans for every community.",
+};
 
 const plans = [
   {

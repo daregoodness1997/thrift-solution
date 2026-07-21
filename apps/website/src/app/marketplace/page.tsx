@@ -1,5 +1,11 @@
 import { Handshake, Wallet, Bell, ShieldCheck, Award, Megaphone } from "lucide-react";
 import { Container, SectionHeading, Badge } from "@/components/ui/Section";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Platform Features — Ajo Circles & Savings Tools",
+  description: "Explore GFW's features: Ajo circles, contribution tracking, smart reminders, secure escrow, trust scoring, and payout notifications.",
+};
 
 const features = [
   { icon: Handshake, title: "Ajo Circles", desc: "Create or join thrift groups with people you trust. Each circle has a fixed contribution amount and cycle schedule.", highlight: "Flexible group sizes" },

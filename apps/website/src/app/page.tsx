@@ -7,6 +7,16 @@ import { BentoSocialProof } from "@/components/sections/BentoSocialProof";
 import { Team } from "@/components/sections/Team";
 import { Faq } from "@/components/sections/Faq";
 import { Contact } from "@/components/sections/Contact";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "GFW — Community Savings & Collective Prosperity",
+  description: "Join trusted Ajo savings circles. Secure escrow, transparent tracking, and automated payouts for communal thrift savings in Nigeria.",
+  openGraph: {
+    title: "GFW — Community Savings & Collective Prosperity",
+    description: "Join trusted Ajo savings circles. Secure escrow, transparent tracking, and automated payouts.",
+  },
+};
 
 export default function Home() {
   return (

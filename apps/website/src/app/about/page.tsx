@@ -1,6 +1,12 @@
 import { formatNaira } from "@thrift/utils";
 import { Container, SectionHeading, Badge } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "About GFW — Our Story & Mission",
+  description: "Learn about Global Freedom Worldwide — modernizing traditional Ajo communal thrift savings with transparent tracking, secure escrow, and smart automation.",
+};
 
 const values = [
   { name: "Trust First", desc: "Built on the centuries-old Ajo tradition. Every feature reinforces accountability and reliability among circle members." },

@@ -1,4 +1,4 @@
-import { getUsersWithoutVirtualAccounts, createVirtualAccount, hasVirtualAccount } from "@thrift/db";
+import { getUsersWithoutVirtualAccounts, createVirtualAccount, hasVirtualAccount, getKycByUserId, isKycVerifiedForVirtualAccount } from "@thrift/db";
 import { getPaymentProvider } from "../services/payments";
 import { randomBytes } from "crypto";
 
@@ -31,6 +31,13 @@ export async function virtualAccountGenerationJob() {
       try {
         const hasAccount = await hasVirtualAccount(user.id);
         if (hasAccount) {
+          skipped++;
+          continue;
+        }
+
+        const kyc = await getKycByUserId(user.id);
+        if (!isKycVerifiedForVirtualAccount(kyc)) {
+          console.log(`[Virtual Account Job] Skipping user ${user.id} - KYC not verified with BVN and NIN`);
           skipped++;
           continue;
         }

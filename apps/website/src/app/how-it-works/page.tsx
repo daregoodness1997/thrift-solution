@@ -1,6 +1,12 @@
 import { Check } from "lucide-react";
 import { Container, SectionHeading, Badge } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "How GFW Works — Ajo Savings in 3 Simple Steps",
+  description: "Create or join a thrift circle, contribute each cycle, and collect your pot. Learn how GFW makes communal savings secure and transparent.",
+};
 
 const steps = [
   { step: "01", title: "Create or Join a Circle", description: "Start a thrift group with people you trust, or join an existing circle in your community. Set your contribution amount and cycle frequency.", details: ["Flexible contribution amounts", "Daily, weekly, or monthly cycles", "Invite members by link or code"] },

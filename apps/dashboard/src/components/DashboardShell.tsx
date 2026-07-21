@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { config } from "@thrift/config";
 import { useAuth } from "@/lib/auth-context";
+import { wakeUpServer } from "@/lib/wake-up";
 import { NotificationBell } from "@/components/NotificationBell";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -88,6 +89,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const [navSections, setNavSections] = useState<NavSection[]>([]);
   const [navLoading, setNavLoading] = useState(true);
   const [virtualAccount, setVirtualAccount] = useState<{ accountNumber: string; bankName: string } | null>(null);
+  const [wakeUpLoading, setWakeUpLoading] = useState(false);
+  const [serverDown, setServerDown] = useState(false);
 
   const isAuthPage = AUTH_ROUTES.includes(pathname);
 
@@ -147,6 +150,12 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   }, [user, loading, isAuthPage, router]);
 
   useEffect(() => {
+    if (!loading && !user && !isAuthPage && !wakeUpLoading) {
+      setServerDown(true);
+    }
+  }, [user, loading, isAuthPage, wakeUpLoading]);
+
+  useEffect(() => {
     if (!loading && user && user.role === "member" && !user.registrationFeePaid && !isAuthPage) {
       router.push(`/register?mode=pay&userId=${user.id}&email=${encodeURIComponent(user.email)}&token=${token}`);
     }
@@ -191,6 +200,38 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   if (!user) return null;
 
+  if (serverDown || wakeUpLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-brand-cream">
+        <div className="rounded-2xl bg-white p-10 shadow-lg text-center max-w-md">
+          {wakeUpLoading ? (
+            <>
+              <div className="mx-auto mb-6 h-16 w-16 animate-spin rounded-full border-4 border-brand-primary border-t-transparent" />
+              <h2 className="text-xl font-bold text-brand-dark">Waking up server...</h2>
+              <p className="mt-2 text-sm text-gray-500">Please wait while we bring the service online.</p>
+            </>
+          ) : (
+            <>
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" className="text-red-600">
+                  <path d="M18.364 5.636a9 9 0 11-12.728 0M12 8v4m0 4h.01" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold text-brand-dark">Server is asleep</h2>
+              <p className="mt-2 text-sm text-gray-500">The backend has spun down. Click below to wake it up.</p>
+              <button
+                onClick={handleWakeUp}
+                className="mt-6 cursor-pointer rounded-lg bg-brand-primary px-6 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
+              >
+                Wake Up Server
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   const initials = user.name
     .split(" ")
     .map((n) => n[0])
@@ -203,6 +244,18 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const handleLogout = () => {
     logout();
     router.push("/login");
+  };
+
+  const handleWakeUp = async () => {
+    setWakeUpLoading(true);
+    setServerDown(false);
+    const success = await wakeUpServer();
+    setWakeUpLoading(false);
+    if (success) {
+      window.location.reload();
+    } else {
+      setServerDown(true);
+    }
   };
 
   return (

@@ -8,8 +8,11 @@ import { ScrollToTop } from "@/components/ScrollToTop";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: config.name,
-  description: config.tagline,
+  title: {
+    default: "GFW — Global Freedom Worldwide",
+    template: "%s | GFW",
+  },
+  description: "Global Freedom Worldwide — community savings, collective prosperity. Digital platform for traditional communal thrift savings (Ajo).",
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
@@ -17,6 +20,40 @@ export const metadata: Metadata = {
       { url: "/favicon-192x192.png", type: "image/png", sizes: "192x192" },
     ],
     apple: "/apple-touch-icon.png",
+  },
+  metadataBase: new URL("https://globalfreedomworldwide.com"),
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_NG",
+    url: "https://globalfreedomworldwide.com",
+    siteName: "Global Freedom Worldwide",
+    title: "GFW — Global Freedom Worldwide",
+    description: "Community savings, collective prosperity. Digital platform for traditional communal thrift savings (Ajo).",
+    images: [
+      {
+        url: "/logo.png",
+        width: 1200,
+        height: 630,
+        alt: "GFW - Global Freedom Worldwide",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "GFW — Global Freedom Worldwide",
+    description: "Community savings, collective prosperity.",
+    images: ["/logo.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
   },
 };
 

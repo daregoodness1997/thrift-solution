@@ -15,6 +15,7 @@ import {
   hasVirtualAccount,
   setUserIdentity,
   setRegistrationProgress,
+  isKycVerifiedForVirtualAccount,
 } from "@thrift/db";
 import { creditChek, normaliseCreditReport } from "./creditchek";
 import { getPaymentProvider, resolveVirtualAccount } from "./payments";
@@ -175,7 +176,12 @@ export async function runAutomatedKyc({
   try {
     const provider = getPaymentProvider(REGISTRATION_VA_PROVIDER);
 
-    if (provider?.createVirtualAccount && !(await hasVirtualAccount(userId))) {
+    // Enforce: virtual account must NEVER be created unless KYC is verified
+    // with both BVN and NIN.
+    const kyc = await getKycByUserId(userId);
+    if (!isKycVerifiedForVirtualAccount(kyc)) {
+      console.warn("[KYC] Skipping virtual account creation - KYC not verified with BVN and NIN");
+    } else if (provider?.createVirtualAccount && !(await hasVirtualAccount(userId))) {
       const reference = `va_reg_${Date.now()}_${randomBytes(6).toString("hex")}`;
       const { firstName, lastName } = splitName(verifiedName || user.name || user.email);
 
