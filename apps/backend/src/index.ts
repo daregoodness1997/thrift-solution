@@ -29,6 +29,8 @@ import { notificationsRouter } from "./routes/notifications";
 import { adminRouter } from "./routes/admin";
 import { webhookRouter } from "./routes/webhook";
 import { supportRouter } from "./routes/support";
+import { prayerRouter } from "./routes/prayer-requests";
+import { impactRouter } from "./routes/impact";
 import { circleInterestJob } from "./jobs/circleInterestJob";
 import { circleContributionJob } from "./jobs/circleContributionJob";
 import { virtualAccountGenerationJob } from "./jobs/virtualAccountJob";
@@ -79,6 +81,8 @@ app.use("/api/upload", uploadRouter);
 app.use("/api/notifications", notificationsRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/support", supportRouter);
+app.use("/api/prayer-requests", prayerRouter);
+app.use("/api/impact", impactRouter);
 app.use("/api/webhooks", webhookRouter);
 
 cron.schedule("0 0 * * 0", circleInterestJob);

@@ -56,6 +56,7 @@ const FALLBACK_STAFF: NavSection[] = [
       { label: "Jobs", href: "/admin/jobs", icon: "M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" },
       { label: "Donations", href: "/admin/donations", icon: "M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" },
       { label: "WhatsApp Groups", href: "/admin/whatsapp-groups", icon: "M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" },
+      { label: "Prayer Requests", href: "/admin/prayer-requests", icon: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" },
     ],
   },
   {
@@ -273,9 +274,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         <div className="flex items-center justify-between border-b border-gray-100 px-5 pb-4 pt-5">
           <div>
             <Link href="/" className="inline-block">
-              <span className="font-display text-lg font-bold tracking-tight text-brand-primary transition-transform duration-200 hover:scale-105">
-                {config.name.toUpperCase().replace(/\s+/g, "")}
-              </span>
+              <img src={config.logo} alt={config.name} className="h-8 w-auto object-contain transition-transform duration-200 hover:scale-105" />
             </Link>
             <p className="mt-0.5 text-[10px] font-light text-gray-400">
               {isStaffRole(user.role) ? "Admin Portal" : "Member Portal"}
@@ -363,7 +362,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="cursor-pointer p-1 text-brand-dark">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
             </button>
-            <span className="font-display text-base font-bold tracking-tight text-brand-primary">{config.name.toUpperCase().replace(/\s+/g, "")}</span>
+            <img src={config.logo} alt={config.name} className="h-6 w-auto object-contain" />
             <div className="ml-auto">
               <NotificationBell />
             </div>

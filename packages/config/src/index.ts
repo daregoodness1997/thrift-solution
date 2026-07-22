@@ -31,8 +31,9 @@ export interface BrandConfig {
 }
 
 const defaultConfig: BrandConfig = {
-  name: "GFW",
-  tagline: "Global Freedom Worldwide — community savings, collective prosperity.",
+  name: "Global Freedom Worldwide",
+  tagline:
+    "Global Freedom Worldwide — community savings, collective prosperity.",
   logo: "/logo.png",
   favicon: "/favicon.ico",
   colors: {
@@ -53,7 +54,11 @@ const defaultConfig: BrandConfig = {
 function deepMerge(target: any, source: any): any {
   const result = { ...target };
   for (const key of Object.keys(source)) {
-    if (source[key] && typeof source[key] === "object" && !Array.isArray(source[key])) {
+    if (
+      source[key] &&
+      typeof source[key] === "object" &&
+      !Array.isArray(source[key])
+    ) {
       result[key] = deepMerge(result[key] || {}, source[key]);
     } else if (source[key] !== undefined) {
       result[key] = source[key];
@@ -64,7 +69,10 @@ function deepMerge(target: any, source: any): any {
 
 export const config: BrandConfig = { ...defaultConfig };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || "http://localhost:4000";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.API_URL ||
+  "http://localhost:4000";
 
 export async function fetchConfig(): Promise<BrandConfig> {
   try {

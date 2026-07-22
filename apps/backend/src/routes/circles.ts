@@ -277,7 +277,7 @@ circlesRouter.post("/accounts/:id/mature", authMiddleware, async (req, res) => {
 circlesRouter.post("/", adminMiddleware, async (req, res) => {
   try {
     const {
-      name, description, cycleType, amount, weeklyAmount, totalWeeks,
+      name, description, imageUrl, cycleType, amount, weeklyAmount, totalWeeks,
       durationMonths, interestRateAnnual, maxAccountsPerUser, maxSubscribers, autoPayout, payoutMode, blockPayoutOnDefault,
       processingFeeType, processingFeeValue, initialWeeksCount, defaultPenaltyType, defaultPenaltyValue,
     } = req.body;
@@ -300,6 +300,7 @@ circlesRouter.post("/", adminMiddleware, async (req, res) => {
     const circle = await createCircle({
       name,
       description,
+      imageUrl,
       cycleType: resolvedType,
       amount: Number(amount) || 0,
       weeklyAmount: weeklyAmount ? Number(weeklyAmount) : undefined,
@@ -329,7 +330,7 @@ circlesRouter.post("/", adminMiddleware, async (req, res) => {
 circlesRouter.put("/:id", adminMiddleware, async (req, res) => {
   try {
     const {
-      name, description, cycleType, amount, weeklyAmount, totalWeeks,
+      name, description, imageUrl, cycleType, amount, weeklyAmount, totalWeeks,
       durationMonths, interestRateAnnual, maxAccountsPerUser, maxSubscribers, autoPayout, payoutMode, blockPayoutOnDefault, status,
       processingFeeType, processingFeeValue, initialWeeksCount, defaultPenaltyType, defaultPenaltyValue,
     } = req.body;
@@ -337,6 +338,7 @@ circlesRouter.put("/:id", adminMiddleware, async (req, res) => {
     const circle = await updateCircle(req.params.id, {
       name,
       description,
+      imageUrl,
       cycleType: cycleType ? (cycleType === "weekly_contribution" ? "weekly_contribution" : "deposit") : undefined,
       amount: amount ? Number(amount) : undefined,
       weeklyAmount: weeklyAmount ? Number(weeklyAmount) : undefined,

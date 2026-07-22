@@ -52,6 +52,7 @@ export async function deleteCircleAddon(id: string) {
 export async function createCircle(data: {
   name: string;
   description?: string;
+  imageUrl?: string;
   cycleType?: string;
   amount: number;
   weeklyAmount?: number;
@@ -87,6 +88,7 @@ export async function createCircle(data: {
     data: {
       name: data.name,
       description: data.description,
+      imageUrl: data.imageUrl,
       cycleType,
       amount: data.amount,
       weeklyAmount: data.weeklyAmount,
@@ -157,9 +159,9 @@ export async function getAllCircles(params: {
   const [items, total] = await Promise.all([
     prisma.circle.findMany({
       where,
-      include: { 
+      include: {
         _count: { select: { accounts: true } },
-        addons: { where: { status: "active" }, select: { id: true, name: true, estimatedCost: true } },
+        addons: { where: { status: "active" }, orderBy: { createdAt: "asc" } },
       },
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * limit,
@@ -174,7 +176,10 @@ export async function getAllCircles(params: {
 export async function getActiveCircles() {
   return prisma.circle.findMany({
     where: { status: "active" },
-    include: { _count: { select: { accounts: true } } },
+    include: {
+      _count: { select: { accounts: true } },
+      addons: { where: { status: "active" }, orderBy: { createdAt: "asc" } },
+    },
     orderBy: { createdAt: "desc" },
   });
 }
@@ -182,6 +187,7 @@ export async function getActiveCircles() {
 export async function updateCircle(id: string, data: {
   name?: string;
   description?: string;
+  imageUrl?: string;
   cycleType?: string;
   amount?: number;
   weeklyAmount?: number;

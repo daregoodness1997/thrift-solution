@@ -271,6 +271,31 @@ export {
   getTicketStats,
 } from "./services/support";
 
+export {
+  getActivePrayerRequests,
+  createPrayerRequest,
+  incrementPrayerCount,
+  getAllPrayerRequestsAdmin,
+  updatePrayerRequest,
+  deletePrayerRequest,
+  getPrayerRequestStats,
+} from "./services/prayer-requests";
+
+export {
+  getActiveImpactNarratives,
+  getImpactNarrativeById,
+  createImpactNarrative,
+  updateImpactNarrative,
+  deleteImpactNarrative,
+  getAllImpactNarrativesAdmin,
+  createGalleryPhoto,
+  updateGalleryPhoto,
+  deleteGalleryPhoto,
+  createTimelineMilestone,
+  updateTimelineMilestone,
+  deleteTimelineMilestone,
+} from "./services/impact-spotlight";
+
 export type {
   TicketStatus,
   TicketPriority,

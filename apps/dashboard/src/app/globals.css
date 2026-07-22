@@ -32,7 +32,7 @@ html {
 body {
   font-family: var(--font-sans);
   color: var(--color-brand-dark);
-  background-color: var(--color-brand-cream);
+  background-color: #ffffff;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

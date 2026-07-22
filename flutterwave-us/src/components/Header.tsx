@@ -34,7 +34,7 @@ export default function Header({ onScrollToSection, openDemo }: HeaderProps) {
       id="main-header"
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled
-          ? "bg-white/95 backdrop-blur-md shadow-md py-4 text-brand-dark"
+          ? "bg-white backdrop-blur-md shadow-md py-4 text-brand-dark"
           : "bg-transparent py-5 text-brand-dark"
       }`}
     >

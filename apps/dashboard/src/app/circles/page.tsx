@@ -16,6 +16,7 @@ interface Circle {
   id: string;
   name: string;
   description?: string;
+  imageUrl?: string;
   cycleType: string;
   amount: number;
   weeklyAmount?: number | null;
@@ -26,7 +27,7 @@ interface Circle {
   payoutMode?: string;
   status: string;
   _count?: { accounts: number };
-  addons?: { id: string; name: string; description?: string; estimatedCost: number }[];
+  addons?: { id: string; name: string; description?: string; imageUrl?: string; estimatedCost: number }[];
 }
 
 interface CircleAccount {
@@ -279,6 +280,11 @@ export default function CirclesPage() {
                     const canOpen = userAccounts < maxPerUser;
                     return (
                       <div key={circle.id} className="rounded-xl border border-gray-100 bg-gray-50 p-5 transition-all duration-200">
+                        {circle.imageUrl && (
+                          <div className="mb-3 h-32 w-full overflow-hidden rounded-lg">
+                            <img src={circle.imageUrl} alt={circle.name} className="h-full w-full object-cover" />
+                          </div>
+                        )}
                         <div className="mb-3 flex items-start justify-between">
                           <div>
                             <h3 className="mb-1 text-[14px] font-semibold text-brand-dark">{circle.name}</h3>
@@ -497,7 +503,7 @@ export default function CirclesPage() {
         <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 p-4" onClick={() => setViewBenefitsCircle(null)}>
           <div className="w-full max-w-[560px] cursor-default rounded-2xl bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.15)]" onClick={(e) => e.stopPropagation()}>
             <div className="mb-4 flex items-start justify-between">
-              <div>
+              <div className="flex-1">
                 <h3 className="text-[18px] font-semibold text-brand-dark">{viewBenefitsCircle.name}</h3>
                 {viewBenefitsCircle.description && <p className="mt-1 text-[12px] text-gray-500">{viewBenefitsCircle.description}</p>}
               </div>
@@ -505,6 +511,12 @@ export default function CirclesPage() {
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
               </button>
             </div>
+
+            {viewBenefitsCircle.imageUrl && (
+              <div className="mb-4 h-40 w-full overflow-hidden rounded-xl">
+                <img src={viewBenefitsCircle.imageUrl} alt={viewBenefitsCircle.name} className="h-full w-full object-cover" />
+              </div>
+            )}
 
             <div className="mb-6 rounded-xl bg-gray-50 p-4 text-[12px]">
               <h4 className="mb-3 text-[13px] font-semibold text-brand-dark">Circle Details</h4>
@@ -549,8 +561,13 @@ export default function CirclesPage() {
                 <h4 className="mb-3 text-[13px] font-semibold text-brand-dark">Add-ons</h4>
                 <div className="flex flex-col gap-2">
                   {viewBenefitsCircle.addons.map((addon) => (
-                    <div key={addon.id} className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-3">
-                      <div>
+                    <div key={addon.id} className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-3">
+                      {addon.imageUrl && (
+                        <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg">
+                          <img src={addon.imageUrl} alt={addon.name} className="h-full w-full object-cover" />
+                        </div>
+                      )}
+                      <div className="flex-1">
                         <span className="font-semibold text-brand-dark">{addon.name}</span>
                         {addon.description && <p className="text-[11px] text-gray-500">{addon.description}</p>}
                       </div>

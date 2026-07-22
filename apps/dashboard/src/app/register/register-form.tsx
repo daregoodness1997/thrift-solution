@@ -3,17 +3,38 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { config } from "@thrift/config";
 import PhoneInput from "@/components/PhoneInput";
+import { config } from "@thrift/config";
+import {
+  ArrowLeft,
+  User,
+  Mail,
+  Lock,
+  Shield,
+  Gift,
+  CheckCircle2,
+  Eye,
+  EyeOff,
+  GraduationCap,
+  Sun,
+  Moon,
+  ArrowRight,
+  ShieldCheck,
+  CreditCard,
+  IdCard,
+  Users,
+} from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const REG_FEE = parseInt(process.env.NEXT_PUBLIC_REGISTRATION_FEE || "4200", 10);
 
+type ThemeMode = "light" | "dark";
+
 const STEPS = ["Basic", "Payment", "KYC"];
 
-function StepIndicator({ step }: { step: number }) {
+function StepIndicator({ step, isDark }: { step: number; isDark: boolean }) {
   return (
-    <div className="flex items-center justify-center gap-2 mb-8">
+    <div className="flex items-center justify-center gap-2 mb-6">
       {STEPS.map((label, i) => {
         const num = i + 1;
         const isActive = step === num;
@@ -21,24 +42,34 @@ function StepIndicator({ step }: { step: number }) {
         return (
           <div key={label} className="flex items-center gap-2">
             <div
-              className="w-7 h-7 rounded-full text-[11px] font-bold flex items-center justify-center"
-              style={{
-                backgroundColor: isDone ? "#059669" : isActive ? config.colors.primary : "#F0F0F0",
-                color: isDone || isActive ? "#fff" : "#999",
-              }}
+              className={`w-7 h-7 rounded-full text-[11px] font-bold flex items-center justify-center transition-colors ${
+                isDone
+                  ? "bg-emerald-600 text-white"
+                  : isActive
+                  ? "bg-blue-600 text-white"
+                  : isDark
+                  ? "bg-slate-800 text-slate-500"
+                  : "bg-slate-100 text-slate-400"
+              }`}
             >
               {isDone ? "✓" : num}
             </div>
             <span
-              className="text-[11px]"
-              style={{ fontWeight: isActive ? 600 : 400, color: isActive ? "#2D2D2D" : "#999" }}
+              className={`text-[11px] ${isActive ? "font-semibold" : ""} ${
+                isActive
+                  ? isDark
+                    ? "text-white"
+                    : "text-slate-900"
+                  : isDark
+                  ? "text-slate-500"
+                  : "text-slate-400"
+              }`}
             >
               {label}
             </span>
             {i < STEPS.length - 1 && (
               <div
-                className="w-6 h-px"
-                style={{ backgroundColor: isDone ? "#059669" : "#E5E7EB" }}
+                className={`w-6 h-px ${isDone ? "bg-emerald-600" : isDark ? "bg-slate-800" : "bg-slate-200"}`}
               />
             )}
           </div>
@@ -49,43 +80,36 @@ function StepIndicator({ step }: { step: number }) {
 }
 
 const inputClass =
-  "w-full py-[0.6875rem] rounded-[0.625rem] border border-gray-200 text-[13px] text-brand-dark outline-none transition";
+  "w-full py-2.5 rounded-xl border text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 transition";
 
 function TextField({
   label,
   icon,
   rightSlot,
   invalid,
+  isDark,
   ...props
 }: {
   label: string;
   icon?: React.ReactNode;
   rightSlot?: React.ReactNode;
   invalid?: boolean;
+  isDark: boolean;
 } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <div className="mb-4">
-      <label className="block text-xs font-medium text-gray-700 mb-1.5">{label}</label>
+      <label className={`block text-xs font-bold ${isDark ? "text-slate-300" : "text-slate-700"} mb-1`}>{label}</label>
       <div className="relative">
         {icon && (
-          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 flex">
+          <span className={`absolute left-3.5 top-1/2 -translate-y-1/2 ${isDark ? "text-slate-400" : "text-slate-400"} flex`}>
             {icon}
           </span>
         )}
         <input
           {...props}
-          className={`${inputClass} ${icon ? "pl-10" : "pl-[0.875rem]"} ${rightSlot ? "pr-10" : "pr-[0.875rem]"}`}
-          style={{ border: `1px solid ${invalid ? "#FECACA" : "#E5E7EB"}` }}
-          onFocus={(e) => {
-            e.currentTarget.style.borderColor = config.colors.primary;
-            e.currentTarget.style.boxShadow = `0 0 0 3px ${config.colors.primary}15`;
-            props.onFocus?.(e);
-          }}
-          onBlur={(e) => {
-            e.currentTarget.style.borderColor = invalid ? "#FECACA" : "#E5E7EB";
-            e.currentTarget.style.boxShadow = "none";
-            props.onBlur?.(e);
-          }}
+          className={`${inputClass} ${icon ? "pl-10" : "pl-4"} ${rightSlot ? "pr-10" : "pr-4"} ${
+            isDark ? "border-slate-700 bg-slate-800 text-white" : "border-slate-300 bg-slate-50 text-slate-900"
+          } ${invalid ? "border-red-300" : ""}`}
         />
         {rightSlot && (
           <span className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center">
@@ -97,20 +121,9 @@ function TextField({
   );
 }
 
-const icons = {
-  user: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>,
-  mail: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg>,
-  phone: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.13.96.36 1.9.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0122 16.92z" /></svg>,
-  lock: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0110 0v4" /></svg>,
-  shield: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>,
-  gift: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={config.colors.primary} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" /></svg>,
-  check: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth={2} strokeLinecap="round"><path d="M20 6L9 17l-5-5" /></svg>,
-  eyeOpen: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>,
-  eyeOff: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" /></svg>,
-};
-
 export default function RegisterForm() {
   const searchParams = useSearchParams();
+  const [theme, setTheme] = useState<ThemeMode>("light");
   const [step, setStep] = useState(1);
   const [token, setToken] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
@@ -138,6 +151,9 @@ export default function RegisterForm() {
     creditScore?: number;
   } | null>(null);
 
+  const toggleTheme = () => setTheme((t) => (t === "light" ? "dark" : "light"));
+  const isDark = theme === "dark";
+
   const passwordStrength = (() => {
     if (!password) return { level: 0, label: "", color: "" };
     let score = 0;
@@ -155,6 +171,10 @@ export default function RegisterForm() {
   useEffect(() => {
     const ref = searchParams.get("ref");
     if (ref) setReferralCode(ref);
+    const qName = searchParams.get("name");
+    const qEmail = searchParams.get("email");
+    if (qName) setName(qName);
+    if (qEmail) setEmail(qEmail);
     const reference = searchParams.get("reference");
     if (reference) {
       const storedToken = localStorage.getItem("token");
@@ -166,7 +186,6 @@ export default function RegisterForm() {
     }
 
     const mode = searchParams.get("mode");
-    const qEmail = searchParams.get("email");
     const qUserId = searchParams.get("userId");
     if (mode === "verify" && qUserId) {
       setUserId(qUserId);
@@ -340,274 +359,456 @@ export default function RegisterForm() {
   };
 
   return (
-    <div className="min-h-screen flex bg-brand-cream">
-      {/* Left Panel */}
-      <div
-        className="hidden md:flex w-1/2 flex-col justify-center items-center p-12 relative overflow-hidden"
-        style={{
-          backgroundImage: "url('https://images.unsplash.com/photo-1556742502-ec7c0e9f34b1?auto=format&fit=crop&w=1200&q=80')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      >
-        <div className="absolute -top-[10%] -right-[10%] w-[300px] h-[300px] rounded-full border border-[rgba(255,255,255,0.06)]" />
-        <div className="absolute -bottom-[15%] -left-[10%] w-[400px] h-[400px] rounded-full border border-[rgba(255,255,255,0.04)]" />
-      </div>
+    <div className={`min-h-screen ${isDark ? "bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900"} transition-colors selection:bg-blue-500 selection:text-white font-sans flex flex-col`}>
+      {/* HEADER NAVBAR */}
+      <header className={`sticky top-0 z-40 ${isDark ? "bg-slate-900/90 border-slate-800" : "bg-white/90 border-slate-200"} backdrop-blur-xl border-b py-3.5 px-4 sm:px-8`}>
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <a
+              href="/login"
+              className={`p-2 rounded-xl ${isDark ? "bg-slate-800 text-slate-300 hover:text-white" : "bg-slate-100 text-slate-600 hover:text-slate-900"} transition-colors flex items-center gap-1.5 text-xs font-bold`}
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back to Sign In</span>
+            </a>
 
-      {/* Right Panel */}
-      <div className="flex-1 flex items-center justify-center p-8 overflow-y-auto">
-        <div className="w-full max-w-[420px]">
-          {step <= 3 && <StepIndicator step={step} />}
+            <div className={`h-4 w-px ${isDark ? "bg-slate-700" : "bg-slate-300"} hidden sm:block`} />
 
-          <div className="mb-6">
-            <h2 className="text-[1.5rem] font-semibold text-brand-dark tracking-[-0.025em]">
-              {step === 1 && "Create Account"}
-              {step === 2 && "Registration Fee"}
-              {step === 3 && "Verify Your Identity"}
-              {step === 4 && "You're All Set!"}
-            </h2>
-            <p className="text-[13px] text-gray-500 mt-1.5">
-              {step === 1 && "Fill in your details to get started"}
-              {step === 2 && `Pay the one-time ₦${REG_FEE.toLocaleString()} fee to continue`}
-              {step === 3 && "Enter your BVN & NIN — we verify instantly via CreditChek"}
-              {step === 4 && "Your account is verified and your virtual account is ready"}
-            </p>
+            {/* Brand Logo */}
+            <div className="flex items-center gap-2">
+              <img src={config.logo} alt={config.name} className="w-8 h-8 rounded-xl object-contain shadow-md" />
+              <div className="flex flex-col">
+                <span className="font-bold text-sm tracking-tight">
+                  {config.name}
+                </span>
+                <span className="text-[10px] text-blue-600 font-mono font-semibold">
+                  {config.tagline.split("—")[0]?.trim()}
+                </span>
+              </div>
+            </div>
           </div>
 
-          {error && (
-            <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-xs font-medium mb-5">
-              {error}
+          <div className="flex items-center gap-3">
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className={`p-2.5 rounded-xl ${isDark ? "text-slate-300 hover:bg-slate-800" : "text-slate-600 hover:bg-slate-100"} transition-colors border ${isDark ? "border-slate-800" : "border-slate-200"}`}
+              title={`Switch to ${isDark ? "Light" : "Dark"} Mode`}
+            >
+              {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* MAIN CONTENT */}
+      <main className="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex items-center justify-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center w-full my-auto">
+          
+          {/* LEFT COLUMN: HERO INFORMATION */}
+          <div className="lg:col-span-6 space-y-6">
+            <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full ${isDark ? "bg-blue-950/80 border-blue-800 text-blue-300" : "bg-blue-100 border-blue-200 text-blue-700"} border text-xs font-mono font-bold uppercase tracking-wider`}>
+              <GraduationCap className="w-4 h-4 text-blue-600" />
+              <span>FELLOWSHIP REGISTRATION</span>
             </div>
-          )}
 
-          {/* Step 1 */}
-          {step === 1 && !otpSent && (
-            <form onSubmit={handleBasic}>
-              <TextField label="Full Name" icon={icons.user} type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Adaeze Nwankwo" autoComplete="name" />
-              <TextField label="Email Address" icon={icons.mail} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="adaeze@email.com" autoComplete="email" />
-              <PhoneInput label="Phone (optional)" value={phone} onChange={setPhone} placeholder="+234..." />
+            <h1 className="font-bold text-3xl sm:text-5xl tracking-tight leading-tight">
+              {step === 1 && "Create Your Scholar Account"}
+              {step === 2 && "Complete Registration"}
+              {step === 3 && "Verify Your Identity"}
+              {step === 4 && "Welcome to the Cohort!"}
+            </h1>
 
-              <div className="mb-4">
-                <label className="block text-xs font-medium text-gray-700 mb-1.5">Password</label>
-                <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 flex">{icons.lock}</span>
-                  <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Min. 6 characters" autoComplete="new-password"
-                    className={`${inputClass} pl-10 pr-10`}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = config.colors.primary; e.currentTarget.style.boxShadow = `0 0 0 3px ${config.colors.primary}15`; }}
-                    onBlur={(e) => { e.currentTarget.style.borderColor = "#E5E7EB"; e.currentTarget.style.boxShadow = "none"; }}
-                  />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 bg-none border-none cursor-pointer p-1 text-gray-400 flex">
-                    {showPassword ? icons.eyeOff : icons.eyeOpen}
-                  </button>
-                </div>
-                {password && (
-                  <div className="mt-2">
-                    <div className="flex gap-1 mb-1">
-                      {[1, 2, 3, 4].map((i) => (
-                        <div key={i} className="flex-1 h-[3px] rounded-full transition-colors" style={{ backgroundColor: i <= passwordStrength.level ? passwordStrength.color : "#E5E7EB" }} />
-                      ))}
-                    </div>
-                    <span className="text-[10px] font-medium" style={{ color: passwordStrength.color }}>{passwordStrength.label}</span>
+            <p className={`text-sm sm:text-base ${isDark ? "text-slate-300" : "text-slate-600"} leading-relaxed`}>
+              {step === 1 && "Join our global community of scholars, innovators, and change-makers across 32 countries."}
+              {step === 2 && "A one-time registration fee unlocks your full scholar workspace, mentorship, and micro-grant access."}
+              {step === 3 && "Quick identity verification via BVN & NIN — secure, instant, and required for all fellows."}
+              {step === 4 && "Your account is ready. Access your dashboard, connect with mentors, and start your journey."}
+            </p>
+
+            {step <= 3 && (
+              <div className="space-y-3 pt-2">
+                <div className={`flex items-center gap-3 p-3 rounded-2xl ${isDark ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"} border shadow-sm`}>
+                  <div className={`w-10 h-10 rounded-xl ${isDark ? "bg-blue-950/60 text-blue-400" : "bg-blue-50 text-blue-600"} flex items-center justify-center shrink-0`}>
+                    <ShieldCheck className="w-5 h-5" />
                   </div>
-                )}
+                  <div>
+                    <div className="text-xs font-bold">Secure & Encrypted</div>
+                    <div className={`text-[11px] ${isDark ? "text-slate-400" : "text-slate-500"}`}>Your data is protected with enterprise-grade security.</div>
+                  </div>
+                </div>
+
+                <div className={`flex items-center gap-3 p-3 rounded-2xl ${isDark ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"} border shadow-sm`}>
+                  <div className={`w-10 h-10 rounded-xl ${isDark ? "bg-teal-950/60 text-teal-400" : "bg-teal-50 text-teal-600"} flex items-center justify-center shrink-0`}>
+                    <Gift className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold">Referral Rewards</div>
+                    <div className={`text-[11px] ${isDark ? "text-slate-400" : "text-slate-500"}`}>Earn bonuses when you invite fellow scholars.</div>
+                  </div>
+                </div>
+
+                <div className={`flex items-center gap-3 p-3 rounded-2xl ${isDark ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"} border shadow-sm`}>
+                  <div className={`w-10 h-10 rounded-xl ${isDark ? "bg-indigo-950/60 text-indigo-400" : "bg-indigo-50 text-indigo-600"} flex items-center justify-center shrink-0`}>
+                    <Users className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold">Global Network</div>
+                    <div className={`text-[11px] ${isDark ? "text-slate-400" : "text-slate-500"}`}>Connect with peers and mentors worldwide.</div>
+                  </div>
+                </div>
               </div>
+            )}
+          </div>
 
-              <TextField
-                label="Confirm Password"
-                icon={icons.shield}
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Re-enter password"
-                autoComplete="new-password"
-                invalid={!!(confirmPassword && password !== confirmPassword)}
-                rightSlot={confirmPassword && password === confirmPassword ? icons.check : undefined}
-              />
+          {/* RIGHT COLUMN: REGISTRATION FORM CARD */}
+          <div className={`lg:col-span-6 ${isDark ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"} rounded-3xl p-6 sm:p-8 border shadow-2xl space-y-6`}>
+            
+            {step <= 3 && <StepIndicator step={step} isDark={isDark} />}
 
-              {/* Referral Code */}
-              <div
-                className="mb-6 p-[0.875rem] rounded-[0.625rem] transition"
-                style={{
-                  backgroundColor: referralCode ? `${config.colors.primary}06` : "#FAFAFA",
-                  border: `1px solid ${referralCode ? `${config.colors.primary}20` : "#F3F4F6"}`,
-                }}
-              >
-                <div className="flex items-center justify-between mb-2" style={{ marginBottom: referralCode ? "0.5rem" : 0 }}>
-                  <span className="text-xs font-medium text-gray-700 flex items-center gap-1.5">
-                    {icons.gift}
-                    Have a referral code?
-                  </span>
-                  {!referralCode && (
-                    <button type="button" onClick={() => setReferralCode(" ")}
-                      className="text-[11px] font-semibold bg-none border-none cursor-pointer p-0 no-underline"
-                      style={{ color: config.colors.primary }}>
-                      Enter code
+            {error && (
+              <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-xs font-medium">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                {error}
+              </div>
+            )}
+
+            {/* Step 1 */}
+            {step === 1 && !otpSent && (
+              <form onSubmit={handleBasic}>
+                <TextField
+                  label="Full Name"
+                  icon={<User className="w-4 h-4" />}
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Adaeze Nwankwo"
+                  autoComplete="name"
+                  isDark={isDark}
+                />
+                <TextField
+                  label="Email Address"
+                  icon={<Mail className="w-4 h-4" />}
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="adaeze@email.com"
+                  autoComplete="email"
+                  isDark={isDark}
+                />
+                <PhoneInput label="Phone (optional)" value={phone} onChange={setPhone} placeholder="+234..." />
+
+                <div className="mb-4">
+                  <label className={`block text-xs font-bold ${isDark ? "text-slate-300" : "text-slate-700"} mb-1`}>Password</label>
+                  <div className="relative">
+                    <Lock className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? "text-slate-400" : "text-slate-400"}`} />
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Min. 6 characters"
+                      autoComplete="new-password"
+                      className={`${inputClass} pl-10 pr-10 ${isDark ? "border-slate-700 bg-slate-800 text-white" : "border-slate-300 bg-slate-50 text-slate-900"}`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className={`absolute right-3 top-1/2 -translate-y-1/2 ${isDark ? "text-slate-400" : "text-slate-400"}`}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
+                  </div>
+                  {password && (
+                    <div className="mt-2">
+                      <div className="flex gap-1 mb-1">
+                        {[1, 2, 3, 4].map((i) => (
+                          <div
+                            key={i}
+                            className="flex-1 h-[3px] rounded-full transition-colors"
+                            style={{ backgroundColor: i <= passwordStrength.level ? passwordStrength.color : isDark ? "#334155" : "#E5E7EB" }}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-[10px] font-medium" style={{ color: passwordStrength.color }}>
+                        {passwordStrength.label}
+                      </span>
+                    </div>
                   )}
                 </div>
-                {referralCode && (
-                  <div className="relative">
-                    <input type="text" value={referralCode} onChange={(e) => setReferralCode(e.target.value)} placeholder="e.g. ADAEZE-8K3M"
-                      className="w-full py-2 px-3 rounded-lg border border-gray-200 text-xs font-mono font-semibold tracking-[0.05em] outline-none"
-                      style={{ color: config.colors.primary, backgroundColor: "#ffffff" }}
-                      onFocus={(e) => { e.currentTarget.style.borderColor = config.colors.primary; }}
-                      onBlur={(e) => { e.currentTarget.style.borderColor = "#E5E7EB"; }}
-                    />
+
+                <TextField
+                  label="Confirm Password"
+                  icon={<Shield className="w-4 h-4" />}
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Re-enter password"
+                  autoComplete="new-password"
+                  invalid={!!(confirmPassword && password !== confirmPassword)}
+                  rightSlot={confirmPassword && password === confirmPassword ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : undefined}
+                  isDark={isDark}
+                />
+
+                {/* Referral Code */}
+                <div
+                  className={`mb-6 p-3.5 rounded-xl transition ${
+                    referralCode
+                      ? isDark
+                        ? "bg-blue-950/30 border-blue-900/50"
+                        : "bg-blue-50/50 border-blue-200"
+                      : isDark
+                      ? "bg-slate-800/50 border-slate-700"
+                      : "bg-slate-50 border-slate-200"
+                  } border`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className={`text-xs font-medium ${isDark ? "text-slate-300" : "text-slate-700"} flex items-center gap-1.5`}>
+                      <Gift className="w-4 h-4 text-blue-600" />
+                      Have a referral code?
+                    </span>
+                    {!referralCode && (
+                      <button
+                        type="button"
+                        onClick={() => setReferralCode(" ")}
+                        className="text-[11px] font-semibold text-blue-600 hover:underline"
+                      >
+                        Enter code
+                      </button>
+                    )}
                   </div>
-                )}
-              </div>
-
-              <button type="submit" disabled={loading}
-                className="w-full py-3 rounded-[0.625rem] text-[13px] font-semibold text-white border-none flex items-center justify-center gap-2 transition"
-                style={{
-                  backgroundColor: config.colors.primary,
-                  color: "#ffffff",
-                  opacity: loading ? 0.6 : 1,
-                  cursor: loading ? "not-allowed" : "pointer",
-                }}>
-                {loading ? "Creating account..." : "Continue"}
-              </button>
-            </form>
-          )}
-
-          {step === 1 && otpSent && (
-            <div>
-              <TextField label="Verification Code" type="text" value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="6-digit code from email" />
-              <button onClick={handleVerifyEmail} disabled={loading}
-                className="w-full py-3 rounded-[0.625rem] text-[13px] font-semibold text-white border-none transition"
-                style={{
-                  backgroundColor: config.colors.primary,
-                  color: "#ffffff",
-                  opacity: loading ? 0.6 : 1,
-                  cursor: loading ? "not-allowed" : "pointer",
-                }}>
-                {loading ? "Verifying..." : "Verify Email & Continue"}
-              </button>
-              <p className="text-[11px] text-gray-400 mt-3 text-center">
-                 Didn't get it?{" "}
-                 <button type="button" onClick={handleResendOtp} className="underline bg-none border-none cursor-pointer p-0" style={{ color: config.colors.primary }}>
-                   Resend code
-                 </button>
-               </p>
-            </div>
-          )}
-
-          {/* Step 2 */}
-          {step === 2 && (
-            <div>
-              <div className="p-5 bg-gray-50 rounded-xl mb-6 text-center">
-                <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-[0.1em]">Registration Fee</span>
-                <div className="text-[1.75rem] font-mono font-bold mt-1" style={{ color: config.colors.primary }}>
-                  ₦{REG_FEE.toLocaleString()}
+                  {referralCode && (
+                    <input
+                      type="text"
+                      value={referralCode}
+                      onChange={(e) => setReferralCode(e.target.value)}
+                      placeholder="e.g. ADAEZE-8K3M"
+                      className={`w-full py-2 px-3 rounded-lg border text-xs font-mono font-semibold tracking-wider outline-none ${
+                        isDark ? "border-slate-700 bg-slate-800 text-blue-400" : "border-slate-200 bg-white text-blue-600"
+                      }`}
+                    />
+                  )}
                 </div>
-                <p className="text-[11px] text-gray-500 mt-2">
-                  One-time fee. Secured by Flutterwave (card, bank transfer, USSD).
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3.5 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md flex items-center justify-center gap-2 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {loading ? (
+                    <>
+                      <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 12a9 9 0 11-6.219-8.56" /></svg>
+                      Creating account...
+                    </>
+                  ) : (
+                    <>
+                      <span>Continue</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </form>
+            )}
+
+            {step === 1 && otpSent && (
+              <div>
+                <TextField
+                  label="Verification Code"
+                  type="text"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  placeholder="6-digit code from email"
+                  isDark={isDark}
+                />
+                <button
+                  onClick={handleVerifyEmail}
+                  disabled={loading}
+                  className="w-full py-3.5 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md flex items-center justify-center gap-2 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {loading ? (
+                    <>
+                      <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 12a9 9 0 11-6.219-8.56" /></svg>
+                      Verifying...
+                    </>
+                  ) : (
+                    <>
+                      <span>Verify Email & Continue</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+                <p className={`text-[11px] ${isDark ? "text-slate-400" : "text-slate-400"} mt-3 text-center`}>
+                  Didn't get it?{" "}
+                  <button type="button" onClick={handleResendOtp} className="text-blue-600 font-semibold hover:underline">
+                    Resend code
+                  </button>
                 </p>
               </div>
-              <button onClick={handlePay} disabled={loading}
-                className="w-full py-3 rounded-[0.625rem] text-[13px] font-semibold text-white border-none flex items-center justify-center gap-2 transition"
-                style={{
-                  backgroundColor: config.colors.primary,
-                  color: "#ffffff",
-                  opacity: loading ? 0.6 : 1,
-                  cursor: loading ? "not-allowed" : "pointer",
-                }}>
-                {loading ? "Redirecting..." : `Pay ₦${REG_FEE.toLocaleString()}`}
-              </button>
-            </div>
-          )}
+            )}
 
-          {/* Step 3 */}
-          {step === 3 && (
-            <div>
-              <TextField label="BVN (11 digits)" type="text" value={bvn} onChange={(e) => setBvn(e.target.value.replace(/\D/g, "").slice(0, 11))} placeholder="12345678901" inputMode="numeric" />
-              <TextField label="NIN (11 digits)" type="text" value={nin} onChange={(e) => setNin(e.target.value.replace(/\D/g, "").slice(0, 11))} placeholder="98765432109" inputMode="numeric" />
-              <button onClick={handleKyc} disabled={loading}
-                className="w-full py-3 rounded-[0.625rem] text-[13px] font-semibold text-white border-none flex items-center justify-center gap-2 transition"
-                style={{
-                  backgroundColor: config.colors.primary,
-                  color: "#ffffff",
-                  opacity: loading ? 0.6 : 1,
-                  cursor: loading ? "not-allowed" : "pointer",
-                }}>
-                {loading ? "Verifying with CreditChek..." : "Verify & Finish"}
-              </button>
-            </div>
-          )}
-
-          {/* Step 4 — success */}
-          {step === 4 && (
-            <div>
-              <div className="p-6 bg-emerald-50 rounded-xl mb-6 border border-emerald-200">
-                <div className="text-[13px] font-semibold text-emerald-600 mb-3">✓ Identity verified & KYC approved</div>
-
-                {kycResult?.verifiedName && (
-                  <div className="text-xs text-emerald-800 mb-3">
-                    <span className="text-gray-500">Verified Name: </span>
-                    <strong>{kycResult.verifiedName}</strong>
+            {/* Step 2 */}
+            {step === 2 && (
+              <div>
+                <div className={`p-5 ${isDark ? "bg-slate-800/60" : "bg-slate-50"} rounded-xl mb-6 text-center`}>
+                  <span className={`text-[10px] ${isDark ? "text-slate-400" : "text-slate-400"} font-semibold uppercase tracking-wider`}>Registration Fee</span>
+                  <div className="text-3xl font-mono font-bold mt-1 text-blue-600">
+                    ₦{REG_FEE.toLocaleString()}
                   </div>
-                )}
-
-                {kycResult?.identity && (
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-emerald-800 mb-3">
-                    {kycResult.identity.bvn && (
-                      <div><span className="text-gray-500">BVN: </span><strong className="font-mono">{kycResult.identity.bvn}</strong></div>
-                    )}
-                    {kycResult.identity.nin && (
-                      <div><span className="text-gray-500">NIN: </span><strong className="font-mono">{kycResult.identity.nin}</strong></div>
-                    )}
-                    {kycResult.identity.dateOfBirth && (
-                      <div><span className="text-gray-500">Date of Birth: </span><strong>{kycResult.identity.dateOfBirth}</strong></div>
-                    )}
-                    {kycResult.identity.gender && (
-                      <div><span className="text-gray-500">Gender: </span><strong className="capitalize">{kycResult.identity.gender}</strong></div>
-                    )}
-                    {kycResult.identity.phoneNumber && (
-                      <div><span className="text-gray-500">Phone: </span><strong>{kycResult.identity.phoneNumber}</strong></div>
-                    )}
-                    {kycResult.identity.email && (
-                      <div className="col-span-2 truncate"><span className="text-gray-500">Email: </span><strong>{kycResult.identity.email}</strong></div>
-                    )}
-                    {kycResult.identity.enrollmentBank && (
-                      <div className="col-span-2"><span className="text-gray-500">Enrollment Bank: </span><strong>{kycResult.identity.enrollmentBank}</strong></div>
-                    )}
-                    {kycResult.identity.address && (
-                      <div className="col-span-2"><span className="text-gray-500">Address: </span><strong>{kycResult.identity.address}</strong></div>
-                    )}
-                  </div>
-                )}
-
-                {virtualAccount ? (
-                  <div className="text-xs text-emerald-800 border-t border-emerald-200 pt-3">
-                    <div className="mb-2">
-                      <span className="text-gray-500">Virtual Account: </span>
-                      <strong className="font-mono">{virtualAccount.accountNumber}</strong>
-                    </div>
-                    <div><span className="text-gray-500">Bank: </span><strong>{virtualAccount.bankName}</strong></div>
-                  </div>
-                ) : (
-                  <div className="text-xs text-emerald-800 border-t border-emerald-200 pt-3">Your virtual account will be created shortly.</div>
-                )}
+                  <p className={`text-[11px] ${isDark ? "text-slate-400" : "text-slate-500"} mt-2`}>
+                    One-time fee. Secured by Flutterwave (card, bank transfer, USSD).
+                  </p>
+                </div>
+                <button
+                  onClick={handlePay}
+                  disabled={loading}
+                  className="w-full py-3.5 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md flex items-center justify-center gap-2 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {loading ? (
+                    <>
+                      <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 12a9 9 0 11-6.219-8.56" /></svg>
+                      Redirecting...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="w-4 h-4" />
+                      <span>Pay ₦{REG_FEE.toLocaleString()}</span>
+                    </>
+                  )}
+                </button>
               </div>
-              <button onClick={() => { window.location.href = "/"; }}
-                className="w-full py-3 rounded-[0.625rem] text-[13px] font-semibold text-white border-none"
-                style={{ backgroundColor: config.colors.primary, color: "#ffffff", cursor: "pointer" }}>
-                Go to Dashboard
-              </button>
-            </div>
-          )}
+            )}
 
-          {step <= 3 && (
-            <div className="text-center mt-6">
-              <span className="text-[13px] text-gray-500">
-                Already have an account?{" "}
-                <a href="/login" className="font-semibold no-underline" style={{ color: config.colors.primary }}>Sign in</a>
-              </span>
+            {/* Step 3 */}
+            {step === 3 && (
+              <div>
+                <TextField
+                  label="BVN (11 digits)"
+                  type="text"
+                  value={bvn}
+                  onChange={(e) => setBvn(e.target.value.replace(/\D/g, "").slice(0, 11))}
+                  placeholder="12345678901"
+                  inputMode="numeric"
+                  isDark={isDark}
+                />
+                <TextField
+                  label="NIN (11 digits)"
+                  type="text"
+                  value={nin}
+                  onChange={(e) => setNin(e.target.value.replace(/\D/g, "").slice(0, 11))}
+                  placeholder="98765432109"
+                  inputMode="numeric"
+                  isDark={isDark}
+                />
+                <button
+                  onClick={handleKyc}
+                  disabled={loading}
+                  className="w-full py-3.5 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md flex items-center justify-center gap-2 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {loading ? (
+                    <>
+                      <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 12a9 9 0 11-6.219-8.56" /></svg>
+                      Verifying with CreditChek...
+                    </>
+                  ) : (
+                    <>
+                      <IdCard className="w-4 h-4" />
+                      <span>Verify & Finish</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+
+            {/* Step 4 — success */}
+            {step === 4 && (
+              <div>
+                <div className={`p-6 ${isDark ? "bg-emerald-950/40 border-emerald-800" : "bg-emerald-50 border-emerald-200"} rounded-xl mb-6 border`}>
+                  <div className={`text-xs font-semibold ${isDark ? "text-emerald-400" : "text-emerald-600"} mb-3 flex items-center gap-1.5`}>
+                    <CheckCircle2 className="w-4 h-4" />
+                    Identity verified & KYC approved
+                  </div>
+
+                  {kycResult?.verifiedName && (
+                    <div className={`text-xs ${isDark ? "text-emerald-300" : "text-emerald-800"} mb-3`}>
+                      <span className={isDark ? "text-slate-400" : "text-slate-500"}>Verified Name: </span>
+                      <strong>{kycResult.verifiedName}</strong>
+                    </div>
+                  )}
+
+                  {kycResult?.identity && (
+                    <div className={`grid grid-cols-2 gap-x-4 gap-y-2 text-xs ${isDark ? "text-emerald-300" : "text-emerald-800"} mb-3`}>
+                      {kycResult.identity.bvn && (
+                        <div><span className={isDark ? "text-slate-400" : "text-slate-500"}>BVN: </span><strong className="font-mono">{kycResult.identity.bvn}</strong></div>
+                      )}
+                      {kycResult.identity.nin && (
+                        <div><span className={isDark ? "text-slate-400" : "text-slate-500"}>NIN: </span><strong className="font-mono">{kycResult.identity.nin}</strong></div>
+                      )}
+                      {kycResult.identity.dateOfBirth && (
+                        <div><span className={isDark ? "text-slate-400" : "text-slate-500"}>Date of Birth: </span><strong>{kycResult.identity.dateOfBirth}</strong></div>
+                      )}
+                      {kycResult.identity.gender && (
+                        <div><span className={isDark ? "text-slate-400" : "text-slate-500"}>Gender: </span><strong className="capitalize">{kycResult.identity.gender}</strong></div>
+                      )}
+                      {kycResult.identity.phoneNumber && (
+                        <div><span className={isDark ? "text-slate-400" : "text-slate-500"}>Phone: </span><strong>{kycResult.identity.phoneNumber}</strong></div>
+                      )}
+                      {kycResult.identity.email && (
+                        <div className="col-span-2 truncate"><span className={isDark ? "text-slate-400" : "text-slate-500"}>Email: </span><strong>{kycResult.identity.email}</strong></div>
+                      )}
+                      {kycResult.identity.enrollmentBank && (
+                        <div className="col-span-2"><span className={isDark ? "text-slate-400" : "text-slate-500"}>Enrollment Bank: </span><strong>{kycResult.identity.enrollmentBank}</strong></div>
+                      )}
+                      {kycResult.identity.address && (
+                        <div className="col-span-2"><span className={isDark ? "text-slate-400" : "text-slate-500"}>Address: </span><strong>{kycResult.identity.address}</strong></div>
+                      )}
+                    </div>
+                  )}
+
+                  {virtualAccount ? (
+                    <div className={`text-xs ${isDark ? "text-emerald-300" : "text-emerald-800"} border-t ${isDark ? "border-emerald-800" : "border-emerald-200"} pt-3`}>
+                      <div className="mb-2">
+                        <span className={isDark ? "text-slate-400" : "text-slate-500"}>Virtual Account: </span>
+                        <strong className="font-mono">{virtualAccount.accountNumber}</strong>
+                      </div>
+                      <div><span className={isDark ? "text-slate-400" : "text-slate-500"}>Bank: </span><strong>{virtualAccount.bankName}</strong></div>
+                    </div>
+                  ) : (
+                    <div className={`text-xs ${isDark ? "text-emerald-300" : "text-emerald-800"} border-t ${isDark ? "border-emerald-800" : "border-emerald-200"} pt-3`}>
+                      Your virtual account will be created shortly.
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={() => { window.location.href = "/"; }}
+                  className="w-full py-3.5 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md flex items-center justify-center gap-2 transition"
+                >
+                  <span>Go to Dashboard</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
+            {step <= 3 && (
+              <div className="text-center pt-2">
+                <span className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}>
+                  Already have an account?{" "}
+                  <a href="/login" className="font-semibold text-blue-600 hover:underline">Sign in</a>
+                </span>
+              </div>
+            )}
+
+            <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-500 pt-2 border-t border-slate-100 dark:border-slate-800">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+              <span>Encrypted SSL • Free Access for Approved Global Scholars</span>
             </div>
-          )}
+          </div>
+
         </div>
-      </div>
+      </main>
+
+      {/* FOOTER BAR */}
+      <footer className={`border-t ${isDark ? "border-slate-800 bg-slate-900" : "border-slate-200 bg-white"} py-4 px-6 text-center text-xs text-slate-500`}>
+        {config.name} • {config.tagline.split("—")[1]?.trim() || config.tagline}
+      </footer>
     </div>
   );
 }
