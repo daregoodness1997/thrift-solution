@@ -11,7 +11,8 @@ import {
   Globe,
   Calendar,
   Volume2,
-  VolumeX
+  VolumeX,
+  ExternalLink
 } from "lucide-react";
 import confetti from "canvas-confetti";
 
@@ -26,6 +27,23 @@ interface PrayerRequest {
   prayersCount: number;
   createdAt: string;
   hasPrayed?: boolean;
+}
+
+interface LiveSession {
+  id: string;
+  title: string;
+  description: string | null;
+  streamUrl: string | null;
+  joinLink: string | null;
+  isLive: boolean;
+}
+
+interface IntercessoryHour {
+  id: string;
+  name: string;
+  timeUtc: string;
+  joinLink: string | null;
+  description: string | null;
 }
 
 function timeAgo(dateString: string): string {
@@ -48,6 +66,10 @@ export const PrayerNetworkSection: React.FC = () => {
   const [submittedSuccess, setSubmittedSuccess] = useState("");
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [liveSession, setLiveSession] = useState<LiveSession | null>(null);
+  const [intercessoryHours, setIntercessoryHours] = useState<IntercessoryHour[]>([]);
+  const [loadingLive, setLoadingLive] = useState(true);
+  const [loadingHours, setLoadingHours] = useState(true);
 
   const fetchPrayers = useCallback(async () => {
     try {
@@ -63,9 +85,39 @@ export const PrayerNetworkSection: React.FC = () => {
     }
   }, []);
 
+  const fetchLiveSession = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/prayer-sessions/live`);
+      const data = await res.json();
+      if (data.success && data.data) {
+        setLiveSession(data.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch live session:", err);
+    } finally {
+      setLoadingLive(false);
+    }
+  }, []);
+
+  const fetchIntercessoryHours = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/intercessory-hours`);
+      const data = await res.json();
+      if (data.success) {
+        setIntercessoryHours(data.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch intercessory hours:", err);
+    } finally {
+      setLoadingHours(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchPrayers();
-  }, [fetchPrayers]);
+    fetchLiveSession();
+    fetchIntercessoryHours();
+  }, [fetchPrayers, fetchLiveSession, fetchIntercessoryHours]);
 
   const handlePray = async (id: string) => {
     const prayer = prayerList.find((p) => p.id === id);
@@ -329,45 +381,88 @@ export const PrayerNetworkSection: React.FC = () => {
             <div className="p-6 rounded-3xl bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-900 border border-indigo-700/60 shadow-xl space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Radio className="w-4 h-4 text-emerald-400 animate-pulse" />
+                  <Radio className={`w-4 h-4 animate-pulse ${liveSession?.isLive ? "text-emerald-400" : "text-slate-500"}`} />
                   <span className="text-xs font-bold font-mono text-emerald-300 uppercase tracking-wider">
                     INTERDENOMINATIONAL STREAM
                   </span>
                 </div>
-                <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-mono font-bold">
-                  LIVE NOW
-                </span>
+                {liveSession?.isLive && (
+                  <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-mono font-bold">
+                    LIVE NOW
+                  </span>
+                )}
               </div>
 
               <div className="space-y-1">
                 <h4 className="font-display font-bold text-base text-white">
-                  Global Scholar Intercession Audio Stream
+                  {liveSession?.title || "Global Scholar Intercession Audio Stream"}
                 </h4>
                 <p className="text-xs text-indigo-200 leading-relaxed">
-                  Join fellows from 32 countries streaming live non-denominational praise, scripture, and student prayer.
+                  {liveSession?.description || "Join fellows from 32 countries streaming live non-denominational praise, scripture, and student prayer."}
                 </p>
               </div>
 
-              <button
-                onClick={() => setIsPlayingAudio(!isPlayingAudio)}
-                className={`w-full py-3 px-4 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-md ${
-                  isPlayingAudio
-                    ? "bg-emerald-500 text-slate-950 hover:bg-emerald-400"
-                    : "bg-indigo-600 hover:bg-indigo-500 text-white"
-                }`}
-              >
-                {isPlayingAudio ? (
-                  <>
-                    <Volume2 className="w-4 h-4 animate-bounce" />
-                    <span>Streaming Intercessory Audio (Active)</span>
-                  </>
-                ) : (
-                  <>
-                    <VolumeX className="w-4 h-4" />
-                    <span>Listen Live to Prayer Session</span>
-                  </>
-                )}
-              </button>
+              {loadingLive ? (
+                <div className="w-full py-3 px-4 rounded-2xl bg-slate-800 text-xs font-bold text-slate-400 flex items-center justify-center gap-2">
+                  Loading stream...
+                </div>
+              ) : liveSession?.isLive ? (
+                <div className="space-y-2">
+                  {liveSession.streamUrl && (
+                    <a
+                      href={liveSession.streamUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full py-3 px-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-md"
+                    >
+                      <Volume2 className="w-4 h-4 animate-bounce" />
+                      <span>Watch Live Stream</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  )}
+                  {liveSession.joinLink && (
+                    <a
+                      href={liveSession.joinLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full py-3 px-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-md"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span>Join Prayer Session</span>
+                    </a>
+                  )}
+                  {!liveSession.streamUrl && !liveSession.joinLink && (
+                    <button
+                      onClick={() => setIsPlayingAudio(!isPlayingAudio)}
+                      className={`w-full py-3 px-4 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-md ${
+                        isPlayingAudio
+                          ? "bg-emerald-500 text-slate-950 hover:bg-emerald-400"
+                          : "bg-indigo-600 hover:bg-indigo-500 text-white"
+                      }`}
+                    >
+                      {isPlayingAudio ? (
+                        <>
+                          <Volume2 className="w-4 h-4 animate-bounce" />
+                          <span>Streaming Intercessory Audio (Active)</span>
+                        </>
+                      ) : (
+                        <>
+                          <VolumeX className="w-4 h-4" />
+                          <span>Listen Live to Prayer Session</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <button
+                  disabled
+                  className="w-full py-3 px-4 rounded-2xl bg-slate-700 text-slate-400 text-xs font-bold flex items-center justify-center gap-2 cursor-not-allowed"
+                >
+                  <VolumeX className="w-4 h-4" />
+                  <span>No Active Session</span>
+                </button>
+              )}
             </div>
 
             <div className="p-6 rounded-3xl bg-slate-800/60 border border-slate-700/80 space-y-3">
@@ -401,31 +496,41 @@ export const PrayerNetworkSection: React.FC = () => {
                 <span>Daily Intercessory Hours</span>
               </h4>
 
-              <div className="space-y-2 text-xs font-mono">
-                <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex justify-between items-center">
-                  <div>
-                    <span className="text-amber-300 font-bold block">06:00 AM UTC</span>
-                    <span className="text-[10px] text-slate-400 font-sans">Morning Strength & Devotional</span>
-                  </div>
-                  <span className="text-[10px] text-slate-400">Global</span>
+              {loadingHours ? (
+                <div className="text-center py-4 text-slate-400 text-xs">Loading schedule...</div>
+              ) : intercessoryHours.length === 0 ? (
+                <div className="text-center py-4 text-slate-400 text-xs">No scheduled hours yet.</div>
+              ) : (
+                <div className="space-y-2 text-xs font-mono">
+                  {intercessoryHours.map((hour) => (
+                    <div
+                      key={hour.id}
+                      className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex justify-between items-center"
+                    >
+                      <div>
+                        <span className="text-amber-300 font-bold block">{hour.timeUtc} UTC</span>
+                        <span className="text-[10px] text-slate-400 font-sans">{hour.name}</span>
+                        {hour.description && (
+                          <span className="text-[9px] text-slate-500 font-sans block">{hour.description}</span>
+                        )}
+                      </div>
+                      {hour.joinLink ? (
+                        <a
+                          href={hour.joinLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-2 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold flex items-center gap-1 transition-colors"
+                        >
+                          <span>Join</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      ) : (
+                        <span className="text-[10px] text-slate-400">Global</span>
+                      )}
+                    </div>
+                  ))}
                 </div>
-
-                <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex justify-between items-center">
-                  <div>
-                    <span className="text-emerald-400 font-bold block">12:00 PM UTC</span>
-                    <span className="text-[10px] text-slate-400 font-sans">Scholar Wisdom & Capstone Prayer</span>
-                  </div>
-                  <span className="text-[10px] text-slate-400">Global</span>
-                </div>
-
-                <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex justify-between items-center">
-                  <div>
-                    <span className="text-indigo-300 font-bold block">08:00 PM UTC</span>
-                    <span className="text-[10px] text-slate-400 font-sans">Evening Victory & Thanksgiving</span>
-                  </div>
-                  <span className="text-[10px] text-slate-400">Global</span>
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </div>

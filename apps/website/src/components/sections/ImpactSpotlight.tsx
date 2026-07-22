@@ -54,7 +54,8 @@ export function ImpactSpotlightSection() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [learners, setLearners] = useState<LearnerNarrative[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeModalLearner, setActiveModalLearner] = useState<LearnerNarrative | null>(null);
+  const [activeModalLearner, setActiveModalLearner] =
+    useState<LearnerNarrative | null>(null);
   const [activePhoto, setActivePhoto] = useState<GalleryPhoto | null>(null);
 
   useEffect(() => {
@@ -83,7 +84,9 @@ export function ImpactSpotlightSection() {
     return (
       <section className="py-24 bg-slate-50 dark:bg-slate-950 transition-colors relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="p-16 text-center text-[13px] text-gray-500">Loading impact stories...</div>
+          <div className="p-16 text-center text-[13px] text-gray-500">
+            Loading impact stories...
+          </div>
         </div>
       </section>
     );
@@ -92,7 +95,10 @@ export function ImpactSpotlightSection() {
   if (learners.length === 0) return null;
 
   return (
-    <section id="impact-spotlight-carousel" className="py-24 bg-slate-50 dark:bg-slate-950 transition-colors relative overflow-hidden">
+    <section
+      id="impact-spotlight-carousel"
+      className="py-24 bg-slate-50 dark:bg-slate-950 transition-colors relative overflow-hidden"
+    >
       <div className="absolute top-10 left-0 w-72 h-72 bg-blue-500/10 rounded-full blur-[100px] pointer-events-none" />
       <div className="absolute bottom-10 right-0 w-80 h-80 bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none" />
 
@@ -104,10 +110,15 @@ export function ImpactSpotlightSection() {
               <span>Interactive Long-Form Impact Narratives</span>
             </div>
             <h2 className="font-bold text-3xl sm:text-5xl text-slate-900 dark:text-white tracking-tight">
-              Impact Spotlight: <span className="text-blue-600 dark:text-blue-400">Human Stories of Resilience</span>
+              Impact Spotlight:{" "}
+              <span className="text-blue-600 dark:text-blue-400">
+                Human Stories of Resilience
+              </span>
             </h2>
             <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 mt-2 max-w-2xl">
-              Scroll horizontally to explore deep-dive personal journeys, photo galleries, and milestone timelines of scholars transforming their communities.
+              Scroll horizontally to explore deep-dive personal journeys, photo
+              galleries, and milestone timelines of scholars transforming their
+              communities.
             </p>
           </div>
 
@@ -166,8 +177,12 @@ export function ImpactSpotlightSection() {
                       className="w-12 h-12 rounded-2xl object-cover border-2 border-white shadow-lg shrink-0"
                     />
                     <div className="text-white overflow-hidden">
-                      <h3 className="font-bold text-lg leading-tight truncate">{learner.name}</h3>
-                      <p className="text-xs text-blue-200 truncate">{learner.role}</p>
+                      <h3 className="font-bold text-lg leading-tight truncate">
+                        {learner.name}
+                      </h3>
+                      <p className="text-xs text-blue-200 truncate">
+                        {learner.role}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -197,9 +212,13 @@ export function ImpactSpotlightSection() {
                     <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
                       <span className="flex items-center gap-1.5">
                         <ImageIcon className="w-3.5 h-3.5 text-blue-500" />
-                        <span>Photo Field Gallery ({learner.gallery.length})</span>
+                        <span>
+                          Photo Field Gallery ({learner.gallery.length})
+                        </span>
                       </span>
-                      <span className="text-[10px] text-slate-400">Click to view</span>
+                      <span className="text-[10px] text-slate-400">
+                        Click to view
+                      </span>
                     </div>
 
                     <div className="grid grid-cols-3 gap-2">
@@ -235,8 +254,12 @@ export function ImpactSpotlightSection() {
                           className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 text-xs flex items-center justify-between gap-2"
                         >
                           <div className="overflow-hidden">
-                            <span className="font-bold text-blue-600 dark:text-blue-400 mr-1.5">{ms.year}:</span>
-                            <span className="text-slate-800 dark:text-slate-200 font-medium truncate">{ms.title}</span>
+                            <span className="font-bold text-blue-600 dark:text-blue-400 mr-1.5">
+                              {ms.year}:
+                            </span>
+                            <span className="text-slate-800 dark:text-slate-200 font-medium truncate">
+                              {ms.title}
+                            </span>
                           </div>
                           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
                         </div>
@@ -267,7 +290,11 @@ export function ImpactSpotlightSection() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="relative h-64 bg-slate-900 shrink-0 overflow-hidden">
-              <img src={activeModalLearner.coverImageUrl} alt={activeModalLearner.name} className="w-full h-full object-cover" />
+              <img
+                src={activeModalLearner.coverImageUrl}
+                alt={activeModalLearner.name}
+                className="w-full h-full object-cover"
+              />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent" />
 
               <button
@@ -286,10 +313,15 @@ export function ImpactSpotlightSection() {
                   />
                   <div className="text-white">
                     <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-600 text-white text-[10px] font-bold mb-1">
-                      {activeModalLearner.countryCode} {activeModalLearner.country}
+                      {activeModalLearner.countryCode}{" "}
+                      {activeModalLearner.country}
                     </div>
-                    <h3 className="font-bold text-2xl text-white leading-tight">{activeModalLearner.name}</h3>
-                    <p className="text-xs text-blue-200">{activeModalLearner.role}</p>
+                    <h3 className="font-bold text-2xl text-white leading-tight">
+                      {activeModalLearner.name}
+                    </h3>
+                    <p className="text-xs text-blue-200">
+                      {activeModalLearner.role}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -304,16 +336,23 @@ export function ImpactSpotlightSection() {
               </div>
 
               <div className="space-y-4">
-                <h4 className="font-bold text-lg text-slate-900 dark:text-white">The Journey & Community Impact</h4>
+                <h4 className="font-bold text-lg text-slate-900 dark:text-white">
+                  The Journey & Community Impact
+                </h4>
                 {activeModalLearner.longFormNarrative.map((para, pIdx) => (
-                  <p key={pIdx} className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
+                  <p
+                    key={pIdx}
+                    className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-normal"
+                  >
                     {para}
                   </p>
                 ))}
               </div>
 
               <div>
-                <h4 className="font-bold text-lg text-slate-900 dark:text-white mb-3">Photo Documentation Gallery</h4>
+                <h4 className="font-bold text-lg text-slate-900 dark:text-white mb-3">
+                  Photo Documentation Gallery
+                </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {activeModalLearner.gallery.map((img) => (
                     <div
@@ -322,27 +361,45 @@ export function ImpactSpotlightSection() {
                       className="group cursor-pointer rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800"
                     >
                       <div className="aspect-video relative overflow-hidden">
-                        <img src={img.url} alt={img.caption} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                        <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-slate-900/80 text-[10px] font-bold text-white">{img.tag}</span>
+                        <img
+                          src={img.url}
+                          alt={img.caption}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        />
+                        <span className="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-slate-900/80 text-[10px] font-bold text-white">
+                          {img.tag}
+                        </span>
                       </div>
-                      <p className="p-2.5 text-[11px] text-slate-600 dark:text-slate-300 leading-snug">{img.caption}</p>
+                      <p className="p-2.5 text-[11px] text-slate-600 dark:text-slate-300 leading-snug">
+                        {img.caption}
+                      </p>
                     </div>
                   ))}
                 </div>
               </div>
 
               <div>
-                <h4 className="font-bold text-lg text-slate-900 dark:text-white mb-4">Full Transformation Timeline</h4>
+                <h4 className="font-bold text-lg text-slate-900 dark:text-white mb-4">
+                  Full Transformation Timeline
+                </h4>
                 <div className="relative pl-6 border-l-2 border-blue-500/30 space-y-6">
                   {activeModalLearner.timeline.map((ms) => (
                     <div key={ms.id} className="relative">
                       <div className="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-blue-600 border-2 border-white dark:border-slate-900" />
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-bold text-xs text-blue-600 dark:text-blue-400">{ms.year}</span>
-                        <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-300">{ms.tag}</span>
+                        <span className="font-bold text-xs text-blue-600 dark:text-blue-400">
+                          {ms.year}
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-300">
+                          {ms.tag}
+                        </span>
                       </div>
-                      <h5 className="font-bold text-sm text-slate-900 dark:text-white">{ms.title}</h5>
-                      <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">{ms.description}</p>
+                      <h5 className="font-bold text-sm text-slate-900 dark:text-white">
+                        {ms.title}
+                      </h5>
+                      <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+                        {ms.description}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -350,7 +407,9 @@ export function ImpactSpotlightSection() {
             </div>
 
             <div className="p-4 bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs shrink-0">
-              <span className="text-slate-500">EquiGlobal Story Archive • Verified Case Study</span>
+              <span className="text-slate-500">
+                GFW Story Archive • Verified Case Study
+              </span>
               <button
                 onClick={() => setActiveModalLearner(null)}
                 className="py-2 px-5 text-xs rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-colors"
@@ -379,14 +438,20 @@ export function ImpactSpotlightSection() {
             </button>
 
             <div className="aspect-video w-full rounded-2xl overflow-hidden bg-black">
-              <img src={activePhoto.url} alt={activePhoto.caption} className="w-full h-full object-contain" />
+              <img
+                src={activePhoto.url}
+                alt={activePhoto.caption}
+                className="w-full h-full object-contain"
+              />
             </div>
 
             <div className="p-2">
               <span className="inline-block px-2.5 py-0.5 rounded-full bg-blue-600 text-white text-[10px] font-bold uppercase tracking-wider mb-2">
                 {activePhoto.tag}
               </span>
-              <p className="text-sm font-medium text-slate-200">{activePhoto.caption}</p>
+              <p className="text-sm font-medium text-slate-200">
+                {activePhoto.caption}
+              </p>
             </div>
           </div>
         </div>

@@ -30,6 +30,8 @@ import { adminRouter } from "./routes/admin";
 import { webhookRouter } from "./routes/webhook";
 import { supportRouter } from "./routes/support";
 import { prayerRouter } from "./routes/prayer-requests";
+import { prayerSessionsRouter } from "./routes/prayer-sessions";
+import { intercessoryHoursRouter } from "./routes/intercessory-hours";
 import { impactRouter } from "./routes/impact";
 import { circleInterestJob } from "./jobs/circleInterestJob";
 import { circleContributionJob } from "./jobs/circleContributionJob";
@@ -82,6 +84,8 @@ app.use("/api/notifications", notificationsRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/support", supportRouter);
 app.use("/api/prayer-requests", prayerRouter);
+app.use("/api/prayer-sessions", prayerSessionsRouter);
+app.use("/api/intercessory-hours", intercessoryHoursRouter);
 app.use("/api/impact", impactRouter);
 app.use("/api/webhooks", webhookRouter);
 

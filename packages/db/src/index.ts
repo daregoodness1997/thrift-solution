@@ -282,6 +282,24 @@ export {
 } from "./services/prayer-requests";
 
 export {
+  getLiveSession,
+  getUpcomingSessions,
+  getAllPrayerSessionsAdmin,
+  createPrayerSession,
+  updatePrayerSession,
+  deletePrayerSession,
+  getPrayerSessionStats,
+} from "./services/prayer-sessions";
+
+export {
+  getActiveIntercessoryHours,
+  getAllIntercessoryHoursAdmin,
+  createIntercessoryHour,
+  updateIntercessoryHour,
+  deleteIntercessoryHour,
+} from "./services/intercessory-hours";
+
+export {
   getActiveImpactNarratives,
   getImpactNarrativeById,
   createImpactNarrative,

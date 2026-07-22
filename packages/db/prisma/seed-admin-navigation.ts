@@ -46,6 +46,20 @@ const ADMIN_NAV = [
     sortOrder: 26,
   },
   {
+    label: "Prayer Sessions",
+    href: "/admin/prayer-sessions",
+    icon: "M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z",
+    section: "Administration",
+    sortOrder: 27,
+  },
+  {
+    label: "Intercessory Hours",
+    href: "/admin/intercessory-hours",
+    icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
+    section: "Administration",
+    sortOrder: 28,
+  },
+  {
     label: "Transactions",
     href: "/admin/transactions",
     icon: "M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4",

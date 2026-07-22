@@ -1,14 +1,14 @@
-import React from 'react';
-import { ArrowRight, Users, Award, Globe } from 'lucide-react';
-import Link from 'next/link';
-import { HeroGlobe } from './HeroGlobe';
-import { QuickSkillQuizWidget } from './QuickSkillQuizWidget';
+import React from "react";
+import { ArrowRight, Users, Award, Globe } from "lucide-react";
+import Link from "next/link";
+import { HeroGlobe } from "./HeroGlobe";
+import { QuickSkillQuizWidget } from "./QuickSkillQuizWidget";
 
 const DASHBOARD_URL =
   process.env.NEXT_PUBLIC_DASHBOARD_URL ||
-  'https://app.globalfreedomworldwide.com';
+  "https://app.globalfreedomworldwide.com";
 
-type ThemeMode = 'light' | 'dark';
+type ThemeMode = "light" | "dark";
 
 interface HeroSectionProps {
   theme: ThemeMode;
@@ -19,7 +19,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   theme,
   onOpenImpactModal,
 }) => {
-  const isDark = theme === 'dark';
+  const isDark = theme === "dark";
 
   return (
     <section className="relative min-h-screen pt-28 pb-20 md:pt-36 md:pb-28 overflow-hidden flex items-center justify-center bg-mesh transition-colors">
@@ -30,7 +30,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
-          
           {/* Left Hero Column */}
           <div className="lg:col-span-7 flex flex-col items-start text-left">
             {/* Mission Tag Badge */}
@@ -41,16 +40,16 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
             {/* Headline */}
             <h1 className="space-grotesk font-bold text-4xl sm:text-6xl lg:text-7xl tracking-tight text-slate-900 dark:text-white leading-[1.05] mb-6">
-              A World Where Everyone Has the{' '}
-              <span className="text-blue-600 dark:text-blue-400">
-                Freedom
-              </span>{' '}
+              A World Where Everyone Has the{" "}
+              <span className="text-blue-600 dark:text-blue-400">Freedom</span>{" "}
               to Learn and Thrive.
             </h1>
 
             {/* Supporting Text */}
             <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-300 font-normal leading-relaxed mb-8 max-w-xl">
-              We believe people everywhere should have access to quality training, financial opportunities, and the tools they need to build secure, independent lives.
+              We believe people everywhere should have access to quality
+              training, financial opportunities, and the tools they need to
+              build secure, independent lives.
             </p>
 
             {/* CTA Buttons */}
@@ -59,8 +58,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 href="/donate"
                 className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl text-base font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/25 transition-all duration-300 hover:-translate-y-0.5 w-full sm:w-auto justify-center"
               >
-                <span>Support Our Mission</span>
-                <ArrowRight className="w-4 h-4" />
+                <span className="text-white">Support Our Mission</span>
+                <ArrowRight className="w-4 h-4 text-white" />
               </Link>
 
               <Link
@@ -93,7 +92,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 </div>
               </div>
               <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
-                Joined by over <span className="text-slate-900 dark:text-white font-bold">12,000+</span> individuals this month
+                Joined by over{" "}
+                <span className="text-slate-900 dark:text-white font-bold">
+                  12,000+
+                </span>{" "}
+                individuals this month
               </p>
             </div>
           </div>
@@ -111,8 +114,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                     <Users className="w-4 h-4" />
                   </div>
                   <div>
-                    <div className="text-[11px] font-bold space-grotesk text-slate-900 dark:text-white">Nairobi Innovation Hub</div>
-                    <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">+1,420 Active Learners</div>
+                    <div className="text-[11px] font-bold space-grotesk text-slate-900 dark:text-white">
+                      Nairobi Innovation Hub
+                    </div>
+                    <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
+                      +1,420 Active Learners
+                    </div>
                   </div>
                 </div>
               </div>
@@ -120,15 +127,19 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               {/* Floating Glass Badge 2: Tech Grant */}
               <div
                 className="absolute bottom-12 right-0 sm:-right-4 max-w-[240px] p-3.5 rounded-2xl glass shadow-xl border border-white/80 dark:border-slate-700/80 animate-float hidden sm:block"
-                style={{ animationDelay: '2s' }}
+                style={{ animationDelay: "2s" }}
               >
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-950/80 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
                     <Award className="w-4 h-4" />
                   </div>
                   <div>
-                    <div className="text-[11px] font-bold space-grotesk text-slate-900 dark:text-white">STEM Scholarship #402</div>
-                    <div className="text-[10px] text-blue-600 dark:text-blue-400 font-medium">Fully Funded by Coalition</div>
+                    <div className="text-[11px] font-bold space-grotesk text-slate-900 dark:text-white">
+                      STEM Scholarship #402
+                    </div>
+                    <div className="text-[10px] text-blue-600 dark:text-blue-400 font-medium">
+                      Fully Funded by Coalition
+                    </div>
                   </div>
                 </div>
               </div>
@@ -136,7 +147,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               {/* Floating Glass Badge 3: Global Impact */}
               <div
                 className="absolute top-1/2 -right-6 -translate-y-1/2 p-3 rounded-2xl glass shadow-lg border border-white/80 dark:border-slate-700/80 hidden lg:flex items-center gap-2.5"
-                style={{ animationDelay: '4s' }}
+                style={{ animationDelay: "4s" }}
               >
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
                 <span className="text-xs font-bold space-grotesk text-slate-800 dark:text-slate-200">
@@ -145,7 +156,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </section>

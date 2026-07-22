@@ -444,7 +444,7 @@ export default function LoginPage() {
               className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full ${isDark ? "bg-blue-950/80 border-blue-800 text-blue-300" : "bg-blue-100 border-blue-200 text-blue-700"} border text-xs font-mono font-bold uppercase tracking-wider`}
             >
               <GraduationCap className="w-4 h-4 text-blue-600" />
-              <span>EQUIGLOBAL LEARNER GATEWAY</span>
+              <span>GLOBAL FREEDOM WORLDWIDE</span>
             </div>
 
             <h1 className="font-bold text-3xl sm:text-5xl tracking-tight leading-tight">
@@ -635,7 +635,7 @@ export default function LoginPage() {
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="scholar@equiglobal.org"
+                      placeholder="scholar@globalfreedomworldwide.com"
                       className={`w-full pl-10 pr-4 py-2.5 rounded-xl border ${isDark ? "border-slate-700 bg-slate-800 text-white" : "border-slate-300 bg-slate-50 text-slate-900"} text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500`}
                     />
                   </div>
@@ -667,7 +667,7 @@ export default function LoginPage() {
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="scholar@equiglobal.org"
+                      placeholder="scholar@globalfreedomworldwide.com"
                       className={`w-full pl-10 pr-4 py-2.5 rounded-xl border ${isDark ? "border-slate-700 bg-slate-800 text-white" : "border-slate-300 bg-slate-50 text-slate-900"} text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500`}
                     />
                   </div>
@@ -708,7 +708,10 @@ export default function LoginPage() {
 
               {activeTab === "login" && (
                 <div className="flex justify-end">
-                  <a href="/forgot-password" className="text-[11px] font-semibold text-blue-600 hover:underline">
+                  <a
+                    href="/forgot-password"
+                    className="text-[11px] font-semibold text-blue-600 hover:underline"
+                  >
                     Forgot password?
                   </a>
                 </div>
@@ -755,9 +758,16 @@ export default function LoginPage() {
             </div>
 
             <div className="text-center pt-2">
-              <span className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}>
+              <span
+                className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}
+              >
                 Don&apos;t have an account?{" "}
-                <a href="/register" className="font-semibold text-blue-600 hover:underline">Create account</a>
+                <a
+                  href="/register"
+                  className="font-semibold text-blue-600 hover:underline"
+                >
+                  Create account
+                </a>
               </span>
             </div>
           </div>

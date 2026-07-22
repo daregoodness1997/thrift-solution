@@ -880,6 +880,39 @@ model PrayerRequest {
   @@map("prayer_requests")
 }
 
+model PrayerSession {
+  id          String    @id @default(uuid())
+  title       String
+  description String?
+  streamUrl   String?   @map("stream_url")
+  startTime   DateTime  @map("start_time")
+  endTime     DateTime? @map("end_time")
+  isLive      Boolean   @default(false) @map("is_live")
+  isRecurring Boolean   @default(false) @map("is_recurring")
+  recurrence  String?
+  joinLink    String?   @map("join_link")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@index([isLive])
+  @@index([startTime])
+  @@map("prayer_sessions")
+}
+
+model IntercessoryHour {
+  id          String    @id @default(uuid())
+  name        String
+  timeUtc     String    @map("time_utc")
+  joinLink    String?   @map("join_link")
+  isActive    Boolean   @default(true) @map("is_active")
+  description String?
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@index([isActive])
+  @@map("intercessory_hours")
+}
+
 model ImpactNarrative {
   id            String          @id @default(uuid())
   name          String
