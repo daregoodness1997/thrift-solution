@@ -116,7 +116,7 @@ export default function Hero({ onScrollToSection, openDemo }: HeroProps) {
   return (
     <section 
       id="hero-section"
-      className="relative pt-32 pb-24 md:pt-40 md:pb-32 bg-radial from-[#FAF9F6] via-[#FAF9F6] to-[#FFF3E0]/30 overflow-hidden"
+      className="relative pt-32 pb-24 md:pt-40 md:pb-32 bg-radial from-[#FAF9F6] via-[#FAF9F6] to-[#FFF3E0]/30 dark:from-slate-950 dark:via-slate-950 dark:to-orange-950/10 overflow-hidden"
     >
       {/* Decorative Background Elements */}
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-br from-brand-primary/10 to-transparent rounded-full blur-3xl -z-10 pointer-events-none"></div>
@@ -126,18 +126,18 @@ export default function Hero({ onScrollToSection, openDemo }: HeroProps) {
         {/* Left Column: Text Content */}
         <div className="lg:col-span-7 flex flex-col gap-6 text-left">
           {/* US Expansion Badge */}
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-100 to-amber-100 border border-orange-200/50 rounded-full px-4 py-1.5 w-fit animate-pulse">
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-100 to-amber-100 dark:from-orange-900/30 dark:to-amber-900/30 border border-orange-200/50 dark:border-orange-800/50 rounded-full px-4 py-1.5 w-fit animate-pulse">
             <span className="flex h-2 w-2 relative">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-accent opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-accent"></span>
             </span>
-            <span className="text-xs font-semibold text-orange-950 flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5 text-orange-600" />
+            <span className="text-xs font-semibold text-orange-950 dark:text-orange-200 flex items-center gap-1">
+              <Sparkles className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
               Regulated US Bridge to Africa & Beyond
             </span>
           </div>
 
-          <h1 className="font-display font-extrabold text-4xl sm:text-5xl md:text-6xl tracking-tight text-brand-dark leading-tight">
+          <h1 className="font-display font-extrabold text-4xl sm:text-5xl md:text-6xl tracking-tight text-brand-dark dark:text-slate-100 leading-tight">
             Endless payment <br className="hidden md:block" />
             possibilities for <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-accent via-brand-secondary to-orange-500">
@@ -145,23 +145,23 @@ export default function Hero({ onScrollToSection, openDemo }: HeroProps) {
             </span>
           </h1>
 
-          <p className="text-base sm:text-lg text-gray-600 max-w-xl leading-relaxed">
+          <p className="text-base sm:text-lg text-gray-600 dark:text-slate-400 max-w-xl leading-relaxed">
             The easiest way to connect your US company to Africa's digital economy. Accept payments locally from customers in 34+ African nations, make seamless payouts to contractors, and settle effortlessly in USD—all on a fully compliant, licensed Money Transmitter platform.
           </p>
 
           {/* Quick Stats list */}
-          <div className="grid grid-cols-3 gap-4 border-y border-orange-100 py-4 my-2 max-w-lg">
+          <div className="grid grid-cols-3 gap-4 border-y border-orange-100 dark:border-orange-900/30 py-4 my-2 max-w-lg">
             <div>
-              <p className="text-xl font-bold text-brand-dark font-display">150+</p>
-              <p className="text-xs text-gray-500 mt-0.5">Currencies</p>
+              <p className="text-xl font-bold text-brand-dark dark:text-slate-100 font-display">150+</p>
+              <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Currencies</p>
             </div>
             <div>
-              <p className="text-xl font-bold text-brand-dark font-display">34+</p>
-              <p className="text-xs text-gray-500 mt-0.5">African Countries</p>
+              <p className="text-xl font-bold text-brand-dark dark:text-slate-100 font-display">34+</p>
+              <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">African Countries</p>
             </div>
             <div>
-              <p className="text-xl font-bold text-brand-dark font-display">1M+</p>
-              <p className="text-xs text-gray-500 mt-0.5">Businesses Served</p>
+              <p className="text-xl font-bold text-brand-dark dark:text-slate-100 font-display">1M+</p>
+              <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Businesses Served</p>
             </div>
           </div>
 
@@ -175,14 +175,14 @@ export default function Hero({ onScrollToSection, openDemo }: HeroProps) {
             </button>
             <button
               onClick={() => onScrollToSection("contact-section")}
-              className="bg-white hover:bg-gray-50 text-brand-dark font-bold px-8 py-4 rounded-full border border-gray-200 transition-all duration-300 flex items-center justify-center gap-2 hover:border-gray-300 hover:translate-y-[-2px]"
+              className="bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-brand-dark dark:text-slate-100 font-bold px-8 py-4 rounded-full border border-gray-200 dark:border-slate-700 transition-all duration-300 flex items-center justify-center gap-2 hover:border-gray-300 dark:hover:border-slate-600 hover:translate-y-[-2px]"
             >
-              Contact Sales <ArrowUpRight className="w-5 h-5 text-gray-500" />
+              Contact Sales <ArrowUpRight className="w-5 h-5 text-gray-500 dark:text-slate-400" />
             </button>
           </div>
 
           {/* Compliance notice */}
-          <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+          <div className="flex items-center gap-2 mt-2 text-xs text-gray-500 dark:text-slate-400">
             <ShieldCheck className="w-4 h-4 text-green-600" />
             <span>Licensed Money Transmitter platform & SOC 2 certified</span>
           </div>
@@ -281,9 +281,9 @@ export default function Hero({ onScrollToSection, openDemo }: HeroProps) {
           </div>
 
           {/* Floating mini-widget (Card Demo Invitation) */}
-          <div className="absolute -bottom-6 -right-4 bg-white text-brand-dark p-4 rounded-2xl shadow-xl border border-gray-100 max-w-[180px] hidden md:block text-left animate-bounce duration-1000">
+          <div className="absolute -bottom-6 -right-4 bg-white dark:bg-slate-800 text-brand-dark dark:text-slate-100 p-4 rounded-2xl shadow-xl border border-gray-100 dark:border-slate-700 max-w-[180px] hidden md:block text-left animate-bounce duration-1000">
             <div className="flex items-center gap-1.5">
-              <div className="p-1 bg-green-100 rounded text-green-600">
+              <div className="p-1 bg-green-100 dark:bg-green-900/30 rounded text-green-600 dark:text-green-400">
                 <CheckCircle2 className="w-4 h-4" />
               </div>
               <span className="text-xs font-bold">Try Card Checkout</span>

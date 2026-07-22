@@ -8,7 +8,7 @@ const code = `import { Gfw } from "@gfw/sdk";
 
 const client = new Gfw(process.env.GFW_API_KEY);
 
-// Create a new Ajo circle
+// Create a new empowerment circle
 const circle = await client.circles.create({
   name: "Family Circle",
   contribution: 25000,        // ₦25,000 per cycle
@@ -29,7 +29,7 @@ export function DeveloperFocus() {
   };
 
   return (
-    <section id="developers" className="bg-brand-cream py-20">
+    <section id="developers" className="bg-brand-cream dark:bg-slate-950 py-20">
       <Container>
         <div className="grid grid-cols-1 items-center gap-14 lg:grid-cols-2">
           <div>
@@ -44,7 +44,7 @@ export function DeveloperFocus() {
                   </span>
                 </>
               }
-              description="Embed Ajo circles, escrow, and payouts into your own product. REST-first, webhook-ready, and documented end to end."
+              description="Embed empowerment circles, escrow, and payouts into your own product. REST-first, webhook-ready, and documented end to end."
             />
 
             <div className="mt-8 flex flex-col gap-4">
@@ -55,13 +55,13 @@ export function DeveloperFocus() {
               ].map((f) => {
                 const Icon = f.icon;
                 return (
-                  <div key={f.title} className="flex gap-4 rounded-xl border border-brand-primary/10 bg-white p-4">
-                    <div className="h-fit rounded-lg bg-brand-primary/10 p-2 text-brand-primary">
+                  <div key={f.title} className="flex gap-4 rounded-xl border border-brand-primary/10 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
+                    <div className="h-fit rounded-lg bg-brand-primary/10 dark:bg-blue-900/30 p-2 text-brand-primary dark:text-blue-400">
                       <Icon className="h-5 w-5" />
                     </div>
                     <div>
-                      <h4 className="text-sm font-semibold text-brand-dark">{f.title}</h4>
-                      <p className="text-xs font-light text-brand-muted">{f.desc}</p>
+                      <h4 className="text-sm font-semibold text-brand-dark dark:text-slate-100">{f.title}</h4>
+                      <p className="text-xs font-light text-brand-muted dark:text-slate-400">{f.desc}</p>
                     </div>
                   </div>
                 );
@@ -96,7 +96,7 @@ export function DeveloperFocus() {
                 <span className="text-sky-300">Gfw</span>(
                 <span className="text-orange-300">process.env.GFW_API_KEY</span>);
                 {"\n\n"}
-                <span className="text-gray-500">// Create a new Ajo circle</span>
+                <span className="text-gray-500">// Create a new empowerment circle</span>
                 {"\n"}
                 <span className="text-purple-400">const</span> circle ={" "}
                 <span className="text-purple-400">await</span> client.circles.

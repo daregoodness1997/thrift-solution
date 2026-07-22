@@ -178,15 +178,15 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   if (loading || navLoading) {
     return (
-      <div className="flex min-h-screen bg-brand-cream">
-        <aside className="w-60 flex-shrink-0 border-r border-black/5 bg-white p-5">
+      <div className="flex min-h-screen bg-brand-cream dark:bg-slate-950">
+        <aside className="w-60 flex-shrink-0 border-r border-black/5 dark:border-slate-800 bg-white dark:bg-slate-900 p-5">
           <div className="flex flex-col gap-4">
-            <div className="h-5 w-20 animate-pulse rounded-md bg-gray-200" />
+            <div className="h-5 w-20 animate-pulse rounded-md bg-gray-200 dark:bg-slate-700" />
             <div className="mt-4 flex flex-col gap-2">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="flex items-center gap-2.5 rounded-lg px-3 py-2">
-                  <div className="h-[18px] w-[18px] animate-pulse rounded-md bg-gray-200" />
-                  <div className="h-3 flex-1 animate-pulse rounded-md bg-gray-200" />
+                  <div className="h-[18px] w-[18px] animate-pulse rounded-md bg-gray-200 dark:bg-slate-700" />
+                  <div className="h-3 flex-1 animate-pulse rounded-md bg-gray-200 dark:bg-slate-700" />
                 </div>
               ))}
             </div>
@@ -194,8 +194,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         </aside>
         <main className="ml-60 flex-1 p-[clamp(1rem,3vw,2rem)]">
           <div className="flex flex-col gap-6">
-            <div className="h-3 w-52 animate-pulse rounded-md bg-gray-200" />
-            <div className="h-7 w-72 animate-pulse rounded-md bg-gray-200" />
+            <div className="h-3 w-52 animate-pulse rounded-md bg-gray-200 dark:bg-slate-700" />
+            <div className="h-7 w-72 animate-pulse rounded-md bg-gray-200 dark:bg-slate-700" />
           </div>
         </main>
       </div>
@@ -223,23 +223,23 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   if (serverDown || wakeUpLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-brand-cream">
-        <div className="rounded-2xl bg-white p-10 shadow-lg text-center max-w-md">
+      <div className="flex min-h-screen items-center justify-center bg-brand-cream dark:bg-slate-950">
+        <div className="rounded-2xl bg-white dark:bg-slate-900 p-10 shadow-lg text-center max-w-md">
           {wakeUpLoading ? (
             <>
               <div className="mx-auto mb-6 h-16 w-16 animate-spin rounded-full border-4 border-brand-primary border-t-transparent" />
-              <h2 className="text-xl font-bold text-brand-dark">Waking up server...</h2>
-              <p className="mt-2 text-sm text-gray-500">Please wait while we bring the service online.</p>
+              <h2 className="text-xl font-bold text-brand-dark dark:text-slate-100">Waking up server...</h2>
+              <p className="mt-2 text-sm text-gray-500 dark:text-slate-400">Please wait while we bring the service online.</p>
             </>
           ) : (
             <>
-              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" className="text-red-600">
                   <path d="M18.364 5.636a9 9 0 11-12.728 0M12 8v4m0 4h.01" />
                 </svg>
               </div>
-              <h2 className="text-xl font-bold text-brand-dark">Server is asleep</h2>
-              <p className="mt-2 text-sm text-gray-500">The backend has spun down. Click below to wake it up.</p>
+              <h2 className="text-xl font-bold text-brand-dark dark:text-slate-100">Server is asleep</h2>
+              <p className="mt-2 text-sm text-gray-500 dark:text-slate-400">The backend has spun down. Click below to wake it up.</p>
               <button
                 onClick={handleWakeUp}
                 className="mt-6 cursor-pointer rounded-lg bg-brand-primary px-6 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
@@ -263,29 +263,29 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const displayName = user.name.split(" ")[0] + " " + (user.name.split(" ").slice(1)[0]?.[0] || "") + ".";
 
   return (
-    <div className="flex min-h-screen bg-brand-cream">
+    <div className="flex min-h-screen bg-brand-cream dark:bg-slate-950">
       {isMobile && sidebarOpen && (
         <div onClick={() => setSidebarOpen(false)} className="fixed inset-0 z-[29] bg-black/40" />
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-30 flex w-60 flex-shrink-0 flex-col overflow-y-auto border-r border-black/5 bg-white transition-transform duration-300 ${
+        className={`fixed inset-y-0 left-0 z-30 flex w-60 flex-shrink-0 flex-col overflow-y-auto border-r border-black/5 dark:border-slate-800 bg-white dark:bg-slate-900 transition-transform duration-300 ${
           isMobile && !sidebarOpen ? "-translate-x-full" : "translate-x-0"
         }`}
       >
-        <div className="flex items-center justify-between border-b border-gray-100 px-5 pb-4 pt-5">
+        <div className="flex items-center justify-between border-b border-gray-100 dark:border-slate-800 px-5 pb-4 pt-5">
           <div>
             <Link href="/" className="inline-block">
               <img src={config.logo} alt={config.name} className="h-8 w-auto object-contain transition-transform duration-200 hover:scale-105" />
             </Link>
-            <p className="mt-0.5 text-[10px] font-light text-gray-400">
+            <p className="mt-0.5 text-[10px] font-light text-gray-400 dark:text-slate-500">
               {isStaffRole(user.role) ? "Admin Portal" : "Member Portal"}
             </p>
           </div>
           <div className="flex items-center gap-1">
             <NotificationBell />
             {isMobile && (
-              <button onClick={() => setSidebarOpen(false)} className="cursor-pointer p-1 text-gray-500">
+              <button onClick={() => setSidebarOpen(false)} className="cursor-pointer p-1 text-gray-500 dark:text-slate-400">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
               </button>
             )}
@@ -296,7 +296,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           {navSections.map((section, sIdx) => (
             <div key={sIdx} className={sIdx < navSections.length - 1 ? "mb-3" : ""}>
               {section.title && (
-                <span className="block px-3 pb-1 pt-1.5 text-[9px] font-bold uppercase tracking-wider text-gray-400">
+                <span className="block px-3 pb-1 pt-1.5 text-[9px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500">
                   {section.title}
                 </span>
               )}
@@ -310,7 +310,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                       className={`group flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] transition-all duration-200 ${
                         isActive
                           ? "bg-brand-primary/5 font-semibold text-brand-primary"
-                          : "font-normal text-gray-500 hover:translate-x-1 hover:bg-brand-primary/5 hover:text-brand-dark"
+                          : "font-normal text-gray-500 dark:text-slate-400 hover:translate-x-1 hover:bg-brand-primary/5 hover:text-brand-dark dark:hover:text-slate-200"
                       }`}
                     >
                       <Icon path={item.icon} size={18} />
@@ -328,17 +328,17 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           ))}
         </nav>
 
-        <div className="border-t border-gray-100 p-3">
+        <div className="border-t border-gray-100 dark:border-slate-800 p-3">
           <Link
             href="/profile"
             className={`flex items-center gap-2.5 rounded-lg px-3 py-2 transition-all duration-200 ${
-              pathname === "/profile" ? "bg-brand-primary/5" : "bg-gray-50 hover:bg-gray-100"
+              pathname === "/profile" ? "bg-brand-primary/5" : "bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700"
             }`}
           >
             <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-brand-primary text-[11px] font-bold text-white">{initials}</div>
             <div className="min-w-0 flex-1">
-              <span className="block truncate text-xs font-semibold text-brand-dark">{displayName}</span>
-              <span className="block truncate text-[10px] text-gray-400">{user.email}</span>
+              <span className="block truncate text-xs font-semibold text-brand-dark dark:text-slate-100">{displayName}</span>
+              <span className="block truncate text-[10px] text-gray-400 dark:text-slate-500">{user.email}</span>
               {user.role === "member" && (virtualAccount?.accountNumber || user.accountNumber) && (
                 <span className="mt-0.5 block font-mono text-[9px] font-semibold tracking-wide text-brand-primary">
                   {virtualAccount?.accountNumber || user.accountNumber}
@@ -348,7 +348,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             <button
               onClick={handleLogout}
               title="Sign out"
-              className="flex-shrink-0 cursor-pointer p-1 text-gray-400 transition-colors hover:text-red-600"
+              className="flex-shrink-0 cursor-pointer p-1 text-gray-400 dark:text-slate-500 transition-colors hover:text-red-600"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
@@ -360,8 +360,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
       <main className={`min-w-0 flex-1 animate-fade-in ${isMobile ? "ml-0" : "ml-60"}`}>
         {isMobile && (
-          <div className="sticky top-0 z-20 flex items-center gap-3 border-b border-black/5 bg-white px-4 py-3">
-            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="cursor-pointer p-1 text-brand-dark">
+          <div className="sticky top-0 z-20 flex items-center gap-3 border-b border-black/5 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3">
+            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="cursor-pointer p-1 text-brand-dark dark:text-slate-200">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
             </button>
             <img src={config.logo} alt={config.name} className="h-6 w-auto object-contain" />

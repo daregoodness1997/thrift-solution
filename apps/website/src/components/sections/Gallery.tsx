@@ -14,7 +14,7 @@ const locations = [
 
 export function Gallery() {
   return (
-    <section className="bg-gradient-to-b from-white/60 to-brand-cream py-20">
+    <section className="bg-gradient-to-b from-white/60 to-brand-cream dark:from-slate-900/60 dark:to-slate-950 py-20">
       <Container>
         <SectionHeading
           eyebrow="Community Impact"
@@ -33,11 +33,11 @@ export function Gallery() {
           {testimonials.map((t) => (
             <div
               key={t.name}
-              className="relative rounded-2xl border border-white/70 bg-white p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+              className="relative rounded-2xl border border-white/70 bg-white dark:bg-slate-900 dark:border-slate-800 p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
             >
               <div className="mb-4 h-0.5 w-8 rounded" style={{ backgroundColor: t.color, opacity: 0.6 }} />
               <Quote className="mb-3 h-7 w-7" style={{ color: t.color }} />
-              <p className="text-sm font-light italic leading-relaxed text-brand-dark">&ldquo;{t.text}&rdquo;</p>
+              <p className="text-sm font-light italic leading-relaxed text-brand-dark dark:text-slate-200">&ldquo;{t.text}&rdquo;</p>
               <div className="mt-5 flex items-center gap-3">
                 <div
                   className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-white"
@@ -46,16 +46,16 @@ export function Gallery() {
                   {t.name.charAt(0)}
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-brand-dark">{t.name}</p>
-                  <p className="text-[10px] text-gray-500">{t.role}</p>
+                  <p className="text-xs font-semibold text-brand-dark dark:text-slate-100">{t.name}</p>
+                  <p className="text-[10px] text-gray-500 dark:text-slate-500">{t.role}</p>
                 </div>
               </div>
             </div>
           ))}
         </div>
 
-        <div className="mt-12 rounded-3xl border border-brand-primary/10 bg-white p-8">
-          <div className="mb-5 flex items-center gap-2 text-sm font-semibold text-brand-dark">
+        <div className="mt-12 rounded-3xl border border-brand-primary/10 bg-white dark:bg-slate-900 dark:border-slate-800 p-8">
+          <div className="mb-5 flex items-center gap-2 text-sm font-semibold text-brand-dark dark:text-slate-100">
             <MapPin className="h-4 w-4 text-brand-accent" />
             Learners and partners across 12+ countries
           </div>
@@ -63,7 +63,7 @@ export function Gallery() {
             {locations.map((l) => (
               <span
                 key={l}
-                className="rounded-full border border-brand-primary/15 bg-brand-primary/5 px-4 py-1.5 text-xs font-medium text-brand-secondary"
+                className="rounded-full border border-brand-primary/15 bg-brand-primary/5 dark:bg-brand-primary/10 dark:border-brand-primary/20 px-4 py-1.5 text-xs font-medium text-brand-secondary dark:text-blue-300"
               >
                 {l}
               </span>

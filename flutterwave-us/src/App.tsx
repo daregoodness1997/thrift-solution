@@ -34,7 +34,7 @@ export default function App() {
   };
 
   return (
-    <div className="relative min-h-screen bg-[#FAF9F6] text-brand-dark overflow-x-hidden antialiased">
+    <div className="relative min-h-screen bg-[#FAF9F6] dark:bg-slate-950 text-brand-dark dark:text-slate-100 overflow-x-hidden antialiased">
       {/* Decorative Global Background Gradient Ring */}
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#FF9800]/5 rounded-full blur-[120px] pointer-events-none -z-10"></div>
       

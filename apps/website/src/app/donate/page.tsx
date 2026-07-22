@@ -114,13 +114,13 @@ export default function DonatePage() {
 
   if (success) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-brand-cream px-6 py-24">
-        <div className="w-full max-w-md rounded-3xl border border-brand-primary/10 bg-white p-12 text-center shadow-sm">
+      <main className="flex min-h-screen items-center justify-center bg-brand-cream dark:bg-slate-950 px-6 py-24">
+        <div className="w-full max-w-md rounded-3xl border border-brand-primary/10 dark:border-slate-800 bg-white dark:bg-slate-900 p-12 text-center shadow-sm">
           <div className="mb-4 text-4xl text-brand-primary">✓</div>
-          <h2 className="font-display text-2xl font-semibold text-brand-dark">
+          <h2 className="font-display text-2xl font-semibold text-brand-dark dark:text-slate-100">
             Thank You!
           </h2>
-          <p className="mt-3 text-sm font-light text-gray-500">
+          <p className="mt-3 text-sm font-light text-gray-500 dark:text-slate-400">
             Your donation has been recorded. You&apos;ll receive a confirmation
             email shortly.
           </p>
@@ -136,23 +136,23 @@ export default function DonatePage() {
   }
 
   const inputClass =
-    "w-full rounded-xl border border-gray-200 px-3.5 py-3 text-sm text-brand-dark outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20";
+    "w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-3 text-sm text-brand-dark dark:text-slate-100 outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20";
 
   return (
-    <main className="min-h-screen bg-brand-cream pt-32">
+    <main className="min-h-screen bg-brand-cream dark:bg-slate-950 pt-32">
       <section className="relative overflow-hidden px-6 pb-12 pt-6">
-        <div className="absolute -right-32 -top-24 h-80 w-80 rounded-full bg-brand-primary/10 blur-3xl" />
+        <div className="absolute -right-32 -top-24 h-80 w-80 rounded-full bg-brand-primary/10 dark:bg-blue-900/20 blur-3xl" />
         <div className="relative mx-auto max-w-3xl text-center">
-          <span className="mb-3 inline-block rounded-full border border-brand-primary/15 bg-brand-primary/8 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-brand-primary">
+          <span className="mb-3 inline-block rounded-full border border-brand-primary/15 bg-brand-primary/8 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-brand-primary dark:text-blue-400">
             Support Our Community
           </span>
-          <h1 className="font-display text-4xl font-bold tracking-tight text-brand-dark sm:text-5xl">
+          <h1 className="font-display text-4xl font-bold tracking-tight text-brand-dark dark:text-slate-100 sm:text-5xl">
             Make a{" "}
             <span className="bg-gradient-to-r from-brand-primary to-brand-accent bg-clip-text text-transparent italic">
               donation
             </span>
           </h1>
-          <p className="mx-auto mt-4 max-w-lg text-base font-light text-brand-muted">
+          <p className="mx-auto mt-4 max-w-lg text-base font-light text-brand-muted dark:text-slate-400">
             Your generosity helps families build financial security through
             communal savings. Every contribution makes a difference.
           </p>
@@ -164,13 +164,13 @@ export default function DonatePage() {
           {impactItems.map((item) => (
             <div
               key={item.amount}
-              className="rounded-2xl border border-white/70 bg-white p-6 shadow-sm"
+              className="rounded-2xl border border-white/70 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm"
             >
               <div className="mb-2 text-2xl">{item.icon}</div>
-              <span className="block font-mono text-lg font-bold text-brand-primary">
+              <span className="block font-mono text-lg font-bold text-brand-primary dark:text-blue-400">
                 {item.amount}
               </span>
-              <span className="mt-1 block text-xs font-light text-gray-500">
+              <span className="mt-1 block text-xs font-light text-gray-500 dark:text-slate-400">
                 {item.impact}
               </span>
             </div>
@@ -178,26 +178,26 @@ export default function DonatePage() {
         </div>
       </section>
 
-      <section className="bg-gradient-to-b from-brand-surface/50 to-brand-cream px-6 py-16">
+      <section className="bg-gradient-to-b from-brand-surface/50 to-brand-cream dark:from-slate-900 dark:to-slate-950 px-6 py-16">
         <div className="mx-auto max-w-lg">
           <div className="mb-8 text-center">
-            <span className="mb-3 inline-block rounded-full border border-brand-primary/15 bg-brand-primary/8 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-brand-primary">
+            <span className="mb-3 inline-block rounded-full border border-brand-primary/15 bg-brand-primary/8 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-brand-primary dark:text-blue-400">
               Donate Now
             </span>
-            <h2 className="font-display text-2xl font-semibold text-brand-dark">
+            <h2 className="font-display text-2xl font-semibold text-brand-dark dark:text-slate-100">
               Choose your contribution
             </h2>
           </div>
 
-          <div className="rounded-3xl border border-brand-primary/10 bg-white p-8 shadow-sm">
+          <div className="rounded-3xl border border-brand-primary/10 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 shadow-sm">
             {error && (
-              <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-medium text-red-600">
+              <div className="mb-4 rounded-xl border border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/30 px-4 py-3 text-xs font-medium text-red-600 dark:text-red-400">
                 {error}
               </div>
             )}
 
             <div className="mb-4">
-              <label className="mb-1.5 block text-xs font-medium text-gray-700">
+              <label className="mb-1.5 block text-xs font-medium text-gray-700 dark:text-slate-300">
                 Your Name
               </label>
               <input
@@ -210,7 +210,7 @@ export default function DonatePage() {
             </div>
 
             <div className="mb-4">
-              <label className="mb-1.5 block text-xs font-medium text-gray-700">
+              <label className="mb-1.5 block text-xs font-medium text-gray-700 dark:text-slate-300">
                 Email Address *
               </label>
               <input
@@ -223,7 +223,7 @@ export default function DonatePage() {
             </div>
 
             <div className="mb-4">
-              <label className="mb-1.5 block text-xs font-medium text-gray-700">
+              <label className="mb-1.5 block text-xs font-medium text-gray-700 dark:text-slate-300">
                 Select Amount
               </label>
               <div className="mb-3 grid grid-cols-3 gap-2">
@@ -237,8 +237,8 @@ export default function DonatePage() {
                     className={clsx(
                       "rounded-xl border px-3 py-3 font-mono text-sm font-semibold transition",
                       amount === String(preset)
-                        ? "border-brand-primary bg-brand-primary/10 text-brand-primary"
-                        : "border-gray-200 text-gray-500 hover:border-brand-primary/40",
+                        ? "border-brand-primary bg-brand-primary/10 text-brand-primary dark:border-blue-400 dark:bg-blue-900/30 dark:text-blue-400"
+                        : "border-gray-200 dark:border-slate-700 text-gray-500 dark:text-slate-400 hover:border-brand-primary/40 dark:hover:border-blue-400",
                     )}
                   >
                     ₦{preset.toLocaleString()}
@@ -246,7 +246,7 @@ export default function DonatePage() {
                 ))}
               </div>
               <div className="relative">
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-semibold text-gray-400">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-semibold text-gray-400 dark:text-slate-500">
                   ₦
                 </span>
                 <input
@@ -263,7 +263,7 @@ export default function DonatePage() {
             </div>
 
             <div className="mb-6">
-              <label className="mb-1.5 block text-xs font-medium text-gray-700">
+              <label className="mb-1.5 block text-xs font-medium text-gray-700 dark:text-slate-300">
                 Notes (optional)
               </label>
               <textarea
@@ -283,7 +283,7 @@ export default function DonatePage() {
               {loading ? "Processing..." : "Donate Now"}
             </button>
 
-            <div className="mt-4 flex items-center justify-center gap-6 border-t border-gray-100 pt-4 text-[10px] text-gray-400">
+            <div className="mt-4 flex items-center justify-center gap-6 border-t border-gray-100 dark:border-slate-800 pt-4 text-[10px] text-gray-400 dark:text-slate-500">
               <span className="flex items-center gap-1.5">
                 🔒 SSL Encrypted
               </span>
@@ -295,13 +295,13 @@ export default function DonatePage() {
         </div>
       </section>
 
-      <section className="px-6 py-16">
+      <section className="px-6 py-16 dark:bg-slate-950">
         <div className="mx-auto max-w-5xl">
           <div className="mb-12 text-center">
-            <span className="mb-3 inline-block rounded-full border border-brand-accent/20 bg-brand-accent/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-brand-accent">
+            <span className="mb-3 inline-block rounded-full border border-brand-accent/20 bg-brand-accent/10 dark:bg-blue-900/20 dark:border-blue-800 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-brand-accent dark:text-blue-400">
               Donor Stories
             </span>
-            <h2 className="font-display text-3xl font-bold tracking-tight text-brand-dark">
+            <h2 className="font-display text-3xl font-bold tracking-tight text-brand-dark dark:text-slate-100">
               Hear from our{" "}
               <span className="bg-gradient-to-r from-brand-primary to-brand-accent bg-clip-text text-transparent italic">
                 donors
@@ -312,19 +312,19 @@ export default function DonatePage() {
             {testimonials.map((t) => (
               <div
                 key={t.name}
-                className="rounded-2xl border border-white/70 bg-white p-7 shadow-sm"
-              >
-                <p className="text-sm font-light italic leading-relaxed text-brand-dark">
-                  &ldquo;{t.text}&rdquo;
-                </p>
-                <div className="mt-5 flex items-center gap-3">
-                  <div
-                    className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white"
-                    style={{ background: t.color }}
-                  >
-                    {t.name.charAt(0)}
-                  </div>
-                  <span className="text-xs font-semibold text-brand-dark">
+              className="rounded-2xl border border-white/70 dark:border-slate-800 bg-white dark:bg-slate-900 p-7 shadow-sm"
+            >
+              <p className="text-sm font-light italic leading-relaxed text-brand-dark dark:text-slate-200">
+                &ldquo;{t.text}&rdquo;
+              </p>
+              <div className="mt-5 flex items-center gap-3">
+                <div
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white"
+                  style={{ background: t.color }}
+                >
+                  {t.name.charAt(0)}
+                </div>
+                <span className="text-xs font-semibold text-brand-dark dark:text-slate-100">
                     {t.name}
                   </span>
                 </div>

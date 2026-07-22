@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { AdUnit } from "@/components/AdUnit";
+import { ThemeProvider } from "@/lib/theme-context";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -80,15 +81,17 @@ export default function RootLayout({
         )}
       </head>
       <body>
-        <ScrollToTop />
-        <SiteHeader />
-        {children}
-        {/* <div className="mx-auto max-w-7xl px-4 py-8">
-          <AdUnit slot="YOUR_AD_SLOT_ID" />
-        </div> */}
-        <SiteFooter />
-        <CookieConsent />
-        <Toaster position="top-right" richColors />
+        <ThemeProvider>
+          <ScrollToTop />
+          <SiteHeader />
+          {children}
+          {/* <div className="mx-auto max-w-7xl px-4 py-8">
+            <AdUnit slot="YOUR_AD_SLOT_ID" />
+          </div> */}
+          <SiteFooter />
+          <CookieConsent />
+          <Toaster position="top-right" richColors />
+        </ThemeProvider>
       </body>
     </html>
   );

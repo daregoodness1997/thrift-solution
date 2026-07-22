@@ -5,7 +5,7 @@ export { Header } from "./Header";
 export { Footer } from "./Footer";
 export { Input } from "./Input";
 export { StatCard } from "./StatCard";
-export { ThemeProvider } from "./ThemeProvider";
+export { ThemeProvider, useTheme } from "./ThemeProvider";
 export { GradientStrip, HeroIllustration, CircleIllustration, SavingsGrowthChart, ColorfulBadge, DecorativeDots, WavySeparator, ColorBar } from "./Visuals";
 export { FadeIn, FadeInUp, FadeInLeft, FadeInRight, ScaleIn, StaggerChildren, SlideReveal, Typewriter, CountUp, PulseDot, FloatingElement, Shimmer } from "./Animations";
 export { HandshakeIcon, MoneyIcon, ChartIcon, TrophyIcon, HeartIcon, ShieldIcon, BellIcon, MegaphoneIcon, BookIcon, BowlIcon, MedicalIcon, DropletIcon, LockIcon, CheckIcon, CrossIcon, HourglassIcon } from "./Icons";

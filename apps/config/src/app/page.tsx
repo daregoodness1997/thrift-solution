@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { BrandConfig } from "@thrift/config";
+import { BrandConfig, useTheme } from "@thrift/ui";
+import { Moon, Sun } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -28,14 +29,15 @@ const fallback: BrandConfig = {
   legal: {},
 };
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children, isDark }: { title: string; children: React.ReactNode; isDark: boolean }) {
   return (
     <div
       style={{
-        backgroundColor: "#ffffff",
+        backgroundColor: isDark ? "#1E293B" : "#ffffff",
         borderRadius: "1.5rem",
         padding: "1.5rem",
         marginBottom: "1rem",
+        border: `1px solid ${isDark ? "#334155" : "#EAEAEA"}`,
       }}
     >
       <h3
@@ -44,7 +46,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
           fontWeight: 700,
           textTransform: "uppercase",
           letterSpacing: "0.1em",
-          color: "#999999",
+          color: isDark ? "#94A3B8" : "#999999",
           marginBottom: "1rem",
         }}
       >
@@ -55,10 +57,10 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children, isDark }: { label: string; children: React.ReactNode; isDark: boolean }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "0.375rem", flex: 1 }}>
-      <label style={{ fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#999999", fontWeight: 700 }}>
+      <label style={{ fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.1em", color: isDark ? "#94A3B8" : "#999999", fontWeight: 700 }}>
         {label}
       </label>
       {children}
@@ -66,7 +68,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function TextInput({ value, onChange, type = "text", placeholder }: { value: string; onChange: (v: string) => void; type?: string; placeholder?: string }) {
+function TextInput({ value, onChange, type = "text", placeholder, isDark }: { value: string; onChange: (v: string) => void; type?: string; placeholder?: string; isDark: boolean }) {
   return (
     <input
       type={type}
@@ -74,12 +76,12 @@ function TextInput({ value, onChange, type = "text", placeholder }: { value: str
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       style={{
-        backgroundColor: "#FAFAFA",
-        border: "1px solid #EAEAEA",
+        backgroundColor: isDark ? "#0F172A" : "#FAFAFA",
+        border: `1px solid ${isDark ? "#334155" : "#EAEAEA"}`,
         borderRadius: "0.75rem",
         padding: "0.5rem 0.75rem",
         fontSize: "12px",
-        color: "#2D2D2D",
+        color: isDark ? "#F5F8FF" : "#2D2D2D",
         outline: "none",
         width: "100%",
         fontFamily: "inherit",
@@ -89,10 +91,10 @@ function TextInput({ value, onChange, type = "text", placeholder }: { value: str
   );
 }
 
-function ColorInput({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+function ColorInput({ label, value, onChange, isDark }: { label: string; value: string; onChange: (v: string) => void; isDark: boolean }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "0.375rem", flex: 1 }}>
-      <label style={{ fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.1em", color: "#999999", fontWeight: 700 }}>
+      <label style={{ fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.1em", color: isDark ? "#94A3B8" : "#999999", fontWeight: 700 }}>
         {label}
       </label>
       <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
@@ -100,7 +102,7 @@ function ColorInput({ label, value, onChange }: { label: string; value: string; 
           type="color"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          style={{ width: "36px", height: "36px", border: "1px solid #EAEAEA", borderRadius: "0.5rem", cursor: "pointer", padding: "2px" }}
+          style={{ width: "36px", height: "36px", border: `1px solid ${isDark ? "#334155" : "#EAEAEA"}`, borderRadius: "0.5rem", cursor: "pointer", padding: "2px" }}
         />
         <input
           type="text"
@@ -108,13 +110,13 @@ function ColorInput({ label, value, onChange }: { label: string; value: string; 
           onChange={(e) => onChange(e.target.value)}
           style={{
             flex: 1,
-            backgroundColor: "#FAFAFA",
-            border: "1px solid #EAEAEA",
+            backgroundColor: isDark ? "#0F172A" : "#FAFAFA",
+            border: `1px solid ${isDark ? "#334155" : "#EAEAEA"}`,
             borderRadius: "0.75rem",
             padding: "0.5rem 0.75rem",
             fontSize: "12px",
             fontFamily: "'JetBrains Mono', monospace",
-            color: "#2D2D2D",
+            color: isDark ? "#F5F8FF" : "#2D2D2D",
             outline: "none",
           }}
         />

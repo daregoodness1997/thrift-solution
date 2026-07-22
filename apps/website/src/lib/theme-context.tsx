@@ -1,7 +1,6 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { config } from "@thrift/config";
 
 type ThemeMode = "light" | "dark";
 
@@ -43,28 +42,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      <div
-        style={{
-          "--color-primary": config.colors.primary,
-          "--color-secondary": config.colors.secondary,
-          "--color-accent": config.colors.accent,
-          "--color-background": config.colors.background,
-          "--color-surface": config.colors.surface,
-          "--color-text": config.colors.text,
-          "--color-text-muted": config.colors.textMuted,
-          minHeight: "100vh",
-          background: theme === "dark"
-            ? "#0B1220"
-            : `linear-gradient(180deg, ${config.colors.background} 0%, #EAF1FB 50%, ${config.colors.background} 100%)`,
-          color: theme === "dark" ? "#F5F8FF" : config.colors.text,
-          fontFamily: "'Inter', ui-sans-serif, system-ui, sans-serif",
-          lineHeight: 1.6,
-          WebkitFontSmoothing: "antialiased",
-          MozOsxFontSmoothing: "grayscale",
-        } as React.CSSProperties}
-      >
-        {children}
-      </div>
+      {children}
     </ThemeContext.Provider>
   );
 }

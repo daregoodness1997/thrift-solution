@@ -1,5 +1,6 @@
 "use client";
 
+import { useTheme } from "@/lib/theme-context";
 import { HeroSection } from "@/components/sections/HeroSection";
 import { Logos } from "@/components/sections/Logos";
 import { Features } from "@/components/sections/Features";
@@ -14,14 +15,15 @@ import { PrayerNetworkSection } from "@/components/sections/PrayerNetwork";
 import { FinalCTASection } from "@/components/sections/FinalCTASection";
 
 export default function Home() {
+  const { theme } = useTheme();
   const handleOpenImpactModal = () => {
     window.location.href = "/donate";
   };
 
   return (
-    <main className="min-h-screen bg-brand-cream">
+    <main className="min-h-screen bg-brand-cream dark:bg-slate-950 transition-colors">
       <HeroSection
-        theme="light"
+        theme={theme}
         onOpenImpactModal={handleOpenImpactModal}
       />
       <Logos />

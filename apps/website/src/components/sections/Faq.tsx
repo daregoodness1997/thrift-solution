@@ -16,7 +16,7 @@ export function Faq() {
   const [open, setOpen] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="bg-brand-cream py-20">
+    <section id="faq" className="bg-brand-cream dark:bg-slate-950 py-20">
       <Container>
         <SectionHeading
           eyebrow="FAQ"
@@ -30,7 +30,7 @@ export function Faq() {
           }
         />
 
-        <div className="mx-auto mt-12 max-w-3xl divide-y divide-brand-primary/10 overflow-hidden rounded-2xl border border-brand-primary/10 bg-white">
+        <div className="mx-auto mt-12 max-w-3xl divide-y divide-brand-primary/10 dark:divide-slate-700 overflow-hidden rounded-2xl border border-brand-primary/10 dark:border-slate-800 bg-white dark:bg-slate-900">
           {faqs.map((f, i) => {
             const isOpen = open === i;
             return (
@@ -39,8 +39,8 @@ export function Faq() {
                   onClick={() => setOpen(isOpen ? null : i)}
                   className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left"
                 >
-                  <span className="text-sm font-semibold text-brand-dark">{f.q}</span>
-                  <span className="shrink-0 rounded-full bg-brand-primary/10 p-1.5 text-brand-primary">
+                  <span className="text-sm font-semibold text-brand-dark dark:text-slate-100">{f.q}</span>
+                  <span className="shrink-0 rounded-full bg-brand-primary/10 dark:bg-blue-900/40 p-1.5 text-brand-primary dark:text-blue-400">
                     {isOpen ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                   </span>
                 </button>
@@ -49,7 +49,7 @@ export function Faq() {
                     isOpen ? "max-h-48 pb-5" : "max-h-0"
                   }`}
                 >
-                  <p className="text-sm font-light leading-relaxed text-brand-muted">{f.a}</p>
+                  <p className="text-sm font-light leading-relaxed text-brand-muted dark:text-slate-400">{f.a}</p>
                 </div>
               </div>
             );

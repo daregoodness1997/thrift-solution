@@ -31,41 +31,53 @@ const COOKIE_CATEGORIES = [
   },
 ] as const;
 
-const overlayStyle: React.CSSProperties = {
+function useIsDark() {
+  const [isDark, setIsDark] = useState(false);
+  useEffect(() => {
+    const check = () => setIsDark(document.documentElement.classList.contains("dark"));
+    check();
+    const observer = new MutationObserver(check);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+  return isDark;
+}
+
+const getOverlayStyle = (isDark: boolean): React.CSSProperties => ({
   position: "fixed",
   inset: 0,
-  backgroundColor: "rgba(0, 0, 0, 0.4)",
+  backgroundColor: isDark ? "rgba(0, 0, 0, 0.6)" : "rgba(0, 0, 0, 0.4)",
   backdropFilter: "blur(4px)",
   zIndex: 9998,
-};
+});
 
-const modalStyle: React.CSSProperties = {
+const getModalStyle = (isDark: boolean): React.CSSProperties => ({
   position: "fixed",
   bottom: "1.5rem",
   left: "50%",
   transform: "translateX(-50%)",
   width: "min(640px, calc(100vw - 2rem))",
   maxHeight: "calc(100vh - 3rem)",
-  backgroundColor: "#ffffff",
+  backgroundColor: isDark ? "#1E293B" : "#ffffff",
   borderRadius: "1rem",
-  boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.15)",
+  boxShadow: isDark ? "0 25px 50px -12px rgba(0, 0, 0, 0.4)" : "0 25px 50px -12px rgba(0, 0, 0, 0.15)",
   zIndex: 9999,
   overflow: "hidden",
   fontFamily: "'Inter', ui-sans-serif, system-ui, sans-serif",
-};
+});
 
-const bannerStyle: React.CSSProperties = {
+const getBannerStyle = (isDark: boolean): React.CSSProperties => ({
   position: "fixed",
   bottom: 0,
   left: 0,
   right: 0,
-  backgroundColor: "#ffffff",
-  borderTop: "1px solid #F0F0F0",
-  boxShadow: "0 -4px 20px rgba(0, 0, 0, 0.06)",
+  backgroundColor: isDark ? "#1E293B" : "#ffffff",
+  borderTop: `1px solid ${isDark ? "#334155" : "#F0F0F0"}`,
+  boxShadow: isDark ? "0 -4px 20px rgba(0, 0, 0, 0.3)" : "0 -4px 20px rgba(0, 0, 0, 0.06)",
   zIndex: 9999,
   padding: "1.25rem 2rem",
   fontFamily: "'Inter', ui-sans-serif, system-ui, sans-serif",
-};
+});
 
 function Toggle({
   checked,
@@ -122,6 +134,7 @@ function AdvancedModal({
   onSave: (prefs: CookiePreferences) => void;
   onClose: () => void;
 }) {
+  const isDark = useIsDark();
   const [localPrefs, setLocalPrefs] = useState<CookiePreferences>({ ...preferences });
   const [visible, setVisible] = useState(false);
   const [closing, setClosing] = useState(false);
@@ -161,15 +174,15 @@ function AdvancedModal({
 
   return (
     <>
-      <div style={{ ...overlayStyle, ...overlayAnim }} onClick={handleClose} />
-      <div style={{ ...modalStyle, ...modalAnim }}>
+      <div style={{ ...getOverlayStyle(isDark), ...overlayAnim }} onClick={handleClose} />
+      <div style={{ ...getModalStyle(isDark), ...modalAnim }}>
         <div style={{ padding: "1.5rem 1.5rem 0" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1rem" }}>
             <div>
-              <h3 style={{ fontSize: "16px", fontWeight: 600, color: "#1A1A1A", margin: 0, letterSpacing: "-0.02em" }}>
+              <h3 style={{ fontSize: "16px", fontWeight: 600, color: isDark ? "#F5F8FF" : "#1A1A1A", margin: 0, letterSpacing: "-0.02em" }}>
                 Cookie Preferences
               </h3>
-              <p style={{ fontSize: "12px", color: "#717171", margin: "0.375rem 0 0", lineHeight: 1.5 }}>
+              <p style={{ fontSize: "12px", color: isDark ? "#94A3B8" : "#717171", margin: "0.375rem 0 0", lineHeight: 1.5 }}>
                 Manage how we use cookies on this site.
               </p>
             </div>
@@ -180,14 +193,14 @@ function AdvancedModal({
                 border: "none",
                 cursor: "pointer",
                 padding: "0.25rem",
-                color: "#999",
+                color: isDark ? "#64748B" : "#999",
                 fontSize: "18px",
                 lineHeight: 1,
                 borderRadius: "0.25rem",
                 transition: "color 0.2s ease",
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = "#1A1A1A")}
-              onMouseLeave={(e) => (e.currentTarget.style.color = "#999")}
+              onMouseEnter={(e) => (e.currentTarget.style.color = isDark ? "#F5F8FF" : "#1A1A1A")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = isDark ? "#64748B" : "#999")}
               aria-label="Close"
             >
               &#x2715;
@@ -201,7 +214,7 @@ function AdvancedModal({
               key={cat.key}
               style={{
                 padding: "1rem 0",
-                borderBottom: "1px solid #F5F5F5",
+                borderBottom: `1px solid ${isDark ? "#334155" : "#F5F5F5"}`,
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "flex-start",
@@ -213,7 +226,7 @@ function AdvancedModal({
             >
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.25rem" }}>
-                  <span style={{ fontSize: "13px", fontWeight: 600, color: "#1A1A1A" }}>{cat.label}</span>
+                  <span style={{ fontSize: "13px", fontWeight: 600, color: isDark ? "#F5F8FF" : "#1A1A1A" }}>{cat.label}</span>
                   {cat.required && (
                     <span
                       style={{
@@ -231,34 +244,34 @@ function AdvancedModal({
                     </span>
                   )}
                 </div>
-                <p style={{ fontSize: "11px", color: "#717171", margin: 0, lineHeight: 1.6 }}>{cat.description}</p>
+                <p style={{ fontSize: "11px", color: isDark ? "#94A3B8" : "#717171", margin: 0, lineHeight: 1.6 }}>{cat.description}</p>
               </div>
               <Toggle checked={localPrefs[cat.key]} onChange={() => toggle(cat.key)} disabled={cat.required} />
             </div>
           ))}
         </div>
 
-        <div style={{ padding: "1.25rem 1.5rem", borderTop: "1px solid #F0F0F0", display: "flex", gap: "0.75rem", justifyContent: "flex-end" }}>
+        <div style={{ padding: "1.25rem 1.5rem", borderTop: `1px solid ${isDark ? "#334155" : "#F0F0F0"}`, display: "flex", gap: "0.75rem", justifyContent: "flex-end" }}>
           <button
             onClick={handleClose}
             style={{
               padding: "0.5rem 1rem",
               borderRadius: "0.5rem",
-              border: "1px solid #E5E7EB",
-              backgroundColor: "#ffffff",
-              color: "#374151",
+              border: `1px solid ${isDark ? "#475569" : "#E5E7EB"}`,
+              backgroundColor: isDark ? "#0F172A" : "#ffffff",
+              color: isDark ? "#CBD5E1" : "#374151",
               fontSize: "12px",
               fontWeight: 500,
               cursor: "pointer",
               transition: "all 0.2s ease",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#F9FAFB";
-              e.currentTarget.style.borderColor = "#D1D5DB";
+              e.currentTarget.style.backgroundColor = isDark ? "#1E293B" : "#F9FAFB";
+              e.currentTarget.style.borderColor = isDark ? "#64748B" : "#D1D5DB";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#ffffff";
-              e.currentTarget.style.borderColor = "#E5E7EB";
+              e.currentTarget.style.backgroundColor = isDark ? "#0F172A" : "#ffffff";
+              e.currentTarget.style.borderColor = isDark ? "#475569" : "#E5E7EB";
             }}
           >
             Cancel
@@ -294,6 +307,7 @@ function AdvancedModal({
 }
 
 export function CookieConsent() {
+  const isDark = useIsDark();
   const {
     preferences,
     showBanner,
@@ -350,10 +364,10 @@ export function CookieConsent() {
 
   return (
     <>
-      <div style={{ ...bannerStyle, ...bannerAnim }}>
+      <div style={{ ...getBannerStyle(isDark), ...bannerAnim }}>
         <div style={{ maxWidth: "1280px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "2rem", flexWrap: "wrap" }}>
           <div style={{ flex: 1, minWidth: "280px" }}>
-            <p style={{ fontSize: "13px", color: "#374151", margin: 0, lineHeight: 1.6 }}>
+            <p style={{ fontSize: "13px", color: isDark ? "#CBD5E1" : "#374151", margin: 0, lineHeight: 1.6 }}>
               We use cookies to enhance your experience, analyze site traffic, and personalize content.{" "}
               <button
                 onClick={handleOpenAdvanced}
@@ -379,21 +393,21 @@ export function CookieConsent() {
               style={{
                 padding: "0.5rem 1rem",
                 borderRadius: "0.5rem",
-                border: "1px solid #E5E7EB",
-                backgroundColor: "#ffffff",
-                color: "#374151",
+                border: `1px solid ${isDark ? "#475569" : "#E5E7EB"}`,
+                backgroundColor: isDark ? "#0F172A" : "#ffffff",
+                color: isDark ? "#CBD5E1" : "#374151",
                 fontSize: "12px",
                 fontWeight: 500,
                 cursor: "pointer",
                 transition: "all 0.2s ease",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#F9FAFB";
-                e.currentTarget.style.borderColor = "#D1D5DB";
+                e.currentTarget.style.backgroundColor = isDark ? "#1E293B" : "#F9FAFB";
+                e.currentTarget.style.borderColor = isDark ? "#64748B" : "#D1D5DB";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#ffffff";
-                e.currentTarget.style.borderColor = "#E5E7EB";
+                e.currentTarget.style.backgroundColor = isDark ? "#0F172A" : "#ffffff";
+                e.currentTarget.style.borderColor = isDark ? "#475569" : "#E5E7EB";
               }}
             >
               Reject All
@@ -404,7 +418,7 @@ export function CookieConsent() {
                 padding: "0.5rem 1rem",
                 borderRadius: "0.5rem",
                 border: `1px solid ${config.colors.primary}30`,
-                backgroundColor: "#ffffff",
+                backgroundColor: isDark ? "#0F172A" : "#ffffff",
                 color: config.colors.primary,
                 fontSize: "12px",
                 fontWeight: 600,
@@ -415,7 +429,7 @@ export function CookieConsent() {
                 e.currentTarget.style.backgroundColor = `${config.colors.primary}08`;
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#ffffff";
+                e.currentTarget.style.backgroundColor = isDark ? "#0F172A" : "#ffffff";
               }}
             >
               Manage

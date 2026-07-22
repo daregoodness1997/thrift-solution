@@ -68,7 +68,7 @@ const team = [
 
 export function Team() {
   return (
-    <section className="bg-brand-cream py-20">
+    <section className="bg-brand-cream dark:bg-slate-950 py-20">
       <Container>
         <SectionHeading
           eyebrow="Our Team"
@@ -87,7 +87,7 @@ export function Team() {
           {team.map((member) => (
             <div
               key={member.name}
-              className="group overflow-hidden rounded-3xl border border-brand-primary/10 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+              className="group overflow-hidden rounded-3xl border border-brand-primary/10 bg-white dark:bg-slate-900 dark:border-slate-800 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
             >
               <div className="aspect-[4/5] overflow-hidden">
                 <img
@@ -97,13 +97,13 @@ export function Team() {
                 />
               </div>
               <div className="p-6">
-                <h3 className="font-display text-lg font-bold text-brand-dark">
+                <h3 className="font-display text-lg font-bold text-brand-dark dark:text-slate-100">
                   {member.name}
                 </h3>
                 <p className="mt-0.5 text-sm font-semibold text-brand-accent">
                   {member.role}
                 </p>
-                <p className="mt-0.5 text-sm ">{member.location}</p>
+                <p className="mt-0.5 text-sm text-brand-muted dark:text-slate-400">{member.location}</p>
               </div>
             </div>
           ))}

@@ -23,7 +23,7 @@ const faces = [
 
 export function BentoSocialProof() {
   return (
-    <section className="bg-brand-cream py-20">
+    <section className="bg-brand-cream dark:bg-slate-950 py-20">
       <Container>
         <SectionHeading
           eyebrow="Social Proof"
@@ -40,7 +40,7 @@ export function BentoSocialProof() {
 
         <div className="mt-14 grid grid-cols-2 gap-4 md:gap-5 lg:grid-cols-6 lg:grid-rows-3">
           {/* Featured happy group (2x2) */}
-          <div className="group relative col-span-2 row-span-2 overflow-hidden rounded-3xl border border-brand-primary/10 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+          <div className="group relative col-span-2 row-span-2 overflow-hidden rounded-3xl border border-brand-primary/10 bg-white dark:bg-slate-900 dark:border-slate-800 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
             <img
               src={bigGroup}
               alt="A happy group of friends enjoying time together"
@@ -73,7 +73,7 @@ export function BentoSocialProof() {
           </div>
 
           {/* Wide face (row 3, cols 1-2) */}
-          <div className="group relative col-span-2 row-span-1 overflow-hidden rounded-3xl border border-brand-primary/10 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+          <div className="group relative col-span-2 row-span-1 overflow-hidden rounded-3xl border border-brand-primary/10 bg-white dark:bg-slate-900 dark:border-slate-800 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
             <img
               src={faces[6]}
               alt="Smiling community member"
@@ -94,7 +94,7 @@ export function BentoSocialProof() {
         </div>
 
         <div className="mt-10 flex justify-center">
-          <Badge className="border-brand-primary/15 bg-white text-brand-secondary">
+          <Badge className="border-brand-primary/15 bg-white dark:bg-slate-900 dark:border-slate-700 text-brand-secondary dark:text-blue-300">
             Join 1,200+ members saving together
           </Badge>
         </div>
@@ -105,7 +105,7 @@ export function BentoSocialProof() {
 
 function FaceTile({ src }: { src: string }) {
   return (
-    <div className="group relative col-span-1 row-span-1 overflow-hidden rounded-3xl border border-brand-primary/10 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+    <div className="group relative col-span-1 row-span-1 overflow-hidden rounded-3xl border border-brand-primary/10 bg-white dark:bg-slate-900 dark:border-slate-800 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
       <img
         src={src}
         alt="Smiling community member"

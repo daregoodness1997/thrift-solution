@@ -16,7 +16,7 @@ export function Logo({
       {showWordmark && (
         <span
           className={clsx(
-            "font-display text-xl font-bold tracking-tight text-brand-dark",
+            "font-display text-xl font-bold tracking-tight text-brand-dark dark:text-slate-100",
             wordmarkClassName
           )}
         >

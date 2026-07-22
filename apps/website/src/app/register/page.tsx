@@ -26,16 +26,16 @@ function StepIndicator({ step }: { step: number }) {
                 "flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-bold transition-colors",
                 isDone && "bg-green-600 text-white",
                 isActive && "bg-brand-primary text-white",
-                !isDone && !isActive && "bg-gray-100 text-gray-400"
+                !isDone && !isActive && "bg-gray-100 dark:bg-slate-800 text-gray-400 dark:text-slate-500"
               )}
             >
               {isDone ? "✓" : num}
             </div>
-            <span className={clsx("text-[11px]", isActive ? "font-semibold text-brand-dark" : "font-normal text-gray-400")}>
+            <span className={clsx("text-[11px]", isActive ? "font-semibold text-brand-dark dark:text-slate-100" : "font-normal text-gray-400 dark:text-slate-500")}>
               {label}
             </span>
             {i < STEPS.length - 1 && (
-              <div className={clsx("h-px w-6", isDone ? "bg-green-600" : "bg-gray-200")} />
+              <div className={clsx("h-px w-6", isDone ? "bg-green-600" : "bg-gray-200 dark:bg-slate-700")} />
             )}
           </div>
         );
@@ -45,7 +45,7 @@ function StepIndicator({ step }: { step: number }) {
 }
 
 const inputBase =
-  "w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-brand-dark outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20";
+  "w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-sm text-brand-dark dark:text-slate-100 outline-none transition focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20";
 
 function TextField({
   label,
@@ -61,7 +61,7 @@ function TextField({
 } & React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <div className="mb-4">
-      <label className="mb-1.5 block text-xs font-medium text-gray-700">{label}</label>
+      <label className="mb-1.5 block text-xs font-medium text-gray-700 dark:text-slate-300">{label}</label>
       <div className="relative">
         {icon && <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">{icon}</span>}
         <input
@@ -270,7 +270,7 @@ function WebsiteRegisterPage() {
     "w-full rounded-xl bg-brand-primary px-4 py-3 text-sm font-semibold text-white transition disabled:opacity-60";
 
   return (
-    <div className="flex min-h-screen flex-col bg-brand-cream pt-20 lg:flex-row">
+    <div className="flex min-h-screen flex-col bg-brand-cream dark:bg-slate-950 pt-20 lg:flex-row">
       <div className="flex flex-col justify-center bg-gradient-to-br from-brand-secondary via-brand-primary to-[#0B1220] p-10 text-center lg:flex-[0_0_42%] lg:p-16">
         <div className="mx-auto max-w-sm">
           <h1 className="font-display text-3xl font-light text-white">
@@ -289,13 +289,13 @@ function WebsiteRegisterPage() {
           {step <= 3 && <StepIndicator step={step} />}
 
           <div className="mb-6">
-            <h2 className="font-display text-2xl font-semibold tracking-tight text-brand-dark">
+            <h2 className="font-display text-2xl font-semibold tracking-tight text-brand-dark dark:text-slate-100">
               {step === 1 && "Create Account"}
               {step === 2 && "Registration Fee"}
               {step === 3 && "Verify Your Identity"}
               {step === 4 && "You're All Set!"}
             </h2>
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
               {step === 1 && "Fill in your details to get started"}
               {step === 2 && `Pay the one-time ₦${REG_FEE.toLocaleString()} fee to continue`}
               {step === 3 && "Enter your BVN & NIN — we verify instantly via CreditChek"}
@@ -304,7 +304,7 @@ function WebsiteRegisterPage() {
           </div>
 
           {error && (
-            <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-medium text-red-600">
+            <div className="mb-5 rounded-xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/30 px-4 py-3 text-xs font-medium text-red-600 dark:text-red-400">
               {error}
             </div>
           )}
@@ -316,7 +316,7 @@ function WebsiteRegisterPage() {
               <TextField label="Phone (optional)" icon={icons.phone} type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+234..." />
 
               <div className="mb-4">
-                <label className="mb-1.5 block text-xs font-medium text-gray-700">Password</label>
+                <label className="mb-1.5 block text-xs font-medium text-gray-700 dark:text-slate-300">Password</label>
                 <div className="relative">
                   <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">{icons.lock}</span>
                   <input
@@ -335,7 +335,7 @@ function WebsiteRegisterPage() {
                   <div className="mt-2">
                     <div className="mb-1 flex gap-1">
                       {[1, 2, 3, 4].map((i) => (
-                        <div key={i} className="h-1 flex-1 rounded-full" style={{ backgroundColor: i <= passwordStrength.level ? passwordStrength.color : "#E5E7EB" }} />
+                        <div key={i} className="h-1 flex-1 rounded-full" style={{ backgroundColor: i <= passwordStrength.level ? passwordStrength.color : (typeof window !== 'undefined' && document.documentElement.classList.contains('dark') ? '#334155' : '#E5E7EB') }} />
                       ))}
                     </div>
                     <span className="text-[10px] font-medium" style={{ color: passwordStrength.color }}>{passwordStrength.label}</span>
@@ -354,9 +354,9 @@ function WebsiteRegisterPage() {
                 rightSlot={confirmPassword && password === confirmPassword ? icons.check : undefined}
               />
 
-              <div className={clsx("mb-6 rounded-xl border p-3.5", referralCode ? "border-brand-primary/30 bg-brand-primary/[0.04]" : "border-gray-200 bg-gray-50")}>
+              <div className={clsx("mb-6 rounded-xl border p-3.5", referralCode ? "border-brand-primary/30 bg-brand-primary/[0.04] dark:bg-blue-950/20" : "border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800")}>
                 <div className={clsx("flex items-center justify-between", referralCode && "mb-2")}>
-                  <span className="flex items-center gap-1.5 text-xs font-medium text-gray-700">{icons.gift} Have a referral code?</span>
+                  <span className="flex items-center gap-1.5 text-xs font-medium text-gray-700 dark:text-slate-300">{icons.gift} Have a referral code?</span>
                   {!referralCode && (
                     <button type="button" onClick={() => setReferralCode(" ")} className="bg-none border-0 p-0 text-xs font-semibold text-brand-primary">
                       Enter code
@@ -369,7 +369,7 @@ function WebsiteRegisterPage() {
                     value={referralCode}
                     onChange={(e) => setReferralCode(e.target.value)}
                     placeholder="e.g. ADAEZE-8K3M"
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 font-mono text-xs font-semibold tracking-wider text-brand-primary outline-none focus:border-brand-primary"
+                    className="w-full rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 font-mono text-xs font-semibold tracking-wider text-brand-primary dark:text-blue-400 outline-none focus:border-brand-primary"
                   />
                 )}
               </div>
@@ -391,10 +391,10 @@ function WebsiteRegisterPage() {
 
           {step === 2 && (
             <div>
-              <div className="mb-6 rounded-xl bg-gray-50 p-6 text-center">
-                <span className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">Registration Fee</span>
-                <div className="mt-1 font-mono text-2xl font-bold text-brand-primary">₦{REG_FEE.toLocaleString()}</div>
-                <p className="mt-2 text-[11px] text-gray-500">One-time fee. Secured by Flutterwave.</p>
+              <div className="mb-6 rounded-xl bg-gray-50 dark:bg-slate-800 p-6 text-center">
+                <span className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-slate-500">Registration Fee</span>
+                <div className="mt-1 font-mono text-2xl font-bold text-brand-primary dark:text-blue-400">₦{REG_FEE.toLocaleString()}</div>
+                <p className="mt-2 text-[11px] text-gray-500 dark:text-slate-400">One-time fee. Secured by Flutterwave.</p>
               </div>
               <button onClick={handlePay} disabled={loading} className={btnClass}>
                 {loading ? "Redirecting..." : `Pay ₦${REG_FEE.toLocaleString()}`}
@@ -414,15 +414,15 @@ function WebsiteRegisterPage() {
 
           {step === 4 && (
             <div>
-              <div className="mb-6 rounded-xl border border-green-200 bg-green-50 p-6">
-                <div className="text-sm font-semibold text-green-600">✓ Identity verified &amp; KYC approved</div>
+              <div className="mb-6 rounded-xl border border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-950/30 p-6">
+                <div className="text-sm font-semibold text-green-600 dark:text-green-400">✓ Identity verified &amp; KYC approved</div>
                 {virtualAccount ? (
-                  <div className="mt-3 text-xs text-green-700">
-                    <div className="mb-1"><span className="text-gray-500">Virtual Account: </span><strong className="font-mono">{virtualAccount.accountNumber}</strong></div>
-                    <div><span className="text-gray-500">Bank: </span><strong>{virtualAccount.bankName}</strong></div>
+                  <div className="mt-3 text-xs text-green-700 dark:text-green-300">
+                    <div className="mb-1"><span className="text-gray-500 dark:text-slate-400">Virtual Account: </span><strong className="font-mono">{virtualAccount.accountNumber}</strong></div>
+                    <div><span className="text-gray-500 dark:text-slate-400">Bank: </span><strong>{virtualAccount.bankName}</strong></div>
                   </div>
                 ) : (
-                  <div className="mt-2 text-xs text-green-700">Your virtual account will be created shortly.</div>
+                  <div className="mt-2 text-xs text-green-700 dark:text-green-300">Your virtual account will be created shortly.</div>
                 )}
               </div>
               <a href="/dashboard" className="block w-full rounded-xl bg-brand-primary py-3 text-center text-sm font-semibold text-white">
@@ -438,7 +438,7 @@ function WebsiteRegisterPage() {
 
 export default function RegisterPage() {
   return (
-    <Suspense fallback={<div className="py-32 text-center text-gray-400">Loading...</div>}>
+    <Suspense fallback={<div className="py-32 text-center text-gray-400 dark:text-slate-500">Loading...</div>}>
       <WebsiteRegisterPage />
     </Suspense>
   );

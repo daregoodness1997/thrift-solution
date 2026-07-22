@@ -1,5 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
+@custom-variant dark (&:is(.dark *));
+
 *,
 *::before,
 *::after {
@@ -14,6 +16,11 @@ body {
   background: #ffffff;
   color: #2D2D2D;
   -webkit-font-smoothing: antialiased;
+}
+
+html.dark body {
+  background: #0B1220;
+  color: #F5F8FF;
 }
 
 /* ─── Animations ─── */

@@ -12,7 +12,7 @@ const features = [
 
 export function Features() {
   return (
-    <section id="features" className="bg-gradient-to-b from-brand-cream via-brand-surface/40 to-brand-cream py-20">
+    <section id="features" className="bg-gradient-to-b from-brand-cream via-brand-surface/40 to-brand-cream dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 py-20">
       <Container>
         <SectionHeading
           eyebrow="Our Mission"
@@ -33,7 +33,7 @@ export function Features() {
             return (
               <div
                 key={f.title}
-                className="group relative overflow-hidden rounded-2xl border border-white/70 bg-white p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+                className="group relative overflow-hidden rounded-2xl border border-white/70 bg-white dark:bg-slate-900 dark:border-slate-800 p-7 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
               >
                 <div
                   className="absolute inset-x-0 top-0 h-1 opacity-80 transition-all duration-300 group-hover:h-1.5"
@@ -45,8 +45,8 @@ export function Features() {
                 >
                   <Icon className="h-6 w-6" />
                 </div>
-                <h3 className="mb-2 text-base font-semibold text-brand-dark">{f.title}</h3>
-                <p className="text-sm font-light leading-relaxed text-brand-muted">{f.desc}</p>
+                <h3 className="mb-2 text-base font-semibold text-brand-dark dark:text-slate-100">{f.title}</h3>
+                <p className="text-sm font-light leading-relaxed text-brand-muted dark:text-slate-400">{f.desc}</p>
               </div>
             );
           })}

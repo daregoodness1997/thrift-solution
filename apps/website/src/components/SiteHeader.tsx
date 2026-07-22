@@ -13,6 +13,7 @@ import {
   GraduationCap,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import { useTheme } from "@/lib/theme-context";
 
 export const DASHBOARD_URL =
   process.env.NEXT_PUBLIC_DASHBOARD_URL ||
@@ -63,7 +64,7 @@ export function SiteHeader() {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const { theme, toggleTheme } = useTheme();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
 
@@ -92,10 +93,6 @@ export function SiteHeader() {
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
-
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === "light" ? "dark" : "light"));
-  };
 
   return (
     <>

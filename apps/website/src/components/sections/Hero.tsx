@@ -41,7 +41,7 @@ export function Hero() {
             className="animate-fade-up max-w-xl text-base leading-relaxed text-brand-muted sm:text-lg"
             style={{ animationDelay: "160ms" }}
           >
-            GFW brings the centuries-old trust of Ajo into the digital age.
+            GFW brings the centuries-old trust of empowerment into the digital age.
             Track contributions transparently, protect funds in secure escrow,
             and automate payouts for your community.
           </p>

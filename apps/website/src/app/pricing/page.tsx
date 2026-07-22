@@ -16,7 +16,7 @@ const plans = [
     price: 0,
     members: "Up to 5 members",
     perks: ["Basic contribution tracking", "Automated reminders", "Up to 2 active circles", "Member trust scores"],
-    description: "Perfect for family or small friend groups starting their Ajo journey.",
+    description: "Perfect for family or small friend groups starting their empowerment journey.",
   },
   {
     name: "Community Circle",
@@ -45,8 +45,8 @@ const faqs = [
 
 export default function Pricing() {
   return (
-    <main className="min-h-screen bg-brand-cream pt-32">
-      <section className="border-b border-brand-primary/10 bg-gradient-to-b from-brand-primary/[0.06] to-brand-cream px-6 pb-16 pt-10">
+    <main className="min-h-screen bg-brand-cream dark:bg-slate-950 pt-32">
+      <section className="border-b border-brand-primary/10 dark:border-slate-800 bg-gradient-to-b from-brand-primary/[0.06] to-brand-cream dark:from-blue-950/20 dark:to-slate-950 px-6 pb-16 pt-10">
         <Container>
           <SectionHeading
             eyebrow="Plans & Pricing"
@@ -66,8 +66,8 @@ export default function Pricing() {
           {plans.map((plan) => (
             <div
               key={plan.name}
-              className={`relative flex flex-col rounded-3xl bg-white p-8 shadow-sm ${
-                plan.popular ? "border-2 border-brand-primary" : "border border-gray-200"
+              className={`relative flex flex-col rounded-3xl bg-white dark:bg-slate-900 p-8 shadow-sm ${
+                plan.popular ? "border-2 border-brand-primary dark:border-blue-400" : "border border-gray-200 dark:border-slate-800"
               }`}
             >
               {plan.popular && (
@@ -78,22 +78,22 @@ export default function Pricing() {
               <span className="rounded-md border border-brand-primary/15 bg-brand-primary/[0.06] px-2 py-1 font-mono text-[11px] font-bold text-brand-primary">
                 {plan.members}
               </span>
-              <h3 className="mt-4 text-xl font-semibold text-brand-dark">{plan.name}</h3>
-              <p className="mt-1 text-xs italic font-light text-brand-muted">{plan.tagline}</p>
-              <p className="mt-4 text-sm font-light leading-relaxed text-brand-muted">{plan.description}</p>
+              <h3 className="mt-4 text-xl font-semibold text-brand-dark dark:text-slate-100">{plan.name}</h3>
+              <p className="mt-1 text-xs italic font-light text-brand-muted dark:text-slate-400">{plan.tagline}</p>
+              <p className="mt-4 text-sm font-light leading-relaxed text-brand-muted dark:text-slate-400">{plan.description}</p>
 
               <div className="mt-6">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Monthly</span>
-                <p className="font-mono text-2xl font-bold text-brand-dark">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-slate-500">Monthly</span>
+                <p className="font-mono text-2xl font-bold text-brand-dark dark:text-slate-100">
                   {plan.price === 0 ? "Free" : `${formatNaira(plan.price)}/mo`}
                 </p>
               </div>
 
               <div className="mt-6">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Included</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-slate-500">Included</span>
                 <ul className="mt-3 flex flex-col gap-2.5">
                   {plan.perks.map((perk, i) => (
-                    <li key={i} className="flex items-center gap-2 text-sm font-light text-brand-dark">
+                    <li key={i} className="flex items-center gap-2 text-sm font-light text-brand-dark dark:text-slate-300">
                       <span className="h-1.5 w-1.5 rounded-full bg-brand-primary" />
                       {perk}
                     </li>
@@ -115,12 +115,12 @@ export default function Pricing() {
         </div>
 
         <div className="mt-16">
-          <h2 className="mb-6 text-xl font-semibold text-brand-dark">Plan Questions</h2>
+          <h2 className="mb-6 text-xl font-semibold text-brand-dark dark:text-slate-100">Plan Questions</h2>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {faqs.map((faq, i) => (
-              <div key={i} className="rounded-2xl border border-brand-primary/10 bg-white p-6 shadow-sm">
-                <h3 className="text-sm font-semibold text-brand-dark">{faq.q}</h3>
-                <p className="mt-2 text-sm font-light leading-relaxed text-brand-muted">{faq.a}</p>
+              <div key={i} className="rounded-2xl border border-brand-primary/10 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm">
+                <h3 className="text-sm font-semibold text-brand-dark dark:text-slate-100">{faq.q}</h3>
+                <p className="mt-2 text-sm font-light leading-relaxed text-brand-muted dark:text-slate-400">{faq.a}</p>
               </div>
             ))}
           </div>

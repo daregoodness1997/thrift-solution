@@ -34,8 +34,8 @@ export default function Header({ onScrollToSection, openDemo }: HeaderProps) {
       id="main-header"
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled
-          ? "bg-white backdrop-blur-md shadow-md py-4 text-brand-dark"
-          : "bg-transparent py-5 text-brand-dark"
+          ? "bg-white dark:bg-slate-900 backdrop-blur-md shadow-md py-4 text-brand-dark dark:text-slate-100"
+          : "bg-transparent py-5 text-brand-dark dark:text-slate-100"
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
@@ -81,56 +81,56 @@ export default function Header({ onScrollToSection, openDemo }: HeaderProps) {
               Payments <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${activeDropdown === "payments" ? "rotate-180" : ""}`} />
             </button>
             {activeDropdown === "payments" && (
-              <div className="absolute top-full left-1/2 -translate-x-1/2 w-[480px] bg-white rounded-2xl shadow-xl border border-gray-100 p-6 grid grid-cols-2 gap-4 mt-1 transition-all duration-300">
-                <div className="col-span-2 pb-2 mb-2 border-b border-gray-100">
-                  <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Accept & Send Payments</span>
+              <div className="absolute top-full left-1/2 -translate-x-1/2 w-[480px] bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-gray-100 dark:border-slate-800 p-6 grid grid-cols-2 gap-4 mt-1 transition-all duration-300">
+                <div className="col-span-2 pb-2 mb-2 border-b border-gray-100 dark:border-slate-800">
+                  <span className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider">Accept & Send Payments</span>
                 </div>
                 <div 
-                  className="flex gap-3 p-2 hover:bg-orange-50/50 rounded-xl transition-colors cursor-pointer"
+                  className="flex gap-3 p-2 hover:bg-orange-50/50 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
                   onClick={() => handleNavClick("payments-simulator")}
                 >
-                  <div className="p-2 bg-orange-100 rounded-lg text-brand-accent h-fit">
+                  <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg text-brand-accent h-fit">
                     <CreditCard className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-gray-900">Checkout Demo</h4>
-                    <p className="text-[11px] text-gray-500 mt-0.5">Simulate global card and mobile money flows.</p>
+                    <h4 className="text-xs font-bold text-gray-900 dark:text-slate-100">Checkout Demo</h4>
+                    <p className="text-[11px] text-gray-500 dark:text-slate-400 mt-0.5">Simulate global card and mobile money flows.</p>
                   </div>
                 </div>
                 <div 
-                  className="flex gap-3 p-2 hover:bg-orange-50/50 rounded-xl transition-colors cursor-pointer"
+                  className="flex gap-3 p-2 hover:bg-orange-50/50 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
                   onClick={() => handleNavClick("features-section")}
                 >
-                  <div className="p-2 bg-blue-100 rounded-lg text-blue-600 h-fit">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400 h-fit">
                     <Globe className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-gray-900">Global Payouts</h4>
-                    <p className="text-[11px] text-gray-500 mt-0.5">Send bulk transfers directly to banks/wallets.</p>
+                    <h4 className="text-xs font-bold text-gray-900 dark:text-slate-100">Global Payouts</h4>
+                    <p className="text-[11px] text-gray-500 dark:text-slate-400 mt-0.5">Send bulk transfers directly to banks/wallets.</p>
                   </div>
                 </div>
                 <div 
-                  className="flex gap-3 p-2 hover:bg-orange-50/50 rounded-xl transition-colors cursor-pointer"
+                  className="flex gap-3 p-2 hover:bg-orange-50/50 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
                   onClick={() => handleNavClick("features-section")}
                 >
-                  <div className="p-2 bg-purple-100 rounded-lg text-purple-600 h-fit">
+                  <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg text-purple-600 dark:text-purple-400 h-fit">
                     <Store className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-gray-900">Flutterwave Store</h4>
-                    <p className="text-[11px] text-gray-500 mt-0.5">Direct e-commerce storefronts without coding.</p>
+                    <h4 className="text-xs font-bold text-gray-900 dark:text-slate-100">Flutterwave Store</h4>
+                    <p className="text-[11px] text-gray-500 dark:text-slate-400 mt-0.5">Direct e-commerce storefronts without coding.</p>
                   </div>
                 </div>
                 <div 
-                  className="flex gap-3 p-2 hover:bg-orange-50/50 rounded-xl transition-colors cursor-pointer"
+                  className="flex gap-3 p-2 hover:bg-orange-50/50 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
                   onClick={() => handleNavClick("security-section")}
                 >
-                  <div className="p-2 bg-green-100 rounded-lg text-green-600 h-fit">
+                  <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg text-green-600 dark:text-green-400 h-fit">
                     <ShieldCheck className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-gray-900">Flutterwave Shield</h4>
-                    <p className="text-[11px] text-gray-500 mt-0.5">AI-backed security and transaction protection.</p>
+                    <h4 className="text-xs font-bold text-gray-900 dark:text-slate-100">Flutterwave Shield</h4>
+                    <p className="text-[11px] text-gray-500 dark:text-slate-400 mt-0.5">AI-backed security and transaction protection.</p>
                   </div>
                 </div>
               </div>
@@ -199,7 +199,7 @@ export default function Header({ onScrollToSection, openDemo }: HeaderProps) {
         {/* Mobile Menu Button */}
         <button
           id="mobile-menu-toggle"
-          className="lg:hidden p-2 hover:bg-gray-100 rounded-xl transition-colors"
+          className="lg:hidden p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
           {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -208,82 +208,82 @@ export default function Header({ onScrollToSection, openDemo }: HeaderProps) {
 
       {/* Mobile Drawer Navigation */}
       {isMobileMenuOpen && (
-        <div id="mobile-drawer" className="lg:hidden fixed inset-0 top-[72px] bg-white z-40 flex flex-col p-6 animate-fade-in border-t border-gray-100 overflow-y-auto">
+        <div id="mobile-drawer" className="lg:hidden fixed inset-0 top-[72px] bg-white dark:bg-slate-900 z-40 flex flex-col p-6 animate-fade-in border-t border-gray-100 dark:border-slate-800 overflow-y-auto">
           <div className="flex flex-col gap-6 flex-grow">
             <div>
-              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-3">Products</span>
+              <span className="text-xs font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wider block mb-3">Products</span>
               <div className="grid grid-cols-1 gap-4">
                 <button
                   onClick={() => handleNavClick("payments-simulator")}
-                  className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-xl text-left"
+                  className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-xl text-left"
                 >
-                  <div className="p-2 bg-orange-100 rounded-lg text-brand-accent">
+                  <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg text-brand-accent">
                     <CreditCard className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-gray-900">Interactive Checkout Demo</h4>
-                    <p className="text-[10px] text-gray-500">Test global payment processing flow</p>
+                    <h4 className="text-xs font-bold text-gray-900 dark:text-slate-100">Interactive Checkout Demo</h4>
+                    <p className="text-[10px] text-gray-500 dark:text-slate-400">Test global payment processing flow</p>
                   </div>
                 </button>
                 <button
                   onClick={() => handleNavClick("features-section")}
-                  className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-xl text-left"
+                  className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-xl text-left"
                 >
-                  <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400">
                     <Globe className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-gray-900">Global Transfers & Payouts</h4>
-                    <p className="text-[10px] text-gray-500">Send money instantly across Africa</p>
+                    <h4 className="text-xs font-bold text-gray-900 dark:text-slate-100">Global Transfers & Payouts</h4>
+                    <p className="text-[10px] text-gray-500 dark:text-slate-400">Send money instantly across Africa</p>
                   </div>
                 </button>
               </div>
             </div>
 
-            <div className="h-[1px] bg-gray-100 w-full"></div>
+            <div className="h-[1px] bg-gray-100 dark:bg-slate-800 w-full"></div>
 
             <div className="flex flex-col gap-4">
               <button 
                 onClick={() => handleNavClick("features-section")}
-                className="flex items-center justify-between text-base font-semibold text-gray-900 hover:text-brand-accent p-2"
+                className="flex items-center justify-between text-base font-semibold text-gray-900 dark:text-slate-100 hover:text-brand-accent p-2"
               >
                 <span>Global Reach</span>
-                <ArrowRight className="w-4 h-4 text-gray-400" />
+                <ArrowRight className="w-4 h-4 text-gray-400 dark:text-slate-500" />
               </button>
               <button 
                 onClick={() => handleNavClick("analytics-section")}
-                className="flex items-center justify-between text-base font-semibold text-gray-900 hover:text-brand-accent p-2"
+                className="flex items-center justify-between text-base font-semibold text-gray-900 dark:text-slate-100 hover:text-brand-accent p-2"
               >
                 <span>Analytics</span>
-                <ArrowRight className="w-4 h-4 text-gray-400" />
+                <ArrowRight className="w-4 h-4 text-gray-400 dark:text-slate-500" />
               </button>
               <button 
                 onClick={() => handleNavClick("gallery-section")}
-                className="flex items-center justify-between text-base font-semibold text-gray-900 hover:text-brand-accent p-2"
+                className="flex items-center justify-between text-base font-semibold text-gray-900 dark:text-slate-100 hover:text-brand-accent p-2"
               >
                 <span>Gallery</span>
-                <ArrowRight className="w-4 h-4 text-gray-400" />
+                <ArrowRight className="w-4 h-4 text-gray-400 dark:text-slate-500" />
               </button>
               <button 
                 onClick={() => handleNavClick("developer-section")}
-                className="flex items-center justify-between text-base font-semibold text-gray-900 hover:text-brand-accent p-2"
+                className="flex items-center justify-between text-base font-semibold text-gray-900 dark:text-slate-100 hover:text-brand-accent p-2"
               >
                 <span>Developers</span>
-                <ArrowRight className="w-4 h-4 text-gray-400" />
+                <ArrowRight className="w-4 h-4 text-gray-400 dark:text-slate-500" />
               </button>
               <button 
                 onClick={() => handleNavClick("faq-section")}
-                className="flex items-center justify-between text-base font-semibold text-gray-900 hover:text-brand-accent p-2"
+                className="flex items-center justify-between text-base font-semibold text-gray-900 dark:text-slate-100 hover:text-brand-accent p-2"
               >
                 <span>Resources</span>
-                <ArrowRight className="w-4 h-4 text-gray-400" />
+                <ArrowRight className="w-4 h-4 text-gray-400 dark:text-slate-500" />
               </button>
               <button 
                 onClick={() => handleNavClick("contact-section")}
-                className="flex items-center justify-between text-base font-semibold text-gray-900 hover:text-brand-accent p-2"
+                className="flex items-center justify-between text-base font-semibold text-gray-900 dark:text-slate-100 hover:text-brand-accent p-2"
               >
                 <span>Sales & Pricing</span>
-                <ArrowRight className="w-4 h-4 text-gray-400" />
+                <ArrowRight className="w-4 h-4 text-gray-400 dark:text-slate-500" />
               </button>
             </div>
           </div>
