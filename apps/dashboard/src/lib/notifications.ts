@@ -60,10 +60,9 @@ export async function markAllNotificationsRead(): Promise<number> {
 }
 
 export async function deleteNotification(id: string): Promise<void> {
-  const result = await authedFetch<{ deleted: boolean }>(`/${id}`, { method: "DELETE" });
+  await authedFetch<{ deleted: boolean }>(`/${id}`, { method: "DELETE" });
   invalidateCache("/unread-count");
   invalidateCache("/api/notifications");
-  return result;
 }
 
 export async function fetchNotificationPreferences(): Promise<NotificationPreferences> {
