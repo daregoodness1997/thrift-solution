@@ -26,6 +26,7 @@ interface Circle {
   payoutMode?: string;
   status: string;
   _count?: { accounts: number };
+  addons?: { id: string; name: string; description?: string; estimatedCost: number }[];
 }
 
 interface CircleAccount {
@@ -106,6 +107,7 @@ export default function CirclesPage() {
   const [claiming, setClaiming] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [openModalCircle, setOpenModalCircle] = useState<Circle | null>(null);
+  const [viewBenefitsCircle, setViewBenefitsCircle] = useState<Circle | null>(null);
   const [accountCount, setAccountCount] = useState(1);
   const [page, setPage] = useState(1);
   const LIMIT = 20;
@@ -297,9 +299,14 @@ export default function CirclesPage() {
                           <div><span className="text-gray-400">Interest Rate</span><br /><span className="font-semibold text-brand-dark">{circle.interestRateAnnual}% p.a.</span></div>
                           <div><span className="text-gray-400">Your Accounts</span><br /><span className="font-semibold text-brand-dark">{userAccounts}{circle.maxAccountsPerUser > 0 ? `/${circle.maxAccountsPerUser}` : ""}</span></div>
                         </div>
-                        <Button variant="primary" size="sm" disabled={!canOpen || openingCircle === circle.id} onClick={() => { setOpenModalCircle(circle); setAccountCount(1); }}>
-                          {openingCircle === circle.id ? "Opening..." : canOpen ? "Open Account" : "Max Reached"}
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button variant="secondary" size="sm" onClick={() => setViewBenefitsCircle(circle)}>
+                            View Benefits
+                          </Button>
+                          <Button variant="primary" size="sm" disabled={!canOpen || openingCircle === circle.id} onClick={() => { setOpenModalCircle(circle); setAccountCount(1); }}>
+                            {openingCircle === circle.id ? "Opening..." : canOpen ? "Open Account" : "Max Reached"}
+                          </Button>
+                        </div>
                       </div>
                     );
                   })}
@@ -480,6 +487,92 @@ export default function CirclesPage() {
                 style={{ backgroundColor: cfg.colors.primary, opacity: (openingCircle === openModalCircle.id || walletBalance < circleOpenCost(openModalCircle) * accountCount) ? 0.5 : 1 }}
               >
                 {openingCircle === openModalCircle.id ? "Opening..." : `Open ${accountCount > 1 ? `${accountCount} Accounts` : "Account"}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {viewBenefitsCircle && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 p-4" onClick={() => setViewBenefitsCircle(null)}>
+          <div className="w-full max-w-[560px] cursor-default rounded-2xl bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.15)]" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-4 flex items-start justify-between">
+              <div>
+                <h3 className="text-[18px] font-semibold text-brand-dark">{viewBenefitsCircle.name}</h3>
+                {viewBenefitsCircle.description && <p className="mt-1 text-[12px] text-gray-500">{viewBenefitsCircle.description}</p>}
+              </div>
+              <button onClick={() => setViewBenefitsCircle(null)} className="cursor-pointer rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
+              </button>
+            </div>
+
+            <div className="mb-6 rounded-xl bg-gray-50 p-4 text-[12px]">
+              <h4 className="mb-3 text-[13px] font-semibold text-brand-dark">Circle Details</h4>
+              <div className="grid grid-cols-2 gap-3">
+                <div><span className="text-gray-500">Type</span><br /><span className="font-semibold text-brand-dark">{viewBenefitsCircle.cycleType === "weekly_contribution" ? "Weekly Contribution" : "Fixed Deposit"}</span></div>
+                <div><span className="text-gray-500">{viewBenefitsCircle.cycleType === "weekly_contribution" ? "Weekly Amount" : "Deposit Amount"}</span><br /><span className="font-mono font-semibold text-brand-dark">{formatNaira(viewBenefitsCircle.cycleType === "weekly_contribution" ? (viewBenefitsCircle.weeklyAmount || 0) : viewBenefitsCircle.amount)}</span></div>
+                <div><span className="text-gray-500">Duration</span><br /><span className="font-semibold text-brand-dark">{formatDuration(viewBenefitsCircle.durationMonths)}</span></div>
+                <div><span className="text-gray-500">Interest Rate</span><br /><span className="font-semibold" style={{ color: cfg.colors.primary }}>{viewBenefitsCircle.interestRateAnnual}% p.a.</span></div>
+                <div><span className="text-gray-500">Max Accounts</span><br /><span className="font-semibold text-brand-dark">{viewBenefitsCircle.maxAccountsPerUser > 0 ? viewBenefitsCircle.maxAccountsPerUser : "Unlimited"}</span></div>
+                <div><span className="text-gray-500">Total Subscribers</span><br /><span className="font-semibold text-brand-dark">{viewBenefitsCircle._count?.accounts || 0}</span></div>
+                {viewBenefitsCircle.cycleType === "weekly_contribution" && (
+                  <div><span className="text-gray-500">Total Weeks</span><br /><span className="font-semibold text-brand-dark">{viewBenefitsCircle.totalWeeks || 0}</span></div>
+                )}
+                <div><span className="text-gray-500">Status</span><br /><span className="rounded px-1.5 py-0.5 text-[10px] font-bold uppercase" style={{ backgroundColor: viewBenefitsCircle.status === "active" ? "#ECFDF5" : "#FFFBEB", color: viewBenefitsCircle.status === "active" ? "#059669" : "#D97706" }}>{viewBenefitsCircle.status}</span></div>
+              </div>
+            </div>
+
+            {(() => {
+              const principal = viewBenefitsCircle.cycleType === "weekly_contribution" ? (viewBenefitsCircle.weeklyAmount || 0) : viewBenefitsCircle.amount;
+              const annualRate = viewBenefitsCircle.interestRateAnnual;
+              const durationMonths = viewBenefitsCircle.durationMonths;
+              const totalWeeks = Math.round((durationMonths / 12) * 52);
+              const weeklyInterest = Math.round((principal * (annualRate / 100) / 52) * 100) / 100;
+              const totalInterest = Math.round(weeklyInterest * totalWeeks * 100) / 100;
+              const maturityPayout = principal + totalInterest;
+
+              return (
+                <div className="mb-6 rounded-xl bg-emerald-50 p-4 text-[12px]">
+                  <h4 className="mb-3 text-[13px] font-semibold text-emerald-800">Interest Breakdown (per account)</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><span className="text-emerald-600">Principal</span><br /><span className="font-mono font-semibold text-emerald-700">{formatNaira(principal)}</span></div>
+                    <div><span className="text-emerald-600">Weekly Interest</span><br /><span className="font-mono font-semibold text-emerald-700">{formatNaira(weeklyInterest)}</span></div>
+                    <div><span className="text-emerald-600">Total Interest ({totalWeeks} weeks)</span><br /><span className="font-mono font-semibold text-emerald-700">{formatNaira(totalInterest)}</span></div>
+                    <div><span className="text-emerald-600">Maturity Payout</span><br /><span className="font-mono font-bold text-emerald-800">{formatNaira(maturityPayout)}</span></div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {viewBenefitsCircle.addons && viewBenefitsCircle.addons.length > 0 && (
+              <div className="mb-6 rounded-xl bg-gray-50 p-4 text-[12px]">
+                <h4 className="mb-3 text-[13px] font-semibold text-brand-dark">Add-ons</h4>
+                <div className="flex flex-col gap-2">
+                  {viewBenefitsCircle.addons.map((addon) => (
+                    <div key={addon.id} className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-3">
+                      <div>
+                        <span className="font-semibold text-brand-dark">{addon.name}</span>
+                        {addon.description && <p className="text-[11px] text-gray-500">{addon.description}</p>}
+                      </div>
+                      <span className="font-mono font-semibold" style={{ color: cfg.colors.primary }}>{formatNaira(addon.estimatedCost)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button onClick={() => setViewBenefitsCircle(null)} className="flex-1 cursor-pointer rounded-lg border border-gray-200 bg-white px-2.5 py-2.5 text-[13px] font-medium text-gray-600 hover:bg-gray-50">Close</button>
+              <button
+                onClick={() => {
+                  setViewBenefitsCircle(null);
+                  setOpenModalCircle(viewBenefitsCircle);
+                  setAccountCount(1);
+                }}
+                className="flex-1 cursor-pointer rounded-lg border-0 px-2.5 py-2.5 text-[13px] font-semibold text-white"
+                style={{ backgroundColor: cfg.colors.primary }}
+              >
+                Open Account
               </button>
             </div>
           </div>

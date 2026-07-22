@@ -608,9 +608,10 @@ export async function calculateWeeklyInterestForAccount(circleAccountId: string)
   const lastCalc = account.lastInterestCalculation || account.startDate;
   const weeksElapsed = Math.floor((now.getTime() - lastCalc.getTime()) / (7 * 24 * 60 * 60 * 1000));
 
-  if (weeksElapsed <= 0) return null;
+  if (weeksElapsed < 1) return null;
 
-  const weeklyInterest = account.principalAmount * (account.circle.interestRateAnnual / 100) / 52;
+  const weeklyRate = account.circle.interestRateAnnual / 100 / 52;
+  const weeklyInterest = account.principalAmount * weeklyRate;
   const interestToAdd = weeklyInterest * weeksElapsed;
   const roundedInterest = Math.round(interestToAdd * 100) / 100;
 
