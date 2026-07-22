@@ -1,13 +1,13 @@
-import { Handshake, Wallet, Award, HeartHandshake, LineChart, ShieldCheck } from "lucide-react";
+import { GraduationCap, Briefcase, Lightbulb, Globe2, ShieldCheck, Users } from "lucide-react";
 import { Container, SectionHeading, Badge } from "@/components/ui/Section";
 
 const features = [
-  { icon: Handshake, title: "Ajo Circles", desc: "Join or create contribution groups. Members contribute a fixed amount each cycle and take turns receiving the full pot.", color: "#1D4ED8" },
-  { icon: Wallet, title: "Thrift Collections", desc: "Track every contribution in real time. Transparent ledgers so every member sees exactly where the money goes.", color: "#0EA5E9" },
-  { icon: Award, title: "Trust Score", desc: "Build your reputation through consistent contributions. A visible trust score backed by your actual payment history.", color: "#3B82F6" },
-  { icon: HeartHandshake, title: "Donations", desc: "Donate funds or items to support your circles and community. Multiple payment providers, instant confirmation.", color: "#38BDF8" },
-  { icon: LineChart, title: "Savings Tracker", desc: "Monitor total contributions, payouts, and savings growth. See your financial discipline in real numbers.", color: "#1E3A8A" },
-  { icon: ShieldCheck, title: "Secure Escrow", desc: "Contributions are held in secure escrow until payout time. Funds are protected until every member has paid.", color: "#3B82F6" },
+  { icon: GraduationCap, title: "Access to Education & Tech Training", desc: "Quality training in digital skills and technology for people everywhere, regardless of location or background.", color: "#1D4ED8" },
+  { icon: Briefcase, title: "Expanded Economic Opportunities", desc: "Better jobs, entrepreneurship, and remote work pathways that lead to greater financial security for individuals and families.", color: "#0EA5E9" },
+  { icon: Lightbulb, title: "Empowerment Through Knowledge", desc: "Access to technology, financial tools, and education gives people more control over their lives and futures.", color: "#3B82F6" },
+  { icon: Globe2, title: "Innovation & Global Collaboration", desc: "People from different countries and cultures share ideas and solve problems together, driving progress worldwide.", color: "#38BDF8" },
+  { icon: ShieldCheck, title: "Reduced Barriers to Opportunity", desc: "Easier access to healthcare information, banking, government services, and global markets for underserved communities.", color: "#1E3A8A" },
+  { icon: Users, title: "Stronger, More Resilient Communities", desc: "Education and economic opportunity contribute to improved well-being, resilience, and collective prosperity.", color: "#3B82F6" },
 ];
 
 export function Features() {
@@ -15,16 +15,16 @@ export function Features() {
     <section id="features" className="bg-gradient-to-b from-brand-cream via-brand-surface/40 to-brand-cream py-20">
       <Container>
         <SectionHeading
-          eyebrow="Platform Features"
+          eyebrow="Our Mission"
           title={
             <>
-              Everything you need to run{" "}
+              Expanding opportunity so everyone can{" "}
               <span className="bg-gradient-to-r from-brand-primary to-brand-accent bg-clip-text text-transparent">
-                thrift circles
+                learn, grow, and thrive
               </span>
             </>
           }
-          description="A complete toolkit for communal savings — from contribution tracking to secure, automated payouts."
+          description="We're building a world where education, technology, and economic empowerment are accessible to all — no matter where you start."
         />
 
         <div className="mt-14 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">

@@ -1,14 +1,14 @@
 const partners = [
-  "Lagos Family Circles",
-  "Market Women Co-op",
-  "Youth Corps Savers",
-  "Office Colleagues",
-  "Community Dev Fund",
-  "Church Thrift Group",
-  "Traders Alliance",
-  "Students Ajo",
-  "Diaspora Support",
-  "Cooperative Union",
+  "Tech Training Hubs",
+  "Global Education Partners",
+  "Community Empowerment Fund",
+  "Digital Skills Coalition",
+  "Youth Opportunity Network",
+  "Remote Work Alliance",
+  "Innovation Labs Africa",
+  "Women in Tech Initiative",
+  "Diaspora Learning Network",
+  "Financial Inclusion Group",
 ];
 
 export function Logos() {
@@ -17,7 +17,7 @@ export function Logos() {
     <section className="border-y border-brand-primary/10 bg-white/60 py-10">
       <div className="mx-auto max-w-7xl px-6">
         <p className="mb-6 text-center text-xs font-semibold uppercase tracking-[0.2em] text-gray-400">
-          Trusted by thrift communities across Nigeria
+          Partnered with organizations expanding opportunity worldwide
         </p>
         <div className="relative overflow-hidden">
           <div className="flex w-max animate-marquee gap-10">

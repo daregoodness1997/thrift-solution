@@ -5,11 +5,11 @@ import { Plus, Minus } from "lucide-react";
 import { Container, SectionHeading } from "@/components/ui/Section";
 
 const faqs = [
-  { q: "What is GFW (Ajo)?", a: "GFW is a digital platform for traditional Nigerian communal thrift savings. Members contribute a fixed amount each cycle and take turns receiving the total pot — built on trust and community." },
-  { q: "How is my money protected?", a: "Contributions are held in secure escrow until payout time. Funds are released only to the designated recipient when the cycle closes, and every transaction is tracked transparently." },
-  { q: "What if a member doesn't pay?", a: "Members with missed payments receive automatic reminders. Their trust score is affected, and circle leaders can set policies for handling defaults." },
-  { q: "Can I join multiple circles?", a: "Yes. You can be a member of as many circles as you can manage. Your dashboard tracks all active circles and contribution schedules." },
-  { q: "How much does it cost?", a: "Starter circles are free. Paid plans unlock larger circles, advanced analytics, and API access. See our pricing page for details." },
+  { q: "What is our mission?", a: "We believe everyone deserves access to quality education, technology, and economic opportunity — regardless of location or background. Our platform connects people with the training, tools, and support they need to build secure, independent lives." },
+  { q: "How do you expand access to education?", a: "We partner with training providers, offer digital skills programs, and create learning pathways that are accessible to people everywhere. Our focus is on practical, job-ready skills that lead to real opportunities." },
+  { q: "How does economic empowerment work?", a: "We connect learners to job opportunities, remote work, and entrepreneurship resources. By combining skills training with financial tools and community support, we help people achieve greater financial security." },
+  { q: "Can I contribute to this mission?", a: "Absolutely. You can donate to fund training programs, partner with us as an organization, or volunteer your skills. Every contribution helps expand opportunity for someone who needs it." },
+  { q: "Who benefits from these programs?", a: "Anyone seeking to learn new skills, find better opportunities, or gain financial independence. We focus especially on underserved communities where access to education and opportunity is limited." },
 ];
 
 export function Faq() {

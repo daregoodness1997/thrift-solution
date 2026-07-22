@@ -13,28 +13,27 @@ export function Contact() {
         <Container className="relative">
           <div className="mx-auto max-w-3xl text-center">
             <span className="mb-3 block text-xs font-bold uppercase tracking-[0.15em] opacity-70">
-              Start Saving Today
+              Join the Movement
             </span>
             <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
-              Ready to join an{" "}
-              <span className="italic text-brand-accent">Ajo circle</span>?
+              Ready to expand{" "}
+              <span className="italic text-brand-accent">opportunity</span>?
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-sm font-light opacity-80">
-              Create a free circle or join an existing one. Start building your
-              savings with people you trust.
+              Whether you want to learn, partner, or support — there's a place for you. Together we can build a world where everyone has the tools to thrive.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Link
                 href="/donate"
                 className="flex items-center gap-2 rounded-full border border-white/30 px-8 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/10"
               >
-                <HeartHandshake className="h-4 w-4" /> Make a Donation
+                <HeartHandshake className="h-4 w-4" /> Support Our Mission
               </Link>
               <a
                 href="mailto:hello@globalfreedomworldwide.com"
                 className="flex items-center gap-2 rounded-full border border-white/30 px-8 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/10"
               >
-                Contact Us <ArrowRight className="h-4 w-4" />
+                Get in Touch <ArrowRight className="h-4 w-4" />
               </a>
             </div>
           </div>

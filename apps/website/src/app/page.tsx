@@ -1,4 +1,6 @@
-import { Hero } from "@/components/sections/Hero";
+"use client";
+
+import { HeroSection } from "@/components/sections/HeroSection";
 import { Logos } from "@/components/sections/Logos";
 import { Features } from "@/components/sections/Features";
 import { Analytics } from "@/components/sections/Analytics";
@@ -9,21 +11,19 @@ import { Team } from "@/components/sections/Team";
 import { Faq } from "@/components/sections/Faq";
 import { Contact } from "@/components/sections/Contact";
 import { PrayerNetworkSection } from "@/components/sections/PrayerNetwork";
-import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "GFW — Community Savings & Collective Prosperity",
-  description: "Join trusted Ajo savings circles. Secure escrow, transparent tracking, and automated payouts for communal thrift savings in Nigeria.",
-  openGraph: {
-    title: "GFW — Community Savings & Collective Prosperity",
-    description: "Join trusted Ajo savings circles. Secure escrow, transparent tracking, and automated payouts.",
-  },
-};
+import { FinalCTASection } from "@/components/sections/FinalCTASection";
 
 export default function Home() {
+  const handleOpenImpactModal = () => {
+    window.location.href = "/donate";
+  };
+
   return (
     <main className="min-h-screen bg-brand-cream">
-      <Hero />
+      <HeroSection
+        theme="light"
+        onOpenImpactModal={handleOpenImpactModal}
+      />
       <Logos />
       <Features />
       <Analytics />
@@ -33,7 +33,7 @@ export default function Home() {
       <PrayerNetworkSection />
       <Team />
       <Faq />
-      <Contact />
+      <FinalCTASection />
     </main>
   );
 }

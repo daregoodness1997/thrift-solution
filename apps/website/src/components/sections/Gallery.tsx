@@ -2,14 +2,14 @@ import { Quote, MapPin } from "lucide-react";
 import { Container, SectionHeading, Badge } from "@/components/ui/Section";
 
 const testimonials = [
-  { name: "Adaeze N.", role: "Circle Leader", text: "GFW helped me organize our church thrift group. Everyone pays on time, and we've completed five full cycles without a single default.", color: "#1D4ED8" },
-  { name: "Tunde O.", role: "Member", text: "I used my Ajo payout to fund my small business. Having a structured savings system made all the difference.", color: "#0EA5E9" },
-  { name: "Funke A.", role: "Circle Organizer", text: "Managing contributions used to be a nightmare of spreadsheets. GFW automates everything — reminders, tracking, and payouts.", color: "#1E3A8A" },
+  { name: "Adaeze N.", role: "Tech Trainee", text: "The digital skills training changed my life. I went from knowing nothing about tech to landing a remote job that supports my entire family.", color: "#1D4ED8" },
+  { name: "Tunde O.", role: "Entrepreneur", text: "Access to business training and financial tools helped me start my own company. The community support was invaluable.", color: "#0EA5E9" },
+  { name: "Funke A.", role: "Community Leader", text: "Seeing people in our community gain skills, find better jobs, and build confidence — that's what real empowerment looks like.", color: "#1E3A8A" },
 ];
 
 const locations = [
-  "Lagos", "Abuja", "Ibadan", "Enugu", "Kano", "Port Harcourt",
-  "Benin", "Abeokuta", "Ilorin", "Owerri", "Kaduna", "Akure",
+  "Nigeria", "Kenya", "Ghana", "South Africa", "Rwanda", "Uganda",
+  "Tanzania", "Ethiopia", "Senegal", "Cameroon", "India", "Philippines",
 ];
 
 export function Gallery() {
@@ -20,13 +20,13 @@ export function Gallery() {
           eyebrow="Community Impact"
           title={
             <>
-              Real savings,{" "}
+              Real stories,{" "}
               <span className="bg-gradient-to-r from-brand-primary to-brand-accent bg-clip-text text-transparent">
-                real people
+                real transformation
               </span>
             </>
           }
-          description="From family circles to market cooperatives, communities across Nigeria are saving together on GFW."
+          description="From first-time learners to thriving professionals, communities around the world are gaining skills and building better futures."
         />
 
         <div className="mt-14 grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -57,7 +57,7 @@ export function Gallery() {
         <div className="mt-12 rounded-3xl border border-brand-primary/10 bg-white p-8">
           <div className="mb-5 flex items-center gap-2 text-sm font-semibold text-brand-dark">
             <MapPin className="h-4 w-4 text-brand-accent" />
-            Circles active across 8+ states
+            Learners and partners across 12+ countries
           </div>
           <div className="flex flex-wrap gap-3">
             {locations.map((l) => (

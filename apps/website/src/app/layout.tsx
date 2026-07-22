@@ -10,11 +10,11 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "GFW — Global Freedom Worldwide",
+    default: "GFW — Expanding Education, Technology & Economic Opportunity",
     template: "%s | GFW",
   },
   description:
-    "Global Freedom Worldwide — community savings, collective prosperity. Digital platform for traditional communal thrift savings.",
+    "Global Freedom Worldwide — expanding access to education, tech training, and economic opportunity so everyone can build secure, independent lives.",
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
@@ -35,9 +35,9 @@ export const metadata: Metadata = {
     locale: "en_NG",
     url: "https://globalfreedomworldwide.com",
     siteName: "Global Freedom Worldwide",
-    title: "GFW — Global Freedom Worldwide",
+    title: "GFW — Expanding Education, Technology & Economic Opportunity",
     description:
-      "Community savings, collective prosperity. Digital platform for traditional communal thrift savings (Ajo).",
+      "Expanding access to education, tech training, and economic opportunity so everyone can build secure, independent lives.",
     images: [
       {
         url: "/logo.png",
@@ -49,8 +49,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "GFW — Global Freedom Worldwide",
-    description: "Community savings, collective prosperity.",
+    title: "GFW — Expanding Education, Technology & Economic Opportunity",
+    description: "Expanding access to education, tech training, and economic opportunity worldwide.",
     images: ["/logo.png"],
   },
   robots: {
@@ -83,9 +83,9 @@ export default function RootLayout({
         <ScrollToTop />
         <SiteHeader />
         {children}
-        <div className="mx-auto max-w-7xl px-4 py-8">
+        {/* <div className="mx-auto max-w-7xl px-4 py-8">
           <AdUnit slot="YOUR_AD_SLOT_ID" />
-        </div>
+        </div> */}
         <SiteFooter />
         <CookieConsent />
         <Toaster position="top-right" richColors />

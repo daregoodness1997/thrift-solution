@@ -9,28 +9,28 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
-import { TrendingUp, Wallet, Users, ShieldCheck } from "lucide-react";
+import { TrendingUp, GraduationCap, Users, Globe2 } from "lucide-react";
 import { Container, SectionHeading, Badge } from "@/components/ui/Section";
 
 const data = [
-  { month: "Jan", saved: 320 },
-  { month: "Feb", saved: 480 },
-  { month: "Mar", saved: 610 },
-  { month: "Apr", saved: 890 },
-  { month: "May", saved: 1240 },
-  { month: "Jun", saved: 1680 },
-  { month: "Jul", saved: 2120 },
-  { month: "Aug", saved: 2650 },
-  { month: "Sep", saved: 3200 },
-  { month: "Oct", saved: 3850 },
-  { month: "Nov", saved: 4100 },
-  { month: "Dec", saved: 4700 },
+  { month: "Jan", learners: 320 },
+  { month: "Feb", learners: 480 },
+  { month: "Mar", learners: 610 },
+  { month: "Apr", learners: 890 },
+  { month: "May", learners: 1240 },
+  { month: "Jun", learners: 1680 },
+  { month: "Jul", learners: 2120 },
+  { month: "Aug", learners: 2650 },
+  { month: "Sep", learners: 3200 },
+  { month: "Oct", learners: 3850 },
+  { month: "Nov", learners: 4100 },
+  { month: "Dec", learners: 4700 },
 ];
 
 const stats = [
-  { icon: Wallet, label: "Avg. circle pot", value: "₦400K" },
-  { icon: Users, label: "Members per circle", value: "12" },
-  { icon: ShieldCheck, label: "Funds in escrow", value: "100%" },
+  { icon: GraduationCap, label: "Skills trained", value: "48+" },
+  { icon: Users, label: "Active learners", value: "12K+" },
+  { icon: Globe2, label: "Countries reached", value: "34" },
 ];
 
 export function Analytics() {
@@ -38,23 +38,23 @@ export function Analytics() {
     <section id="analytics" className="bg-brand-dark py-20 text-white">
       <Container>
         <SectionHeading
-          eyebrow="Insights"
+          eyebrow="Impact"
           title={
             <>
-              Watch your savings{" "}
+              Expanding access to{" "}
               <span className="bg-gradient-to-r from-brand-sage to-brand-accent bg-clip-text text-transparent">
-                grow in real time
+                education and opportunity
               </span>
             </>
           }
-          description="Every contribution is tracked and visualized. Members and circle leaders get a clear picture of progress, payouts, and trust."
+          description="Every month, more people gain the skills, confidence, and resources they need to build better futures. See how our community is growing."
           className="[&_h2]:text-white [&_p]:text-gray-400"
         />
 
         <div className="mt-14 grid grid-cols-1 gap-8 lg:grid-cols-3">
           <div className="lg:col-span-2 rounded-3xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-6">
             <div className="mb-4 flex items-center justify-between">
-              <span className="text-sm font-semibold text-white">Community savings growth</span>
+              <span className="text-sm font-semibold text-white">Learner growth worldwide</span>
               <span className="flex items-center gap-1 text-xs text-brand-sage">
                 <TrendingUp className="h-4 w-4" /> +38% this quarter
               </span>
@@ -70,7 +70,7 @@ export function Analytics() {
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" vertical={false} />
                   <XAxis dataKey="month" tick={{ fill: "#9CA3AF", fontSize: 11 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: "#9CA3AF", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `₦${v}K`} />
+                  <YAxis tick={{ fill: "#9CA3AF", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `${v}`} />
                   <Tooltip
                     contentStyle={{
                       background: "#0B1220",
@@ -79,11 +79,11 @@ export function Analytics() {
                       color: "#fff",
                       fontSize: 12,
                     }}
-                    formatter={(value) => [`₦${value}K`, "Saved"] as [string, string]}
+                    formatter={(value) => [`${value}`, "Learners"] as [string, string]}
                   />
                   <Area
                     type="monotone"
-                    dataKey="saved"
+                    dataKey="learners"
                     stroke="#0EA5E9"
                     strokeWidth={2.5}
                     fill="url(#saveFill)"
@@ -112,9 +112,9 @@ export function Analytics() {
               );
             })}
             <div className="rounded-2xl border border-brand-accent/30 bg-brand-accent/10 p-5">
-              <p className="text-sm font-semibold text-white">Transparent by design</p>
+              <p className="text-sm font-semibold text-white">Education changes everything</p>
               <p className="mt-1 text-xs font-light text-gray-300">
-                Every member sees the same ledger. No spreadsheets, no disputes.
+                When people gain skills and opportunity, entire communities thrive.
               </p>
             </div>
           </div>

@@ -26,36 +26,36 @@ const primaryNavLinks = [
 
 const platformLinks = [
   {
-    label: "Ajo Circles",
-    desc: "Create or join contribution groups.",
-    href: "/marketplace",
+    label: "Education & Training",
+    desc: "Access quality tech training.",
+    href: "/how-it-works",
     icon: null,
   },
   {
-    label: "Contribution Tracking",
-    desc: "Transparent real-time ledgers.",
-    href: "/marketplace",
+    label: "Economic Opportunity",
+    desc: "Find jobs & build businesses.",
+    href: "/how-it-works",
     icon: null,
   },
   {
-    label: "Secure Escrow",
-    desc: "Funds protected until payout.",
-    href: "/marketplace",
+    label: "Empowerment Tools",
+    desc: "Knowledge & financial tools.",
+    href: "/how-it-works",
     icon: null,
   },
   {
-    label: "Donations",
-    desc: "Support circles & community.",
+    label: "Support Our Mission",
+    desc: "Help expand opportunity.",
     href: "/donate",
     icon: null,
   },
 ];
 
 const exploreLinks = [
-  { label: "Platform", href: "/marketplace", desc: "Build & manage thrift circles" },
-  { label: "How It Works", href: "/how-it-works", desc: "Step-by-step guide" },
-  { label: "About Us", href: "/about", desc: "Our mission & vision" },
-  { label: "Donate", href: "/donate", desc: "Support our community" },
+  { label: "Our Mission", href: "/about", desc: "Education, opportunity & empowerment" },
+  { label: "How It Works", href: "/how-it-works", desc: "Learn about our programs" },
+  { label: "Impact Stories", href: "/about", desc: "Real transformations" },
+  { label: "Support Us", href: "/donate", desc: "Help expand opportunity" },
 ];
 
 export function SiteHeader() {
