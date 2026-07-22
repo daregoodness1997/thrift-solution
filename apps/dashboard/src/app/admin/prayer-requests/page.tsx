@@ -1,16 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Card, FadeInUp } from "@thrift/ui";
 import { formatDate } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
 import Pagination from "@/components/Pagination";
-import {
-  ActionMessage,
-  useFlashMessage,
-} from "@/components/AdminShared";
+import { ActionMessage, useFlashMessage } from "@/components/AdminShared";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const LIMIT = 20;
@@ -29,8 +26,9 @@ interface PrayerRequest {
 export default function AdminPrayerRequestsPage() {
   const { user, token, loading: authLoading } = useAuth();
   const router = useRouter();
-  const isAdmin = user?.role === "admin" || user?.role === "superadmin";
   const { message, show } = useFlashMessage();
+  const showRef = useRef(show);
+  showRef.current = show;
 
   const [items, setItems] = useState<PrayerRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,9 +51,12 @@ export default function AdminPrayerRequestsPage() {
   });
   const [saving, setSaving] = useState(false);
 
+  const role = user?.role;
+  const isAdmin = role === "admin" || role === "superadmin";
+
   useEffect(() => {
-    if (!authLoading && user && !isAdmin) router.replace("/");
-  }, [authLoading, user, isAdmin, router]);
+    if (!authLoading && role && !isAdmin) router.replace("/");
+  }, [authLoading, role, isAdmin, router]);
 
   useEffect(() => {
     const t = setTimeout(() => setDebounced(search), 400);
@@ -86,14 +87,14 @@ export default function AdminPrayerRequestsPage() {
         setTotal(data.data.total || 0);
       }
     } catch {
-      show("error", "Failed to fetch prayer requests");
+      showRef.current("error", "Failed to fetch prayer requests");
     }
     setLoading(false);
-  }, [token, isAdmin, page, debounced, categoryFilter, statusFilter, show]);
+  }, [token, isAdmin, page, debounced, categoryFilter, statusFilter]);
 
   useEffect(() => {
-    fetchAll();
-  }, [fetchAll]);
+    if (isAdmin && token) fetchAll();
+  }, [isAdmin, token, fetchAll]);
 
   const openCreate = () => {
     setEditingPrayer(null);
@@ -115,7 +116,7 @@ export default function AdminPrayerRequestsPage() {
 
   const handleSave = async () => {
     if (!formData.authorName.trim() || !formData.request.trim()) {
-      show("error", "Author name and request are required");
+      showRef.current("error", "Author name and request are required");
       return;
     }
     setSaving(true);
@@ -134,14 +135,14 @@ export default function AdminPrayerRequestsPage() {
       });
       const data = await res.json();
       if (data.success) {
-        show("success", editingPrayer ? "Prayer request updated" : "Prayer request created");
+        showRef.current("success", editingPrayer ? "Prayer request updated" : "Prayer request created");
         setShowModal(false);
         fetchAll();
       } else {
-        show("error", data.error || "Failed");
+        showRef.current("error", data.error || "Failed");
       }
     } catch {
-      show("error", "Failed");
+      showRef.current("error", "Failed");
     }
     setSaving(false);
   };
@@ -155,13 +156,13 @@ export default function AdminPrayerRequestsPage() {
       });
       const data = await res.json();
       if (data.success) {
-        show("success", "Prayer request deleted");
+        showRef.current("success", "Prayer request deleted");
         fetchAll();
       } else {
-        show("error", data.error || "Failed");
+        showRef.current("error", data.error || "Failed");
       }
     } catch {
-      show("error", "Failed");
+      showRef.current("error", "Failed");
     }
   };
 
@@ -177,11 +178,11 @@ export default function AdminPrayerRequestsPage() {
       });
       const data = await res.json();
       if (data.success) {
-        show("success", data.isActive ? "Prayer request activated" : "Prayer request deactivated");
+        showRef.current("success", data.isActive ? "Prayer request activated" : "Prayer request deactivated");
         fetchAll();
       }
     } catch {
-      show("error", "Failed to update status");
+      showRef.current("error", "Failed to update status");
     }
   };
 

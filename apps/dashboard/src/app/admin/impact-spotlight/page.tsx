@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Card, FadeInUp } from "@thrift/ui";
 import { formatDate } from "@thrift/utils";
@@ -56,8 +56,9 @@ interface Narrative {
 export default function AdminImpactSpotlightPage() {
   const { user, token, loading: authLoading } = useAuth();
   const router = useRouter();
-  const isAdmin = user?.role === "admin" || user?.role === "superadmin";
   const { message, show } = useFlashMessage();
+  const showRef = useRef(show);
+  showRef.current = show;
 
   const [activeTab, setActiveTab] = useState<Tab>("narratives");
   const [narratives, setNarratives] = useState<Narrative[]>([]);
@@ -70,11 +71,15 @@ export default function AdminImpactSpotlightPage() {
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState<unknown>(null);
   const [saving, setSaving] = useState(false);
-  const [selectedNarrativeId, setSelectedNarrativeId] = useState<string | null>(null);
+
+  const role = user?.role;
+  const isAdmin = role === "admin" || role === "superadmin";
 
   useEffect(() => {
-    if (!authLoading && user && !isAdmin) router.replace("/");
-  }, [authLoading, user, isAdmin, router]);
+    if (!authLoading && role && !isAdmin) {
+      router.replace("/");
+    }
+  }, [authLoading, role, isAdmin, router]);
 
   const fetchNarratives = useCallback(async () => {
     if (!token || !isAdmin) { setLoading(false); return; }
@@ -93,15 +98,17 @@ export default function AdminImpactSpotlightPage() {
         setNarrTotal(data.data.total || 0);
       }
     } catch {
-      show("error", "Failed to fetch narratives");
+      showRef.current("error", "Failed to fetch narratives");
     }
     setLoading(false);
-  }, [token, isAdmin, narrPage, narrSearch, narrStatusFilter, show]);
+  }, [token, isAdmin, narrPage, narrSearch, narrStatusFilter]);
 
-  useEffect(() => { fetchNarratives(); }, [fetchNarratives]);
+  useEffect(() => {
+    if (isAdmin && token) fetchNarratives();
+  }, [isAdmin, token, fetchNarratives]);
 
-  const openCreate = () => { setEditingItem(null); setSelectedNarrativeId(null); setShowModal(true); };
-  const openEdit = (item: unknown) => { setEditingItem(item); setSelectedNarrativeId(null); setShowModal(true); };
+  const openCreate = () => { setEditingItem(null); setShowModal(true); };
+  const openEdit = (item: unknown) => { setEditingItem(item); setShowModal(true); };
 
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`Delete "${name}"?`)) return;
@@ -111,9 +118,9 @@ export default function AdminImpactSpotlightPage() {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      if (data.success) { show("success", "Deleted successfully"); fetchNarratives(); }
-      else show("error", data.error || "Failed");
-    } catch { show("error", "Failed"); }
+      if (data.success) { showRef.current("success", "Deleted successfully"); fetchNarratives(); }
+      else showRef.current("error", data.error || "Failed");
+    } catch { showRef.current("error", "Failed"); }
   };
 
   const toggleStatus = async (id: string, currentStatus: boolean) => {
@@ -124,8 +131,8 @@ export default function AdminImpactSpotlightPage() {
         body: JSON.stringify({ isActive: !currentStatus }),
       });
       const data = await res.json();
-      if (data.success) { show("success", data.isActive ? "Activated" : "Deactivated"); fetchNarratives(); }
-    } catch { show("error", "Failed to update status"); }
+      if (data.success) { showRef.current("success", data.isActive ? "Activated" : "Deactivated"); fetchNarratives(); }
+    } catch { showRef.current("error", "Failed to update status"); }
   };
 
   if (authLoading || !isAdmin) return null;
@@ -240,7 +247,7 @@ export default function AdminImpactSpotlightPage() {
           setSaving={setSaving}
           saving={saving}
           token={token}
-          show={show}
+          show={showRef.current}
           onSaved={() => { setShowModal(false); fetchNarratives(); }}
           inputClass={inputClass}
         />

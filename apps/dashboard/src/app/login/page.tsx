@@ -213,7 +213,11 @@ export default function LoginPage() {
                 className={`h-4 w-px ${isDark ? "bg-slate-700" : "bg-slate-300"} hidden sm:block`}
               />
               <div className="flex items-center gap-2">
-                <img src={config.logo} alt={config.name} className="w-8 h-8 rounded-xl object-contain shadow-md" />
+                <img
+                  src={config.logo}
+                  alt={config.name}
+                  className="w-8 h-8 rounded-xl object-contain shadow-md"
+                />
                 <div className="flex flex-col">
                   <span className="font-bold text-sm tracking-tight">
                     {config.name}
@@ -366,7 +370,8 @@ export default function LoginPage() {
         <footer
           className={`border-t ${isDark ? "border-slate-800 bg-slate-900" : "border-slate-200 bg-white"} py-4 px-6 text-center text-xs text-slate-500`}
         >
-          {config.name} • {config.tagline.split("—")[1]?.trim() || config.tagline}
+          {config.name} •{" "}
+          {config.tagline.split("—")[1]?.trim() || config.tagline}
         </footer>
       </div>
     );
@@ -397,7 +402,11 @@ export default function LoginPage() {
 
             {/* Brand Logo */}
             <div className="flex items-center gap-2">
-              <img src={config.logo} alt={config.name} className="w-8 h-8 rounded-xl object-contain shadow-md" />
+              <img
+                src={config.logo}
+                alt={config.name}
+                className="w-8 h-8 rounded-xl object-contain shadow-md"
+              />
               <div className="flex flex-col">
                 <span className="font-bold text-sm tracking-tight">
                   {config.name}
@@ -721,7 +730,7 @@ export default function LoginPage() {
                   <>
                     <span>
                       {activeTab === "login"
-                        ? "Log In to Scholar Portal"
+                        ? "Log In to Portal"
                         : "Submit Fellowship Application"}
                     </span>
                     <ArrowRight className="w-4 h-4" />

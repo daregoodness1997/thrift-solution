@@ -2,6 +2,7 @@
   "name": "thrift-solution",
   "private": true,
   "scripts": {
+    "prebuild": "pnpm --filter @thrift/db exec tsx prisma/seed.ts",
     "dev:website": "pnpm --filter @thrift/website dev",
     "dev:dashboard": "pnpm --filter @thrift/dashboard dev",
     "dev:config-app": "pnpm --filter @thrift/config-app dev",
