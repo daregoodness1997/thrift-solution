@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import confetti from "canvas-confetti";
 import PhoneInput from "@/components/PhoneInput";
 import { config } from "@thrift/config";
 import {
@@ -216,6 +217,7 @@ export default function RegisterForm() {
       if (data.success) {
         toast.success("Payment confirmed");
         setStep(3);
+        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
       } else {
         toast.error(data.error || "Payment verification failed");
         setStep(2);
@@ -273,6 +275,7 @@ export default function RegisterForm() {
         setToken(data.data.token);
         setStep(2);
         toast.success("Email verified");
+        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
       }
     } catch {
       setError("Network error. Please try again.");
@@ -351,6 +354,7 @@ export default function RegisterForm() {
         });
         setStep(4);
         toast.success("Account created & verified!");
+        confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
       }
     } catch {
       setError("Network error. Please try again.");

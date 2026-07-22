@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import confetti from "canvas-confetti";
 import { config } from "@thrift/config";
 import { clsx } from "@/lib/clsx";
 
@@ -148,6 +149,7 @@ function WebsiteRegisterPage() {
       if (data.success) {
         toast.success("Payment confirmed");
         setStep(3);
+        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
       } else {
         toast.error(data.error || "Payment verification failed");
         setStep(2);
@@ -201,6 +203,7 @@ function WebsiteRegisterPage() {
         setToken(data.data.token);
         setStep(2);
         toast.success("Email verified");
+        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
       }
     } catch {
       setError("Network error. Please try again.");
@@ -255,6 +258,7 @@ function WebsiteRegisterPage() {
         setVirtualAccount(data.data.virtualAccount || null);
         setStep(4);
         toast.success("Account created & verified!");
+        confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
       }
     } catch {
       setError("Network error. Please try again.");

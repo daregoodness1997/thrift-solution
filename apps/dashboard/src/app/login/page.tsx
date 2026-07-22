@@ -706,6 +706,14 @@ export default function LoginPage() {
                 </div>
               </div>
 
+              {activeTab === "login" && (
+                <div className="flex justify-end">
+                  <a href="/forgot-password" className="text-[11px] font-semibold text-blue-600 hover:underline">
+                    Forgot password?
+                  </a>
+                </div>
+              )}
+
               <button
                 type="submit"
                 disabled={loading}
@@ -743,6 +751,13 @@ export default function LoginPage() {
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
               <span>
                 Encrypted SSL • Free Access for Approved Global Scholars
+              </span>
+            </div>
+
+            <div className="text-center pt-2">
+              <span className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}>
+                Don&apos;t have an account?{" "}
+                <a href="/register" className="font-semibold text-blue-600 hover:underline">Create account</a>
               </span>
             </div>
           </div>

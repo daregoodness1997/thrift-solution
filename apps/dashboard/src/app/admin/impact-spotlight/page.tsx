@@ -261,7 +261,7 @@ function NarrativeModal({
 }: {
   editingItem: unknown; setShowModal: (v: boolean) => void;
   setSaving: (v: boolean) => void; saving: boolean; token: string | null;
-  show: (type: string, msg: string) => void; onSaved: () => void; inputClass: string;
+  show: (type: "success" | "error", msg: string) => void; onSaved: () => void; inputClass: string;
 }) {
   const [form, setForm] = useState({
     name: "", age: 20, country: "", countryCode: "", role: "", cohort: "",
