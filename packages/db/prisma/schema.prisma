@@ -101,8 +101,8 @@ model Group {
   id             String        @id @default(uuid())
   name           String
   description    String?
-  targetAmount   Float         @map("target_amount")
-  currentAmount  Float         @default(0) @map("current_amount")
+  targetAmount   Decimal       @map("target_amount")
+  currentAmount  Decimal       @default(0) @map("current_amount")
   memberCount    Int           @default(0) @map("member_count")
   cycleFrequency String        @map("cycle_frequency")
   status         String        @default("active")
@@ -133,7 +133,7 @@ model Donation {
   id               String        @id @default(uuid())
   userId           String?       @map("user_id")
   type             String
-  amount           Float?
+  amount           Decimal?
   currency         String        @default("NGN")
   itemName         String?       @map("item_name")
   itemDescription  String?       @map("item_description")
@@ -165,7 +165,7 @@ model Transaction {
   id              String    @id @default(uuid())
   userId          String    @map("user_id")
   type            String
-  amount          Float
+  amount          Decimal
   groupId         String?   @map("group_id")
   donationId      String?   @map("donation_id")
   reference       String    @unique
@@ -209,7 +209,7 @@ model ReferralEarning {
   referralId String    @map("referral_id")
   referrerId String    @map("referrer_id")
   tier       String
-  amount     Float
+  amount     Decimal
   status     String    @default("pending")
   createdAt  DateTime  @default(now()) @map("created_at")
   deletedAt  DateTime? @map("deleted_at")
@@ -357,7 +357,7 @@ model MarketplaceListing {
   sellerId    String             @map("seller_id")
   title       String
   description String
-  price       Float
+  price       Decimal
   currency    String             @default("NGN")
   category    String
   condition   String
@@ -379,7 +379,7 @@ model MarketplaceOffer {
   id        String             @id @default(uuid())
   listingId String             @map("listing_id")
   offererId String             @map("offerer_id")
-  amount    Float
+  amount    Decimal
   message   String?
   status    String             @default("pending")
   createdAt DateTime           @default(now()) @map("created_at")
@@ -401,8 +401,8 @@ model JobListing {
   company      String?
   location     String
   jobType      String           @map("job_type")
-  salaryMin    Float?           @map("salary_min")
-  salaryMax    Float?           @map("salary_max")
+  salaryMin    Decimal?         @map("salary_min")
+  salaryMax    Decimal?         @map("salary_max")
   currency     String           @default("NGN")
   category     String
   status       String           @default("active")
@@ -441,11 +441,11 @@ model JobApplication {
 model Loan {
   id                 String             @id @default(uuid())
   borrowerId         String             @map("borrower_id")
-  amount             Float
-  interestRate       Float              @map("interest_rate")
+  amount             Decimal
+  interestRate       Decimal            @map("interest_rate")
   termMonths         Int                @map("term_months")
-  monthlyPayment     Float              @map("monthly_payment")
-  totalRepayment     Float              @map("total_repayment")
+  monthlyPayment     Decimal            @map("monthly_payment")
+  totalRepayment     Decimal            @map("total_repayment")
   purpose            String?
   status             String             @default("pending")
   approvedAt         DateTime?          @map("approved_at")
@@ -453,15 +453,15 @@ model Loan {
   completedAt        DateTime?          @map("completed_at")
   createdAt          DateTime           @default(now()) @map("created_at")
   updatedAt          DateTime           @default(now()) @updatedAt @map("updated_at")
-  disbursedAmount    Float?             @map("disbursed_amount")
-  paidAmount         Float              @default(0) @map("paid_amount")
-  principalPaid      Float              @default(0) @map("principal_paid")
-  interestPaid       Float              @default(0) @map("interest_paid")
-  outstandingBalance Float              @default(0) @map("outstanding_balance")
+  disbursedAmount    Decimal?           @map("disbursed_amount")
+  paidAmount         Decimal            @default(0) @map("paid_amount")
+  principalPaid      Decimal            @default(0) @map("principal_paid")
+  interestPaid       Decimal            @default(0) @map("interest_paid")
+  outstandingBalance Decimal            @default(0) @map("outstanding_balance")
   nextDueDate        DateTime?          @map("next_due_date")
   processingFeeType  String?            @map("processing_fee_type")
-  processingFeeValue Float?             @map("processing_fee_value")
-  processingFee      Float?             @map("processing_fee")
+  processingFeeValue Decimal?           @map("processing_fee_value")
+  processingFee      Decimal?           @map("processing_fee")
   deletedAt          DateTime?          @map("deleted_at")
   disbursementMethod String?            @map("disbursement_method")
   disbursementStatus String?            @map("disbursement_status")
@@ -483,11 +483,11 @@ model LoanScheduleItem {
   loanId        String    @map("loan_id")
   installmentNo Int       @map("installment_no")
   dueDate       DateTime  @map("due_date")
-  principal     Float
-  interest      Float
-  totalDue      Float     @map("total_due")
-  principalPaid Float     @default(0) @map("principal_paid")
-  interestPaid  Float     @default(0) @map("interest_paid")
+  principal     Decimal
+  interest      Decimal
+  totalDue      Decimal   @map("total_due")
+  principalPaid Decimal   @default(0) @map("principal_paid")
+  interestPaid  Decimal   @default(0) @map("interest_paid")
   status        String    @default("pending")
   paidAt        DateTime? @map("paid_at")
   createdAt     DateTime  @default(now()) @map("created_at")
@@ -503,9 +503,9 @@ model LoanRepayment {
   id         String   @id @default(uuid())
   loanId     String   @map("loan_id")
   borrowerId String   @map("borrower_id")
-  amount     Float
-  principal  Float
-  interest   Float
+  amount     Decimal
+  principal  Decimal
+  interest   Decimal
   method     String   @default("wallet") @map("method")
   reference  String   @unique
   status     String   @default("completed")
@@ -524,11 +524,11 @@ model Circle {
   name                 String
   description          String?
   cycleType            String          @default("deposit") @map("cycle_type")
-  amount               Float
-  weeklyAmount         Float?          @map("weekly_amount")
+  amount               Decimal
+  weeklyAmount         Decimal?        @map("weekly_amount")
   totalWeeks           Int?            @map("total_weeks")
   durationMonths       Int             @map("duration_months")
-  interestRateAnnual   Float           @map("interest_rate_annual")
+  interestRateAnnual   Decimal         @map("interest_rate_annual")
   maxAccountsPerUser   Int             @default(0) @map("max_accounts_per_user")
   autoPayout           Boolean         @default(false) @map("auto_payout")
   payoutMode           String          @default("auto") @map("payout_mode")
@@ -539,9 +539,9 @@ model Circle {
   updatedAt            DateTime        @default(now()) @updatedAt @map("updated_at")
   maxSubscribers       Int?            @map("max_subscribers")
   processingFeeType    String?         @map("processing_fee_type")
-  processingFeeValue   Float?          @map("processing_fee_value")
+  processingFeeValue   Decimal?        @map("processing_fee_value")
   defaultPenaltyType   String          @default("percent") @map("default_penalty_type")
-  defaultPenaltyValue  Float           @default(100) @map("default_penalty_value")
+  defaultPenaltyValue  Decimal         @default(100) @map("default_penalty_value")
   initialWeeksCount    Int             @default(3) @map("initial_weeks_count")
   imageUrl             String?         @map("image_url")
   accounts             CircleAccount[]
@@ -556,7 +556,7 @@ model CircleAddon {
   name          String
   description   String?
   quantity      Int       @default(1)
-  estimatedCost Float     @map("estimated_cost")
+  estimatedCost Decimal   @map("estimated_cost")
   imageUrl      String?   @map("image_url")
   status        String    @default("active")
   deletedAt     DateTime? @map("deleted_at")
@@ -573,9 +573,9 @@ model CircleAccount {
   id                      String                @id @default(uuid())
   circleId                String                @map("circle_id")
   userId                  String                @map("user_id")
-  principalAmount         Float                 @map("principal_amount")
-  interestEarned          Float                 @default(0) @map("interest_earned")
-  totalWithdrawn          Float                 @default(0) @map("total_withdrawn")
+  principalAmount         Decimal               @map("principal_amount")
+  interestEarned          Decimal               @default(0) @map("interest_earned")
+  totalWithdrawn          Decimal               @default(0) @map("total_withdrawn")
   status                  String                @default("active")
   weeksContributed        Int                   @default(0) @map("weeks_contributed")
   weeksDefaulted          Int                   @default(0) @map("weeks_defaulted")
@@ -586,7 +586,7 @@ model CircleAccount {
   deletedAt               DateTime?             @map("deleted_at")
   createdAt               DateTime              @default(now()) @map("created_at")
   updatedAt               DateTime              @default(now()) @updatedAt @map("updated_at")
-  processingFee           Float                 @default(0) @map("processing_fee")
+  processingFee           Decimal               @default(0) @map("processing_fee")
   fundedByTxnRef          String?               @map("funded_by_txn_ref")
   reversedAt              DateTime?             @map("reversed_at")
   circle                  Circle                @relation(fields: [circleId], references: [id])
@@ -607,7 +607,7 @@ model CircleContribution {
   circleAccountId String        @map("circle_account_id")
   userId          String        @map("user_id")
   weekNumber      Int           @map("week_number")
-  amount          Float
+  amount          Decimal
   type            String        @default("weekly")
   transactionId   String?       @map("transaction_id")
   createdAt       DateTime      @default(now()) @map("created_at")
@@ -623,8 +623,8 @@ model CircleDefault {
   circleAccountId String        @map("circle_account_id")
   userId          String        @map("user_id")
   weekNumber      Int           @map("week_number")
-  amountDue       Float         @map("amount_due")
-  clearanceAmount Float         @map("clearance_amount")
+  amountDue       Decimal       @map("amount_due")
+  clearanceAmount Decimal       @map("clearance_amount")
   status          String        @default("outstanding")
   clearedAt       DateTime?     @map("cleared_at")
   createdAt       DateTime      @default(now()) @map("created_at")
@@ -640,9 +640,9 @@ model CircleDefault {
 model CircleInterestLog {
   id                     String        @id @default(uuid())
   circleAccountId        String        @map("circle_account_id")
-  amount                 Float
-  principalAtCalculation Float         @map("principal_at_calculation")
-  annualRate             Float         @map("annual_rate")
+  amount                 Decimal
+  principalAtCalculation Decimal       @map("principal_at_calculation")
+  annualRate             Decimal       @map("annual_rate")
   deletedAt              DateTime?     @map("deleted_at")
   calculatedAt           DateTime      @default(now()) @map("calculated_at")
   circleAccount          CircleAccount @relation(fields: [circleAccountId], references: [id])
@@ -656,7 +656,7 @@ model CirclePayoutRequest {
   id                   String        @id @default(uuid())
   circleAccountId      String        @map("circle_account_id")
   userId               String        @map("user_id")
-  amount               Float
+  amount               Decimal
   status               String        @default("pending")
   note                 String?
   reviewedById         String?       @map("reviewed_by_id")
@@ -900,41 +900,41 @@ model PrayerSession {
 }
 
 model IntercessoryHour {
-  id          String    @id @default(uuid())
+  id          String   @id @default(uuid())
   name        String
-  timeUtc     String    @map("time_utc")
-  joinLink    String?   @map("join_link")
-  isActive    Boolean   @default(true) @map("is_active")
+  timeUtc     String   @map("time_utc")
+  joinLink    String?  @map("join_link")
+  isActive    Boolean  @default(true) @map("is_active")
   description String?
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   @@index([isActive])
   @@map("intercessory_hours")
 }
 
 model ImpactNarrative {
-  id            String          @id @default(uuid())
-  name          String
-  age           Int
-  country       String
-  countryCode   String          @map("country_code")
-  role          String
-  cohort        String
-  avatarUrl     String          @map("avatar_url")
-  coverImageUrl String          @map("cover_image_url")
-  headlineQuote String          @map("headline_quote")
-  impactMetric  String          @map("impact_metric")
-  impactLabel   String          @map("impact_label")
-  longFormNarrative String[]    @map("long_form_narrative")
-  sortOrder     Int             @default(0) @map("sort_order")
-  isActive      Boolean         @default(true) @map("is_active")
-  deletedAt     DateTime?       @map("deleted_at")
-  createdAt     DateTime        @default(now()) @map("created_at")
-  updatedAt     DateTime        @default(now()) @updatedAt @map("updated_at")
+  id                String    @id @default(uuid())
+  name              String
+  age               Int
+  country           String
+  countryCode       String    @map("country_code")
+  role              String
+  cohort            String
+  avatarUrl         String    @map("avatar_url")
+  coverImageUrl     String    @map("cover_image_url")
+  headlineQuote     String    @map("headline_quote")
+  impactMetric      String    @map("impact_metric")
+  impactLabel       String    @map("impact_label")
+  longFormNarrative String[]  @map("long_form_narrative")
+  sortOrder         Int       @default(0) @map("sort_order")
+  isActive          Boolean   @default(true) @map("is_active")
+  deletedAt         DateTime? @map("deleted_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @default(now()) @updatedAt @map("updated_at")
 
-  gallery     ImpactGalleryPhoto[]
-  timeline    ImpactTimelineMilestone[]
+  gallery  ImpactGalleryPhoto[]
+  timeline ImpactTimelineMilestone[]
 
   @@index([isActive])
   @@index([sortOrder])
@@ -942,14 +942,14 @@ model ImpactNarrative {
 }
 
 model ImpactGalleryPhoto {
-  id          String          @id @default(uuid())
-  narrativeId String          @map("narrative_id")
+  id          String    @id @default(uuid())
+  narrativeId String    @map("narrative_id")
   url         String
   caption     String
   tag         String
-  sortOrder   Int             @default(0) @map("sort_order")
-  deletedAt   DateTime?       @map("deleted_at")
-  createdAt   DateTime        @default(now()) @map("created_at")
+  sortOrder   Int       @default(0) @map("sort_order")
+  deletedAt   DateTime? @map("deleted_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
 
   narrative ImpactNarrative @relation(fields: [narrativeId], references: [id], onDelete: Cascade)
 
@@ -959,16 +959,16 @@ model ImpactGalleryPhoto {
 }
 
 model ImpactTimelineMilestone {
-  id          String          @id @default(uuid())
-  narrativeId String          @map("narrative_id")
+  id          String    @id @default(uuid())
+  narrativeId String    @map("narrative_id")
   year        String
   title       String
   description String
   tag         String
-  status      String          @default("completed")
-  sortOrder   Int             @default(0) @map("sort_order")
-  deletedAt   DateTime?       @map("deleted_at")
-  createdAt   DateTime        @default(now()) @map("created_at")
+  status      String    @default("completed")
+  sortOrder   Int       @default(0) @map("sort_order")
+  deletedAt   DateTime? @map("deleted_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
 
   narrative ImpactNarrative @relation(fields: [narrativeId], references: [id], onDelete: Cascade)
 

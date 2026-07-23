@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { config, BrandConfig } from "@thrift/config";
-import { Card, Button, ColorfulBadge, FadeIn, FadeInUp, StaggerChildren } from "@thrift/ui";
+import { Card, Button, FadeIn, FadeInUp, StaggerChildren } from "@thrift/ui";
 import { formatNaira } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
 import Pagination from "@/components/Pagination";
+import { SimpleTable, SimpleColumn } from "@/components/SimpleTable";
 
 const fallback = config;
 
@@ -272,10 +273,194 @@ export default function ClearanceManagementPage() {
 
   const pendingPRCount = payoutRequests.filter((r) => r.status === "pending").length;
 
+  const clearanceColumns: SimpleColumn<ClearanceItem>[] = [
+    {
+      key: "userName",
+      header: "Member",
+      render: (c) => {
+        const initials = c.userName.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+        return (
+          <div className="flex items-center gap-2">
+            <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold" style={{ backgroundColor: "#2563EB15", color: "#2563EB" }}>{initials}</div>
+            <div>
+              <span className="block font-medium text-slate-900 dark:text-white">{c.userName}</span>
+              {c.clearedDate && <span className="text-[9px] text-slate-500 dark:text-slate-400">Cleared {new Date(c.clearedDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>}
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      key: "groupName",
+      header: "Circle",
+      render: (c) => (
+        <span className="rounded-md px-2 py-0.5 font-mono text-[9px] font-bold uppercase" style={{ backgroundColor: "#2563EB12", color: "#2563EB", border: "1px solid #2563EB20" }}>{c.groupName}</span>
+      ),
+    },
+    {
+      key: "cycleNumber",
+      header: "Cycle",
+      align: "right",
+      mono: true,
+      render: (c) => <span className="font-semibold text-slate-900 dark:text-white">#{c.cycleNumber}</span>,
+    },
+    {
+      key: "payoutAmount",
+      header: "Payout",
+      align: "right",
+      mono: true,
+      render: (c) => <span className="font-semibold text-slate-900 dark:text-white">{formatNaira(c.payoutAmount)}</span>,
+    },
+    {
+      key: "progress",
+      header: "Progress",
+      align: "right",
+      render: (c) => {
+        const progress = c.payoutAmount > 0 ? Math.round((c.contributed / c.payoutAmount) * 100) : 0;
+        return (
+          <div className="flex items-center justify-end gap-2">
+            <div className="h-1 w-[60px] overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+              <div className="h-full rounded-full" style={{ backgroundColor: progress === 100 ? "#059669" : "#2563EB", width: `${progress}%`, transition: "width 0.5s ease" }} />
+            </div>
+            <span className="font-mono text-[10px] text-slate-500 dark:text-slate-400">{progress}%</span>
+          </div>
+        );
+      },
+    },
+    {
+      key: "status",
+      header: "Status",
+      align: "right",
+      render: (c) => {
+        const st = statusStyles[c.status] || statusStyles.pending;
+        return (
+          <span className="rounded-md px-2 py-0.5 font-bold uppercase text-[9px]" style={{ backgroundColor: st.bg, color: st.color, border: `1px solid ${st.border}` }}>{c.status}</span>
+        );
+      },
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      align: "right",
+      render: (c) => (
+        <div className="flex justify-end">
+          {c.status !== "cleared" && (
+            <button onClick={(e) => { e.stopPropagation(); approveClearance(c.id); }}
+              className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold"
+              style={{ border: "1px solid #2563EB30", backgroundColor: "#2563EB08", color: "#2563EB" }}>
+              Approve
+            </button>
+          )}
+        </div>
+      ),
+    },
+  ];
+
+  const payoutColumns: SimpleColumn<PayoutRequest>[] = [
+    {
+      key: "user",
+      header: "Member",
+      render: (r) => {
+        const initials = r.user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+        return (
+          <div className="flex items-center gap-2">
+            <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold" style={{ backgroundColor: "#2563EB15", color: "#2563EB" }}>{initials}</div>
+            <span className="font-medium text-slate-900 dark:text-white">{r.user.name}</span>
+          </div>
+        );
+      },
+    },
+    {
+      key: "circle",
+      header: "Circle",
+      render: (r) => (
+        <span className="rounded-md px-2 py-0.5 font-mono text-[9px] font-bold uppercase" style={{ backgroundColor: "#2563EB12", color: "#2563EB", border: "1px solid #2563EB20" }}>{r.circleAccount.circle.name}</span>
+      ),
+    },
+    {
+      key: "principal",
+      header: "Principal",
+      align: "right",
+      mono: true,
+      render: (r) => <span className="font-semibold text-slate-900 dark:text-white">{formatNaira(r.circleAccount.principalAmount)}</span>,
+    },
+    {
+      key: "interest",
+      header: "Interest",
+      align: "right",
+      mono: true,
+      render: (r) => <span className="font-semibold text-emerald-600">{formatNaira(r.circleAccount.interestEarned)}</span>,
+    },
+    {
+      key: "amount",
+      header: "Payout",
+      align: "right",
+      mono: true,
+      render: (r) => <span className="font-bold text-blue-600">{formatNaira(r.amount)}</span>,
+    },
+    {
+      key: "createdAt",
+      header: "Requested",
+      align: "right",
+      mono: true,
+      render: (r) => (
+        <span className="text-slate-500 dark:text-slate-400">
+          {new Date(r.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      align: "right",
+      render: (r) => {
+        const st = statusStyles[r.status] || statusStyles.pending;
+        return (
+          <span className="rounded-md px-2 py-0.5 font-bold uppercase text-[9px]" style={{ backgroundColor: st.bg, color: st.color, border: `1px solid ${st.border}` }}>{r.status}</span>
+        );
+      },
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      align: "right",
+      render: (r) => (
+        <div className="flex justify-end gap-1.5">
+          {r.status === "pending" && (
+            <>
+              <button onClick={(e) => { e.stopPropagation(); handleClearPayout(r.id); }} disabled={processingId === r.id}
+                className="cursor-pointer rounded-md border border-blue-200 bg-blue-50 px-2 py-1 text-[10px] font-semibold text-blue-600"
+                style={{ opacity: processingId === r.id ? 0.5 : 1 }}>
+                {processingId === r.id ? "..." : "Clear"}
+              </button>
+              <button onClick={(e) => { e.stopPropagation(); setDeclineTarget(r.id); }} disabled={processingId === r.id}
+                className="cursor-pointer rounded-md border border-red-200 bg-red-50 px-2 py-1 text-[10px] font-semibold text-red-600">
+                Decline
+              </button>
+            </>
+          )}
+          {r.status === "cleared" && (
+            <button onClick={(e) => { e.stopPropagation(); setDisburseTarget(r); setProofFile(null); setManualRef(""); setManualNote(""); }} disabled={processingId === r.id}
+              className="cursor-pointer rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-semibold text-emerald-600"
+              style={{ opacity: processingId === r.id ? 0.5 : 1 }}>
+              Disburse
+            </button>
+          )}
+          {r.status === "disbursed" && r.disbursementProofUrl && (
+            <a href={r.disbursementProofUrl} target="_blank" rel="noreferrer"
+              className="cursor-pointer rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-2 py-1 text-[10px] font-semibold text-slate-600 dark:text-slate-400">
+              Proof
+            </a>
+          )}
+        </div>
+      ),
+    },
+  ];
+
   if (loading) {
     return (
       <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
-        <div className="p-16 text-center text-[13px] text-gray-500">Loading clearances...</div>
+        <div className="p-16 text-center text-[13px] text-slate-500 dark:text-slate-400">Loading clearances...</div>
       </div>
     );
   }
@@ -291,7 +476,7 @@ export default function ClearanceManagementPage() {
 
       {message && (
         <FadeIn>
-          <div className={`mb-6 rounded-xl border px-4 py-3 text-[13px] font-medium ${message.type === "success" ? "bg-emerald-50 text-emerald-600 border-emerald-200" : "bg-red-50 text-red-600 border-red-200"}`}>
+          <div className={`mb-6 rounded-2xl border px-4 py-3 text-[13px] font-medium ${message.type === "success" ? "bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-900" : "bg-red-50 text-red-600 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-900"}`}>
             {message.text}
           </div>
         </FadeIn>
@@ -300,12 +485,12 @@ export default function ClearanceManagementPage() {
       <div className="mb-6 flex gap-2">
         <button onClick={() => setActiveTab("group")}
           className="cursor-pointer rounded-full border-[1.5px] px-5 py-2 text-[12px] font-semibold transition-all duration-150"
-          style={{ backgroundColor: activeTab === "group" ? cfg.colors.primary : "#ffffff", color: activeTab === "group" ? "#ffffff" : "#717171", borderColor: activeTab === "group" ? cfg.colors.primary : "#EAEAEA" }}>
+          style={{ backgroundColor: activeTab === "group" ? "#2563EB" : "#ffffff", color: activeTab === "group" ? "#ffffff" : "#717171", borderColor: activeTab === "group" ? "#2563EB" : "#EAEAEA" }}>
           Group Clearances
         </button>
         <button onClick={() => setActiveTab("circle")}
           className="cursor-pointer rounded-full border-[1.5px] px-5 py-2 text-[12px] font-semibold transition-all duration-150"
-          style={{ backgroundColor: activeTab === "circle" ? cfg.colors.primary : "#ffffff", color: activeTab === "circle" ? "#ffffff" : "#717171", borderColor: activeTab === "circle" ? cfg.colors.primary : "#EAEAEA" }}>
+          style={{ backgroundColor: activeTab === "circle" ? "#2563EB" : "#ffffff", color: activeTab === "circle" ? "#ffffff" : "#717171", borderColor: activeTab === "circle" ? "#2563EB" : "#EAEAEA" }}>
           Circle Payouts {pendingPRCount > 0 && <span className="ml-1 rounded-full bg-red-600 px-1.5 text-[10px] text-white">{pendingPRCount}</span>}
         </button>
       </div>
@@ -313,16 +498,16 @@ export default function ClearanceManagementPage() {
       {activeTab === "group" && (
         <>
           <StaggerChildren staggerDelay={100} className="mb-8 grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
-            <Card padding="1.25rem">
-              <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-500">Total Clearances</span>
-              <span className="mt-1 block font-mono text-2xl font-bold text-brand-dark">{totalItems}</span>
+            <Card padding="1.5rem">
+              <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">Total Clearances</span>
+              <span className="mt-1 block font-mono text-2xl font-bold text-slate-900 dark:text-white">{totalItems}</span>
             </Card>
-            <Card padding="1.25rem">
-              <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-500">Cleared Amount</span>
+            <Card padding="1.5rem">
+              <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">Cleared Amount</span>
               <span className="mt-1 block font-mono text-2xl font-bold text-emerald-600">{formatNaira(clearStats.totalCleared)}</span>
             </Card>
-            <Card padding="1.25rem">
-              <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-500">Pending Payout</span>
+            <Card padding="1.5rem">
+              <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">Pending Payout</span>
               <span className="mt-1 block font-mono text-2xl font-bold text-amber-600">{formatNaira(clearStats.totalPending)}</span>
             </Card>
           </StaggerChildren>
@@ -330,12 +515,14 @@ export default function ClearanceManagementPage() {
           <FadeInUp delay={300}>
             <Card padding="1.5rem" className="mb-6">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-                <ColorfulBadge label="Clearance Records" color={cfg.colors.primary} />
-                <div className="flex gap-1 rounded-lg bg-gray-100 p-1">
+                <span className="rounded-[0.375rem] px-2 py-0.5 text-[9px] font-bold uppercase" style={{ backgroundColor: "#2563EB12", color: "#2563EB" }}>
+                  Clearance Records
+                </span>
+                <div className="flex gap-1 rounded-lg bg-slate-100 dark:bg-slate-800 p-1">
                   {(["all", "cleared", "partial", "pending"] as const).map((f) => (
                     <button key={f} onClick={() => { setFilter(f); setPage(1); }}
                       className="cursor-pointer rounded-md px-3 py-1.5 text-[11px] font-semibold capitalize"
-                      style={{ backgroundColor: filter === f ? "#ffffff" : "transparent", color: filter === f ? cfg.colors.primary : "#717171", boxShadow: filter === f ? "0 1px 3px rgba(0,0,0,0.08)" : "none" }}>
+                      style={{ backgroundColor: filter === f ? "#ffffff" : "transparent", color: filter === f ? "#2563EB" : "#717171", boxShadow: filter === f ? "0 1px 3px rgba(0,0,0,0.08)" : "none" }}>
                       {f}
                     </button>
                   ))}
@@ -343,70 +530,11 @@ export default function ClearanceManagementPage() {
               </div>
 
               {(listLoading && paginatedItems.length === 0) ? (
-                <div className="p-8 text-center text-[13px] text-gray-500">Loading...</div>
+                <div className="p-8 text-center text-[13px] text-slate-500 dark:text-slate-400">Loading...</div>
               ) : paginatedItems.length === 0 ? (
-                <div className="p-8 text-center text-[13px] text-gray-500">No clearance records found.</div>
+                <div className="p-8 text-center text-[13px] text-slate-500 dark:text-slate-400">No clearance records found.</div>
               ) : (
-                <div className="overflow-x-auto [-webkit-overflow-scrolling:touch]">
-                  <table className="w-full border-collapse text-[12px] min-w-[650px]">
-                    <thead>
-                      <tr className="border-b border-gray-100 font-mono text-[9px] uppercase tracking-[0.1em] text-gray-500">
-                        <th className="pb-3 text-left font-semibold">Member</th>
-                        <th className="pb-3 text-left font-semibold">Circle</th>
-                        <th className="pb-3 text-right font-semibold">Cycle</th>
-                        <th className="pb-3 text-right font-semibold">Payout</th>
-                        <th className="pb-3 text-right font-semibold">Progress</th>
-                        <th className="pb-3 text-right font-semibold">Status</th>
-                        <th className="pb-3 text-right font-semibold">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {paginatedItems.map((c) => {
-                        const st = statusStyles[c.status] || statusStyles.pending;
-                        const progress = c.payoutAmount > 0 ? Math.round((c.contributed / c.payoutAmount) * 100) : 0;
-                        const initials = c.userName.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
-                        return (
-                          <tr key={c.id} className="border-b border-gray-100 transition-colors hover:bg-gray-50">
-                            <td className="py-3">
-                              <div className="flex items-center gap-2">
-                                <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold" style={{ backgroundColor: `${cfg.colors.primary}15`, color: cfg.colors.primary }}>{initials}</div>
-                                <div>
-                                  <span className="block font-medium text-brand-dark">{c.userName}</span>
-                                  {c.clearedDate && <span className="text-[9px] text-gray-500">Cleared {new Date(c.clearedDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>}
-                                </div>
-                              </div>
-                            </td>
-                            <td className="py-3">
-                              <span className="rounded-md px-2 py-0.5 font-mono text-[9px] font-bold uppercase" style={{ backgroundColor: `${cfg.colors.primary}12`, color: cfg.colors.primary, border: `1px solid ${cfg.colors.primary}20` }}>{c.groupName}</span>
-                            </td>
-                            <td className="py-3 text-right font-mono font-semibold text-brand-dark">#{c.cycleNumber}</td>
-                            <td className="py-3 text-right font-mono font-semibold text-brand-dark">{formatNaira(c.payoutAmount)}</td>
-                            <td className="py-3 text-right">
-                              <div className="flex items-center justify-end gap-2">
-                                <div className="h-1 w-[60px] overflow-hidden rounded-full bg-gray-100">
-                                  <div className="h-full rounded-full" style={{ backgroundColor: progress === 100 ? "#059669" : cfg.colors.primary, width: `${progress}%`, transition: "width 0.5s ease" }} />
-                                </div>
-                                <span className="font-mono text-[10px] text-gray-500">{progress}%</span>
-                              </div>
-                            </td>
-                            <td className="py-3 text-right">
-                              <span className="rounded-md px-2 py-0.5 font-bold uppercase" style={{ backgroundColor: st.bg, color: st.color, border: `1px solid ${st.border}` }}>{c.status}</span>
-                            </td>
-                            <td className="py-3 text-right">
-                              {c.status !== "cleared" && (
-                                <button onClick={() => approveClearance(c.id)}
-                                  className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold"
-                                  style={{ border: `1px solid ${cfg.colors.primary}30`, backgroundColor: `${cfg.colors.primary}08`, color: cfg.colors.primary }}>
-                                  Approve
-                                </button>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
+                <SimpleTable columns={clearanceColumns} data={paginatedItems} minWidth="650px" />
               )}
               <Pagination page={page} totalPages={totalPages} total={totalItems} limit={LIMIT} onPageChange={setPage} loading={listLoading} />
             </Card>
@@ -417,31 +545,33 @@ export default function ClearanceManagementPage() {
       {activeTab === "circle" && (
         <>
           <StaggerChildren staggerDelay={100} className="mb-8 grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
-            <Card padding="1.25rem">
-              <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-500">Pending Requests</span>
+            <Card padding="1.5rem">
+              <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">Pending Requests</span>
               <span className="mt-1 block font-mono text-2xl font-bold text-amber-600">{payoutRequests.filter((r) => r.status === "pending").length}</span>
             </Card>
-            <Card padding="1.25rem">
-              <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-500">Disbursed Total</span>
+            <Card padding="1.5rem">
+              <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">Disbursed Total</span>
               <span className="mt-1 block font-mono text-2xl font-bold text-emerald-600">
                 {formatNaira(payoutRequests.filter((r) => r.status === "disbursed").reduce((sum, r) => sum + r.amount, 0))}
               </span>
             </Card>
-            <Card padding="1.25rem">
-              <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-500">Total Requests</span>
-              <span className="mt-1 block font-mono text-2xl font-bold text-brand-dark">{prTotal}</span>
+            <Card padding="1.5rem">
+              <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">Total Requests</span>
+              <span className="mt-1 block font-mono text-2xl font-bold text-slate-900 dark:text-white">{prTotal}</span>
             </Card>
           </StaggerChildren>
 
           <FadeInUp delay={300}>
             <Card padding="1.5rem">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-                <ColorfulBadge label="Circle Payout Requests" color={cfg.colors.primary} />
-                <div className="flex gap-1 rounded-lg bg-gray-100 p-1">
+                <span className="rounded-[0.375rem] px-2 py-0.5 text-[9px] font-bold uppercase" style={{ backgroundColor: "#2563EB12", color: "#2563EB" }}>
+                  Circle Payout Requests
+                </span>
+                <div className="flex gap-1 rounded-lg bg-slate-100 dark:bg-slate-800 p-1">
                   {(["all", "pending", "cleared", "disbursed", "declined"] as const).map((f) => (
                     <button key={f} onClick={() => { setPrFilter(f); setPrPage(1); }}
                       className="cursor-pointer rounded-md px-3 py-1.5 text-[11px] font-semibold capitalize"
-                      style={{ backgroundColor: prFilter === f ? "#ffffff" : "transparent", color: prFilter === f ? cfg.colors.primary : "#717171", boxShadow: prFilter === f ? "0 1px 3px rgba(0,0,0,0.08)" : "none" }}>
+                      style={{ backgroundColor: prFilter === f ? "#ffffff" : "transparent", color: prFilter === f ? "#2563EB" : "#717171", boxShadow: prFilter === f ? "0 1px 3px rgba(0,0,0,0.08)" : "none" }}>
                       {f}
                     </button>
                   ))}
@@ -449,82 +579,9 @@ export default function ClearanceManagementPage() {
               </div>
 
               {payoutRequests.length === 0 ? (
-                <div className="p-8 text-center text-[13px] text-gray-500">No circle payout requests found.</div>
+                <div className="p-8 text-center text-[13px] text-slate-500 dark:text-slate-400">No circle payout requests found.</div>
               ) : (
-                <div className="overflow-x-auto [-webkit-overflow-scrolling:touch]">
-                  <table className="w-full border-collapse text-[12px] min-w-[750px]">
-                    <thead>
-                      <tr className="border-b border-gray-100 font-mono text-[9px] uppercase tracking-[0.1em] text-gray-500">
-                        <th className="pb-3 text-left font-semibold">Member</th>
-                        <th className="pb-3 text-left font-semibold">Circle</th>
-                        <th className="pb-3 text-right font-semibold">Principal</th>
-                        <th className="pb-3 text-right font-semibold">Interest</th>
-                        <th className="pb-3 text-right font-semibold">Payout</th>
-                        <th className="pb-3 text-right font-semibold">Requested</th>
-                        <th className="pb-3 text-right font-semibold">Status</th>
-                        <th className="pb-3 text-right font-semibold">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {payoutRequests.map((r) => {
-                        const st = statusStyles[r.status] || statusStyles.pending;
-                        const initials = r.user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
-                        return (
-                          <tr key={r.id} className="border-b border-gray-100 transition-colors hover:bg-gray-50">
-                            <td className="py-3">
-                              <div className="flex items-center gap-2">
-                                <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold" style={{ backgroundColor: `${cfg.colors.primary}15`, color: cfg.colors.primary }}>{initials}</div>
-                                <span className="font-medium text-brand-dark">{r.user.name}</span>
-                              </div>
-                            </td>
-                            <td className="py-3">
-                              <span className="rounded-md px-2 py-0.5 font-mono text-[9px] font-bold uppercase" style={{ backgroundColor: `${cfg.colors.primary}12`, color: cfg.colors.primary, border: `1px solid ${cfg.colors.primary}20` }}>{r.circleAccount.circle.name}</span>
-                            </td>
-                            <td className="py-3 text-right font-mono font-semibold text-brand-dark">{formatNaira(r.circleAccount.principalAmount)}</td>
-                            <td className="py-3 text-right font-mono font-semibold text-emerald-600">{formatNaira(r.circleAccount.interestEarned)}</td>
-                            <td className="py-3 text-right font-mono font-bold" style={{ color: cfg.colors.primary }}>{formatNaira(r.amount)}</td>
-                            <td className="py-3 text-right font-mono text-gray-500">
-                              {new Date(r.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                            </td>
-                            <td className="py-3 text-right">
-                              <span className="rounded-md px-2 py-0.5 font-bold uppercase" style={{ backgroundColor: st.bg, color: st.color, border: `1px solid ${st.border}` }}>{r.status}</span>
-                            </td>
-                            <td className="py-3 text-right">
-                              <div className="flex justify-end gap-1.5">
-                                {r.status === "pending" && (
-                                  <>
-                                    <button onClick={() => handleClearPayout(r.id)} disabled={processingId === r.id}
-                                      className="cursor-pointer rounded-md border border-blue-200 bg-blue-50 px-2 py-1 text-[10px] font-semibold text-blue-600"
-                                      style={{ opacity: processingId === r.id ? 0.5 : 1 }}>
-                                      {processingId === r.id ? "..." : "Clear"}
-                                    </button>
-                                    <button onClick={() => setDeclineTarget(r.id)} disabled={processingId === r.id}
-                                      className="cursor-pointer rounded-md border border-red-200 bg-red-50 px-2 py-1 text-[10px] font-semibold text-red-600">
-                                      Decline
-                                    </button>
-                                  </>
-                                )}
-                                {r.status === "cleared" && (
-                                  <button onClick={() => { setDisburseTarget(r); setProofFile(null); setManualRef(""); setManualNote(""); }} disabled={processingId === r.id}
-                                    className="cursor-pointer rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-semibold text-emerald-600"
-                                    style={{ opacity: processingId === r.id ? 0.5 : 1 }}>
-                                    Disburse
-                                  </button>
-                                )}
-                                {r.status === "disbursed" && r.disbursementProofUrl && (
-                                  <a href={r.disbursementProofUrl} target="_blank" rel="noreferrer"
-                                    className="cursor-pointer rounded-md border border-gray-200 bg-gray-50 px-2 py-1 text-[10px] font-semibold text-gray-600">
-                                    Proof
-                                  </a>
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
+                <SimpleTable columns={payoutColumns} data={payoutRequests} minWidth="750px" />
               )}
               <Pagination page={prPage} totalPages={prTotalPages} total={prTotal} limit={LIMIT} onPageChange={setPrPage} />
             </Card>
@@ -535,12 +592,14 @@ export default function ClearanceManagementPage() {
       <FadeInUp delay={400}>
         <Card padding="1.5rem">
           <div className="mb-4">
-            <ColorfulBadge label="Clearance Process" color={cfg.colors.accent} />
-            <h2 className="mt-2 text-[1.125rem] font-medium text-brand-dark">How Clearance Works</h2>
+            <span className="rounded-[0.375rem] px-2 py-0.5 text-[9px] font-bold uppercase" style={{ backgroundColor: "#8A7D7312", color: "#8A7D73" }}>
+              Clearance Process
+            </span>
+            <h2 className="mt-2 text-[1.125rem] font-medium text-slate-900 dark:text-white">How Clearance Works</h2>
           </div>
           <div className="flex flex-col gap-0">
             {[
-              { step: 1, title: "Cycle Completion", desc: "All members complete their contributions for the current cycle.", color: cfg.colors.primary },
+              { step: 1, title: "Cycle Completion", desc: "All members complete their contributions for the current cycle.", color: "#2563EB" },
               { step: 2, title: "Payout Eligibility", desc: "The designated recipient is verified for clearance eligibility.", color: "#8A7D73" },
               { step: 3, title: "Clearance Approval", desc: "Circle leader or admin reviews and approves the payout.", color: "#3D4D40" },
               { step: 4, title: "Funds Disbursed", desc: "Wallet balance is credited and payout is recorded.", color: "#059669" },
@@ -548,8 +607,8 @@ export default function ClearanceManagementPage() {
               <div key={item.step} className="flex gap-4 py-4" style={{ borderBottom: i < 3 ? "1px solid #F0F0F0" : "none" }}>
                 <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full font-mono text-[12px] font-bold" style={{ backgroundColor: `${item.color}15`, color: item.color }}>{item.step}</div>
                 <div>
-                  <span className="block text-[12px] font-semibold text-brand-dark">{item.title}</span>
-                  <span className="text-[11px] font-light text-gray-500">{item.desc}</span>
+                  <span className="block text-[12px] font-semibold text-slate-900 dark:text-white">{item.title}</span>
+                  <span className="text-[11px] font-light text-slate-500 dark:text-slate-400">{item.desc}</span>
                 </div>
               </div>
             ))}
@@ -560,14 +619,14 @@ export default function ClearanceManagementPage() {
       {declineTarget && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 p-4" onClick={() => { setDeclineTarget(null); setDeclineNote(""); }}>
           <div className="w-full max-w-[400px] rounded-2xl bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.15)]" onClick={(e) => e.stopPropagation()}>
-            <h3 className="mb-2 text-base font-semibold text-brand-dark">Decline Payout Request</h3>
-            <p className="mb-4 text-[12px] text-gray-500">Optionally provide a reason for declining.</p>
+            <h3 className="mb-2 text-base font-semibold text-slate-900 dark:text-white">Decline Payout Request</h3>
+            <p className="mb-4 text-[12px] text-slate-500 dark:text-slate-400">Optionally provide a reason for declining.</p>
             <textarea value={declineNote} onChange={(e) => setDeclineNote(e.target.value)} placeholder="Reason (optional)"
               rows={3}
-              className="mb-4 w-full resize-y rounded-lg border border-gray-200 px-3 py-2 text-[13px] outline-none" />
+              className="mb-4 w-full resize-y rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-[13px] outline-none" />
             <div className="flex gap-3">
               <button onClick={() => { setDeclineTarget(null); setDeclineNote(""); }}
-                className="flex-1 cursor-pointer rounded-lg border border-gray-200 bg-white px-2.5 py-2.5 text-[13px] font-medium">Cancel</button>
+                className="flex-1 cursor-pointer rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-2.5 text-[13px] font-medium">Cancel</button>
               <button onClick={() => handleDeclinePayout(declineTarget)} disabled={processingId === declineTarget}
                 className="flex-1 cursor-pointer rounded-lg bg-red-600 px-2.5 py-2.5 text-[13px] font-semibold text-white"
                 style={{ opacity: processingId === declineTarget ? 0.5 : 1 }}>
@@ -581,14 +640,14 @@ export default function ClearanceManagementPage() {
       {disburseTarget && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 p-4" onClick={() => setDisburseTarget(null)}>
           <div className="max-h-[90vh] w-full max-w-[440px] overflow-y-auto rounded-2xl bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.15)]" onClick={(e) => e.stopPropagation()}>
-            <h3 className="mb-1 text-base font-semibold text-brand-dark">Disburse Payout</h3>
-            <p className="mb-4 text-[12px] text-gray-500">
+            <h3 className="mb-1 text-base font-semibold text-slate-900 dark:text-white">Disburse Payout</h3>
+            <p className="mb-4 text-[12px] text-slate-500 dark:text-slate-400">
               {disburseTarget.user.name} · <span className="font-mono font-semibold">{formatNaira(disburseTarget.amount)}</span>
             </p>
 
-            <div className="mb-5 rounded-xl border border-emerald-100 bg-emerald-50/50 p-4">
-              <span className="mb-1 block text-[11px] font-semibold text-brand-dark">Option 1 — Flutterwave Transfer</span>
-              <span className="mb-3 block text-[11px] text-gray-500">Sends funds directly to the member&apos;s saved bank account.</span>
+            <div className="mb-5 rounded-2xl border border-emerald-100 dark:border-emerald-900 bg-emerald-50/50 dark:bg-emerald-900/20 p-4">
+              <span className="mb-1 block text-[11px] font-semibold text-slate-900 dark:text-white">Option 1 — Flutterwave Transfer</span>
+              <span className="mb-3 block text-[11px] text-slate-500 dark:text-slate-400">Sends funds directly to the member&apos;s saved bank account.</span>
               <button onClick={() => handleDisburseFlutterwave(disburseTarget.id)} disabled={processingId === disburseTarget.id}
                 className="w-full cursor-pointer rounded-lg bg-emerald-600 px-2.5 py-2.5 text-[13px] font-semibold text-white"
                 style={{ opacity: processingId === disburseTarget.id ? 0.5 : 1 }}>
@@ -596,27 +655,27 @@ export default function ClearanceManagementPage() {
               </button>
             </div>
 
-            <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
-              <span className="mb-1 block text-[11px] font-semibold text-brand-dark">Option 2 — Manual (mark disbursed)</span>
-              <span className="mb-3 block text-[11px] text-gray-500">Record an external payment with proof and/or reference.</span>
-              <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Proof of Payment</label>
+            <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-800/60 p-4">
+              <span className="mb-1 block text-[11px] font-semibold text-slate-900 dark:text-white">Option 2 — Manual (mark disbursed)</span>
+              <span className="mb-3 block text-[11px] text-slate-500 dark:text-slate-400">Record an external payment with proof and/or reference.</span>
+              <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Proof of Payment</label>
               <input type="file" accept="image/*,application/pdf" onChange={(e) => setProofFile(e.target.files?.[0] || null)}
                 className="mb-3 w-full text-[12px]" />
-              <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Reference</label>
+              <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Reference</label>
               <input type="text" value={manualRef} onChange={(e) => setManualRef(e.target.value)} placeholder="e.g. bank transfer ref"
-                className="mb-3 w-full rounded-lg border border-gray-200 px-3 py-2 text-[13px] outline-none" />
-              <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Note</label>
+                className="mb-3 w-full rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-[13px] outline-none" />
+              <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Note</label>
               <textarea value={manualNote} onChange={(e) => setManualNote(e.target.value)} rows={2} placeholder="Optional note"
-                className="mb-3 w-full resize-y rounded-lg border border-gray-200 px-3 py-2 text-[13px] outline-none" />
+                className="mb-3 w-full resize-y rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-[13px] outline-none" />
               <button onClick={() => handleMarkDisbursed(disburseTarget.id)} disabled={processingId === disburseTarget.id || proofUploading}
                 className="w-full cursor-pointer rounded-lg px-2.5 py-2.5 text-[13px] font-semibold text-white"
-                style={{ backgroundColor: cfg.colors.primary, opacity: processingId === disburseTarget.id || proofUploading ? 0.5 : 1 }}>
+                style={{ backgroundColor: "#2563EB", opacity: processingId === disburseTarget.id || proofUploading ? 0.5 : 1 }}>
                 {proofUploading ? "Uploading..." : processingId === disburseTarget.id ? "Saving..." : "Mark as Disbursed"}
               </button>
             </div>
 
             <button onClick={() => setDisburseTarget(null)}
-              className="mt-4 w-full cursor-pointer rounded-lg border border-gray-200 bg-white px-2.5 py-2.5 text-[13px] font-medium">
+              className="mt-4 w-full cursor-pointer rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-2.5 text-[13px] font-medium">
               Cancel
             </button>
           </div>

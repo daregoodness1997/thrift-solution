@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { config, BrandConfig } from "@thrift/config";
-import { Card, Button, StatCard, ColorfulBadge, FadeInUp, StaggerChildren } from "@thrift/ui";
+import { config } from "@thrift/config";
+import { Card, Button, StatCard, FadeInUp, StaggerChildren } from "@thrift/ui";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
 import Pagination from "@/components/Pagination";
@@ -72,7 +72,6 @@ function UsersIcon() {
 
 export default function WhatsAppGroupsPage() {
   const { token } = useAuth();
-  const [cfg] = useState<BrandConfig>(config);
   const [filter, setFilter] = useState<Filter>("all");
   const [myGroups, setMyGroups] = useState<MyGroup[]>([]);
   const [allGroups, setAllGroups] = useState<AllGroup[]>([]);
@@ -183,13 +182,13 @@ export default function WhatsAppGroupsPage() {
       <div className="grid grid-cols-1 gap-6">
         <FadeInUp delay={300}>
           <Card padding="0" hover={false} className="overflow-hidden">
-            <div className="border-b border-[#F0F0F0] px-6 py-5">
+            <div className="border-b border-slate-200/80 px-6 py-5 dark:border-slate-800/80">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-[15px] font-bold tracking-[-0.02em] text-brand-dark">My Groups</h2>
-                  <span className="rounded-full bg-[#F5F5F5] px-2 py-0.5 text-[10px] font-bold text-gray-400">{filtered.length}</span>
+                  <h2 className="text-[15px] font-bold tracking-[-0.02em] text-slate-900 dark:text-white">My Groups</h2>
+                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-400 dark:bg-slate-800 dark:text-slate-500">{filtered.length}</span>
                 </div>
-                <div className="flex gap-1 rounded-[10px] bg-[#F5F7F5] p-1">
+                <div className="flex gap-1 rounded-[10px] bg-slate-100 p-1 dark:bg-slate-800">
                   {filterTabs.map((f) => (
                     <button
                       key={f}
@@ -211,7 +210,7 @@ export default function WhatsAppGroupsPage() {
                   placeholder="Search groups..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full rounded-[0.625rem] border border-gray-200 bg-gray-50 px-3 py-2.5 pl-9 text-xs text-[#2D2D2D] outline-none"
+                    className="w-full rounded-[0.625rem] border border-slate-200 bg-slate-50 px-3 py-2.5 pl-9 text-xs text-slate-900 outline-none dark:border-slate-700 dark:bg-slate-800/60 dark:text-white"
                   onFocus={(e) => { e.currentTarget.style.borderColor = `${WA_GREEN}60`; }}
                   onBlur={(e) => { e.currentTarget.style.borderColor = "#EAEAEA"; }}
                 />
@@ -221,22 +220,22 @@ export default function WhatsAppGroupsPage() {
             <div className="p-2">
               {loading ? (
                 <div className="px-4 py-12 text-center">
-                  <p className="text-xs text-gray-400">Loading groups...</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">Loading groups...</p>
                 </div>
               ) : filtered.length === 0 ? (
                 <div className="px-4 py-12 text-center">
                   <div className="mb-2 text-[2rem]">&#128269;</div>
-                  <p className="text-[13px] font-medium text-gray-400">No groups found</p>
+                  <p className="text-[13px] font-medium text-slate-400 dark:text-slate-500">No groups found</p>
                   <p className="mt-1 text-[11px] text-[#BBB]">{myGroups.length === 0 ? "Join a group below to get started" : "Try adjusting your search or filter"}</p>
                 </div>
               ) : (
                 filtered.map((group, idx) => (
                   <div
                     key={group.id}
-                    className="cursor-pointer rounded-xl border border-transparent p-4 transition-all"
+                    className="cursor-pointer rounded-2xl border border-transparent p-4 transition-all"
                     style={{ marginBottom: idx < filtered.length - 1 ? "0.25rem" : 0 }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = "#F8F8F8";
+                      e.currentTarget.style.backgroundColor = "rgb(248 250 252)";
                       e.currentTarget.style.transform = "translateX(4px)";
                     }}
                     onMouseLeave={(e) => {
@@ -245,20 +244,20 @@ export default function WhatsAppGroupsPage() {
                     }}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: `${WA_GREEN}12` }}>
+                      <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl" style={{ backgroundColor: `${WA_GREEN}12` }}>
                         <WhatsAppIcon size={22} />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="mt-0.5 flex items-center gap-1.5">
-                          <span className="block truncate text-[13px] font-semibold text-brand-dark">
+                          <span className="block truncate text-[13px] font-semibold text-slate-900 dark:text-white">
                             {group.name}
                           </span>
                           {group.pinned && <PinIcon />}
                         </div>
                         <div className="mt-0.5 flex items-center gap-1.5">
-                          {group.circleName && <span className="flex-shrink-0 text-[11px] text-gray-400">{group.circleName}</span>}
+                          {group.circleName && <span className="flex-shrink-0 text-[11px] text-slate-400 dark:text-slate-500">{group.circleName}</span>}
                           {group.circleName && <span className="text-[8px] text-[#CCC]">&#8226;</span>}
-                          <span className="block truncate text-[11px] text-gray-500">{group.description || "WhatsApp group"}</span>
+                          <span className="block truncate text-[11px] text-slate-500 dark:text-slate-400">{group.description || "WhatsApp group"}</span>
                         </div>
                       </div>
                       <div className="flex flex-shrink-0 flex-col items-end gap-1.5">
@@ -310,17 +309,17 @@ export default function WhatsAppGroupsPage() {
             <Card padding="1.5rem">
               <div className="mb-5 flex items-center justify-between">
                 <div>
-                  <h2 className="text-[15px] font-bold tracking-[-0.02em] text-brand-dark">Available Groups</h2>
-                  <p className="mt-1 text-[11px] text-gray-400">Join communities and start saving together</p>
+                  <h2 className="text-[15px] font-bold tracking-[-0.02em] text-slate-900 dark:text-white">Available Groups</h2>
+                  <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">Join communities and start saving together</p>
                 </div>
-                <ColorfulBadge label="Quick Join" color={config.colors.accent} />
+                <span className="inline-block rounded-full bg-amber-600/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-amber-600">Quick Join</span>
               </div>
 
               <div className="flex flex-col gap-3">
                 {availableGroups.map((g) => (
                   <div
                     key={g.id}
-                    className="rounded-xl border border-[#F0F0F0] bg-gray-50 p-4 transition-all"
+                    className="rounded-2xl border border-slate-200 bg-slate-50 p-4 transition-all dark:border-slate-700 dark:bg-slate-800/60"
                     onMouseEnter={(e) => {
                       e.currentTarget.style.borderColor = `${WA_GREEN}40`;
                       e.currentTarget.style.backgroundColor = `${WA_GREEN}08`;
@@ -328,8 +327,8 @@ export default function WhatsAppGroupsPage() {
                       e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.04)";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = "#F0F0F0";
-                      e.currentTarget.style.backgroundColor = "#FAFAFA";
+                      e.currentTarget.style.borderColor = "rgb(226 232 240)";
+                      e.currentTarget.style.backgroundColor = "rgb(248 250 252)";
                       e.currentTarget.style.transform = "translateY(0)";
                       e.currentTarget.style.boxShadow = "none";
                     }}
@@ -339,14 +338,14 @@ export default function WhatsAppGroupsPage() {
                         <WhatsAppIcon size={18} />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <span className="block text-xs font-semibold text-[#2D2D2D]">{g.name}</span>
-                        <span className="mt-0.5 block text-[10px] text-gray-400">{g.description || "Join this community group"}</span>
+                        <span className="block text-xs font-semibold text-slate-900 dark:text-white">{g.name}</span>
+                        <span className="mt-0.5 block text-[10px] text-slate-400 dark:text-slate-500">{g.description || "Join this community group"}</span>
                       </div>
                     </div>
                     <div className="mt-3 flex items-center justify-between" style={{ marginLeft: "calc(36px + 0.75rem)" }}>
                       <div className="mt-0.5 flex items-center gap-1.5">
                         <UsersIcon />
-                        <span className="text-[10px] text-gray-400">{g.memberCount} members</span>
+                        <span className="text-[10px] text-slate-400 dark:text-slate-500">{g.memberCount} members</span>
                       </div>
                       <Button
                         variant="primary"

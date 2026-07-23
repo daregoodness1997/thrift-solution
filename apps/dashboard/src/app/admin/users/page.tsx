@@ -2,11 +2,11 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { config } from "@thrift/config";
-import { Card, Button, ColorfulBadge, FadeIn, FadeInUp } from "@thrift/ui";
+import { Card, Button, FadeIn, FadeInUp } from "@thrift/ui";
 import { useAuth } from "@/lib/auth-context";
-import { PageHeader } from "@/components/PageHeader";
+import { Users } from "lucide-react";
 import Pagination from "@/components/Pagination";
+import { SimpleTable, SimpleColumn } from "@/components/SimpleTable";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const LIMIT = 20;
@@ -123,33 +123,106 @@ export default function AdminUsersPage() {
   if (authLoading) return null;
   if (!isAdmin) return null;
 
+  const columns: SimpleColumn<AdminUser>[] = [
+    {
+      key: "name",
+      header: "User",
+      render: (u) => (
+        <>
+          <span className="block font-semibold text-slate-900 dark:text-white">{u.name}</span>
+          <span className="text-[11px] text-slate-500 dark:text-slate-400">{u.email}</span>
+        </>
+      ),
+    },
+    {
+      key: "accountNumber",
+      header: "Account",
+      mono: true,
+      render: (u) => u.accountNumber,
+    },
+    {
+      key: "role",
+      header: "Role",
+      render: (u) => (
+        <span className="rounded-md bg-blue-600/10 px-2 py-0.5 font-mono text-[9px] font-bold uppercase text-blue-600 dark:bg-blue-500/15 dark:text-blue-400">
+          {u.role}
+        </span>
+      ),
+    },
+    {
+      key: "accountTier",
+      header: "Tier",
+      render: (u) => (
+        <span className="capitalize text-slate-500 dark:text-slate-400">{u.accountTier}</span>
+      ),
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      align: "right",
+      render: (u) => (
+        <div className="flex justify-end gap-1.5">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              openEdit(u);
+            }}
+            className="cursor-pointer rounded-md border border-blue-600/20 bg-blue-600/5 px-2 py-1 text-[10px] font-semibold text-blue-600 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-400"
+          >
+            Edit
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleToggleSuspend(u);
+            }}
+            disabled={busyId === u.id}
+            className={`cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold ${u.deletedAt ? "border border-emerald-300 bg-emerald-50 text-emerald-600 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400" : "border border-red-300 bg-red-50 text-red-600 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-400"} ${busyId === u.id ? "opacity-50" : ""}`}
+          >
+            {busyId === u.id ? "..." : u.deletedAt ? "Reactivate" : "Suspend"}
+          </button>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
-      <PageHeader badgeLabel="Admin" heading="User" accentText="Management" description="Search, edit roles, and manage member accounts." />
+      <div className="mb-8 pt-2 pb-6 border-b border-slate-200/80 dark:border-slate-800/80">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/80 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1">
+              <Users className="w-3.5 h-3.5 text-amber-500" />
+              <span>Admin</span>
+            </span>
+          </div>
+          <h3 className="font-display font-bold text-xl sm:text-2xl text-slate-900 dark:text-white mt-1">User <span className="bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 bg-clip-text font-display font-bold text-transparent">Management</span></h3>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Search, edit roles, and manage member accounts.</p>
+        </div>
+      </div>
 
       {message && (
         <FadeIn>
-          <div className={`mb-6 rounded-xl border px-4 py-3 text-[13px] font-medium ${message.type === "success" ? "bg-emerald-50 text-emerald-600 border-emerald-200" : "bg-red-50 text-red-600 border-red-200"}`}>
+          <div className={`mb-6 rounded-2xl border px-4 py-3 text-[13px] font-medium ${message.type === "success" ? "bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/50" : "bg-red-50 text-red-600 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-900/50"}`}>
             {message.text}
           </div>
         </FadeIn>
       )}
 
       <FadeInUp delay={200}>
-        <Card padding="1.5rem">
+        <Card padding="1.5rem" className="rounded-3xl">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <input
               type="text"
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
               placeholder="Search name, email, account no."
-              className="min-w-[260px] rounded-lg border border-gray-200 px-3 py-2 text-[13px] outline-none"
+              className="min-w-[260px] rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
             />
-            <div className="flex gap-1 rounded-lg bg-gray-100 p-1">
+            <div className="flex gap-1 rounded-lg bg-slate-100 p-1 dark:bg-slate-800">
               {(["active", "suspended"] as const).map((f) => (
                 <button key={f} onClick={() => { setStatusFilter(f); setPage(1); }}
-                  className="cursor-pointer rounded-md px-3 py-1.5 text-[11px] font-semibold capitalize"
-                  style={{ backgroundColor: statusFilter === f ? "#ffffff" : "transparent", color: statusFilter === f ? config.colors.primary : "#717171", boxShadow: statusFilter === f ? "0 1px 3px rgba(0,0,0,0.08)" : "none" }}>
+                  className={`cursor-pointer rounded-md px-3 py-1.5 text-[11px] font-semibold capitalize transition-colors ${statusFilter === f ? "bg-white text-blue-600 shadow-sm dark:bg-slate-700 dark:text-blue-400" : "text-slate-500 dark:text-slate-400"}`}>
                   {f}
                 </button>
               ))}
@@ -157,52 +230,15 @@ export default function AdminUsersPage() {
           </div>
 
           {loading ? (
-            <div className="p-12 text-center text-[13px] text-gray-500">Loading users...</div>
+            <div className="p-12 text-center text-[13px] text-slate-500 dark:text-slate-400">Loading users...</div>
           ) : users.length === 0 ? (
-            <div className="p-8 text-center text-[13px] text-gray-500">No users found.</div>
+            <div className="p-8 text-center text-[13px] text-slate-500 dark:text-slate-400">No users found.</div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse text-[12px] min-w-[760px]">
-                <thead>
-                  <tr className="border-b border-gray-100 font-mono text-[9px] uppercase tracking-[0.1em] text-gray-500">
-                    <th className="pb-3 text-left font-semibold">User</th>
-                    <th className="pb-3 text-left font-semibold">Account</th>
-                    <th className="pb-3 text-left font-semibold">Role</th>
-                    <th className="pb-3 text-left font-semibold">Tier</th>
-                    <th className="pb-3 text-right font-semibold">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map((u) => (
-                    <tr key={u.id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-3">
-                        <span className="block font-semibold text-brand-dark">{u.name}</span>
-                        <span className="text-[11px] text-gray-500">{u.email}</span>
-                      </td>
-                      <td className="py-3 font-mono text-gray-500">{u.accountNumber}</td>
-                      <td className="py-3">
-                        <span className="rounded-md px-2 py-0.5 font-mono text-[9px] font-bold uppercase" style={{ backgroundColor: `${config.colors.primary}12`, color: config.colors.primary }}>{u.role}</span>
-                      </td>
-                      <td className="py-3 capitalize text-gray-500">{u.accountTier}</td>
-                      <td className="py-3 text-right">
-                        <div className="flex justify-end gap-1.5">
-                          <button onClick={() => openEdit(u)}
-                            className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold"
-                            style={{ border: `1px solid ${config.colors.primary}30`, backgroundColor: `${config.colors.primary}08`, color: config.colors.primary }}>
-                            Edit
-                          </button>
-                          <button onClick={() => handleToggleSuspend(u)} disabled={busyId === u.id}
-                            className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold"
-                            style={{ border: `1px solid ${u.deletedAt ? "#A7F3D0" : "#FECACA"}`, backgroundColor: u.deletedAt ? "#ECFDF5" : "#FEF2F2", color: u.deletedAt ? "#059669" : "#DC2626", opacity: busyId === u.id ? 0.5 : 1 }}>
-                            {busyId === u.id ? "..." : u.deletedAt ? "Reactivate" : "Suspend"}
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <SimpleTable
+              columns={columns}
+              data={users}
+              minWidth="760px"
+            />
           )}
           <Pagination page={page} totalPages={totalPages} total={total} limit={LIMIT} onPageChange={setPage} loading={loading} />
         </Card>
@@ -210,24 +246,24 @@ export default function AdminUsersPage() {
 
       {editing && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 p-4" onClick={() => setEditing(null)}>
-          <div className="w-full max-w-[440px] rounded-2xl bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.15)]" onClick={(e) => e.stopPropagation()}>
-            <ColorfulBadge label="Edit User" color={config.colors.primary} />
-            <h3 className="mb-1 mt-3 text-base font-semibold text-brand-dark">{editing.email}</h3>
-            <p className="mb-6 text-[12px] text-gray-500">{editing.accountNumber}</p>
+          <div className="w-full max-w-[440px] rounded-3xl bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.15)] dark:bg-slate-900" onClick={(e) => e.stopPropagation()}>
+            <span className="inline-block rounded-full bg-blue-600/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:bg-blue-500/15 dark:text-blue-400">Edit User</span>
+            <h3 className="mb-1 mt-3 text-base font-semibold text-slate-900 dark:text-white">{editing.email}</h3>
+            <p className="mb-6 text-[12px] text-slate-500 dark:text-slate-400">{editing.accountNumber}</p>
 
             <div className="flex flex-col gap-4">
               <div>
-                <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Name</label>
+                <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Name</label>
                 <input type="text" value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} className={inputClass} />
               </div>
               <div>
-                <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Role</label>
+                <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Role</label>
                 <select value={form.role} onChange={(e) => setForm((p) => ({ ...p, role: e.target.value }))} className={inputClass}>
                   {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
                 </select>
               </div>
               <div>
-                <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Account Tier</label>
+                <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Account Tier</label>
                 <select value={form.accountTier} onChange={(e) => setForm((p) => ({ ...p, accountTier: e.target.value }))} className={inputClass}>
                   {TIERS.map((t) => <option key={t} value={t}>{t}</option>)}
                 </select>
@@ -235,10 +271,9 @@ export default function AdminUsersPage() {
             </div>
 
             <div className="mt-6 flex gap-3">
-              <Button variant="secondary" size="sm" onClick={() => setEditing(null)}>Cancel</Button>
+              <button className="btn-secondary" onClick={() => setEditing(null)}>Cancel</button>
               <button onClick={handleSave} disabled={saving}
-                className="flex-1 cursor-pointer rounded-lg px-2.5 py-2.5 text-[13px] font-semibold text-white"
-                style={{ backgroundColor: config.colors.primary, opacity: saving ? 0.5 : 1 }}>
+                className={`btn-primary flex-1 ${saving ? "opacity-50" : ""}`}>
                 {saving ? "Saving..." : "Save Changes"}
               </button>
             </div>
@@ -249,4 +284,4 @@ export default function AdminUsersPage() {
   );
 }
 
-const inputClass = "w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-[13px] outline-none";
+const inputClass = "w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white";

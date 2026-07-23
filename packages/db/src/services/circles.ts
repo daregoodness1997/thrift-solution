@@ -1,6 +1,7 @@
 import nodeCrypto from "node:crypto";
 import { prisma } from "./prisma";
 import { getWalletBalance } from "./wallet";
+import { toNum } from "./decimal";
 
 export async function createCircleAddon(data: {
   circleId: string;
@@ -252,11 +253,11 @@ export async function openCircleAccount(circleId: string, userId: string, funded
 
   const isWeekly = circle.cycleType === "weekly_contribution";
   const initialWeeksCount = isWeekly ? (circle.initialWeeksCount != null && circle.initialWeeksCount > 0 ? circle.initialWeeksCount : 3) : 1;
-  const initialDebit = isWeekly ? (circle.weeklyAmount ?? 0) * initialWeeksCount : circle.amount;
+  const initialDebit = isWeekly ? toNum(circle.weeklyAmount) * initialWeeksCount : toNum(circle.amount);
 
   const processingFee = computeProcessingFee(
     (circle.processingFeeType as "fixed" | "percent" | null | undefined),
-    circle.processingFeeValue,
+    toNum(circle.processingFeeValue),
     initialDebit,
   );
   const totalRequired = Math.round((initialDebit + processingFee) * 100) / 100;
@@ -379,9 +380,9 @@ export async function getCircleAccountsByUser(userId: string, opts?: { page?: nu
     total: allAccounts.length,
     activeCount: allAccounts.filter((a) => a.status === "active").length,
     maturedCount: allAccounts.filter((a) => a.status === "matured").length,
-    totalInvested: allAccounts.reduce((sum, a) => sum + a.principalAmount, 0),
-    totalInterest: allAccounts.reduce((sum, a) => sum + a.interestEarned, 0),
-    totalMaturityValue: allAccounts.reduce((sum, a) => sum + a.principalAmount + a.interestEarned, 0),
+    totalInvested: allAccounts.reduce((sum, a) => sum + toNum(a.principalAmount), 0),
+    totalInterest: allAccounts.reduce((sum, a) => sum + toNum(a.interestEarned), 0),
+    totalMaturityValue: allAccounts.reduce((sum, a) => sum + toNum(a.principalAmount) + toNum(a.interestEarned), 0),
   };
 
   return { items, total, page, limit, totalPages: Math.ceil(total / limit), stats };
@@ -519,14 +520,14 @@ export async function matureCircleAccount(id: string, userId: string) {
       data: {
         circleAccountId: id,
         userId,
-        amount: account.principalAmount + account.interestEarned,
+        amount: toNum(account.principalAmount) + toNum(account.interestEarned),
       },
     });
 
     return { type: "payout_request" as const, request };
   }
 
-  const totalPayout = account.principalAmount + account.interestEarned;
+  const totalPayout = toNum(account.principalAmount) + toNum(account.interestEarned);
 
   return prisma.$transaction(async (tx) => {
     const reference = `CIRCLE-MATURITY-${id}-${Date.now()}-${nodeCrypto.randomBytes(4).toString("hex")}`;
@@ -573,8 +574,8 @@ export async function getCircleAccountInterestBreakdown(accountId: string): Prom
   if (!account) return [];
 
   const { principalAmount, startDate, maturityDate, interestEarned, circle } = account;
-  const weeklyRate = circle.interestRateAnnual / 100 / 52;
-  const weeklyInterest = Math.round(principalAmount * weeklyRate * 100) / 100;
+  const weeklyRate = toNum(circle.interestRateAnnual) / 100 / 52;
+  const weeklyInterest = Math.round(toNum(principalAmount) * weeklyRate * 100) / 100;
 
   const start = new Date(startDate);
   const maturity = new Date(maturityDate);
@@ -594,9 +595,9 @@ export async function getCircleAccountInterestBreakdown(accountId: string): Prom
       daysFromStart: w * 7,
       interestThisWeek: weeklyInterest,
       cumulativeInterest: roundedCumulative,
-      totalValue: Math.round((principalAmount + roundedCumulative) * 100) / 100,
-      annualRate: circle.interestRateAnnual,
-      principal: principalAmount,
+      totalValue: Math.round((toNum(principalAmount) + roundedCumulative) * 100) / 100,
+      annualRate: toNum(circle.interestRateAnnual),
+      principal: toNum(principalAmount),
     });
   }
 
@@ -616,8 +617,8 @@ export async function calculateWeeklyInterestForAccount(circleAccountId: string)
 
   if (weeksElapsed < 1) return null;
 
-  const weeklyRate = account.circle.interestRateAnnual / 100 / 52;
-  const weeklyInterest = account.principalAmount * weeklyRate;
+  const weeklyRate = toNum(account.circle.interestRateAnnual) / 100 / 52;
+  const weeklyInterest = toNum(account.principalAmount) * weeklyRate;
   const interestToAdd = weeklyInterest * weeksElapsed;
   const roundedInterest = Math.round(interestToAdd * 100) / 100;
 
@@ -763,7 +764,7 @@ export async function approveCirclePayoutRequest(requestId: string, reviewerId: 
       where: { id: request.circleAccountId },
       data: {
         status: "withdrawn",
-        totalWithdrawn: request.circleAccount.principalAmount + request.circleAccount.interestEarned,
+        totalWithdrawn: toNum(request.circleAccount.principalAmount) + toNum(request.circleAccount.interestEarned),
       },
     });
 
@@ -821,13 +822,13 @@ export async function clearCirclePayoutRequest(requestId: string, adminId: strin
 
 async function finalizeDisbursedAccount(
   tx: Parameters<Parameters<typeof prisma.$transaction>[0]>[0],
-  request: { circleAccountId: string; circleAccount: { principalAmount: number; interestEarned: number } },
+  request: { circleAccountId: string; circleAccount: { principalAmount: unknown; interestEarned: unknown } },
 ) {
   await tx.circleAccount.update({
     where: { id: request.circleAccountId },
     data: {
       status: "withdrawn",
-      totalWithdrawn: request.circleAccount.principalAmount + request.circleAccount.interestEarned,
+      totalWithdrawn: toNum(request.circleAccount.principalAmount) + toNum(request.circleAccount.interestEarned),
     },
   });
 }
@@ -858,7 +859,7 @@ export async function disburseCirclePayoutRequestViaFlutterwave(
     result = await transfer({
       accountNumber: user.bankAccountNumber,
       bankCode: user.bankCode,
-      amount: request.amount,
+      amount: toNum(request.amount),
       reference,
     });
   } catch (err) {
@@ -1003,7 +1004,7 @@ export async function processWeeklyContributionForAccount(circleAccountId: strin
   if (!account || account.status !== "active") return null;
   if (account.circle.cycleType !== "weekly_contribution") return null;
 
-  const weeklyAmount = account.circle.weeklyAmount ?? 0;
+  const weeklyAmount = toNum(account.circle.weeklyAmount);
   const totalWeeks = account.circle.totalWeeks ?? 0;
   if (weeklyAmount <= 0 || totalWeeks <= 0) return null;
 
@@ -1058,7 +1059,7 @@ export async function processWeeklyContributionForAccount(circleAccountId: strin
       charged++;
     } else {
       const penaltyType = account.circle.defaultPenaltyType || "percent";
-      const penaltyValue = account.circle.defaultPenaltyValue != null ? account.circle.defaultPenaltyValue : 100;
+      const penaltyValue = toNum(account.circle.defaultPenaltyValue) || 100;
       let clearanceAmount: number;
       if (penaltyType === "percent") {
         const totalPercent = 100 + penaltyValue;
@@ -1170,7 +1171,7 @@ export async function clearCircleDefault(defaultId: string, userId: string) {
   if (record.status !== "outstanding") throw new Error("Default is already cleared");
 
   const balance = await getWalletBalance(userId);
-  if (balance < record.clearanceAmount) {
+  if (balance < toNum(record.clearanceAmount)) {
     throw new Error(
       `Insufficient wallet balance to clear default. Required: ${record.clearanceAmount}, Available: ${balance}`,
     );
@@ -1342,7 +1343,7 @@ export async function getCircleAnalytics(circleId: string) {
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
     const existing = monthMap.get(key) || { count: 0, principal: 0 };
     existing.count += item._count;
-    existing.principal += item._sum?.principalAmount || 0;
+    existing.principal += toNum(item._sum?.principalAmount);
     monthMap.set(key, existing);
   }
 
@@ -1372,11 +1373,11 @@ export async function getCircleAnalytics(circleId: string) {
       payoutPending,
       awaitingClearance,
       payoutCompleted,
-      totalPrincipal: totals._sum.principalAmount || 0,
-      totalInterest: totals._sum.interestEarned || 0,
-      totalMaturityValue: (totals._sum.principalAmount || 0) + (totals._sum.interestEarned || 0),
-      avgPrincipal: totals._avg.principalAmount || 0,
-      avgInterest: totals._avg.interestEarned || 0,
+      totalPrincipal: toNum(totals._sum.principalAmount),
+      totalInterest: toNum(totals._sum.interestEarned),
+      totalMaturityValue: toNum(totals._sum.principalAmount) + toNum(totals._sum.interestEarned),
+      avgPrincipal: toNum(totals._avg.principalAmount),
+      avgInterest: toNum(totals._avg.interestEarned),
       earlyWithdrawn,
       withdrawn,
       totalDefaults,
@@ -1459,7 +1460,7 @@ export async function getCircleInterestBreakdown(circleId: string) {
   for (const log of logs) {
     const key = log.calculatedAt.toISOString().split("T")[0];
     const existing = dayMap.get(key) || 0;
-    dayMap.set(key, existing + log.amount);
+    dayMap.set(key, existing + toNum(log.amount));
   }
 
   for (const [key, val] of dayMap.entries()) {
@@ -1468,9 +1469,9 @@ export async function getCircleInterestBreakdown(circleId: string) {
 
   return {
     logs,
-    totalInterest: totalInterest._sum.amount || 0,
+    totalInterest: toNum(totalInterest._sum.amount),
     totalLogs: totalInterest._count,
-    avgInterestPerLog: totalInterest._avg.amount || 0,
+    avgInterestPerLog: toNum(totalInterest._avg.amount),
     dailyInterest,
   };
 }

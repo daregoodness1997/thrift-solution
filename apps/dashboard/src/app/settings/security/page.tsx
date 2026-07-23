@@ -2,10 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
-import { config } from "@thrift/config";
-import { Card, Button } from "@thrift/ui";
+import { Card } from "@thrift/ui";
 import { useAuth } from "@/lib/auth-context";
-import { PageHeader } from "@/components/PageHeader";
+import { Shield, Mail, Lock } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -224,27 +223,35 @@ export default function SecuritySettingsPage() {
   if (loading) {
     return (
       <div className="max-w-[900px] mx-auto p-[clamp(1rem,3vw,2rem)]">
-        <div className="text-center p-16 text-gray-400 text-[13px]">Loading security settings...</div>
+        <div className="text-center p-16 text-slate-400 dark:text-slate-500 text-[13px]">Loading security settings...</div>
       </div>
     );
   }
 
   return (
     <div className="max-w-[900px] mx-auto p-[clamp(1rem,3vw,2rem)]">
-      <PageHeader badgeLabel="Security" heading="Security Settings" description="Manage two-factor authentication and account security." />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4 mb-8">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1">
+              <Shield className="w-3.5 h-3.5 text-blue-500" />
+              <span>Security</span>
+            </span>
+          </div>
+          <h3 className="font-display font-bold text-xl sm:text-2xl text-slate-900 dark:text-white mt-1">Security Settings</h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">Manage two-factor authentication and account security.</p>
+        </div>
+      </div>
 
       {/* Email 2FA Section */}
-      <Card padding="1.5rem" className="mb-4">
+      <Card padding="1.5rem" className="mb-4 rounded-3xl">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${config.colors.primary}15` }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={config.colors.primary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-              <polyline points="22,6 12,13 2,6" />
-            </svg>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-100 dark:bg-blue-900/20">
+            <Mail className="w-4 h-4 text-blue-600" />
           </div>
           <div>
-            <h3 className="text-xs font-semibold text-brand-dark">Email Two-Factor Authentication</h3>
-            <p className="text-[11px] text-gray-500">Receive a verification code via email each time you sign in.</p>
+            <h3 className="text-xs font-semibold text-slate-900 dark:text-white">Email Two-Factor Authentication</h3>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">Receive a verification code via email each time you sign in.</p>
           </div>
         </div>
 
@@ -256,18 +263,18 @@ export default function SecuritySettingsPage() {
             </div>
             {!email2faSetupMode && (
               <div>
-                <p className="text-[11px] text-gray-500 mb-3">To disable email 2FA, enter the code sent to your email.</p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-3">To disable email 2FA, enter the code sent to your email.</p>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={email2faDisableCode}
                     onChange={(e) => setEmail2faDisableCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                     placeholder="Enter 6-digit code"
-                    className="flex-1 max-w-[200px] bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-brand-dark outline-none font-mono"
+                    className="flex-1 max-w-[200px] bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none font-mono"
                   />
-                  <Button onClick={handleDisableEmail2fa} disabled={email2faDisableLoading} variant="outline" className="text-red-500 border-red-200 hover:bg-red-50">
+                  <button className="btn-secondary py-2 px-4 text-xs !border-red-300 !text-red-500" onClick={handleDisableEmail2fa} disabled={email2faDisableLoading}>
                     {email2faDisableLoading ? "Disabling..." : "Disable"}
-                  </Button>
+                  </button>
                 </div>
               </div>
             )}
@@ -276,12 +283,12 @@ export default function SecuritySettingsPage() {
           <div>
             {!email2faSetupMode ? (
               <div className="flex items-center gap-2 mb-3">
-                <div className="w-2 h-2 rounded-full bg-gray-300"></div>
-                <span className="text-[11px] font-medium text-gray-500">Not enabled</span>
+                <div className="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-600"></div>
+                <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Not enabled</span>
               </div>
             ) : (
               <div>
-                <p className="text-[11px] text-gray-500 mb-3">
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-3">
                   {email2faCodeSent ? `A verification code has been sent to ${user?.email}` : "Click below to send a verification code."}
                 </p>
                 <div className="flex gap-2 mb-2">
@@ -290,38 +297,35 @@ export default function SecuritySettingsPage() {
                     value={email2faCode}
                     onChange={(e) => setEmail2faCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                     placeholder="Enter 6-digit code"
-                    className="flex-1 max-w-[200px] bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-brand-dark outline-none font-mono"
+                    className="flex-1 max-w-[200px] bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none font-mono"
                   />
-                  <Button onClick={handleVerifyEmail2fa} disabled={email2faSetupLoading}>
+                  <button className="btn-primary py-2 px-4 text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-md" onClick={handleVerifyEmail2fa} disabled={email2faSetupLoading}>
                     {email2faSetupLoading ? "Verifying..." : "Verify & Enable"}
-                  </Button>
+                  </button>
                 </div>
-                <button onClick={handleResendEmail2faCode} className="text-[11px] font-medium cursor-pointer bg-none border-none" style={{ color: config.colors.primary }}>
+                <button onClick={handleResendEmail2faCode} className="text-[11px] font-medium cursor-pointer bg-none border-none text-blue-600">
                   Resend code
                 </button>
               </div>
             )}
             {!email2faSetupMode && (
-              <Button onClick={handleSetupEmail2fa} disabled={email2faSetupLoading} variant="outline">
+              <button className="btn-secondary py-2 px-4 text-xs" onClick={handleSetupEmail2fa} disabled={email2faSetupLoading}>
                 {email2faSetupLoading ? "Sending..." : "Enable Email 2FA"}
-              </Button>
+              </button>
             )}
           </div>
         )}
       </Card>
 
       {/* TOTP Section */}
-      <Card padding="1.5rem" className="mb-4">
+      <Card padding="1.5rem" className="mb-4 rounded-3xl">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${config.colors.primary}15` }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={config.colors.primary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-              <path d="M7 11V7a5 5 0 0110 0v4" />
-            </svg>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-100 dark:bg-blue-900/20">
+            <Lock className="w-4 h-4 text-blue-600" />
           </div>
           <div>
-            <h3 className="text-xs font-semibold text-brand-dark">Authenticator App (TOTP)</h3>
-            <p className="text-[11px] text-gray-500">Use an authenticator app like Google Authenticator or Authy.</p>
+            <h3 className="text-xs font-semibold text-slate-900 dark:text-white">Authenticator App (TOTP)</h3>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">Use an authenticator app like Google Authenticator or Authy.</p>
           </div>
         </div>
 
@@ -333,18 +337,18 @@ export default function SecuritySettingsPage() {
             </div>
             {!totpSetupMode && (
               <div>
-                <p className="text-[11px] text-gray-500 mb-3">To disable TOTP, enter a code from your authenticator app.</p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-3">To disable TOTP, enter a code from your authenticator app.</p>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={totpDisableCode}
                     onChange={(e) => setTotpDisableCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                     placeholder="Enter 6-digit code"
-                    className="flex-1 max-w-[200px] bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-brand-dark outline-none font-mono"
+                    className="flex-1 max-w-[200px] bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none font-mono"
                   />
-                  <Button onClick={handleDisableTotp} disabled={totpDisableLoading} variant="outline" className="text-red-500 border-red-200 hover:bg-red-50">
+                  <button className="btn-secondary py-2 px-4 text-xs !border-red-300 !text-red-500" onClick={handleDisableTotp} disabled={totpDisableLoading}>
                     {totpDisableLoading ? "Disabling..." : "Disable"}
-                  </Button>
+                  </button>
                 </div>
               </div>
             )}
@@ -354,20 +358,20 @@ export default function SecuritySettingsPage() {
             {!totpSetupMode ? (
               <>
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="w-2 h-2 rounded-full bg-gray-300"></div>
-                  <span className="text-[11px] font-medium text-gray-500">Not enabled</span>
+                  <div className="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-600"></div>
+                  <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Not enabled</span>
                 </div>
-                <Button onClick={handleSetupTotp} disabled={totpSetupLoading} variant="outline">
+                <button className="btn-secondary py-2 px-4 text-xs" onClick={handleSetupTotp} disabled={totpSetupLoading}>
                   {totpSetupLoading ? "Setting up..." : "Set Up Authenticator App"}
-                </Button>
+                </button>
               </>
             ) : (
               <div>
-                <p className="text-[11px] text-gray-500 mb-3">
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-3">
                   Scan this QR code with your authenticator app, or enter the secret key manually.
                 </p>
                 {totpUri && (
-                  <div className="mb-3 p-3 bg-white rounded-xl border border-gray-200 inline-block">
+                  <div className="mb-3 p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 inline-block">
                     <img
                       src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(totpUri)}`}
                       alt="TOTP QR Code"
@@ -378,8 +382,8 @@ export default function SecuritySettingsPage() {
                 )}
                 {totpSecret && (
                   <div className="mb-3">
-                    <p className="text-[10px] uppercase tracking-wider text-gray-400 font-bold mb-1">Secret Key</p>
-                    <code className="block p-2 bg-gray-50 rounded-lg text-[11px] font-mono text-brand-dark break-all">{totpSecret}</code>
+                    <p className="text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-500 font-bold mb-1">Secret Key</p>
+                    <code className="block p-2 bg-slate-50 dark:bg-slate-800/60 rounded-lg text-[11px] font-mono text-slate-900 dark:text-white break-all">{totpSecret}</code>
                   </div>
                 )}
                 <div className="flex gap-2">
@@ -388,11 +392,11 @@ export default function SecuritySettingsPage() {
                     value={totpCode}
                     onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                     placeholder="Enter 6-digit code"
-                    className="flex-1 max-w-[200px] bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-brand-dark outline-none font-mono"
+                    className="flex-1 max-w-[200px] bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none font-mono"
                   />
-                  <Button onClick={handleVerifyTotp} disabled={totpSetupLoading}>
+                  <button className="btn-primary py-2 px-4 text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-md" onClick={handleVerifyTotp} disabled={totpSetupLoading}>
                     {totpSetupLoading ? "Verifying..." : "Verify & Enable"}
-                  </Button>
+                  </button>
                 </div>
               </div>
             )}
@@ -401,13 +405,18 @@ export default function SecuritySettingsPage() {
       </Card>
 
       {/* Info Card */}
-      <Card padding="1.5rem" className="mb-4">
-        <h3 className="text-[9px] uppercase tracking-[0.1em] text-gray-400 font-bold mb-3">About Two-Factor Authentication</h3>
+      <Card padding="1.5rem" className="mb-4 rounded-3xl">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1 w-fit">
+            <Shield className="w-3.5 h-3.5 text-blue-500" />
+            <span>Info</span>
+          </span>
+        </div>
         <div className="space-y-2">
-          <p className="text-[11px] text-gray-600 leading-relaxed">
+          <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
             Two-factor authentication adds an extra layer of security to your account. When enabled, you&apos;ll need to enter a verification code in addition to your password when signing in.
           </p>
-          <p className="text-[11px] text-gray-600 leading-relaxed">
+          <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
             You can enable both email and authenticator app methods. During sign-in, you&apos;ll be able to choose which method to use.
           </p>
         </div>

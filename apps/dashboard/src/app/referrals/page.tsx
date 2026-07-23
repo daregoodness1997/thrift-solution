@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { config, BrandConfig } from "@thrift/config";
-import { Card, StatCard, ColorfulBadge, ColorBar, FadeInUp, FadeIn, StaggerChildren } from "@thrift/ui";
+import { Card, StatCard, ColorBar, FadeInUp, FadeIn, StaggerChildren } from "@thrift/ui";
 import { formatNaira } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
-import { PageHeader } from "@/components/PageHeader";
+import { Users, Gift, TrendingUp, Award, Copy, CheckCircle2, Share2 } from "lucide-react";
 import { Skeleton, SkeletonCard, SkeletonTable } from "@/components/Skeleton";
 import Pagination from "@/components/Pagination";
+import { SimpleTable, SimpleColumn } from "@/components/SimpleTable";
 
 const fallback = config;
 
@@ -142,6 +143,63 @@ export default function ReferralsPage() {
   const shareUrl = `https://app.globalfreedomworldwide.com/register?ref=${referralCode}`;
   const shareText = `Join GFW using my referral code ${referralCode} and start saving together! ${shareUrl}`;
 
+  const referralColumns: SimpleColumn<Referral>[] = [
+    {
+      key: "name",
+      header: "Name",
+      render: (r) => <span className="font-medium text-slate-900 dark:text-white">{r.referredUser.name}</span>,
+    },
+    {
+      key: "date",
+      header: "Date",
+      mono: true,
+      render: (r) => (
+        <span className="text-slate-500 dark:text-slate-400">
+          {new Date(r.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      align: "right",
+      render: (r) => (
+        <span className="rounded-md px-2 py-0.5 text-[9px] font-bold capitalize" style={{ color: r.status === "completed" ? "#059669" : "#D97706", backgroundColor: r.status === "completed" ? "#ECFDF5" : "#FFFBEB" }}>
+          {r.status}
+        </span>
+      ),
+    },
+  ];
+
+  const earningColumns: SimpleColumn<ReferralEarning>[] = [
+    {
+      key: "tier",
+      header: "Tier",
+      render: (e) => (
+        <span className="rounded-md px-2 py-0.5 font-mono text-[9px] font-bold uppercase" style={{ backgroundColor: `${TIER_COLORS[e.tier] || "#2563eb"}12`, color: TIER_COLORS[e.tier] || "#2563eb", border: `1px solid ${TIER_COLORS[e.tier] || "#2563eb"}20` }}>
+          {e.tier}
+        </span>
+      ),
+    },
+    {
+      key: "date",
+      header: "Date",
+      mono: true,
+      render: (e) => (
+        <span className="text-slate-500 dark:text-slate-400">
+          {new Date(e.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+        </span>
+      ),
+    },
+    {
+      key: "amount",
+      header: "Amount",
+      align: "right",
+      mono: true,
+      render: (e) => <span className="font-semibold text-emerald-600">{formatNaira(e.amount)}</span>,
+    },
+  ];
+
   const tierProgress = (() => {
     if (!stats) return 0;
     const current = ALL_TIERS.find((t) => t.name === stats.currentTier);
@@ -180,30 +238,38 @@ export default function ReferralsPage() {
 
   return (
     <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
-      <PageHeader
-        badgeLabel="Referral Program"
-        heading="Invite Friends,"
-        accentText="Earn Rewards"
-        description="Share your code and earn tiered rewards for every friend who joins."
-      />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4 mb-8">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1">
+              <Gift className="w-3.5 h-3.5 text-blue-500" />
+              <span>Referral Program</span>
+            </span>
+          </div>
+          <h3 className="font-display font-bold text-xl sm:text-2xl text-slate-900 dark:text-white mt-1">Invite Friends, <span className="bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 bg-clip-text text-transparent">Earn Rewards</span></h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">Share your code and earn tiered rewards for every friend who joins.</p>
+        </div>
+      </div>
 
       {/* Referral Code Card */}
       <FadeInUp delay={200}>
-        <Card padding="1.5rem" className="mb-8" style={{ background: `linear-gradient(135deg, ${cfg.colors.primary}08, ${cfg.colors.primary}03)`, border: `1px solid ${cfg.colors.primary}20` }}>
-          <ColorfulBadge label="Your Code" color={cfg.colors.primary} />
+        <Card padding="1.5rem" className="mb-8 rounded-3xl bg-gradient-to-br from-blue-600/[0.05] to-blue-600/[0.02] border border-blue-600/10">
+          <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1 w-fit">
+            <Copy className="w-3.5 h-3.5 text-blue-500" />
+            <span>Your Code</span>
+          </span>
           <div className="mt-4 flex flex-wrap items-center justify-between gap-6">
             <div>
               <div className="flex items-center gap-3">
-                <span className="font-mono text-[clamp(1.5rem,4vw,2.25rem)] font-extrabold tracking-[0.05em]" style={{ color: cfg.colors.primary }}>
+                <span className="font-mono text-[clamp(1.5rem,4vw,2.25rem)] font-extrabold tracking-[0.05em] text-blue-600 dark:text-blue-400">
                   {referralCode}
                 </span>
                 <button onClick={handleCopy}
-                  className="cursor-pointer whitespace-nowrap rounded-full px-4 py-2 text-[11px] font-semibold transition-all"
-                  style={{ border: `1px solid ${cfg.colors.primary}`, backgroundColor: copied ? "#ECFDF5" : "transparent", color: copied ? "#059669" : cfg.colors.primary }}>
-                  {copied ? "Copied!" : "Copy Code"}
+                  className={`btn-secondary py-2 px-4 text-xs ${copied ? "!border-emerald-300 !text-emerald-600 !bg-emerald-50 dark:!bg-emerald-950/40" : ""}`}>
+                  {copied ? <><CheckCircle2 className="w-3.5 h-3.5 inline mr-1" /> Copied!</> : <><Copy className="w-3.5 h-3.5 inline mr-1" /> Copy Code</>}
                 </button>
               </div>
-              <p className="mt-2 text-xs font-light text-gray-500">Share this code with friends. They enter it when signing up.</p>
+                <p className="mt-2 text-xs font-light text-slate-500 dark:text-slate-400">Share this code with friends. They enter it when signing up.</p>
             </div>
             <div className="flex gap-2">
               <a href={`https://wa.me/?text=${encodeURIComponent(shareText)}`} target="_blank" rel="noopener noreferrer"
@@ -215,8 +281,7 @@ export default function ReferralsPage() {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M23.643 4.937c-.835.37-1.732.62-2.675.733.962-.576 1.7-1.49 2.048-2.578-.9.534-1.897.922-2.958 1.13-.85-.904-2.06-1.47-3.4-1.47-2.572 0-4.658 2.086-4.658 4.66 0 .364.042.718.12 1.06-3.873-.195-7.304-2.05-9.602-4.868-.4.69-.63 1.49-.63 2.342 0 1.616.823 3.043 2.072 3.878-.764-.025-1.482-.234-2.11-.583v.06c0 2.257 1.605 4.14 3.737 4.568-.392.106-.803.162-1.227.162-.3 0-.593-.028-.877-.082.593 1.85 2.313 3.198 4.352 3.234-1.595 1.25-3.604 1.995-5.786 1.995-.376 0-.747-.022-1.112-.065 2.062 1.323 4.51 2.093 7.14 2.093 8.57 0 13.255-7.098 13.255-13.254 0-.2-.005-.402-.014-.602.91-.658 1.7-1.477 2.323-2.41z"/></svg>
               </a>
               <button onClick={handleCopy}
-                className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border-none text-white transition-transform hover:scale-110"
-                style={{ backgroundColor: cfg.colors.primary }}>
+                className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border-none bg-blue-600 text-white transition-transform hover:scale-110">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
               </button>
             </div>
@@ -234,20 +299,23 @@ export default function ReferralsPage() {
 
       {/* Tier Progress */}
       <FadeInUp delay={400}>
-        <Card padding="1.5rem" className="mb-8">
-          <ColorfulBadge label="Your Tier" color={TIER_COLORS[stats?.currentTier ?? "Bronze"] || cfg.colors.primary} />
+        <Card padding="1.5rem" className="mb-8 rounded-3xl">
+          <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1 w-fit">
+            <Award className="w-3.5 h-3.5 text-blue-500" />
+            <span>Your Tier</span>
+          </span>
           <div className="mt-4 flex flex-wrap items-start gap-8">
             <div className="flex-[1_1_280px]">
               <div className="mb-4 flex items-baseline gap-2">
-                <span className="font-display text-[2rem] font-extrabold" style={{ color: TIER_COLORS[stats?.currentTier ?? "Bronze"] || cfg.colors.primary }}>
+                <span className="font-display text-[2rem] font-extrabold" style={{ color: TIER_COLORS[stats?.currentTier ?? "Bronze"] || "#2563eb" }}>
                   {stats?.currentTier ?? "Bronze"}
                 </span>
-                <span className="text-xs text-gray-500">current tier</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">current tier</span>
               </div>
-              <div className="relative mb-2 h-2 overflow-hidden rounded-full bg-gray-100">
-                <div className="h-full rounded-full" style={{ background: `linear-gradient(90deg, ${TIER_COLORS[stats?.currentTier ?? "Bronze"] || cfg.colors.primary}, ${cfg.colors.accent})`, width: `${tierProgress}%`, transition: "width 1s cubic-bezier(0.16, 1, 0.3, 1)" }} />
+              <div className="relative mb-2 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                <div className="h-full rounded-full" style={{ background: `linear-gradient(90deg, ${TIER_COLORS[stats?.currentTier ?? "Bronze"] || "#2563eb"}, ${cfg.colors.accent})`, width: `${tierProgress}%`, transition: "width 1s cubic-bezier(0.16, 1, 0.3, 1)" }} />
               </div>
-              <span className="font-mono text-[10px] text-gray-500">
+              <span className="font-mono text-[10px] text-slate-500 dark:text-slate-400">
                 {stats?.completedReferrals ?? 0} referrals {stats?.referralsToNextTier ? `— ${stats.referralsToNextTier} more to ${stats.nextTier}` : "— Max tier achieved!"}
               </span>
             </div>
@@ -257,15 +325,15 @@ export default function ReferralsPage() {
                   const isActive = stats?.currentTier === tier.name;
                   const isPast = ALL_TIERS.findIndex((t) => t.name === tier.name) < ALL_TIERS.findIndex((t) => t.name === (stats?.currentTier ?? "Bronze"));
                   return (
-                    <div key={tier.name} className="rounded-xl p-3 transition-all" style={{ border: `1px solid ${isActive ? TIER_COLORS[tier.name] : "#EAEAEA"}`, backgroundColor: isActive ? `${TIER_COLORS[tier.name]}10` : "#FAFAFA", opacity: isPast && !isActive ? 0.6 : 1 }}>
+                    <div key={tier.name} className="rounded-2xl p-3 transition-all dark:border-slate-700" style={{ border: `1px solid ${isActive ? TIER_COLORS[tier.name] : "rgb(226 232 240)"}`, backgroundColor: isActive ? `${TIER_COLORS[tier.name]}10` : "rgb(248 250 252)", opacity: isPast && !isActive ? 0.6 : 1 }}>
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold" style={{ color: TIER_COLORS[tier.name] }}>{tier.name}</span>
                         {isActive && <span className="rounded-full px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.05em] text-white" style={{ backgroundColor: TIER_COLORS[tier.name] }}>Current</span>}
                       </div>
-                      <span className="mt-1 block text-[10px] text-gray-500">
+                        <span className="mt-1 block text-[10px] text-slate-500 dark:text-slate-400">
                         {tier.min === 1 ? "1" : tier.min}–{tier.max === Infinity ? "25+" : tier.max} referrals
                       </span>
-                      <span className="mt-1 block font-mono text-xs font-semibold text-brand-dark">
+                        <span className="mt-1 block font-mono text-xs font-semibold text-slate-900 dark:text-white">
                         {formatNaira(tier.amount)}/referral
                       </span>
                     </div>
@@ -280,46 +348,24 @@ export default function ReferralsPage() {
       <div className="mb-8 grid grid-cols-[repeat(auto-fit,minmax(360px,1fr))] gap-6">
         {/* Referral History */}
         <FadeInUp delay={500}>
-          <Card padding="1.5rem">
-            <div className="mb-4 flex items-center justify-between border-b border-gray-100 pb-4">
+          <Card padding="1.5rem" className="rounded-3xl">
+            <div className="mb-4 flex items-center justify-between border-b border-slate-200/80 pb-4 dark:border-slate-800/80">
               <div>
-                <ColorfulBadge label="Referrals" color={cfg.colors.primary} />
-                <h2 className="mt-2 font-display text-lg font-medium tracking-tight text-brand-dark">Referral History</h2>
+                <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1 w-fit">
+                  <Users className="w-3.5 h-3.5 text-blue-500" />
+                  <span>Referrals</span>
+                </span>
+                <h2 className="mt-2 font-display text-lg font-medium tracking-tight text-slate-900 dark:text-white">Referral History</h2>
               </div>
-              <span className="font-mono text-[10px] text-gray-500">{referralsTotal} entries</span>
+              <span className="font-mono text-[10px] text-slate-500 dark:text-slate-400">{referralsTotal} entries</span>
             </div>
             {referrals.length === 0 ? (
               <div className="p-8 text-center">
-                <p className="text-xs text-gray-400">No referrals yet. Share your code to get started!</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">No referrals yet. Share your code to get started!</p>
               </div>
             ) : (
               <>
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[300px] border-collapse text-xs">
-                  <thead>
-                    <tr className="border-b border-gray-100 font-mono text-[9px] uppercase tracking-[0.1em] text-gray-400">
-                      <th className="pb-3 text-left font-semibold">Name</th>
-                      <th className="pb-3 text-left font-semibold">Date</th>
-                      <th className="pb-3 text-right font-semibold">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {referrals.map((r) => (
-                      <tr key={r.id} className="border-b border-[#F5F5F5] hover:bg-gray-50">
-                        <td className="py-3 font-medium text-brand-dark">{r.referredUser.name}</td>
-                        <td className="py-3 font-mono text-gray-500">
-                          {new Date(r.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
-                        </td>
-                        <td className="py-3 text-right">
-                          <span className="rounded-md px-2 py-0.5 text-[9px] font-bold capitalize" style={{ color: r.status === "completed" ? "#059669" : "#D97706", backgroundColor: r.status === "completed" ? "#ECFDF5" : "#FFFBEB" }}>
-                            {r.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <SimpleTable columns={referralColumns} data={referrals} minWidth="300px" />
               <Pagination
                 page={referralsPage}
                 totalPages={referralsTotalPages}
@@ -334,48 +380,24 @@ export default function ReferralsPage() {
 
         {/* Earnings History */}
         <FadeInUp delay={600}>
-          <Card padding="1.5rem">
-            <div className="mb-4 flex items-center justify-between border-b border-gray-100 pb-4">
+          <Card padding="1.5rem" className="rounded-3xl">
+            <div className="mb-4 flex items-center justify-between border-b border-slate-200/80 pb-4 dark:border-slate-800/80">
               <div>
-                <ColorfulBadge label="Earnings" color="#059669" />
-                <h2 className="mt-2 font-display text-lg font-medium tracking-tight text-brand-dark">Earnings History</h2>
+                <span className="px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1 w-fit">
+                  <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />
+                  <span>Earnings</span>
+                </span>
+                <h2 className="mt-2 font-display text-lg font-medium tracking-tight text-slate-900 dark:text-white">Earnings History</h2>
               </div>
-              <span className="font-mono text-[10px] text-gray-500">{earningsTotal} entries</span>
+              <span className="font-mono text-[10px] text-slate-500 dark:text-slate-400">{earningsTotal} entries</span>
             </div>
             {earnings.length === 0 ? (
               <div className="p-8 text-center">
-                <p className="text-xs text-gray-400">No earnings yet. Referrals will generate rewards!</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">No earnings yet. Referrals will generate rewards!</p>
               </div>
             ) : (
               <>
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[300px] border-collapse text-xs">
-                  <thead>
-                    <tr className="border-b border-gray-100 font-mono text-[9px] uppercase tracking-[0.1em] text-gray-400">
-                      <th className="pb-3 text-left font-semibold">Tier</th>
-                      <th className="pb-3 text-left font-semibold">Date</th>
-                      <th className="pb-3 text-right font-semibold">Amount</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {earnings.map((e) => (
-                      <tr key={e.id} className="border-b border-[#F5F5F5] hover:bg-gray-50">
-                        <td className="py-3">
-                          <span className="rounded-md px-2 py-0.5 font-mono text-[9px] font-bold uppercase" style={{ backgroundColor: `${TIER_COLORS[e.tier] || cfg.colors.primary}12`, color: TIER_COLORS[e.tier] || cfg.colors.primary, border: `1px solid ${TIER_COLORS[e.tier] || cfg.colors.primary}20` }}>
-                            {e.tier}
-                          </span>
-                        </td>
-                        <td className="py-3 font-mono text-gray-500">
-                          {new Date(e.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
-                        </td>
-                        <td className="py-3 text-right font-mono font-semibold text-emerald-600">
-                          {formatNaira(e.amount)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <SimpleTable columns={earningColumns} data={earnings} minWidth="300px" />
               <Pagination
                 page={earningsPage}
                 totalPages={earningsTotalPages}

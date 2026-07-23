@@ -1,5 +1,6 @@
 import nodeCrypto from "node:crypto";
 import { prisma } from "./prisma";
+import { toNum } from "./decimal";
 
 export function calculateLoanTerms(amount: number, termMonths: number, annualRate: number = 5) {
   const monthlyRate = annualRate / 100 / 12;
@@ -105,8 +106,8 @@ export async function getLoansByBorrower(borrowerId: string, opts?: { page?: num
   const stats = {
     total: allLoans.length,
     completedCount: allLoans.filter((l) => l.status === "completed").length,
-    totalBorrowed: allLoans.filter((l) => l.status === "disbursed" || l.status === "completed").reduce((sum, l) => sum + l.amount, 0),
-    totalRepaid: allLoans.reduce((sum, l) => sum + (l.paidAmount ?? 0), 0),
+    totalBorrowed: allLoans.filter((l) => l.status === "disbursed" || l.status === "completed").reduce((sum, l) => sum + toNum(l.amount), 0),
+    totalRepaid: allLoans.reduce((sum, l) => sum + toNum(l.paidAmount), 0),
   };
 
   return { items, total, page, limit, totalPages: Math.ceil(total / limit), stats };
@@ -211,13 +212,16 @@ export async function disburseLoan(
   if (!loan) throw new Error("Loan not found");
   if (loan.status !== "approved") throw new Error("Only approved loans can be disbursed");
 
-  const amount = resolveDisbursedAmount(loan, disbursedAmount);
-  const monthlyRate = loan.interestRate / 100 / 12;
+  const amount = resolveDisbursedAmount(
+    { amount: toNum(loan.amount), processingFee: toNum(loan.processingFee) },
+    disbursedAmount,
+  );
+  const monthlyRate = toNum(loan.interestRate) / 100 / 12;
   const schedule = generateSchedule(
     amount,
     loan.termMonths,
     monthlyRate,
-    loan.monthlyPayment,
+    toNum(loan.monthlyPayment),
     new Date(),
   );
 
@@ -260,16 +264,6 @@ export async function disburseLoan(
   });
 }
 
-/**
- * Disburse an approved loan by transferring the (net of processing fee) amount
- * to the borrower's saved bank account via a payout provider (Flutterwave).
- *
- * The `transfer` callback performs the actual provider call so the db package
- * stays decoupled from the HTTP client. The loan is only marked `disbursed`
- * (and a repayment schedule generated) when the transfer succeeds or is
- * accepted as pending. A failed transfer leaves the loan `approved` and records
- * the failure metadata so an admin can retry.
- */
 export async function disburseLoanViaFlutterwave(
   id: string,
   adminId: string,
@@ -293,7 +287,10 @@ export async function disburseLoanViaFlutterwave(
     throw new Error("Borrower has no saved bank account number and bank code for transfer");
   }
 
-  const amount = resolveDisbursedAmount(loan, disbursedAmount);
+  const amount = resolveDisbursedAmount(
+    { amount: toNum(loan.amount), processingFee: toNum(loan.processingFee) },
+    disbursedAmount,
+  );
   const reference = `LOANDIS-${Date.now().toString(36)}-${nodeCrypto.randomBytes(6).toString("hex")}`;
 
   let result: { status: string; providerRef?: string };
@@ -342,12 +339,6 @@ export async function disburseLoanViaFlutterwave(
   });
 }
 
-/**
- * Reconcile a loan disbursement transfer from a Flutterwave `transfer` webhook.
- * Matches the loan by its stored `disbursementRef` (either our own reference or
- * the provider ref) and updates the disbursement status. Returns true when a
- * matching loan was found and updated.
- */
 export async function reconcileLoanDisbursementByRef(
   reference: string,
   status: "completed" | "failed",
@@ -360,8 +351,6 @@ export async function reconcileLoanDisbursementByRef(
 
   await prisma.$transaction(async (tx) => {
     if (status === "failed") {
-      // A pending transfer that later fails: unwind the disbursement so the
-      // loan can be retried. Remove the generated schedule and reset balances.
       await tx.loanScheduleItem.deleteMany({ where: { loanId: loan.id } });
       await tx.loan.update({
         where: { id: loan.id },
@@ -432,8 +421,8 @@ export async function recordLoanRepayment(data: {
 
   for (const item of loan.schedule) {
     if (remaining <= 0) break;
-    const interestDue = Math.max(0, Math.round((item.interest - item.interestPaid) * 100) / 100);
-    const principalDue = Math.max(0, Math.round((item.principal - item.principalPaid) * 100) / 100);
+    const interestDue = Math.max(0, Math.round((toNum(item.interest) - toNum(item.interestPaid)) * 100) / 100);
+    const principalDue = Math.max(0, Math.round((toNum(item.principal) - toNum(item.principalPaid)) * 100) / 100);
     const itemTotalDue = Math.round((interestDue + principalDue) * 100) / 100;
 
     if (itemTotalDue <= 0) continue;
@@ -446,10 +435,10 @@ export async function recordLoanRepayment(data: {
     principalPortion = Math.round((principalPortion + payPrincipal) * 100) / 100;
     remaining = Math.round((remaining - pay) * 100) / 100;
 
-    const newInterestPaid = Math.round((item.interestPaid + payInterest) * 100) / 100;
-    const newPrincipalPaid = Math.round((item.principalPaid + payPrincipal) * 100) / 100;
-    const itemSettled = Math.abs(newInterestPaid - item.interest) < 0.005 &&
-      Math.abs(newPrincipalPaid - item.principal) < 0.005;
+    const newInterestPaid = Math.round((toNum(item.interestPaid) + payInterest) * 100) / 100;
+    const newPrincipalPaid = Math.round((toNum(item.principalPaid) + payPrincipal) * 100) / 100;
+    const itemSettled = Math.abs(newInterestPaid - toNum(item.interest)) < 0.005 &&
+      Math.abs(newPrincipalPaid - toNum(item.principal)) < 0.005;
 
     scheduleUpdates.push({
       id: item.id,
@@ -496,11 +485,11 @@ export async function recordLoanRepayment(data: {
         paidAmount: { increment: totalApplied },
         principalPaid: { increment: principalPortion },
         interestPaid: { increment: interestPortion },
-        outstandingBalance: Math.max(0, Math.round((loan.outstandingBalance - principalPortion) * 100) / 100),
+        outstandingBalance: Math.max(0, Math.round((toNum(loan.outstandingBalance) - principalPortion) * 100) / 100),
       },
     });
 
-    if (updatedLoan.outstandingBalance <= 0.005) {
+    if (toNum(updatedLoan.outstandingBalance) <= 0.005) {
       await tx.loan.update({
         where: { id: data.loanId },
         data: { status: "completed", completedAt: new Date(), nextDueDate: null },
@@ -533,12 +522,6 @@ export async function findLoanRepaymentByReference(reference: string) {
   return prisma.loanRepayment.findUnique({ where: { reference } });
 }
 
-/**
- * Apply a confirmed Flutterwave (or other provider) payment to a loan. Used by
- * the payment callback / webhook after the provider confirms success. Records
- * the repayment, settles schedule items, and updates loan balances. Idempotent:
- * if a repayment with the same reference already exists it is returned as-is.
- */
 export async function recordLoanRepaymentByReference(data: {
   reference: string;
   loanId: string;
@@ -560,17 +543,13 @@ export async function recordLoanRepaymentByReference(data: {
   });
 }
 
-/**
- * Liquidate a loan by paying off its entire remaining outstanding balance in a
- * single transaction. Returns the amount that was paid.
- */
 export async function liquidateLoan(id: string) {
   const loan = await prisma.loan.findUnique({ where: { id } });
   if (!loan) throw new Error("Loan not found");
   if (loan.status !== "disbursed" && loan.status !== "completed") {
     throw new Error("Only disbursed loans can be liquidated");
   }
-  const outstanding = Math.round((loan.outstandingBalance ?? 0) * 100) / 100;
+  const outstanding = Math.round(toNum(loan.outstandingBalance) * 100) / 100;
   if (outstanding <= 0) throw new Error("Loan is already fully repaid");
 
   const reference = `LOANLIQ-${Date.now()}-${nodeCrypto.randomBytes(4).toString("hex")}`;
@@ -585,10 +564,6 @@ export async function liquidateLoan(id: string) {
   return { amount: outstanding, reference };
 }
 
-/**
- * Admin force-settle / write-off a loan. Marks the loan completed without
- * requiring the borrower to pay the outstanding balance (settlement or waiver).
- */
 export async function adminSettleLoan(id: string, note?: string) {
   const loan = await prisma.loan.findUnique({ where: { id } });
   if (!loan) throw new Error("Loan not found");

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { config, BrandConfig } from "@thrift/config";
-import { Card, ColorfulBadge } from "@thrift/ui";
+import { Card } from "@thrift/ui";
 import { formatNaira } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
@@ -76,7 +76,7 @@ export default function TransactionDetailPage() {
     switch (type) {
       case "contribution": return "#4A5D4E";
       case "payout": return "#059669";
-      case "donation": return cfg.colors.primary;
+      case "donation": return "#2563EB";
       case "funding": return "#2563EB";
       case "referral_earning": return "#8A7D73";
       case "circle_deposit": return "#7C3AED";
@@ -99,7 +99,7 @@ export default function TransactionDetailPage() {
   if (loading) {
     return (
     <div className="mx-auto max-w-[800px] p-[clamp(1rem,3vw,2rem)]">
-      <div className="p-16 text-center text-[13px] text-gray-400">Loading transaction details...</div>
+      <div className="p-16 text-center text-[13px] text-slate-400 dark:text-slate-500">Loading transaction details...</div>
     </div>
     );
   }
@@ -108,8 +108,8 @@ export default function TransactionDetailPage() {
     return (
     <div className="mx-auto max-w-[800px] p-[clamp(1rem,3vw,2rem)]">
       <div className="p-16 text-center">
-        <div className="mb-4 text-[14px] text-gray-500">{error || "Transaction not found"}</div>
-        <button onClick={() => router.push("/transactions")} className="cursor-pointer rounded-full border-0 px-5 py-2 text-[12px] font-semibold text-white" style={{ backgroundColor: cfg.colors.primary }}>
+        <div className="mb-4 text-[14px] text-slate-500 dark:text-slate-400">{error || "Transaction not found"}</div>
+        <button onClick={() => router.push("/transactions")} className="cursor-pointer rounded-full border-0 px-5 py-2 text-[12px] font-semibold text-white bg-blue-600">
           Back to Transactions
         </button>
       </div>
@@ -165,16 +165,16 @@ export default function TransactionDetailPage() {
         accentText="Details"
         description="Full details for this transaction."
         right={
-          <button onClick={() => router.push("/transactions")} className="cursor-pointer rounded-full border border-transparent bg-transparent px-4 py-2 text-[11px] font-semibold transition-all duration-200" style={{ borderColor: cfg.colors.primary, color: cfg.colors.primary }}>
+          <button onClick={() => router.push("/transactions")} className="cursor-pointer rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-[11px] font-semibold text-blue-600 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-400 transition-all duration-200">
             &larr; All Transactions
           </button>
         }
       />
 
       <Card padding="0">
-          <div className="border-b border-gray-100 px-8 pb-6 pt-8">
+          <div className="border-b border-slate-200/80 dark:border-slate-800/80 px-8 pb-6 pt-8">
             <div className="mb-5 flex flex-wrap items-center gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: `${typeColor}12` }}>
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl" style={{ backgroundColor: `${typeColor}12` }}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={typeColor} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
                 {transaction.type === "contribution" && <path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />}
                 {transaction.type === "payout" && <><path d="M21 12V7H5a2 2 0 010-4h14v4" /><path d="M3 5v14a2 2 0 002 2h16v-5" /><path d="M18 12a2 2 0 000 4h4v-4z" /></>}
@@ -188,10 +188,10 @@ export default function TransactionDetailPage() {
               </svg>
             </div>
             <div>
-              <h2 className="m-0 font-mono text-[1.5rem] font-bold text-brand-dark">
+              <h2 className="m-0 font-mono text-[1.5rem] font-bold text-slate-900 dark:text-white">
                 {formatNaira(transaction.amount)}
               </h2>
-              <span className="text-[11px] text-gray-500">{getTypeLabel(transaction.type)}</span>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400">{getTypeLabel(transaction.type)}</span>
             </div>
             <div className="flex gap-2">
               <span className="rounded-full border px-3 py-1 text-[10px] font-bold uppercase font-mono" style={{ backgroundColor: `${typeColor}12`, color: typeColor, borderColor: `${typeColor}20` }}>
@@ -206,8 +206,8 @@ export default function TransactionDetailPage() {
 
           <div className="px-8 pb-8 pt-6">
             {detailRows.map((row, idx) => (
-              <div key={idx} className={`flex items-start justify-between gap-4 py-[0.875rem] ${idx < detailRows.length - 1 ? "border-b border-gray-100" : ""}`}>
-                <span className="min-w-[120px] shrink-0 text-[11px] font-medium uppercase tracking-[0.05em] text-gray-400">{row.label}</span>
+              <div key={idx} className={`flex items-start justify-between gap-4 py-[0.875rem] ${idx < detailRows.length - 1 ? "border-b border-slate-200/80 dark:border-slate-800/80" : ""}`}>
+                <span className="min-w-[120px] shrink-0 text-[11px] font-medium uppercase tracking-[0.05em] text-slate-400 dark:text-slate-500">{row.label}</span>
                 <div className="flex items-center gap-2 text-right">
                   {row.badge ? (
                     <span className="rounded-full px-3 py-1 text-[10px] font-bold uppercase font-mono" style={{ backgroundColor: row.badgeBg || `${row.badgeColor}12`, color: row.badgeColor }}>
@@ -215,7 +215,7 @@ export default function TransactionDetailPage() {
                   </span>
                   ) : (
                     <span
-                      className={`block break-all ${row.mono ? "font-mono" : ""} ${row.amountColor || row.mono ? "text-gray-500" : "text-brand-dark"}`}
+                      className={`block break-all ${row.mono ? "font-mono" : ""} ${row.amountColor || row.mono ? "text-slate-500 dark:text-slate-400" : "text-slate-900 dark:text-white"}`}
                       style={{
                         fontSize: row.large ? "16px" : "12px",
                         fontWeight: row.large ? 700 : 500,
@@ -227,7 +227,7 @@ export default function TransactionDetailPage() {
                   {row.copyable && (
                     <button
                       onClick={() => copyToClipboard(row.value, row.label)}
-                      className="group relative shrink-0 cursor-pointer rounded-[0.25rem] border-0 bg-transparent p-1 text-gray-400 transition-colors duration-150 hover:text-brand-primary"
+                      className="group relative shrink-0 cursor-pointer rounded-[0.25rem] border-0 bg-transparent p-1 text-slate-400 transition-colors duration-150 hover:text-blue-600"
                       title="Copy to clipboard"
                     >
                     {copiedKey === row.label ? (
@@ -240,7 +240,7 @@ export default function TransactionDetailPage() {
                       </svg>
                     )}
                       <span
-                        className={`pointer-events-none absolute -top-7 right-0 whitespace-nowrap rounded-md bg-brand-dark px-2 py-1 text-[10px] font-semibold text-white transition-opacity duration-150 ${copiedKey === row.label ? "opacity-100" : "opacity-0"}`}
+                        className={`pointer-events-none absolute -top-7 right-0 whitespace-nowrap rounded-md bg-slate-900 dark:bg-white px-2 py-1 text-[10px] font-semibold text-white dark:text-slate-900 transition-opacity duration-150 ${copiedKey === row.label ? "opacity-100" : "opacity-0"}`}
                       >
                         Copied!
                       </span>

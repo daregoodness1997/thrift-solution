@@ -2,6 +2,7 @@ import { Router, Request } from "express";
 import crypto from "crypto";
 import { authMiddleware, requireAdmin } from "../middleware/auth";
 import { getPaymentProvider } from "../services/payments";
+import { toNum } from "@thrift/db";
 import {
   createLoan,
   getLoanById,
@@ -162,10 +163,10 @@ loansRouter.post("/:id/repay", authMiddleware, async (req, res) => {
       res.status(400).json({ success: false, error: "A valid repayment amount is required" });
       return;
     }
-    if (loan.outstandingBalance > 0 && amount > loan.outstandingBalance + 1) {
+    if (loan.outstandingBalance > 0 && amount > toNum(loan.outstandingBalance) + 1) {
       res.status(400).json({
         success: false,
-        error: `Repayment cannot exceed the outstanding balance of ${loan.outstandingBalance.toFixed(2)}`,
+        error: `Repayment cannot exceed the outstanding balance of ${Number(loan.outstandingBalance).toFixed(2)}`,
       });
       return;
     }
@@ -214,7 +215,7 @@ loansRouter.post("/:id/pay", authMiddleware, async (req, res) => {
     let metaNote: string;
 
     if (payFull) {
-      amount = Math.round((loan.outstandingBalance ?? 0) * 100) / 100;
+      amount = Math.round(toNum(loan.outstandingBalance) * 100) / 100;
       metaNote = "Full loan balance";
       if (amount <= 0) {
         res.status(400).json({ success: false, error: "Loan is already fully repaid" });
@@ -366,7 +367,7 @@ loansRouter.post("/:id/liquidate", authMiddleware, async (req, res) => {
       return;
     }
 
-    const amount = Math.round((loan.outstandingBalance ?? 0) * 100) / 100;
+    const amount = Math.round(toNum(loan.outstandingBalance) * 100) / 100;
     if (amount <= 0) {
       res.status(400).json({ success: false, error: "Loan is already fully repaid" });
       return;

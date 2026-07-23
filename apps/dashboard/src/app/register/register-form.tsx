@@ -17,13 +17,10 @@ import {
   Eye,
   EyeOff,
   GraduationCap,
-  Sun,
-  Moon,
   ArrowRight,
   ShieldCheck,
   CreditCard,
   IdCard,
-  Users,
 } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -363,456 +360,360 @@ export default function RegisterForm() {
   };
 
   return (
-    <div className={`min-h-screen ${isDark ? "bg-slate-950 text-slate-100" : "bg-slate-50 text-slate-900"} transition-colors selection:bg-blue-500 selection:text-white font-sans flex flex-col`}>
-      {/* HEADER NAVBAR */}
-      <header className={`sticky top-0 z-40 ${isDark ? "bg-slate-900/90 border-slate-800" : "bg-white/90 border-slate-200"} backdrop-blur-xl border-b py-3.5 px-4 sm:px-8`}>
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
+    <div className="min-h-screen flex bg-slate-50 dark:bg-slate-950 selection:bg-blue-500 selection:text-white font-sans">
+      {/* Left: Hero Panel */}
+      <div className="hidden lg:flex w-1/2 flex-col justify-between p-12 bg-mesh relative overflow-hidden">
+        <div className="absolute -right-32 -top-24 h-80 w-80 rounded-full bg-[var(--color-brand-primary)]/8 blur-3xl" />
+        <div className="absolute -left-32 bottom-0 h-60 w-60 rounded-full bg-[var(--color-brand-accent)]/8 blur-3xl" />
+
+        <div className="relative z-10">
+          <a
+            href="/login"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors border border-slate-200/60 dark:border-slate-700/60"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Sign In
+          </a>
+        </div>
+
+        <div className="relative z-10 max-w-md">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-xs font-semibold uppercase tracking-wider mb-6">
+            <GraduationCap className="w-3.5 h-3.5" />
+            <span>FELLOWSHIP REGISTRATION</span>
+          </div>
+          <h1 className="font-heading font-bold text-4xl sm:text-5xl text-slate-900 dark:text-white tracking-tight leading-tight mb-4">
+            {step === 1 && <>Create Your{" "}
+              <span className="bg-gradient-to-r from-blue-600 to-emerald-500 bg-clip-text text-transparent">
+                Scholar Account
+              </span></>}
+            {step === 2 && <>Complete{" "}
+              <span className="bg-gradient-to-r from-blue-600 to-emerald-500 bg-clip-text text-transparent">
+                Registration
+              </span></>}
+            {step === 3 && <>Verify Your{" "}
+              <span className="bg-gradient-to-r from-blue-600 to-emerald-500 bg-clip-text text-transparent">
+                Identity
+              </span></>}
+            {step === 4 && <>Welcome to the{" "}
+              <span className="bg-gradient-to-r from-blue-600 to-emerald-500 bg-clip-text text-transparent">
+                Cohort!
+              </span></>}
+          </h1>
+          <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 leading-relaxed">
+            {step === 1 && "Join our global community of scholars, innovators, and change-makers across 32 countries."}
+            {step === 2 && "A one-time registration fee unlocks your full scholar workspace, mentorship, and micro-grant access."}
+            {step === 3 && "Quick identity verification via BVN & NIN — secure, instant, and required for all fellows."}
+            {step === 4 && "Your account is ready. Access your dashboard, connect with mentors, and start your journey."}
+          </p>
+        </div>
+
+        <div className="relative z-10 flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+          <span>Encrypted SSL &middot; Secure Registration</span>
+        </div>
+      </div>
+
+      {/* Right: Form */}
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-8">
+        <div className="w-full max-w-[420px]">
+          {/* Mobile back link */}
+          <div className="lg:hidden mb-8">
             <a
               href="/login"
-              className={`p-2 rounded-xl ${isDark ? "bg-slate-800 text-slate-300 hover:text-white" : "bg-slate-100 text-slate-600 hover:text-slate-900"} transition-colors flex items-center gap-1.5 text-xs font-bold`}
+              className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Back to Sign In</span>
+              Back to Sign In
             </a>
-
-            <div className={`h-4 w-px ${isDark ? "bg-slate-700" : "bg-slate-300"} hidden sm:block`} />
-
-            {/* Brand Logo */}
-            <div className="flex items-center gap-2">
-              <img src={config.logo} alt={config.name} className="w-8 h-8 rounded-xl object-contain shadow-md" />
-              <div className="flex flex-col">
-                <span className="font-bold text-sm tracking-tight">
-                  {config.name}
-                </span>
-                <span className="text-[10px] text-blue-600 font-mono font-semibold">
-                  {config.tagline.split("—")[0]?.trim()}
-                </span>
-              </div>
-            </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            {/* Theme Toggle */}
-            <button
-              onClick={toggleTheme}
-              className={`p-2.5 rounded-xl ${isDark ? "text-slate-300 hover:bg-slate-800" : "text-slate-600 hover:bg-slate-100"} transition-colors border ${isDark ? "border-slate-800" : "border-slate-200"}`}
-              title={`Switch to ${isDark ? "Light" : "Dark"} Mode`}
-            >
-              {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
-            </button>
-          </div>
-        </div>
-      </header>
-
-      {/* MAIN CONTENT */}
-      <main className="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex items-center justify-center">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center w-full my-auto">
-          
-          {/* LEFT COLUMN: HERO INFORMATION */}
-          <div className="lg:col-span-6 space-y-6">
-            <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full ${isDark ? "bg-blue-950/80 border-blue-800 text-blue-300" : "bg-blue-100 border-blue-200 text-blue-700"} border text-xs font-mono font-bold uppercase tracking-wider`}>
-              <GraduationCap className="w-4 h-4 text-blue-600" />
-              <span>FELLOWSHIP REGISTRATION</span>
+          <div className="mb-8">
+            <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-950/60 flex items-center justify-center mb-4">
+              <GraduationCap className="w-6 h-6 text-blue-600" />
             </div>
-
-            <h1 className="font-bold text-3xl sm:text-5xl tracking-tight leading-tight">
-              {step === 1 && "Create Your Scholar Account"}
-              {step === 2 && "Complete Registration"}
+            <h2 className="font-heading text-[1.5rem] font-bold text-slate-900 dark:text-white tracking-tight">
+              {step === 1 && "Create Your Account"}
+              {step === 2 && "Registration Fee"}
               {step === 3 && "Verify Your Identity"}
               {step === 4 && "Welcome to the Cohort!"}
-            </h1>
-
-            <p className={`text-sm sm:text-base ${isDark ? "text-slate-300" : "text-slate-600"} leading-relaxed`}>
-              {step === 1 && "Join our global community of scholars, innovators, and change-makers across 32 countries."}
-              {step === 2 && "A one-time registration fee unlocks your full scholar workspace, mentorship, and micro-grant access."}
-              {step === 3 && "Quick identity verification via BVN & NIN — secure, instant, and required for all fellows."}
-              {step === 4 && "Your account is ready. Access your dashboard, connect with mentors, and start your journey."}
+            </h2>
+            <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-1.5">
+              {step === 1 && "Join our global community of scholars"}
+              {step === 2 && "One-time fee to unlock your workspace"}
+              {step === 3 && "Secure BVN & NIN verification"}
+              {step === 4 && "Your account is ready"}
             </p>
-
-            {step <= 3 && (
-              <div className="space-y-3 pt-2">
-                <div className={`flex items-center gap-3 p-3 rounded-2xl ${isDark ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"} border shadow-sm`}>
-                  <div className={`w-10 h-10 rounded-xl ${isDark ? "bg-blue-950/60 text-blue-400" : "bg-blue-50 text-blue-600"} flex items-center justify-center shrink-0`}>
-                    <ShieldCheck className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold">Secure & Encrypted</div>
-                    <div className={`text-[11px] ${isDark ? "text-slate-400" : "text-slate-500"}`}>Your data is protected with enterprise-grade security.</div>
-                  </div>
-                </div>
-
-                <div className={`flex items-center gap-3 p-3 rounded-2xl ${isDark ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"} border shadow-sm`}>
-                  <div className={`w-10 h-10 rounded-xl ${isDark ? "bg-teal-950/60 text-teal-400" : "bg-teal-50 text-teal-600"} flex items-center justify-center shrink-0`}>
-                    <Gift className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold">Referral Rewards</div>
-                    <div className={`text-[11px] ${isDark ? "text-slate-400" : "text-slate-500"}`}>Earn bonuses when you invite fellow scholars.</div>
-                  </div>
-                </div>
-
-                <div className={`flex items-center gap-3 p-3 rounded-2xl ${isDark ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"} border shadow-sm`}>
-                  <div className={`w-10 h-10 rounded-xl ${isDark ? "bg-indigo-950/60 text-indigo-400" : "bg-indigo-50 text-indigo-600"} flex items-center justify-center shrink-0`}>
-                    <Users className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold">Global Network</div>
-                    <div className={`text-[11px] ${isDark ? "text-slate-400" : "text-slate-500"}`}>Connect with peers and mentors worldwide.</div>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
 
-          {/* RIGHT COLUMN: REGISTRATION FORM CARD */}
-          <div className={`lg:col-span-6 ${isDark ? "bg-slate-900 border-slate-800" : "bg-white border-slate-200"} rounded-3xl p-6 sm:p-8 border shadow-2xl space-y-6`}>
-            
-            {step <= 3 && <StepIndicator step={step} isDark={isDark} />}
+          {step <= 3 && <StepIndicator step={step} isDark={isDark} />}
 
-            {error && (
-              <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-xs font-medium">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                {error}
+          {error && (
+            <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 text-xs font-medium mb-4">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              {error}
+            </div>
+          )}
+
+          {step === 1 && !otpSent && (
+            <form onSubmit={handleBasic} className="space-y-0">
+              <TextField
+                label="Full Name"
+                icon={<User className="w-4 h-4" />}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Amina Diallo"
+                required
+                isDark={isDark}
+              />
+              <TextField
+                label="Email Address"
+                icon={<Mail className="w-4 h-4" />}
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="scholar@globalfreedomworldwide.com"
+                required
+                isDark={isDark}
+              />
+              <PhoneInput label="Phone (optional)" value={phone} onChange={setPhone} placeholder="+234..." />
+              <div className="mb-4">
+                <label className={`block text-xs font-bold ${isDark ? "text-slate-300" : "text-slate-700"} mb-1`}>Password</label>
+                <div className="relative">
+                  <Lock className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? "text-slate-400" : "text-slate-400"}`} />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Min. 6 characters"
+                    autoComplete="new-password"
+                    className={`${inputClass} pl-10 pr-10 ${
+                      isDark ? "border-slate-700 bg-slate-800 text-white" : "border-slate-300 bg-slate-50 text-slate-900"
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className={`absolute right-3 top-1/2 -translate-y-1/2 ${isDark ? "text-slate-400" : "text-slate-400"} hover:text-slate-600`}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                {password && (
+                  <div className="mt-2">
+                    <div className="flex gap-1 mb-1">
+                      {[1, 2, 3, 4].map((i) => (
+                        <div
+                          key={i}
+                          className="flex-1 h-[3px] rounded-full transition-colors"
+                          style={{ backgroundColor: i <= passwordStrength.level ? passwordStrength.color : isDark ? "#334155" : "#E5E7EB" }}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-[10px] font-medium" style={{ color: passwordStrength.color }}>
+                      {passwordStrength.label}
+                    </span>
+                  </div>
+                )}
               </div>
-            )}
-
-            {/* Step 1 */}
-            {step === 1 && !otpSent && (
-              <form onSubmit={handleBasic}>
-                <TextField
-                  label="Full Name"
-                  icon={<User className="w-4 h-4" />}
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Adaeze Nwankwo"
-                  autoComplete="name"
-                  isDark={isDark}
-                />
-                <TextField
-                  label="Email Address"
-                  icon={<Mail className="w-4 h-4" />}
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="adaeze@email.com"
-                  autoComplete="email"
-                  isDark={isDark}
-                />
-                <PhoneInput label="Phone (optional)" value={phone} onChange={setPhone} placeholder="+234..." />
-
-                <div className="mb-4">
-                  <label className={`block text-xs font-bold ${isDark ? "text-slate-300" : "text-slate-700"} mb-1`}>Password</label>
-                  <div className="relative">
-                    <Lock className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 ${isDark ? "text-slate-400" : "text-slate-400"}`} />
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Min. 6 characters"
-                      autoComplete="new-password"
-                      className={`${inputClass} pl-10 pr-10 ${isDark ? "border-slate-700 bg-slate-800 text-white" : "border-slate-300 bg-slate-50 text-slate-900"}`}
-                    />
+              <TextField
+                label="Confirm Password"
+                icon={<Shield className="w-4 h-4" />}
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Re-enter password"
+                autoComplete="new-password"
+                invalid={!!(confirmPassword && password !== confirmPassword)}
+                rightSlot={confirmPassword && password === confirmPassword ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : undefined}
+                isDark={isDark}
+              />
+              {/* Referral Code */}
+              <div
+                className={`mb-6 p-3.5 rounded-xl transition ${
+                  referralCode
+                    ? isDark
+                      ? "bg-blue-950/30 border-blue-900/50"
+                      : "bg-blue-50/50 border-blue-200"
+                    : isDark
+                    ? "bg-slate-800/50 border-slate-700"
+                    : "bg-slate-50 border-slate-200"
+                } border`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className={`text-xs font-medium ${isDark ? "text-slate-300" : "text-slate-700"} flex items-center gap-1.5`}>
+                    <Gift className="w-4 h-4 text-blue-600" />
+                    Have a referral code?
+                  </span>
+                  {!referralCode && (
                     <button
                       type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className={`absolute right-3 top-1/2 -translate-y-1/2 ${isDark ? "text-slate-400" : "text-slate-400"}`}
+                      onClick={() => setReferralCode(" ")}
+                      className="text-[11px] font-semibold text-blue-600 hover:underline"
                     >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      Enter code
                     </button>
-                  </div>
-                  {password && (
-                    <div className="mt-2">
-                      <div className="flex gap-1 mb-1">
-                        {[1, 2, 3, 4].map((i) => (
-                          <div
-                            key={i}
-                            className="flex-1 h-[3px] rounded-full transition-colors"
-                            style={{ backgroundColor: i <= passwordStrength.level ? passwordStrength.color : isDark ? "#334155" : "#E5E7EB" }}
-                          />
-                        ))}
-                      </div>
-                      <span className="text-[10px] font-medium" style={{ color: passwordStrength.color }}>
-                        {passwordStrength.label}
-                      </span>
-                    </div>
                   )}
                 </div>
+                {referralCode && (
+                  <input
+                    type="text"
+                    value={referralCode}
+                    onChange={(e) => setReferralCode(e.target.value)}
+                    placeholder="e.g. ADAEZE-8K3M"
+                    className={`w-full py-2 px-3 rounded-lg border text-xs font-mono font-semibold tracking-wider outline-none ${
+                      isDark ? "border-slate-700 bg-slate-800 text-blue-400" : "border-slate-200 bg-white text-blue-600"
+                    }`}
+                  />
+                )}
+              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3.5 rounded-xl text-[13px] font-semibold text-white bg-blue-600 hover:bg-blue-700 border-none transition-all shadow-md shadow-blue-600/20 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed mt-2"
+              >
+                {loading ? "Submitting..." : <>Continue <ArrowRight className="w-4 h-4" /></>}
+              </button>
+            </form>
+          )}
 
-                <TextField
-                  label="Confirm Password"
-                  icon={<Shield className="w-4 h-4" />}
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Re-enter password"
-                  autoComplete="new-password"
-                  invalid={!!(confirmPassword && password !== confirmPassword)}
-                  rightSlot={confirmPassword && password === confirmPassword ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : undefined}
-                  isDark={isDark}
-                />
+          {step === 1 && otpSent && (
+            <div className="space-y-4">
+              <p className={`text-xs ${isDark ? "text-slate-300" : "text-slate-600"}`}>
+                We sent a 6-digit code to <strong>{email}</strong>. Enter it below.
+              </p>
+              <TextField
+                label="Verification Code"
+                icon={<Mail className="w-4 h-4" />}
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                placeholder="Enter 6-digit code"
+                inputMode="numeric"
+                required
+                isDark={isDark}
+              />
+              <button
+                type="button"
+                onClick={handleVerifyEmail}
+                disabled={loading}
+                className="w-full py-3.5 rounded-xl text-[13px] font-semibold text-white bg-blue-600 hover:bg-blue-700 border-none transition-all shadow-md shadow-blue-600/20 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {loading ? "Verifying..." : <>Verify & Continue <ArrowRight className="w-4 h-4" /></>}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setOtpSent(false); setOtp(""); }}
+                className={`w-full text-center text-[11px] font-semibold ${isDark ? "text-slate-400 hover:text-white" : "text-slate-500 hover:text-slate-900"}`}
+              >
+                ← Change email
+              </button>
+            </div>
+          )}
 
-                {/* Referral Code */}
-                <div
-                  className={`mb-6 p-3.5 rounded-xl transition ${
-                    referralCode
-                      ? isDark
-                        ? "bg-blue-950/30 border-blue-900/50"
-                        : "bg-blue-50/50 border-blue-200"
-                      : isDark
-                      ? "bg-slate-800/50 border-slate-700"
-                      : "bg-slate-50 border-slate-200"
-                  } border`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className={`text-xs font-medium ${isDark ? "text-slate-300" : "text-slate-700"} flex items-center gap-1.5`}>
-                      <Gift className="w-4 h-4 text-blue-600" />
-                      Have a referral code?
-                    </span>
-                    {!referralCode && (
-                      <button
-                        type="button"
-                        onClick={() => setReferralCode(" ")}
-                        className="text-[11px] font-semibold text-blue-600 hover:underline"
-                      >
-                        Enter code
-                      </button>
-                    )}
+          {step === 2 && (
+            <div className="space-y-4">
+              <div className={`rounded-2xl p-4 border ${isDark ? "bg-slate-800/50 border-slate-700" : "bg-slate-50 border-slate-200"}`}>
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isDark ? "bg-blue-900/40" : "bg-blue-50"}`}>
+                    <CreditCard className="w-5 h-5 text-blue-600" />
                   </div>
-                  {referralCode && (
-                    <input
-                      type="text"
-                      value={referralCode}
-                      onChange={(e) => setReferralCode(e.target.value)}
-                      placeholder="e.g. ADAEZE-8K3M"
-                      className={`w-full py-2 px-3 rounded-lg border text-xs font-mono font-semibold tracking-wider outline-none ${
-                        isDark ? "border-slate-700 bg-slate-800 text-blue-400" : "border-slate-200 bg-white text-blue-600"
-                      }`}
-                    />
-                  )}
+                  <div className="flex-1">
+                    <p className="text-xs font-bold text-slate-900 dark:text-white">Registration Fee</p>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">One-time payment</p>
+                  </div>
+                  <span className="text-lg font-bold text-slate-900 dark:text-white">
+                    ₦{REG_FEE.toLocaleString()}
+                  </span>
                 </div>
+              </div>
 
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-3.5 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md flex items-center justify-center gap-2 transition disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  {loading ? (
-                    <>
-                      <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 12a9 9 0 11-6.219-8.56" /></svg>
-                      Creating account...
-                    </>
-                  ) : (
-                    <>
-                      <span>Continue</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </>
-                  )}
-                </button>
-              </form>
-            )}
+              <p className={`text-[11px] text-center ${isDark ? "text-slate-400" : "text-slate-500"}`}>
+                Secured by Flutterwave (card, bank transfer, USSD).
+              </p>
 
-            {step === 1 && otpSent && (
-              <div>
-                <TextField
-                  label="Verification Code"
-                  type="text"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
-                  placeholder="6-digit code from email"
-                  isDark={isDark}
-                />
-                <button
-                  onClick={handleVerifyEmail}
-                  disabled={loading}
-                  className="w-full py-3.5 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md flex items-center justify-center gap-2 transition disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  {loading ? (
-                    <>
-                      <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 12a9 9 0 11-6.219-8.56" /></svg>
-                      Verifying...
-                    </>
-                  ) : (
-                    <>
-                      <span>Verify Email & Continue</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </>
-                  )}
-                </button>
-                <p className={`text-[11px] ${isDark ? "text-slate-400" : "text-slate-400"} mt-3 text-center`}>
-                  Didn't get it?{" "}
-                  <button type="button" onClick={handleResendOtp} className="text-blue-600 font-semibold hover:underline">
-                    Resend code
-                  </button>
+              <button
+                type="button"
+                onClick={handlePay}
+                disabled={loading}
+                className="w-full py-3.5 rounded-xl text-[13px] font-semibold text-white bg-blue-600 hover:bg-blue-700 border-none transition-all shadow-md shadow-blue-600/20 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {loading ? "Redirecting..." : <><CreditCard className="w-4 h-4" /> Pay ₦{REG_FEE.toLocaleString()}</>}
+              </button>
+            </div>
+          )}
+
+          {step === 3 && (
+            <form onSubmit={handleKyc} className="space-y-0">
+              <div className={`rounded-2xl p-3 border mb-4 ${isDark ? "bg-slate-800/50 border-slate-700" : "bg-blue-50 border-blue-200"}`}>
+                <p className="text-[11px] text-blue-600 dark:text-blue-400 font-semibold">
+                  🔒 Your BVN and NIN are encrypted and used only for identity verification.
                 </p>
               </div>
-            )}
+              <TextField
+                label="Bank Verification Number (BVN)"
+                icon={<IdCard className="w-4 h-4" />}
+                value={bvn}
+                onChange={(e) => setBvn(e.target.value.replace(/\D/g, "").slice(0, 11))}
+                placeholder="11-digit BVN"
+                required
+                isDark={isDark}
+                inputMode="numeric"
+              />
+              <TextField
+                label="National Identification Number (NIN)"
+                icon={<IdCard className="w-4 h-4" />}
+                value={nin}
+                onChange={(e) => setNin(e.target.value.replace(/\D/g, "").slice(0, 11))}
+                placeholder="11-digit NIN"
+                required
+                isDark={isDark}
+                inputMode="numeric"
+              />
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3.5 rounded-xl text-[13px] font-semibold text-white bg-blue-600 hover:bg-blue-700 border-none transition-all shadow-md shadow-blue-600/20 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed mt-2"
+              >
+                {loading ? "Verifying..." : <>Verify Identity <ArrowRight className="w-4 h-4" /></>}
+              </button>
+            </form>
+          )}
 
-            {/* Step 2 */}
-            {step === 2 && (
-              <div>
-                <div className={`p-5 ${isDark ? "bg-slate-800/60" : "bg-slate-50"} rounded-xl mb-6 text-center`}>
-                  <span className={`text-[10px] ${isDark ? "text-slate-400" : "text-slate-400"} font-semibold uppercase tracking-wider`}>Registration Fee</span>
-                  <div className="text-3xl font-mono font-bold mt-1 text-blue-600">
-                    ₦{REG_FEE.toLocaleString()}
-                  </div>
-                  <p className={`text-[11px] ${isDark ? "text-slate-400" : "text-slate-500"} mt-2`}>
-                    One-time fee. Secured by Flutterwave (card, bank transfer, USSD).
-                  </p>
-                </div>
-                <button
-                  onClick={handlePay}
-                  disabled={loading}
-                  className="w-full py-3.5 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md flex items-center justify-center gap-2 transition disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  {loading ? (
-                    <>
-                      <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 12a9 9 0 11-6.219-8.56" /></svg>
-                      Redirecting...
-                    </>
-                  ) : (
-                    <>
-                      <CreditCard className="w-4 h-4" />
-                      <span>Pay ₦{REG_FEE.toLocaleString()}</span>
-                    </>
-                  )}
-                </button>
+          {step === 4 && (
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-950/60 flex items-center justify-center mx-auto">
+                <CheckCircle2 className="w-8 h-8 text-emerald-600" />
               </div>
-            )}
-
-            {/* Step 3 */}
-            {step === 3 && (
-              <div>
-                <TextField
-                  label="BVN (11 digits)"
-                  type="text"
-                  value={bvn}
-                  onChange={(e) => setBvn(e.target.value.replace(/\D/g, "").slice(0, 11))}
-                  placeholder="12345678901"
-                  inputMode="numeric"
-                  isDark={isDark}
-                />
-                <TextField
-                  label="NIN (11 digits)"
-                  type="text"
-                  value={nin}
-                  onChange={(e) => setNin(e.target.value.replace(/\D/g, "").slice(0, 11))}
-                  placeholder="98765432109"
-                  inputMode="numeric"
-                  isDark={isDark}
-                />
-                <button
-                  onClick={handleKyc}
-                  disabled={loading}
-                  className="w-full py-3.5 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md flex items-center justify-center gap-2 transition disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  {loading ? (
-                    <>
-                      <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M21 12a9 9 0 11-6.219-8.56" /></svg>
-                      Verifying with CreditChek...
-                    </>
-                  ) : (
-                    <>
-                      <IdCard className="w-4 h-4" />
-                      <span>Verify & Finish</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            )}
-
-            {/* Step 4 — success */}
-            {step === 4 && (
-              <div>
-                <div className={`p-6 ${isDark ? "bg-emerald-950/40 border-emerald-800" : "bg-emerald-50 border-emerald-200"} rounded-xl mb-6 border`}>
-                  <div className={`text-xs font-semibold ${isDark ? "text-emerald-400" : "text-emerald-600"} mb-3 flex items-center gap-1.5`}>
-                    <CheckCircle2 className="w-4 h-4" />
-                    Identity verified & KYC approved
-                  </div>
-
-                  {kycResult?.verifiedName && (
-                    <div className={`text-xs ${isDark ? "text-emerald-300" : "text-emerald-800"} mb-3`}>
-                      <span className={isDark ? "text-slate-400" : "text-slate-500"}>Verified Name: </span>
-                      <strong>{kycResult.verifiedName}</strong>
-                    </div>
-                  )}
-
-                  {kycResult?.identity && (
-                    <div className={`grid grid-cols-2 gap-x-4 gap-y-2 text-xs ${isDark ? "text-emerald-300" : "text-emerald-800"} mb-3`}>
-                      {kycResult.identity.bvn && (
-                        <div><span className={isDark ? "text-slate-400" : "text-slate-500"}>BVN: </span><strong className="font-mono">{kycResult.identity.bvn}</strong></div>
-                      )}
-                      {kycResult.identity.nin && (
-                        <div><span className={isDark ? "text-slate-400" : "text-slate-500"}>NIN: </span><strong className="font-mono">{kycResult.identity.nin}</strong></div>
-                      )}
-                      {kycResult.identity.dateOfBirth && (
-                        <div><span className={isDark ? "text-slate-400" : "text-slate-500"}>Date of Birth: </span><strong>{kycResult.identity.dateOfBirth}</strong></div>
-                      )}
-                      {kycResult.identity.gender && (
-                        <div><span className={isDark ? "text-slate-400" : "text-slate-500"}>Gender: </span><strong className="capitalize">{kycResult.identity.gender}</strong></div>
-                      )}
-                      {kycResult.identity.phoneNumber && (
-                        <div><span className={isDark ? "text-slate-400" : "text-slate-500"}>Phone: </span><strong>{kycResult.identity.phoneNumber}</strong></div>
-                      )}
-                      {kycResult.identity.email && (
-                        <div className="col-span-2 truncate"><span className={isDark ? "text-slate-400" : "text-slate-500"}>Email: </span><strong>{kycResult.identity.email}</strong></div>
-                      )}
-                      {kycResult.identity.enrollmentBank && (
-                        <div className="col-span-2"><span className={isDark ? "text-slate-400" : "text-slate-500"}>Enrollment Bank: </span><strong>{kycResult.identity.enrollmentBank}</strong></div>
-                      )}
-                      {kycResult.identity.address && (
-                        <div className="col-span-2"><span className={isDark ? "text-slate-400" : "text-slate-500"}>Address: </span><strong>{kycResult.identity.address}</strong></div>
-                      )}
-                    </div>
-                  )}
-
-                  {virtualAccount ? (
-                    <div className={`text-xs ${isDark ? "text-emerald-300" : "text-emerald-800"} border-t ${isDark ? "border-emerald-800" : "border-emerald-200"} pt-3`}>
-                      <div className="mb-2">
-                        <span className={isDark ? "text-slate-400" : "text-slate-500"}>Virtual Account: </span>
-                        <strong className="font-mono">{virtualAccount.accountNumber}</strong>
-                      </div>
-                      <div><span className={isDark ? "text-slate-400" : "text-slate-500"}>Bank: </span><strong>{virtualAccount.bankName}</strong></div>
-                    </div>
-                  ) : (
-                    <div className={`text-xs ${isDark ? "text-emerald-300" : "text-emerald-800"} border-t ${isDark ? "border-emerald-800" : "border-emerald-200"} pt-3`}>
-                      Your virtual account will be created shortly.
-                    </div>
-                  )}
-                </div>
-                <button
-                  onClick={() => { window.location.href = "/"; }}
-                  className="w-full py-3.5 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-md flex items-center justify-center gap-2 transition"
-                >
-                  <span>Go to Dashboard</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </div>
-            )}
-
-            {step <= 3 && (
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white">You&apos;re All Set!</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Welcome to the Global Freedom Worldwide scholar cohort. Your account is ready.
+              </p>
+              <button
+                type="button"
+                onClick={() => window.location.href = "/"}
+                className="w-full py-3.5 rounded-xl text-[13px] font-semibold text-white bg-blue-600 hover:bg-blue-700 border-none transition-all shadow-md shadow-blue-600/20 flex items-center justify-center gap-2"
+              >
+                Go to Dashboard <ArrowRight className="w-4 h-4" />
+              </button>
               <div className="text-center pt-2">
                 <span className={`text-xs ${isDark ? "text-slate-400" : "text-slate-500"}`}>
                   Already have an account?{" "}
                   <a href="/login" className="font-semibold text-blue-600 hover:underline">Sign in</a>
                 </span>
               </div>
-            )}
-
-            <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-500 pt-2 border-t border-slate-100 dark:border-slate-800">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-              <span>Encrypted SSL • Free Access for Approved Global Scholars</span>
             </div>
+          )}
+
+          <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-400 dark:text-slate-500 mt-8 pt-5 border-t border-slate-100 dark:border-slate-800">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+            <span>Encrypted SSL &middot; Secure Authentication</span>
           </div>
-
         </div>
-      </main>
-
-      {/* FOOTER BAR */}
-      <footer className={`border-t ${isDark ? "border-slate-800 bg-slate-900" : "border-slate-200 bg-white"} py-4 px-6 text-center text-xs text-slate-500`}>
-        {config.name} • {config.tagline.split("—")[1]?.trim() || config.tagline}
-      </footer>
+      </div>
     </div>
   );
 }

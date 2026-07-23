@@ -3,7 +3,15 @@
 import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { config } from "@thrift/config";
+import {
+  ArrowLeft,
+  Lock,
+  ShieldCheck,
+  ArrowRight,
+  CheckCircle,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -14,6 +22,7 @@ function ResetPasswordForm() {
 
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
@@ -59,66 +68,129 @@ function ResetPasswordForm() {
   };
 
   return (
-    <div className="min-h-screen flex bg-brand-cream">
-      <div
-        className="hidden md:flex w-1/2 flex-col justify-center items-center p-12 relative overflow-hidden"
-        style={{
-          backgroundImage: "url('https://images.unsplash.com/photo-1556742502-ec7c0e9f34b1?auto=format&fit=crop&w=1200&q=80')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      >
+    <div className="min-h-screen flex bg-slate-50 dark:bg-slate-950">
+      {/* Left: Hero Panel */}
+      <div className="hidden lg:flex w-1/2 flex-col justify-between p-12 bg-mesh relative overflow-hidden">
+        <div className="absolute -right-32 -top-24 h-80 w-80 rounded-full bg-[var(--color-brand-primary)]/8 blur-3xl" />
+        <div className="absolute -left-32 bottom-0 h-60 w-60 rounded-full bg-[var(--color-brand-accent)]/8 blur-3xl" />
+
+        <div className="relative z-10">
+          <a href="/login" className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors border border-slate-200/60 dark:border-slate-700/60">
+            <ArrowLeft className="w-4 h-4" />
+            Back to Sign In
+          </a>
+        </div>
+
+        <div className="relative z-10 max-w-md">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-xs font-semibold uppercase tracking-wider mb-6">
+            <Lock className="w-3.5 h-3.5" />
+            New Password
+          </div>
+          <h1 className="font-heading font-bold text-4xl sm:text-5xl text-slate-900 dark:text-white tracking-tight leading-tight mb-4">
+            Set a new{" "}
+            <span className="bg-gradient-to-r from-blue-600 to-emerald-500 bg-clip-text text-transparent">
+              password
+            </span>
+          </h1>
+          <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 leading-relaxed">
+            Create a strong, secure password to protect your account. Make sure it meets all the requirements listed below.
+          </p>
+        </div>
+
+        <div className="relative z-10 flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+          <span>Encrypted SSL &middot; Secure Password Reset</span>
+        </div>
       </div>
 
-      <div className="flex-1 flex items-center justify-center p-8">
-        <div className="w-full max-w-[400px]">
-          <div className="mb-10">
-            <h2 className="text-[1.5rem] font-semibold text-brand-dark tracking-[-0.025em]">Set New Password</h2>
-            <p className="text-[13px] text-gray-500 mt-1.5">
+      {/* Right: Form */}
+      <div className="flex-1 flex items-center justify-center p-6 sm:p-8">
+        <div className="w-full max-w-[420px]">
+          {/* Mobile back link */}
+          <div className="lg:hidden mb-8">
+            <a href="/login" className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+              <ArrowLeft className="w-4 h-4" />
+              Back to Sign In
+            </a>
+          </div>
+
+          <div className="mb-8">
+            <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-950/60 flex items-center justify-center mb-4">
+              <Lock className="w-6 h-6 text-blue-600" />
+            </div>
+            <h2 className="font-heading text-[1.5rem] font-bold text-slate-900 dark:text-white tracking-tight">
+              Set New Password
+            </h2>
+            <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-1.5">
               {email ? `Resetting password for ${email}` : "Enter the code from your email if the link didn't work"}
             </p>
           </div>
 
           {done ? (
-            <div className="p-5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-[13px] leading-[1.6]">
-              <strong>All set!</strong> Your password has been updated.
-              <div className="mt-4">
-                <a href="/login" className="font-semibold no-underline" style={{ color: config.colors.primary }}>Continue to sign in</a>
+            <div className="p-6 rounded-3xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400">
+                <CheckCircle className="h-6 w-6" />
+              </div>
+              <h3 className="text-center font-heading font-bold text-lg text-emerald-800 dark:text-emerald-200">
+                All set!
+              </h3>
+              <p className="mt-2 text-center text-[13px] text-emerald-700 dark:text-emerald-300 leading-relaxed">
+                Your password has been updated successfully.
+              </p>
+              <div className="mt-5 text-center">
+                <a href="/login" className="text-[13px] font-semibold no-underline text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+                  Continue to sign in
+                </a>
               </div>
             </div>
           ) : (
             <form onSubmit={handleSubmit}>
               {error && (
-                <div className="px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-xs font-medium mb-6">
+                <div className="mb-5 px-4 py-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-xs font-medium">
                   {error}
                 </div>
               )}
 
               {!code && (
                 <div className="mb-5">
-                  <label className="block text-xs font-medium text-gray-700 mb-1.5">Reset Code</label>
-                  <input
-                    type="text"
-                    value={code}
-                    onChange={(e) => setCode(e.target.value)}
-                    placeholder="6-digit code from email"
-                    className="w-full py-[0.6875rem] px-[0.875rem] rounded-[0.625rem] border border-gray-200 text-[13px] text-brand-dark outline-none"
-                  />
+                  <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
+                    Reset Code
+                  </label>
+                  <div className="relative">
+                    <ShieldCheck className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      type="text"
+                      value={code}
+                      onChange={(e) => setCode(e.target.value)}
+                      placeholder="6-digit code from email"
+                      className="w-full py-3 pl-10 pr-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-[13px] text-slate-900 dark:text-white outline-none focus:border-[var(--color-brand-primary)] focus:ring-2 focus:ring-[var(--color-brand-primary)]/20 transition placeholder:text-slate-400 dark:placeholder:text-slate-500 font-mono tracking-widest"
+                    />
+                  </div>
                 </div>
               )}
 
               <div className="mb-5">
-                <label className="block text-xs font-medium text-gray-700 mb-1.5">New Password</label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="At least 6 characters"
-                  autoComplete="new-password"
-                  className="w-full py-[0.6875rem] px-[0.875rem] rounded-[0.625rem] border border-gray-200 text-[13px] text-brand-dark outline-none"
-                  onFocus={(e) => { e.currentTarget.style.borderColor = config.colors.primary; e.currentTarget.style.boxShadow = `0 0 0 3px ${config.colors.primary}15`; }}
-                  onBlur={(e) => { e.currentTarget.style.borderColor = "#E5E7EB"; e.currentTarget.style.boxShadow = "none"; }}
-                />
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
+                  New Password
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="At least 8 characters"
+                    autoComplete="new-password"
+                    className="w-full py-3 pl-10 pr-10 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-[13px] text-slate-900 dark:text-white outline-none focus:border-[var(--color-brand-primary)] focus:ring-2 focus:ring-[var(--color-brand-primary)]/20 transition placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
 
               <div className="-my-2 mb-6 grid grid-cols-2 gap-x-4 gap-y-1.5">
@@ -140,38 +212,49 @@ function ResetPasswordForm() {
               </div>
 
               <div className="mb-6">
-                <label className="block text-xs font-medium text-gray-700 mb-1.5">Confirm Password</label>
-                <input
-                  type="password"
-                  value={confirm}
-                  onChange={(e) => setConfirm(e.target.value)}
-                  placeholder="Re-enter password"
-                  autoComplete="new-password"
-                  className="w-full py-[0.6875rem] px-[0.875rem] rounded-[0.625rem] border border-gray-200 text-[13px] text-brand-dark outline-none"
-                  onFocus={(e) => { e.currentTarget.style.borderColor = config.colors.primary; e.currentTarget.style.boxShadow = `0 0 0 3px ${config.colors.primary}15`; }}
-                  onBlur={(e) => { e.currentTarget.style.borderColor = "#E5E7EB"; e.currentTarget.style.boxShadow = "none"; }}
-                />
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
+                  Confirm Password
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={confirm}
+                    onChange={(e) => setConfirm(e.target.value)}
+                    placeholder="Re-enter password"
+                    autoComplete="new-password"
+                    className="w-full py-3 pl-10 pr-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-[13px] text-slate-900 dark:text-white outline-none focus:border-[var(--color-brand-primary)] focus:ring-2 focus:ring-[var(--color-brand-primary)]/20 transition placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                  />
+                </div>
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 rounded-[0.625rem] text-[13px] font-semibold text-white border-none transition"
-                style={{
-                  backgroundColor: config.colors.primary,
-                  color: "#ffffff",
-                  opacity: loading ? 0.6 : 1,
-                  cursor: loading ? "not-allowed" : "pointer",
-                }}
+                className="w-full py-3.5 rounded-xl text-[13px] font-semibold text-white bg-blue-600 hover:bg-blue-700 border-none transition-all shadow-md shadow-blue-600/20 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {loading ? "Resetting..." : "Reset password"}
+                {loading ? (
+                  "Resetting..."
+                ) : (
+                  <>
+                    Reset password
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
               </button>
 
               <div className="text-center mt-8">
-                <a href="/login" className="text-[13px] font-semibold no-underline" style={{ color: config.colors.primary }}>Back to sign in</a>
+                <a href="/login" className="text-[13px] font-semibold no-underline text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+                  Back to sign in
+                </a>
               </div>
             </form>
           )}
+
+          <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-400 dark:text-slate-500 mt-8 pt-5 border-t border-slate-100 dark:border-slate-800">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+            <span>Encrypted SSL &middot; Secure Password Reset</span>
+          </div>
         </div>
       </div>
     </div>
@@ -180,7 +263,7 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-gray-400 text-[13px]">Loading…</div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-400 text-[13px]">Loading...</div>}>
       <ResetPasswordForm />
     </Suspense>
   );

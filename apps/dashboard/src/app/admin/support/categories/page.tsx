@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { config } from "@thrift/config";
-import { Card, Button, ColorfulBadge } from "@thrift/ui";
+import { Card, Button } from "@thrift/ui";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
 import type { TicketCategory } from "@thrift/types";
@@ -156,7 +155,7 @@ export default function AdminCategoriesPage() {
     <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
       <PageHeader
         badgeLabel="Support"
-        badgeColor={config.colors.primary}
+        badgeColor="#2563EB"
         heading="Ticket"
         accentText="Categories"
         description="Organize tickets into categories for faster routing."
@@ -184,7 +183,7 @@ export default function AdminCategoriesPage() {
       <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
         {message && (
           <div
-            className={`mb-4 rounded-xl px-4 py-3 text-xs ${message.type === "success" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}
+            className={`mb-4 rounded-2xl px-4 py-3 text-xs ${message.type === "success" ? "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400" : "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400"}`}
           >
             {message.text}
           </div>
@@ -195,30 +194,30 @@ export default function AdminCategoriesPage() {
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                     Name
                   </label>
                   <input
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                     placeholder="e.g. Payments"
-                    className="rounded-xl border border-[#EAEAEA] bg-[#FAFAFA] p-2.5 text-xs text-brand-dark outline-none focus:border-brand-primary"
+                    className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-2.5 text-xs text-slate-900 dark:text-white outline-none focus:border-blue-600"
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                     Slug
                   </label>
                   <input
                     value={form.slug}
                     onChange={(e) => setForm({ ...form, slug: e.target.value })}
                     placeholder="auto from name"
-                    className="rounded-xl border border-[#EAEAEA] bg-[#FAFAFA] p-2.5 text-xs text-brand-dark outline-none focus:border-brand-primary"
+                    className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-2.5 text-xs text-slate-900 dark:text-white outline-none focus:border-blue-600"
                   />
                 </div>
               </div>
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   Description
                 </label>
                 <input
@@ -227,11 +226,11 @@ export default function AdminCategoriesPage() {
                     setForm({ ...form, description: e.target.value })
                   }
                   placeholder="Optional description"
-                  className="rounded-xl border border-[#EAEAEA] bg-[#FAFAFA] p-2.5 text-xs text-brand-dark outline-none focus:border-brand-primary"
+                  className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-2.5 text-xs text-slate-900 dark:text-white outline-none focus:border-blue-600"
                 />
               </div>
               <div className="flex flex-col gap-1.5 sm:w-40">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                   Position
                 </label>
                 <input
@@ -243,10 +242,10 @@ export default function AdminCategoriesPage() {
                       position: parseInt(e.target.value) || 0,
                     })
                   }
-                  className="rounded-xl border border-[#EAEAEA] bg-[#FAFAFA] p-2.5 text-xs text-brand-dark outline-none focus:border-brand-primary"
+                  className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-2.5 text-xs text-slate-900 dark:text-white outline-none focus:border-blue-600"
                 />
               </div>
-              {error && <span className="text-xs text-red-600">{error}</span>}
+              {error && <span className="text-xs text-red-600 dark:text-red-400">{error}</span>}
               <div className="flex gap-2">
                 <Button type="submit" disabled={saving}>
                   {saving ? "Saving..." : "Save Category"}
@@ -268,13 +267,13 @@ export default function AdminCategoriesPage() {
             {Array.from({ length: 3 }).map((_, i) => (
               <div
                 key={i}
-                className="h-16 animate-pulse rounded-xl bg-gray-100"
+                className="h-16 animate-pulse rounded-2xl bg-slate-100 dark:bg-slate-800"
               />
             ))}
           </div>
         ) : categories.length === 0 ? (
           <Card className="p-10 text-center">
-            <p className="text-sm text-gray-400">No categories yet.</p>
+            <p className="text-sm text-slate-400">No categories yet.</p>
           </Card>
         ) : (
           <div className="flex flex-col gap-3">
@@ -285,14 +284,16 @@ export default function AdminCategoriesPage() {
               >
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-brand-dark">
+                    <span className="font-semibold text-slate-900 dark:text-white">
                       {c.name}
                     </span>
                     {!c.isActive && (
-                      <ColorfulBadge label="Inactive" color="#717171" />
+                      <span className="rounded-full border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-semibold text-slate-500 dark:text-slate-400">
+                        Inactive
+                      </span>
                     )}
                   </div>
-                  <p className="mt-0.5 text-[11px] text-gray-400">
+                  <p className="mt-0.5 text-[11px] text-slate-400">
                     {c.slug}
                     {c.description ? ` · ${c.description}` : ""}
                   </p>

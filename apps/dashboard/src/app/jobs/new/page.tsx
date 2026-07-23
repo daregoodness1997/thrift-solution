@@ -91,66 +91,65 @@ export default function NewJobPage() {
     setSubmitting(false);
   };
 
-  const inputClass = "w-full rounded-xl border border-gray-200 py-2.5 px-3 text-[13px] outline-none box-border transition-colors";
-  const focusProps = { onFocus: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => { e.currentTarget.style.borderColor = cfg.colors.primary; }, onBlur: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => { e.currentTarget.style.borderColor = "#EAEAEA"; } };
+  const inputClass = "w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 px-3 text-[13px] text-slate-900 dark:text-white outline-none box-border transition-colors focus:border-blue-600";
 
   return (
     <div className="mx-auto max-w-[720px] p-[clamp(1rem,3vw,2rem)]">
       <PageHeader badgeLabel="Job Board" heading="Post a" accentText="Job" description="Share job opportunities with the community." />
       <FadeInUp delay={200}>
-        <Card padding="2rem">
+        <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 p-8">
           <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">
               <div>
-                <label className="mb-1.5 block text-xs font-semibold text-brand-dark">Job Title *</label>
-                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Senior Software Engineer" className={inputClass} {...focusProps} />
+                <label className="mb-1.5 block text-xs font-semibold text-slate-900 dark:text-white">Job Title *</label>
+                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Senior Software Engineer" className={inputClass}  />
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-semibold text-brand-dark">Description *</label>
-                <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe the role, requirements, and benefits..." rows={5} className={`${inputClass} resize-y font-sans`} {...focusProps} />
+                <label className="mb-1.5 block text-xs font-semibold text-slate-900 dark:text-white">Description *</label>
+                <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe the role, requirements, and benefits..." rows={5} className={`${inputClass} resize-y font-sans`}  />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold text-brand-dark">Company</label>
-                  <input type="text" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company name" className={inputClass} {...focusProps} />
+                  <label className="mb-1.5 block text-xs font-semibold text-slate-900 dark:text-white">Company</label>
+                  <input type="text" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company name" className={inputClass}  />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold text-brand-dark">Location *</label>
-                  <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Lagos, Nigeria" className={inputClass} {...focusProps} />
+                  <label className="mb-1.5 block text-xs font-semibold text-slate-900 dark:text-white">Location *</label>
+                  <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g. Lagos, Nigeria" className={inputClass}  />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold text-brand-dark">Job Type *</label>
-                  <select value={jobType} onChange={(e) => setJobType(e.target.value)} className={`${inputClass} cursor-pointer bg-white`}>
+                  <label className="mb-1.5 block text-xs font-semibold text-slate-900 dark:text-white">Job Type *</label>
+                  <select value={jobType} onChange={(e) => setJobType(e.target.value)} className={`${inputClass} cursor-pointer`}>
                     {JOB_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold text-brand-dark">Category *</label>
-                  <select value={category} onChange={(e) => setCategory(e.target.value)} className={`${inputClass} cursor-pointer bg-white`}>
+                  <label className="mb-1.5 block text-xs font-semibold text-slate-900 dark:text-white">Category *</label>
+                  <select value={category} onChange={(e) => setCategory(e.target.value)} className={`${inputClass} cursor-pointer`}>
                     {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
                   </select>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold text-brand-dark">Min Salary (NGN)</label>
-                  <input type="number" value={salaryMin} onChange={(e) => setSalaryMin(e.target.value)} placeholder="0" min="0" className={`${inputClass} font-mono`} {...focusProps} />
+                  <label className="mb-1.5 block text-xs font-semibold text-slate-900 dark:text-white">Min Salary (NGN)</label>
+                  <input type="number" value={salaryMin} onChange={(e) => setSalaryMin(e.target.value)} placeholder="0" min="0" className={`${inputClass} font-mono`}  />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold text-brand-dark">Max Salary (NGN)</label>
-                  <input type="number" value={salaryMax} onChange={(e) => setSalaryMax(e.target.value)} placeholder="0" min="0" className={`${inputClass} font-mono`} {...focusProps} />
+                  <label className="mb-1.5 block text-xs font-semibold text-slate-900 dark:text-white">Max Salary (NGN)</label>
+                  <input type="number" value={salaryMax} onChange={(e) => setSalaryMax(e.target.value)} placeholder="0" min="0" className={`${inputClass} font-mono`}  />
                 </div>
               </div>
-              {error && <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-medium text-red-600">{error}</div>}
+              {error && <div className="rounded-2xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 px-4 py-3 text-xs font-medium text-red-600 dark:text-red-400">{error}</div>}
               <div className="flex items-center justify-end gap-3 pt-2">
-                <a href="/jobs" className="rounded-full border border-gray-200 px-5 py-2.5 text-[13px] font-semibold text-gray-500 no-underline">Cancel</a>
-                <Button type="submit" variant="primary" size="md" disabled={submitting}>{submitting ? "Posting..." : "Post Job"}</Button>
+                <a href="/jobs" className="btn-secondary py-2.5 px-5 text-[13px]">Cancel</a>
+                <Button type="submit" variant="primary" size="md" className="btn-primary py-2.5 px-5 text-[13px]" disabled={submitting}>{submitting ? "Posting..." : "Post Job"}</Button>
               </div>
             </div>
           </form>
-        </Card>
+        </div>
       </FadeInUp>
     </div>
   );

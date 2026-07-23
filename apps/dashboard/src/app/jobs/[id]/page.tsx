@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { config, BrandConfig } from "@thrift/config";
-import { Card, Button, ColorfulBadge, FadeInUp, FadeIn } from "@thrift/ui";
+import { Card, Button, FadeInUp, FadeIn } from "@thrift/ui";
 import { formatNaira } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
 import { useParams, useRouter } from "next/navigation";
@@ -184,64 +184,64 @@ export default function JobDetailPage() {
   if (!job) {
     return (
       <div className="mx-auto max-w-[800px] p-[clamp(1rem,3vw,2rem)]">
-        <Card padding="3rem"><div className="text-center"><h3 className="mb-2 text-base font-semibold text-brand-dark">Job not found</h3><a href="/jobs"><Button variant="primary" size="sm">Back to Jobs</Button></a></div></Card></div>
+        <Card padding="3rem"><div className="text-center"><h3 className="mb-2 text-base font-semibold text-slate-900 dark:text-white">Job not found</h3><a href="/jobs"><Button variant="primary" size="sm">Back to Jobs</Button></a></div></Card></div>
     );
   }
 
   return (
     <div className="mx-auto max-w-[800px] p-[clamp(1rem,3vw,2rem)]">
       <FadeIn>
-        <div className="mb-6"><a href="/jobs" className="text-xs font-semibold no-underline" style={{ color: cfg.colors.primary }}>&larr; Back to Jobs</a></div>
+        <div className="mb-6"><a href="/jobs" className="text-xs font-semibold no-underline text-blue-600 dark:text-blue-400">&larr; Back to Jobs</a></div>
       </FadeIn>
 
-      <FadeIn delay={100}>
-        <Card padding="2rem" className="mb-6">
+       <FadeIn delay={100}>
+        <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 p-8 mb-6">
           <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h1 className="mb-1 text-[1.5rem] font-bold text-brand-dark">{job.title}</h1>
-              <p className="text-[13px] text-gray-500">{job.company || job.poster.name} &middot; {job.location}</p>
+              <h1 className="mb-1 text-[1.5rem] font-bold text-slate-900 dark:text-white">{job.title}</h1>
+              <p className="text-[13px] text-slate-500 dark:text-slate-400">{job.company || job.poster.name} &middot; {job.location}</p>
             </div>
-            <span className="rounded-full px-3 py-1 text-[11px] font-bold capitalize" style={{ color: JOB_TYPE_COLORS[job.jobType] || "#717171", backgroundColor: `${JOB_TYPE_COLORS[job.jobType] || "#717171"}12`, border: `1px solid ${JOB_TYPE_COLORS[job.jobType] || "#EAEAEA"}` }}>
+            <span className="px-2.5 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-[10px] font-mono font-bold uppercase tracking-wider">
               {job.jobType.replace("_", " ")}
             </span>
           </div>
 
           <div className="mb-6 flex flex-wrap gap-6 text-xs">
-            <div><span className="mb-1 block text-gray-500">Salary</span><span className="font-mono font-semibold" style={{ color: cfg.colors.primary }}>{formatSalary(job.salaryMin, job.salaryMax)}</span></div>
-            <div><span className="mb-1 block text-gray-500">Category</span><span className="font-semibold capitalize text-brand-dark">{job.category}</span></div>
-            <div><span className="mb-1 block text-gray-500">Posted</span><span className="font-semibold text-brand-dark">{new Date(job.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</span></div>
-            <div><span className="mb-1 block text-gray-500">Applications</span><span className="font-semibold text-brand-dark">{job.applications.length}</span></div>
+            <div><span className="mb-1 block text-slate-500 dark:text-slate-400">Salary</span><span className="font-mono font-semibold text-blue-600 dark:text-blue-400">{formatSalary(job.salaryMin, job.salaryMax)}</span></div>
+            <div><span className="mb-1 block text-slate-500 dark:text-slate-400">Category</span><span className="font-semibold capitalize text-slate-900 dark:text-white">{job.category}</span></div>
+            <div><span className="mb-1 block text-slate-500 dark:text-slate-400">Posted</span><span className="font-semibold text-slate-900 dark:text-white">{new Date(job.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</span></div>
+            <div><span className="mb-1 block text-slate-500 dark:text-slate-400">Applications</span><span className="font-semibold text-slate-900 dark:text-white">{job.applications.length}</span></div>
           </div>
 
-          <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
-            <p className="whitespace-pre-wrap text-[13px] leading-[1.7] text-brand-dark">{job.description}</p>
+          <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-800/60 p-4">
+            <p className="whitespace-pre-wrap text-[13px] leading-[1.7] text-slate-900 dark:text-white">{job.description}</p>
           </div>
 
-          <div className="mt-6 flex items-center gap-3 border-t border-gray-100 pt-4">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white" style={{ backgroundColor: cfg.colors.primary }}>
+          <div className="mt-6 flex items-center gap-3 border-t border-slate-200/80 dark:border-slate-800/80 pt-4">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white bg-blue-600">
               {job.poster.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}
             </div>
-            <div><span className="block text-xs font-semibold text-brand-dark">Posted by {job.poster.name}</span></div>
+            <div><span className="block text-xs font-semibold text-slate-900 dark:text-white">Posted by {job.poster.name}</span></div>
           </div>
 
           {isPoster ? (
             <div className="mt-6 flex gap-3">
-              <button onClick={handleDelete} disabled={deleting} className="cursor-pointer rounded-full border border-red-200 bg-white px-5 py-2.5 text-[13px] font-semibold text-red-600" style={{ opacity: deleting ? 0.5 : 1 }}>
+              <button onClick={handleDelete} disabled={deleting} className="btn-secondary py-2.5 px-5 text-[13px] text-red-600 border-red-200 dark:border-red-800" style={{ opacity: deleting ? 0.5 : 1 }}>
                 {deleting ? "Deleting..." : "Delete Job"}
               </button>
             </div>
           ) : !hasApplied && job.status === "active" ? (
             <form onSubmit={handleApply} className="mt-6 flex flex-col gap-3">
               <div>
-                <label className="mb-1.5 block text-xs font-semibold text-brand-dark">Resume (optional)</label>
+                <label className="mb-1.5 block text-xs font-semibold text-slate-900 dark:text-white">Resume (optional)</label>
                 <input ref={resumeFileRef} type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onChange={handleResumeSelect} className="hidden" />
                 {resumeFile ? (
-                  <div className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+                  <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#EFF6FF]">
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth={2}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <span className="block truncate text-xs font-medium text-brand-dark">{resumeFile.name}</span>
+                      <span className="block truncate text-xs font-medium text-slate-900 dark:text-white">{resumeFile.name}</span>
                       <span className="text-[10px] text-emerald-600">{(resumeFile.size / 1024).toFixed(1)} KB</span>
                     </div>
                     <button type="button" onClick={removeResume} className="cursor-pointer border-none bg-none p-1 text-red-600">
@@ -249,52 +249,56 @@ export default function JobDetailPage() {
                     </button>
                   </div>
                 ) : (
-                  <button type="button" onClick={() => resumeFileRef.current?.click()} className="w-full cursor-pointer rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-6 text-center transition-all hover:border-brand-primary">
+                  <button type="button" onClick={() => resumeFileRef.current?.click()} className="w-full cursor-pointer rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60 p-6 text-center transition-all hover:border-brand-primary">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth={1.5} className="mx-auto mb-1.5"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-                    <span className="block text-xs text-gray-500">Click to upload resume</span>
-                    <span className="mt-1 block text-[10px] text-gray-500">PDF, DOC, or DOCX up to 5MB</span>
+                    <span className="block text-xs text-slate-500 dark:text-slate-400">Click to upload resume</span>
+                    <span className="mt-1 block text-[10px] text-slate-500 dark:text-slate-400">PDF, DOC, or DOCX up to 5MB</span>
                   </button>
                 )}
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-semibold text-brand-dark">Cover Letter (optional)</label>
-                <textarea value={coverLetter} onChange={(e) => setCoverLetter(e.target.value)} placeholder="Tell the employer why you're a great fit..." rows={4} className="w-full rounded-xl border border-gray-200 py-2.5 px-3 resize-y text-[13px] outline-none box-border font-sans" />
+                <label className="mb-1.5 block text-xs font-semibold text-slate-900 dark:text-white">Cover Letter (optional)</label>
+                <textarea value={coverLetter} onChange={(e) => setCoverLetter(e.target.value)} placeholder="Tell the employer why you're a great fit..." rows={4} className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 py-2.5 px-3 resize-y text-[13px] outline-none box-border font-sans" />
               </div>
               {applyError && <div className="text-xs text-red-600">{applyError}</div>}
               {applySuccess && <div className="text-xs text-emerald-600">Application submitted!</div>}
-              <Button type="submit" variant="primary" size="md" disabled={applying}>{applying ? "Submitting..." : "Apply Now"}</Button>
+              <Button type="submit" variant="primary" size="md" className="btn-primary py-2.5 text-[13px]" disabled={applying}>{applying ? "Submitting..." : "Apply Now"}</Button>
             </form>
           ) : hasApplied ? (
-            <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-medium text-emerald-600">You have already applied to this position.</div>
+            <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-medium text-emerald-600">You have already applied to this position.</div>
           ) : null}
-        </Card>
+        </div>
       </FadeIn>
 
       {isPoster && job.applications.length > 0 && (
         <FadeInUp delay={300}>
-          <Card padding="1.5rem">
-            <ColorfulBadge label="Applications" color={cfg.colors.primary} />
-            <h2 className="mb-4 mt-2 text-[1.125rem] font-medium text-brand-dark">Applications ({job.applications.length})</h2>
-            <div className="flex flex-col gap-3">
+          <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 p-6">
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1">
+                <span>Applications</span>
+              </span>
+            </div>
+            <h3 className="font-display font-bold text-xl sm:text-2xl text-slate-900 dark:text-white mt-1">Applications ({job.applications.length})</h3>
+            <div className="flex flex-col gap-3 mt-4">
               {job.applications.map((app) => (
                 <a key={app.id} href={`/jobs/applications/${app.id}`} className="block no-underline">
-                  <div className="cursor-pointer rounded-xl border border-gray-100 bg-gray-50 p-4 transition-colors hover:border-brand-primary">
+                  <div className="cursor-pointer rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-800/60 p-4 transition-colors hover:border-blue-500">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-xs font-bold text-gray-500">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-500 dark:text-slate-400">
                           {app.applicant.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}
                         </div>
                         <div>
-                          <span className="block text-xs font-semibold text-brand-dark">{app.applicant.name}</span>
-                          {app.coverLetter && <span className="mt-0.5 block max-w-[400px] truncate text-[11px] text-gray-500">{app.coverLetter}</span>}
+                          <span className="block text-xs font-semibold text-slate-900 dark:text-white">{app.applicant.name}</span>
+                          {app.coverLetter && <span className="mt-0.5 block max-w-[400px] truncate text-[11px] text-slate-500 dark:text-slate-400">{app.coverLetter}</span>}
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="rounded-md px-2 py-0.5 text-[9px] font-bold uppercase font-mono" style={{ color: APP_STATUS_COLORS[app.status], backgroundColor: `${APP_STATUS_COLORS[app.status]}12` }}>{app.status}</span>
+                        <span className="px-2.5 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 text-[10px] font-mono font-bold uppercase tracking-wider">{app.status}</span>
                         {app.status === "pending" && (
                           <div className="flex gap-1.5" onClick={(e) => e.preventDefault()}>
-                            <button onClick={(e) => { e.preventDefault(); handleApplicationAction(app.id, "shortlisted"); }} className="cursor-pointer rounded-full bg-emerald-600 px-3 py-1.5 text-[11px] font-semibold text-white border-none">Shortlist</button>
-                            <button onClick={(e) => { e.preventDefault(); handleApplicationAction(app.id, "rejected"); }} className="cursor-pointer rounded-full border border-red-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-red-600">Reject</button>
+                            <button onClick={(e) => { e.preventDefault(); handleApplicationAction(app.id, "shortlisted"); }} className="btn-primary py-1.5 px-3 text-[11px]">Shortlist</button>
+                            <button onClick={(e) => { e.preventDefault(); handleApplicationAction(app.id, "rejected"); }} className="btn-secondary py-1.5 px-3 text-[11px] text-red-600 border-red-200 dark:border-red-800">Reject</button>
                           </div>
                         )}
                       </div>
@@ -303,7 +307,7 @@ export default function JobDetailPage() {
                 </a>
               ))}
             </div>
-          </Card>
+          </div>
         </FadeInUp>
       )}
     </div>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { config, BrandConfig } from "@thrift/config";
-import { Card, Button, ColorfulBadge, FadeInUp, FadeIn } from "@thrift/ui";
+import { Card, Button, FadeInUp, FadeIn } from "@thrift/ui";
 import { formatNaira } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
 import { useParams, useRouter } from "next/navigation";
@@ -118,7 +118,7 @@ export default function ApplicationDetailPage() {
   if (!application) {
     return (
       <div className="mx-auto max-w-[800px] p-[clamp(1rem,3vw,2rem)]">
-        <Card padding="3rem"><div className="text-center"><h3 className="mb-2 text-base font-semibold text-brand-dark">Application not found</h3><p className="mb-6 text-[13px] text-gray-500">This application may have been removed or you don't have access.</p><a href="/jobs/my"><Button variant="primary" size="sm">Back to My Jobs</Button></a></div></Card></div>
+        <Card padding="3rem"><div className="text-center"><h3 className="mb-2 text-base font-semibold text-slate-900 dark:text-white">Application not found</h3><p className="mb-6 text-[13px] text-slate-500 dark:text-slate-400">This application may have been removed or you don't have access.</p><a href="/jobs/my"><Button variant="primary" size="sm">Back to My Jobs</Button></a></div></Card></div>
     );
   }
 
@@ -128,8 +128,8 @@ export default function ApplicationDetailPage() {
     <div className="mx-auto max-w-[800px] p-[clamp(1rem,3vw,2rem)]">
       <FadeIn>
         <div className="mb-6 flex items-center gap-6">
-          <a href="/jobs/my" className="text-xs font-semibold no-underline" style={{ color: cfg.colors.primary }}>&larr; My Jobs</a>
-          <a href={`/jobs/${job.id}`} className="text-xs font-semibold no-underline" style={{ color: cfg.colors.primary }}>View Job Listing</a>
+          <a href="/jobs/my" className="text-xs font-semibold no-underline text-blue-600 dark:text-blue-400">&larr; My Jobs</a>
+          <a href={`/jobs/${job.id}`} className="text-xs font-semibold no-underline text-blue-600 dark:text-blue-400">View Job Listing</a>
         </div>
       </FadeIn>
 
@@ -137,8 +137,8 @@ export default function ApplicationDetailPage() {
         <Card padding="2rem" className="mb-6">
           <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h1 className="mb-1 text-[1.25rem] font-bold text-brand-dark">Application for {job.title}</h1>
-              <p className="text-[13px] text-gray-500">{job.company || job.poster.name} &middot; {job.location}</p>
+              <h1 className="mb-1 text-[1.25rem] font-bold text-slate-900 dark:text-white">Application for {job.title}</h1>
+              <p className="text-[13px] text-slate-500 dark:text-slate-400">{job.company || job.poster.name} &middot; {job.location}</p>
             </div>
             <span className="rounded-full px-3 py-1 text-[11px] font-bold uppercase font-mono" style={{ color: APP_STATUS_COLORS[application.status], backgroundColor: `${APP_STATUS_COLORS[application.status]}12`, border: `1px solid ${APP_STATUS_COLORS[application.status]}` }}>
               {STATUS_LABELS[application.status] || application.status}
@@ -146,39 +146,39 @@ export default function ApplicationDetailPage() {
           </div>
 
           <div className="mb-6 flex flex-wrap gap-6 text-xs">
-            <div><span className="mb-1 block text-gray-500">Salary</span><span className="font-mono font-semibold" style={{ color: cfg.colors.primary }}>{formatSalary(job.salaryMin, job.salaryMax)}</span></div>
-            <div><span className="mb-1 block text-gray-500">Category</span><span className="font-semibold capitalize text-brand-dark">{job.category}</span></div>
-            <div><span className="mb-1 block text-gray-500">Job Type</span><span className="rounded-full px-2 py-0.5 text-[10px] font-bold capitalize" style={{ color: JOB_TYPE_COLORS[job.jobType], backgroundColor: `${JOB_TYPE_COLORS[job.jobType]}12` }}>{job.jobType.replace("_", " ")}</span></div>
-            <div><span className="mb-1 block text-gray-500">Job Posted</span><span className="font-semibold text-brand-dark">{new Date(job.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</span></div>
+            <div><span className="mb-1 block text-slate-500 dark:text-slate-400">Salary</span><span className="font-mono font-semibold text-blue-600 dark:text-blue-400">{formatSalary(job.salaryMin, job.salaryMax)}</span></div>
+            <div><span className="mb-1 block text-slate-500 dark:text-slate-400">Category</span><span className="font-semibold capitalize text-slate-900 dark:text-white">{job.category}</span></div>
+            <div><span className="mb-1 block text-slate-500 dark:text-slate-400">Job Type</span><span className="rounded-full px-2 py-0.5 text-[10px] font-bold capitalize" style={{ color: JOB_TYPE_COLORS[job.jobType], backgroundColor: `${JOB_TYPE_COLORS[job.jobType]}12` }}>{job.jobType.replace("_", " ")}</span></div>
+            <div><span className="mb-1 block text-slate-500 dark:text-slate-400">Job Posted</span><span className="font-semibold text-slate-900 dark:text-white">{new Date(job.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</span></div>
           </div>
 
-          <div className="mb-6 rounded-xl border border-gray-100 bg-gray-50 p-4">
-            <p className="mb-2 text-xs font-semibold text-brand-dark">Job Description</p>
-            <p className="whitespace-pre-wrap text-[13px] leading-[1.7] text-brand-dark">{job.description}</p>
+          <div className="mb-6 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-800/60 p-4">
+            <p className="mb-2 text-xs font-semibold text-slate-900 dark:text-white">Job Description</p>
+            <p className="whitespace-pre-wrap text-[13px] leading-[1.7] text-slate-900 dark:text-white">{job.description}</p>
           </div>
 
-          <div className="flex items-center gap-3 border-t border-gray-100 pt-4">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white" style={{ backgroundColor: cfg.colors.primary }}>
+          <div className="flex items-center gap-3 border-t border-slate-200/80 dark:border-slate-800/80 pt-4">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white bg-blue-600">
               {job.poster.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}
             </div>
-            <div><span className="block text-xs font-semibold text-brand-dark">Posted by {job.poster.name}</span></div>
+            <div><span className="block text-xs font-semibold text-slate-900 dark:text-white">Posted by {job.poster.name}</span></div>
           </div>
         </Card>
       </FadeIn>
 
       <FadeInUp delay={200}>
         <Card padding="2rem" className="mb-6">
-          <ColorfulBadge label="Your Application" color={APP_STATUS_COLORS[application.status]} />
+          <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold" style={{ color: APP_STATUS_COLORS[application.status], backgroundColor: `${APP_STATUS_COLORS[application.status]}12` }}>Your Application</span>
 
           <div className="mb-6 mt-4 flex flex-wrap gap-6 text-xs">
-            <div><span className="mb-1 block text-gray-500">Applied On</span><span className="font-semibold text-brand-dark">{new Date(application.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span></div>
-            <div><span className="mb-1 block text-gray-500">Last Updated</span><span className="font-semibold text-brand-dark">{new Date(application.updatedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span></div>
+            <div><span className="mb-1 block text-slate-500 dark:text-slate-400">Applied On</span><span className="font-semibold text-slate-900 dark:text-white">{new Date(application.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span></div>
+            <div><span className="mb-1 block text-slate-500 dark:text-slate-400">Last Updated</span><span className="font-semibold text-slate-900 dark:text-white">{new Date(application.updatedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span></div>
           </div>
 
           {application.resumeUrl && (
             <div className="mb-6">
-              <p className="mb-1.5 text-xs font-semibold text-brand-dark">Resume</p>
-              <a href={application.resumeUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[13px] font-medium no-underline" style={{ color: cfg.colors.primary }}>
+              <p className="mb-1.5 text-xs font-semibold text-slate-900 dark:text-white">Resume</p>
+              <a href={application.resumeUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-[13px] font-medium no-underline text-blue-600 dark:text-blue-400">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14,2 14,8 20,8" /></svg>
                 View Resume
               </a>
@@ -187,26 +187,26 @@ export default function ApplicationDetailPage() {
 
           {application.coverLetter && (
             <div>
-              <p className="mb-1.5 text-xs font-semibold text-brand-dark">Cover Letter</p>
-              <div className="rounded-xl border border-gray-100 bg-gray-50 p-4">
-                <p className="whitespace-pre-wrap text-[13px] leading-[1.7] text-brand-dark">{application.coverLetter}</p>
+              <p className="mb-1.5 text-xs font-semibold text-slate-900 dark:text-white">Cover Letter</p>
+              <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-800/60 p-4">
+                <p className="whitespace-pre-wrap text-[13px] leading-[1.7] text-slate-900 dark:text-white">{application.coverLetter}</p>
               </div>
             </div>
           )}
 
           {!application.resumeUrl && !application.coverLetter && (
-            <p className="text-[13px] italic text-gray-500">No additional details provided with this application.</p>
+            <p className="text-[13px] italic text-slate-500 dark:text-slate-400">No additional details provided with this application.</p>
           )}
 
           {isApplicant && (
-            <div className="mt-6 border-t border-gray-100 pt-4">
+            <div className="mt-6 border-t border-slate-200/80 dark:border-slate-800/80 pt-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-xs font-bold text-gray-500">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-500 dark:text-slate-400">
                   {application.applicant.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}
                 </div>
                 <div>
-                  <span className="block text-xs font-semibold text-brand-dark">{application.applicant.name}</span>
-                  <span className="text-[11px] text-gray-500">{application.applicant.email}</span>
+                  <span className="block text-xs font-semibold text-slate-900 dark:text-white">{application.applicant.name}</span>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400">{application.applicant.email}</span>
                 </div>
               </div>
             </div>
@@ -217,45 +217,45 @@ export default function ApplicationDetailPage() {
       {isPoster && (
         <FadeInUp delay={300}>
           <Card padding="1.5rem">
-            <ColorfulBadge label="Manage Application" color={cfg.colors.primary} />
-            <h2 className="mb-3 mt-2 text-sm font-semibold text-brand-dark">Applicant</h2>
+            <span className="inline-flex items-center rounded-full bg-blue-50 dark:bg-blue-900/20 px-2.5 py-0.5 text-[11px] font-semibold text-blue-600 dark:text-blue-400">Manage Application</span>
+            <h2 className="mb-3 mt-2 text-sm font-semibold text-slate-900 dark:text-white">Applicant</h2>
 
             <div className="mb-6 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-[13px] font-bold text-gray-500">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-[13px] font-bold text-slate-500 dark:text-slate-400">
                 {application.applicant.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}
               </div>
               <div>
-                <span className="block text-[13px] font-semibold text-brand-dark">{application.applicant.name}</span>
-                <span className="text-xs text-gray-500">{application.applicant.email}</span>
+                <span className="block text-[13px] font-semibold text-slate-900 dark:text-white">{application.applicant.name}</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">{application.applicant.email}</span>
               </div>
             </div>
 
             {updateSuccess && (
-              <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-medium text-emerald-600">{updateSuccess}</div>
+              <div className="mb-4 rounded-2xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 px-4 py-3 text-xs font-medium text-emerald-600 dark:text-emerald-400">{updateSuccess}</div>
             )}
 
             <div className="flex flex-wrap gap-2">
               {application.status === "pending" && (
                 <>
-                  <button onClick={() => handleStatusUpdate("reviewed")} disabled={updating} className="cursor-pointer rounded-full border border-blue-200 bg-white px-4 py-2 text-xs font-semibold text-blue-600" style={{ opacity: updating ? 0.5 : 1 }}>Mark Reviewed</button>
-                  <button onClick={() => handleStatusUpdate("shortlisted")} disabled={updating} className="cursor-pointer rounded-full border-none bg-emerald-600 px-4 py-2 text-xs font-semibold text-white" style={{ opacity: updating ? 0.5 : 1 }}>Shortlist</button>
-                  <button onClick={() => handleStatusUpdate("rejected")} disabled={updating} className="cursor-pointer rounded-full border border-red-200 bg-white px-4 py-2 text-xs font-semibold text-red-600" style={{ opacity: updating ? 0.5 : 1 }}>Reject</button>
+                  <button onClick={() => handleStatusUpdate("reviewed")} disabled={updating} className="cursor-pointer rounded-full border border-blue-200 dark:border-blue-800 bg-white dark:bg-slate-800 px-4 py-2 text-xs font-semibold text-blue-600 dark:text-blue-400 disabled:opacity-50">Mark Reviewed</button>
+                  <button onClick={() => handleStatusUpdate("shortlisted")} disabled={updating} className="cursor-pointer rounded-full border-none bg-emerald-600 px-4 py-2 text-xs font-semibold text-white disabled:opacity-50">Shortlist</button>
+                  <button onClick={() => handleStatusUpdate("rejected")} disabled={updating} className="cursor-pointer rounded-full border border-red-200 dark:border-red-800 bg-white dark:bg-slate-800 px-4 py-2 text-xs font-semibold text-red-600 dark:text-red-400 disabled:opacity-50">Reject</button>
                 </>
               )}
               {application.status === "reviewed" && (
                 <>
-                  <button onClick={() => handleStatusUpdate("shortlisted")} disabled={updating} className="cursor-pointer rounded-full border-none bg-emerald-600 px-4 py-2 text-xs font-semibold text-white" style={{ opacity: updating ? 0.5 : 1 }}>Shortlist</button>
-                  <button onClick={() => handleStatusUpdate("rejected")} disabled={updating} className="cursor-pointer rounded-full border border-red-200 bg-white px-4 py-2 text-xs font-semibold text-red-600" style={{ opacity: updating ? 0.5 : 1 }}>Reject</button>
+                  <button onClick={() => handleStatusUpdate("shortlisted")} disabled={updating} className="cursor-pointer rounded-full border-none bg-emerald-600 px-4 py-2 text-xs font-semibold text-white disabled:opacity-50">Shortlist</button>
+                  <button onClick={() => handleStatusUpdate("rejected")} disabled={updating} className="cursor-pointer rounded-full border border-red-200 dark:border-red-800 bg-white dark:bg-slate-800 px-4 py-2 text-xs font-semibold text-red-600 dark:text-red-400 disabled:opacity-50">Reject</button>
                 </>
               )}
               {application.status === "shortlisted" && (
                 <>
-                  <button onClick={() => handleStatusUpdate("accepted")} disabled={updating} className="cursor-pointer rounded-full border-none bg-emerald-600 px-4 py-2 text-xs font-semibold text-white" style={{ opacity: updating ? 0.5 : 1 }}>Accept</button>
-                  <button onClick={() => handleStatusUpdate("rejected")} disabled={updating} className="cursor-pointer rounded-full border border-red-200 bg-white px-4 py-2 text-xs font-semibold text-red-600" style={{ opacity: updating ? 0.5 : 1 }}>Reject</button>
+                  <button onClick={() => handleStatusUpdate("accepted")} disabled={updating} className="cursor-pointer rounded-full border-none bg-emerald-600 px-4 py-2 text-xs font-semibold text-white disabled:opacity-50">Accept</button>
+                  <button onClick={() => handleStatusUpdate("rejected")} disabled={updating} className="cursor-pointer rounded-full border border-red-200 dark:border-red-800 bg-white dark:bg-slate-800 px-4 py-2 text-xs font-semibold text-red-600 dark:text-red-400 disabled:opacity-50">Reject</button>
                 </>
               )}
               {!["pending", "reviewed", "shortlisted"].includes(application.status) && (
-                <p className="text-xs italic text-gray-500">This application has been {application.status}.</p>
+                <p className="text-xs italic text-slate-500 dark:text-slate-400">This application has been {application.status}.</p>
               )}
             </div>
           </Card>

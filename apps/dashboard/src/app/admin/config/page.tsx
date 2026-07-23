@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Card, FadeIn, FadeInUp } from "@thrift/ui";
 import { useAuth } from "@/lib/auth-context";
-import { PageHeader } from "@/components/PageHeader";
+import { Settings } from "lucide-react";
 import { ActionMessage, useFlashMessage } from "@/components/AdminShared";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -79,17 +79,28 @@ export default function AdminConfigPage() {
 
   return (
     <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
-      <PageHeader badgeLabel="Admin" heading="Platform" accentText="Configuration" description="Edit global brand, contact, and platform settings." />
+      <div className="mb-8 pt-2 pb-6 border-b border-slate-200/80 dark:border-slate-800/80">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/80 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1">
+              <Settings className="w-3.5 h-3.5 text-indigo-500" />
+              <span>Admin</span>
+            </span>
+          </div>
+          <h3 className="font-display font-bold text-xl sm:text-2xl text-slate-900 dark:text-white mt-1">Platform <span className="bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 bg-clip-text font-display font-bold text-transparent">Configuration</span></h3>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Edit global brand, contact, and platform settings.</p>
+        </div>
+      </div>
 
       <ActionMessage message={message} />
 
       {loading ? (
-        <div className="p-12 text-center text-[13px] text-gray-500">Loading config...</div>
+        <div className="p-12 text-center text-[13px] text-slate-500 dark:text-slate-400">Loading config...</div>
       ) : (
         <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-4">
           <FadeInUp delay={100}>
-            <Card padding="1.5rem">
-              <h3 className="mb-4 text-[13px] font-bold text-brand-dark">Brand</h3>
+            <Card padding="1.5rem" className="rounded-3xl">
+              <h3 className="mb-4 text-[13px] font-bold text-slate-900 dark:text-white">Brand</h3>
               {FIELDS.filter((f) => f.group === "Brand").map((f) => (
                 <Field key={f.key} label={f.label} value={cfg[f.key] as string || ""} placeholder={f.placeholder} onChange={(v) => setField(f.key, v)} />
               ))}
@@ -101,8 +112,8 @@ export default function AdminConfigPage() {
           </FadeInUp>
 
           <FadeInUp delay={200}>
-            <Card padding="1.5rem">
-              <h3 className="mb-4 text-[13px] font-bold text-brand-dark">Contact</h3>
+            <Card padding="1.5rem" className="rounded-3xl">
+              <h3 className="mb-4 text-[13px] font-bold text-slate-900 dark:text-white">Contact</h3>
               {FIELDS.filter((f) => f.group === "Contact").map((f) => (
                 <Field key={f.key} label={f.label} value={cfg[f.key] as string || ""} placeholder={f.placeholder} onChange={(v) => setField(f.key, v)} />
               ))}
@@ -114,7 +125,7 @@ export default function AdminConfigPage() {
       <FadeIn delay={300}>
         <div className="mt-6 flex justify-end">
           <button onClick={save} disabled={saving || loading}
-            className="cursor-pointer rounded-lg bg-[#16A34A] px-5 py-2.5 text-[13px] font-semibold text-white"
+            className="btn-primary"
             style={{ opacity: saving ? 0.5 : 1 }}>
             {saving ? "Saving..." : "Save Configuration"}
           </button>
@@ -127,12 +138,12 @@ export default function AdminConfigPage() {
 function Field({ label, value, placeholder, onChange }: { label: string; value: string; placeholder: string; onChange: (v: string) => void }) {
   return (
     <div className="mb-3">
-      <label className="mb-1 block text-[11px] font-semibold text-gray-500">{label}</label>
+      <label className="mb-1 block text-[11px] font-semibold text-slate-500 dark:text-slate-400">{label}</label>
       <input
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-[12px] outline-none"
+        className="w-full rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-[12px] outline-none dark:bg-slate-800 dark:text-white"
       />
     </div>
   );

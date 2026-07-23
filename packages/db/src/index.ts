@@ -1,5 +1,7 @@
 export { prisma, softDelete } from "./services/prisma";
 
+export { toNum } from "./services/decimal";
+
 export { getConfig, saveConfig } from "./services/config";
 
 export { findUserByEmail, findUserByPhone, findUserById, findUserByBankAccountNumber, createUser, setEmailVerified, setPhoneVerified, setTotpSecret, setTwoFactorEnabled, setEmail2faEnabled, updatePasswordHash, setUserIdentity, setUserBankDetails, setRegistrationProgress } from "./services/users";
@@ -76,9 +78,9 @@ export { getUserProfile, updateUserProfile } from "./services/user-profile";
 
 export { getUserGroups } from "./services/user-groups";
 
-export { getClearancesForUser, getClearanceStats } from "./services/clearances";
+export { getClearancesForUser, getClearanceStats, getUpcomingClearance } from "./services/clearances";
 
-export { getDefaultsForUser } from "./services/defaults";
+export { getDefaultsForUser, getDefaultsSummary } from "./services/defaults";
 
 export {
   getWhatsappGroups,

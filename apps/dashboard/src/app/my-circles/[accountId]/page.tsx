@@ -8,6 +8,7 @@ import { formatNaira } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
 import { SkeletonCard } from "@/components/Skeleton";
+import { SimpleTable, SimpleColumn } from "@/components/SimpleTable";
 
 const fallback = config;
 
@@ -198,7 +199,7 @@ export default function AccountDetailPage() {
       <div className="mx-auto max-w-[1024px] p-[clamp(1rem,3vw,2rem)]">
         <Card padding="3rem">
           <div className="text-center">
-            <h3 className="mb-2 text-[1rem] font-semibold text-brand-dark">Account not found</h3>
+            <h3 className="mb-2 text-[1rem] font-semibold text-slate-900 dark:text-white">Account not found</h3>
             <Button variant="primary" size="sm" onClick={() => router.push("/my-circles")}>Back to My Circles</Button>
           </div>
         </Card>
@@ -222,7 +223,7 @@ export default function AccountDetailPage() {
       <div className="mb-6 flex items-center gap-3">
         <button
           onClick={() => router.push("/my-circles")}
-          className="flex items-center border-0 bg-none p-1 cursor-pointer text-gray-400"
+          className="flex items-center border-0 bg-none p-1 cursor-pointer text-slate-400"
         >
           <svg
             width="20"
@@ -248,7 +249,7 @@ export default function AccountDetailPage() {
 
       {message && (
         <div
-          className="mb-6 rounded-xl px-4 py-3 text-[13px] font-medium"
+          className="mb-6 rounded-2xl px-4 py-3 text-[13px] font-medium"
           style={{
             backgroundColor: message.type === "success" ? "#ECFDF5" : "#FEF2F2",
             color: message.type === "success" ? "#059669" : "#DC2626",
@@ -262,22 +263,21 @@ export default function AccountDetailPage() {
       <div
         className="mb-8 grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-6"
       >
-        <Card padding="1.25rem">
+        <Card padding="1.5rem">
           <span
-            className="mb-1 block text-[11px] text-gray-400"
+            className="mb-1 block text-[11px] text-slate-400 dark:text-slate-500"
           >
             Principal
           </span>
           <span
-            className="font-mono text-[1.25rem] font-bold"
-            style={{ color: cfg.colors.primary }}
+            className="font-mono text-[1.25rem] font-bold text-blue-600"
           >
             {formatNaira(account.principalAmount)}
           </span>
         </Card>
-        <Card padding="1.25rem">
+        <Card padding="1.5rem">
           <span
-            className="mb-1 block text-[11px] text-gray-400"
+            className="mb-1 block text-[11px] text-slate-400 dark:text-slate-500"
           >
             Interest Earned
           </span>
@@ -287,21 +287,21 @@ export default function AccountDetailPage() {
             {formatNaira(account.interestEarned)}
           </span>
         </Card>
-        <Card padding="1.25rem">
+        <Card padding="1.5rem">
           <span
-            className="mb-1 block text-[11px] text-gray-400"
+            className="mb-1 block text-[11px] text-slate-400 dark:text-slate-500"
           >
             Maturity Value
           </span>
           <span
-            className="font-mono text-[1.25rem] font-bold text-brand-dark"
+            className="font-mono text-[1.25rem] font-bold text-slate-900 dark:text-white"
           >
             {formatNaira(account.principalAmount + account.interestEarned)}
           </span>
         </Card>
-        <Card padding="1.25rem">
+        <Card padding="1.5rem">
           <span
-            className="mb-1 block text-[11px] text-gray-400"
+            className="mb-1 block text-[11px] text-slate-400 dark:text-slate-500"
           >
             Interest Rate
           </span>
@@ -323,16 +323,16 @@ export default function AccountDetailPage() {
               {account.status.replace("_", " ")}
             </span>
             <h2
-              className="mt-2 text-[1rem] font-semibold text-brand-dark"
+              className="mt-2 text-[1rem] font-semibold text-slate-900 dark:text-white"
             >
               {account.circle.name}
             </h2>
-            <span className="text-[12px] text-gray-400">
+            <span className="text-[12px] text-slate-400 dark:text-slate-500">
               {formatNaira(account.circle.amount)} &middot;{" "}
               {formatDuration(account.circle.durationMonths)}
             </span>
           </div>
-          <div className="text-right text-[12px] text-[#666]">
+          <div className="text-right text-[12px] text-[#666] dark:text-slate-400">
             <div className="font-mono">
               Started {formatDate(account.startDate)}
             </div>
@@ -343,29 +343,29 @@ export default function AccountDetailPage() {
         </div>
 
         <div className="mb-6">
-          <div className="mb-1.5 flex justify-between text-[10px] text-gray-400">
+          <div className="mb-1.5 flex justify-between text-[10px] text-slate-400 dark:text-slate-500">
             <span>Maturity Progress</span>
             <span>{progress}%</span>
           </div>
-          <div className="h-1.5 overflow-hidden rounded-[3px] bg-gray-100">
+          <div className="h-1.5 overflow-hidden rounded-[3px] bg-slate-100 dark:bg-slate-800">
             <div
-              className="h-full rounded-[3px]"
-              style={{ width: `${progress}%`, backgroundColor: cfg.colors.primary, transition: "width 0.5s ease" }}
+              className="h-full rounded-[3px] bg-blue-600"
+              style={{ width: `${progress}%`, transition: "width 0.5s ease" }}
             />
           </div>
         </div>
 
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-4 rounded-xl bg-gray-50 p-4 text-[12px]">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-4 text-[12px]">
           <div>
-            <span className="mb-1 block text-gray-400">
+            <span className="mb-1 block text-slate-400 dark:text-slate-500">
               Deposit Amount
             </span>
-            <span className="font-mono font-semibold text-brand-dark">
+            <span className="font-mono font-semibold text-slate-900 dark:text-white">
               {formatNaira(account.circle.amount)}
             </span>
           </div>
           <div>
-            <span className="mb-1 block text-gray-400">
+            <span className="mb-1 block text-slate-400 dark:text-slate-500">
               Total Withdrawn
             </span>
             <span className="font-mono font-semibold" style={{ color: account.totalWithdrawn > 0 ? "#DC2626" : "#2D2D2D" }}>
@@ -373,7 +373,7 @@ export default function AccountDetailPage() {
             </span>
           </div>
           <div>
-            <span className="mb-1 block text-gray-400">
+            <span className="mb-1 block text-slate-400 dark:text-slate-500">
               Weekly Interest
             </span>
             <span className="font-mono font-semibold text-emerald-500">
@@ -386,10 +386,10 @@ export default function AccountDetailPage() {
           </div>
           {account.lastInterestCalculation && (
             <div>
-              <span className="mb-1 block text-gray-400">
+              <span className="mb-1 block text-slate-400 dark:text-slate-500">
                 Last Interest Calc
               </span>
-              <span className="font-medium text-brand-dark">
+              <span className="font-medium text-slate-900 dark:text-white">
                 {formatDate(account.lastInterestCalculation)}
               </span>
             </div>
@@ -398,7 +398,7 @@ export default function AccountDetailPage() {
 
         <div className="mt-6 flex flex-wrap gap-2">
           {account.status === "reversed" && (
-            <div className="w-full rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[12px] font-medium text-red-700">
+            <div className="w-full rounded-lg border border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20 px-3 py-2 text-[12px] font-medium text-red-700 dark:text-red-400">
               This subscription was reversed because the linked payment was reversed or refunded. Any funds debited for it have been returned to your wallet.
             </div>
           )}
@@ -455,9 +455,9 @@ export default function AccountDetailPage() {
             className="cursor-pointer rounded-full border-[1.5px] px-5 py-2 text-[12px] font-semibold transition-all duration-150"
             style={{
               backgroundColor:
-                activeTab === key ? cfg.colors.primary : "#ffffff",
+                activeTab === key ? "#2563EB" : "#ffffff",
               color: activeTab === key ? "#ffffff" : "#717171",
-              borderColor: activeTab === key ? cfg.colors.primary : "#EAEAEA",
+              borderColor: activeTab === key ? "#2563EB" : "#EAEAEA",
             }}
           >
             {label}
@@ -468,90 +468,33 @@ export default function AccountDetailPage() {
       {activeTab === "breakdown" && (
         <FadeInUp>
           <Card padding="1.5rem">
-            <h3 className="mb-4 text-[14px] font-semibold text-brand-dark">
+            <h3 className="mb-4 text-[14px] font-semibold text-slate-900 dark:text-white">
               Weekly Interest Breakdown
             </h3>
             {breakdown.length === 0 ? (
-              <div className="p-8 text-center text-[13px] text-gray-400">
+              <div className="p-8 text-center text-[13px] text-slate-400 dark:text-slate-500">
                 No breakdown available
               </div>
             ) : (
-              <div className="max-h-[480px] overflow-y-auto rounded-lg border border-gray-100">
-                <table className="w-full border-collapse text-[11px]">
-                  <thead className="sticky top-0 z-[1]">
-                    <tr className="bg-gray-50">
-                      <th
-                        className="px-3 py-2.5 text-center text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400"
-                      >
-                        Week
-                      </th>
-                      <th
-                        className="px-3 py-2.5 text-left text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400"
-                      >
-                        Date
-                      </th>
-                      <th
-                        className="px-3 py-2.5 text-right text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400"
-                      >
-                        Principal
-                      </th>
-                      <th
-                        className="px-3 py-2.5 text-right text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400"
-                      >
-                        This Week
-                      </th>
-                      <th
-                        className="px-3 py-2.5 text-right text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400"
-                      >
-                        Cumulative
-                      </th>
-                      <th
-                        className="px-3 py-2.5 text-right text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400"
-                      >
-                        Total Value
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {breakdown.map((week, idx) => {
-                      const weekDate = new Date(week.date);
-                      const isPast = weekDate <= new Date();
+              <div className="max-h-[480px] overflow-y-auto rounded-lg border border-slate-200/80 dark:border-slate-800/80">
+                <SimpleTable
+                  columns={[
+                    { key: "week", header: "Week", align: "center", render: (week, idx) => {
                       const isCurrent = idx === weeksSinceStart - 1;
-                      return (
-                        <tr
-                          key={week.week}
-                          className={isCurrent ? "bg-emerald-50" : idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
-                          style={{ opacity: isPast ? 1 : 0.6 }}
-                        >
-                          <td
-                            className="px-3 py-2 text-center font-mono"
-                            style={{ fontWeight: isCurrent ? 700 : 400, color: isCurrent ? cfg.colors.primary : "#666" }}
-                          >
-                            #{week.week}
-                          </td>
-                          <td className="px-3 py-2 font-mono text-[#666]">
-                            {formatDate(week.date)}
-                          </td>
-                          <td className="px-3 py-2 text-right font-mono text-[#666]">
-                            {formatNaira(week.principal)}
-                          </td>
-                          <td className="px-3 py-2 text-right font-mono font-medium text-emerald-500">
-                            +{formatNaira(week.interestThisWeek)}
-                          </td>
-                          <td className="px-3 py-2 text-right font-mono text-brand-dark">
-                            {formatNaira(week.cumulativeInterest)}
-                          </td>
-                          <td className="px-3 py-2 text-right font-mono font-semibold" style={{ color: cfg.colors.primary }}>
-                            {formatNaira(week.totalValue)}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                      return <span className="font-mono" style={{ fontWeight: isCurrent ? 700 : 400, color: isCurrent ? "#2563EB" : "#666" }}>#{week.week}</span>;
+                    }},
+                    { key: "date", header: "Date", render: (week) => <span className="font-mono text-[#666] dark:text-slate-400">{formatDate(week.date)}</span> },
+                    { key: "principal", header: "Principal", align: "right", render: (week) => <span className="font-mono text-[#666] dark:text-slate-400">{formatNaira(week.principal)}</span> },
+                    { key: "interestThisWeek", header: "This Week", align: "right", render: (week) => <span className="font-mono font-medium text-emerald-500">+{formatNaira(week.interestThisWeek)}</span> },
+                    { key: "cumulativeInterest", header: "Cumulative", align: "right", render: (week) => <span className="font-mono text-slate-900 dark:text-white">{formatNaira(week.cumulativeInterest)}</span> },
+                    { key: "totalValue", header: "Total Value", align: "right", render: (week) => <span className="font-mono font-semibold text-blue-600">{formatNaira(week.totalValue)}</span> },
+                  ]}
+                  data={breakdown}
+                  emptyMessage="No breakdown available"
+                />
               </div>
             )}
-            <div className="mt-4 rounded-lg bg-amber-50 p-3 text-[11px] text-[#92400E]">
+            <div className="mt-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 p-3 text-[11px] text-[#92400E] dark:text-amber-400">
               <strong>Note:</strong> Projected interest is calculated at{" "}
               <strong>{account.circle.interestRateAnnual}% p.a.</strong> simple
               interest on the principal of{" "}
@@ -566,85 +509,38 @@ export default function AccountDetailPage() {
       {activeTab === "logs" && (
         <FadeInUp>
           <Card padding="1.5rem">
-            <h3 className="mb-4 text-[14px] font-semibold text-brand-dark">
+            <h3 className="mb-4 text-[14px] font-semibold text-slate-900 dark:text-white">
               Interest Calculation History
             </h3>
             {account.interestLogs.length === 0 ? (
-              <div className="p-8 text-center text-[13px] text-gray-400">
+              <div className="p-8 text-center text-[13px] text-slate-400 dark:text-slate-500">
                 No interest calculations recorded yet
               </div>
             ) : (
-                <div className="max-h-[400px] overflow-y-auto rounded-lg border border-gray-100">
-                  <table className="w-full border-collapse text-[11px]">
-                    <thead className="sticky top-0 z-[1]">
-                      <tr className="bg-gray-50">
-                        <th
-                          className="px-3 py-2.5 text-left text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400"
-                        >
-                          Date
-                        </th>
-                        <th
-                          className="px-3 py-2.5 text-right text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400"
-                        >
-                          Principal
-                        </th>
-                        <th
-                          className="px-3 py-2.5 text-right text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400"
-                        >
-                          This Week
-                        </th>
-                        <th
-                          className="px-3 py-2.5 text-right text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400"
-                        >
-                          Rate
-                        </th>
-                        <th
-                          className="px-3 py-2.5 text-right text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400"
-                        >
-                          Cumulative
-                        </th>
-                      </tr>
-                    </thead>
-                  <tbody>
-                    {account.interestLogs
-                      .reduce(
-                        (acc, log) => {
-                          const prevCum =
-                            acc.length > 0 ? acc[acc.length - 1].cumulative : 0;
-                          acc.push({
-                            ...log,
-                            cumulative: prevCum + log.amount,
-                          });
-                          return acc;
-                        },
-                        [] as (InterestLog & { cumulative: number })[],
-                      )
-                      .reverse()
-                      .map((log, idx) => (
-                        <tr
-                          key={log.id}
-                          className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
-                        >
-                          <td className="px-3 py-2 font-mono text-[#666]">
-                            {formatDate(log.calculatedAt)}
-                          </td>
-                          <td className="px-3 py-2 text-right font-mono text-[#666]">
-                            {formatNaira(log.principalAtCalculation)}
-                          </td>
-                          <td className="px-3 py-2 text-right font-mono font-medium text-emerald-500">
-                            +{formatNaira(log.amount)}
-                          </td>
-                          <td className="px-3 py-2 text-right font-mono text-amber-500">
-                            {log.annualRate}%
-                          </td>
-                          <td className="px-3 py-2 text-right font-mono text-brand-dark">
-                            {formatNaira(log.cumulative)}
-                          </td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
-              </div>
+                <div className="max-h-[400px] overflow-y-auto rounded-lg border border-slate-200/80 dark:border-slate-800/80">
+                  {(() => {
+                    const cumData = account.interestLogs
+                      .reduce((acc, log) => {
+                        const prevCum = acc.length > 0 ? acc[acc.length - 1].cumulative : 0;
+                        acc.push({ ...log, cumulative: prevCum + log.amount });
+                        return acc;
+                      }, [] as (InterestLog & { cumulative: number })[])
+                      .reverse();
+                    return (
+                      <SimpleTable
+                        columns={[
+                          { key: "date", header: "Date", render: (log) => <span className="font-mono text-[#666] dark:text-slate-400">{formatDate(log.calculatedAt)}</span> },
+                          { key: "principal", header: "Principal", align: "right", render: (log) => <span className="font-mono text-[#666] dark:text-slate-400">{formatNaira(log.principalAtCalculation)}</span> },
+                          { key: "amount", header: "This Week", align: "right", render: (log) => <span className="font-mono font-medium text-emerald-500">+{formatNaira(log.amount)}</span> },
+                          { key: "rate", header: "Rate", align: "right", render: (log) => <span className="font-mono text-amber-500">{log.annualRate}%</span> },
+                          { key: "cumulative", header: "Cumulative", align: "right", render: (log) => <span className="font-mono text-slate-900 dark:text-white">{formatNaira(log.cumulative)}</span> },
+                        ]}
+                        data={cumData}
+                        emptyMessage="No interest calculations recorded yet"
+                      />
+                    );
+                  })()}
+                </div>
             )}
           </Card>
         </FadeInUp>
@@ -653,104 +549,37 @@ export default function AccountDetailPage() {
       {activeTab === "transactions" && (
         <FadeInUp>
           <Card padding="1.5rem">
-            <h3 className="mb-4 text-[14px] font-semibold text-brand-dark">
+            <h3 className="mb-4 text-[14px] font-semibold text-slate-900 dark:text-white">
               Transaction History
             </h3>
             {transactions.length === 0 ? (
-              <div className="p-8 text-center text-[13px] text-gray-400">
+              <div className="p-8 text-center text-[13px] text-slate-400 dark:text-slate-500">
                 No transactions yet
               </div>
             ) : (
-              <div className="max-h-[400px] overflow-y-auto rounded-lg border border-gray-100">
-                <table className="w-full border-collapse text-[11px]">
-                  <thead className="sticky top-0 z-[1]">
-                    <tr className="bg-gray-50">
-                      <th
-                        className="px-3 py-2.5 text-left text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400"
-                      >
-                        Date
-                      </th>
-                      <th
-                        className="px-3 py-2.5 text-left text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400"
-                      >
-                        Type
-                      </th>
-                      <th
-                        className="px-3 py-2.5 text-right text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400"
-                      >
-                        Amount
-                      </th>
-                      <th
-                        className="px-3 py-2.5 text-right text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400"
-                      >
-                        Status
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {transactions.map((tx, idx) => (
-                      <tr
-                        key={tx.id}
-                        className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
-                      >
-                        <td className="px-3 py-2 font-mono text-[#666]">
-                          {formatDateTime(tx.createdAt)}
-                        </td>
-                        <td className="px-3 py-2">
-                          <span
-                            style={{
-                              fontSize: "9px",
-                              fontWeight: 700,
-                              textTransform: "uppercase",
-                              fontFamily: "'JetBrains Mono', monospace",
-                              color: getTransactionTypeColor(tx.type),
-                              backgroundColor: `${getTransactionTypeColor(tx.type)}12`,
-                              padding: "0.125rem 0.5rem",
-                              borderRadius: "0.375rem",
-                            }}
-                          >
-                            {getTransactionTypeLabel(tx.type)}
-                          </span>
-                        </td>
-                        <td
-                          className="px-3 py-2 text-right font-mono font-semibold"
-                          style={{
-                            color:
-                              tx.type === "circle_withdrawal"
-                                ? "#DC2626"
-                                : tx.type === "circle_interest"
-                                  ? "#10B981"
-                                  : cfg.colors.primary,
-                          }}
-                        >
-                          {tx.type === "circle_withdrawal" ? "-" : "+"}
-                          {formatNaira(tx.amount)}
-                        </td>
-                        <td className="px-3 py-2 text-right">
-                          <span
-                            style={{
-                              fontSize: "9px",
-                              fontWeight: 600,
-                              textTransform: "uppercase",
-                              color:
-                                tx.status === "completed"
-                                  ? "#059669"
-                                  : "#D97706",
-                              backgroundColor:
-                                tx.status === "completed"
-                                  ? "#ECFDF5"
-                                  : "#FFFBEB",
-                              padding: "0.125rem 0.5rem",
-                              borderRadius: "0.375rem",
-                            }}
-                          >
-                            {tx.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="max-h-[400px] overflow-y-auto rounded-lg border border-slate-200/80 dark:border-slate-800/80">
+                <SimpleTable
+                  columns={[
+                    { key: "date", header: "Date", render: (tx) => <span className="font-mono text-[#666] dark:text-slate-400">{formatDateTime(tx.createdAt)}</span> },
+                    { key: "type", header: "Type", render: (tx) => (
+                      <span className="rounded-[0.375rem] px-2 py-0.5 text-[9px] font-bold uppercase font-mono" style={{ color: getTransactionTypeColor(tx.type), backgroundColor: `${getTransactionTypeColor(tx.type)}12` }}>
+                        {getTransactionTypeLabel(tx.type)}
+                      </span>
+                    )},
+                    { key: "amount", header: "Amount", align: "right", render: (tx) => (
+                      <span className="font-mono font-semibold" style={{ color: tx.type === "circle_withdrawal" ? "#DC2626" : tx.type === "circle_interest" ? "#10B981" : "#2563EB" }}>
+                        {tx.type === "circle_withdrawal" ? "-" : "+"}{formatNaira(tx.amount)}
+                      </span>
+                    )},
+                    { key: "status", header: "Status", align: "right", render: (tx) => (
+                      <span className="rounded-[0.375rem] px-2 py-0.5 text-[9px] font-semibold uppercase" style={{ color: tx.status === "completed" ? "#059669" : "#D97706", backgroundColor: tx.status === "completed" ? "#ECFDF5" : "#FFFBEB" }}>
+                        {tx.status}
+                      </span>
+                    )},
+                  ]}
+                  data={transactions}
+                  emptyMessage="No transactions yet"
+                />
               </div>
             )}
           </Card>

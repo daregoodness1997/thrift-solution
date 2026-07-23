@@ -3,11 +3,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { config, BrandConfig } from "@thrift/config";
-import { Card } from "@thrift/ui";
 import { formatNaira } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
 import { DataTable, Column, PaginationInfo } from "@/components/DataTable";
+import {
+  Activity,
+  Filter,
+} from "lucide-react";
 
 const fallback = config;
 
@@ -68,7 +71,7 @@ export default function TransactionsPage() {
     switch (type) {
       case "contribution": return "#4A5D4E";
       case "payout": return "#059669";
-      case "donation": return cfg.colors.primary;
+      case "donation": return "#2563EB";
       case "funding": return "#2563EB";
       case "referral_earning": return "#8A7D73";
       case "wallet_funding": return "#2563EB";
@@ -101,7 +104,7 @@ export default function TransactionsPage() {
       header: "Date",
       mono: true,
       render: (t) => (
-        <span className="text-gray-500">
+        <span className="text-slate-500 dark:text-slate-400">
           {new Date(t.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
         </span>
       ),
@@ -112,7 +115,7 @@ export default function TransactionsPage() {
       render: (t) => {
         const c = getTypeColor(t.type);
         return (
-          <span className="rounded-[0.375rem] border px-2 py-0.5 text-[9px] font-bold uppercase font-mono" style={{ backgroundColor: `${c}12`, color: c, borderColor: `${c}20` }}>
+          <span className="rounded-lg px-2 py-0.5 font-mono text-[9px] font-bold uppercase" style={{ backgroundColor: `${c}12`, color: c }}>
             {getTypeLabel(t.type)}
           </span>
         );
@@ -122,7 +125,7 @@ export default function TransactionsPage() {
       key: "description",
       header: "Description",
       render: (t) => (
-        <span className="font-medium text-brand-dark">{t.description || getTypeLabel(t.type)}</span>
+        <span className="font-medium text-slate-900 dark:text-white">{t.description || getTypeLabel(t.type)}</span>
       ),
     },
     {
@@ -130,7 +133,7 @@ export default function TransactionsPage() {
       header: "Reference",
       mono: true,
       render: (t) => (
-        <span className="text-[10px] text-gray-400">{t.reference.length > 20 ? t.reference.slice(0, 20) + "..." : t.reference}</span>
+        <span className="text-[10px] text-slate-400">{t.reference.length > 20 ? t.reference.slice(0, 20) + "..." : t.reference}</span>
       ),
     },
     {
@@ -138,7 +141,7 @@ export default function TransactionsPage() {
       header: "Status",
       align: "right",
       render: (t) => (
-        <span className="rounded-[0.375rem] px-2 py-0.5 text-[9px] font-bold" style={{ color: t.status === "completed" ? "#059669" : t.status === "pending" ? "#D97706" : "#717171", backgroundColor: t.status === "completed" ? "#ECFDF5" : t.status === "pending" ? "#FFFBEB" : "#F3F4F6" }}>
+        <span className={`rounded-lg px-2 py-0.5 text-[9px] font-bold ${t.status === "completed" ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400" : t.status === "pending" ? "bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400" : "bg-slate-100 dark:bg-slate-800 text-slate-500"}`}>
           {t.status}
         </span>
       ),
@@ -176,35 +179,51 @@ export default function TransactionsPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
+    <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)] space-y-6">
       <PageHeader
         badgeLabel="Contribution Ledger"
         heading="Transaction"
         accentText="History"
         description="View all your contributions, payouts, and financial activity."
         right={
-          <span className="text-[10px] font-mono text-gray-500">{pagination.total} entries</span>
+          <span className="font-mono text-[10px] text-slate-500 dark:text-slate-400">{pagination.total} entries</span>
         }
       />
 
-      <div className="mb-6 flex flex-wrap gap-2">
-        {filters.map((f) => (
-          <button
-            key={f.key}
-            onClick={() => handleFilterChange(f.key)}
-            className="cursor-pointer rounded-full border px-4 py-1.5 text-[11px] font-semibold"
-            style={{
-              borderColor: filter === f.key ? cfg.colors.primary : "#EAEAEA",
-              backgroundColor: filter === f.key ? cfg.colors.primary : "#ffffff",
-              color: filter === f.key ? "#ffffff" : "#717171",
-            }}
-          >
-            {f.label}
-          </button>
-        ))}
+      {/* Filter Tabs - LearnerDashboardView rounded-2xl style */}
+      <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 p-6">
+        <div className="mb-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 border border-blue-200/80 dark:border-blue-800/80 text-[10px] font-mono font-bold uppercase tracking-wider">
+            <Filter className="w-3 h-3" /> Filter Transactions
+          </span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {filters.map((f) => (
+            <button
+              key={f.key}
+              onClick={() => handleFilterChange(f.key)}
+              className={`cursor-pointer rounded-2xl border px-4 py-1.5 text-[11px] font-semibold transition-colors ${
+                filter === f.key
+                  ? "border-blue-600 bg-blue-600 text-white"
+                  : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:border-blue-300 hover:text-blue-600"
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <Card padding="0">
+      {/* Data Table */}
+      <div className="rounded-3xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 overflow-hidden">
+        <div className="p-6 pb-0">
+          <div className="mb-4 flex items-center justify-between">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200/80 dark:border-slate-700/80 text-[10px] font-mono font-bold uppercase tracking-wider">
+              <Activity className="w-3 h-3" /> Transaction Records
+            </span>
+            <span className="font-mono text-[10px] text-slate-400">{pagination.total} entries</span>
+          </div>
+        </div>
         <DataTable
           columns={columns}
           data={transactions}
@@ -214,13 +233,13 @@ export default function TransactionsPage() {
           loading={loading}
           emptyMessage="No transactions found."
           emptyAction={
-            <a href="/circles" className="text-[12px] font-semibold" style={{ color: cfg.colors.primary }}>
+            <a href="/circles" className="text-[12px] font-semibold text-blue-600 dark:text-blue-400">
               Join a circle to get started
             </a>
           }
-          accentColor={cfg.colors.primary}
+          accentColor="#2563EB"
         />
-      </Card>
+      </div>
     </div>
   );
 }

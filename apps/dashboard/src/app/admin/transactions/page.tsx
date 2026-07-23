@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Card, FadeIn, FadeInUp } from "@thrift/ui";
+import { Card, FadeIn, FadeInUp, StatCard } from "@thrift/ui";
 import { formatNaira, formatDate } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
-import { PageHeader } from "@/components/PageHeader";
+import { ArrowLeftRight } from "lucide-react";
 import Pagination from "@/components/Pagination";
+import { SimpleTable, SimpleColumn } from "@/components/SimpleTable";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const LIMIT = 20;
@@ -71,6 +72,16 @@ export default function AdminTransactionsPage() {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
+  const columns: SimpleColumn<Txn>[] = [
+    { key: "user", header: "User", render: (t) => <><span className="block font-semibold text-slate-900 dark:text-white">{t.user?.name || "—"}</span><span className="text-[11px] text-slate-500 dark:text-slate-400">{t.user?.email}</span></> },
+    { key: "type", header: "Type", render: (t) => <span className="capitalize text-slate-500 dark:text-slate-400">{t.type.replace(/_/g, " ")}</span> },
+    { key: "amount", header: "Amount", align: "right", mono: true, render: (t) => <span className="font-semibold text-slate-900 dark:text-white">{formatNaira(t.amount)}</span> },
+    { key: "status", header: "Status", render: (t) => <StatusBadge status={t.status} /> },
+    { key: "date", header: "Date", render: (t) => <span className="text-slate-500 dark:text-slate-400">{formatDate(new Date(t.createdAt))}</span> },
+    { key: "reference", header: "Reference", mono: true, render: (t) => <span className="text-[10px] text-slate-500 dark:text-slate-400">{t.reference || "—"}</span> },
+    { key: "actions", header: "", align: "right", render: (t) => <button onClick={(e) => { e.stopPropagation(); router.push(`/admin/transactions/${t.id}`); }} className="cursor-pointer rounded-md border border-slate-200 bg-white px-3 py-1 text-[10px] font-semibold text-slate-900 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700">View</button> },
+  ];
+
   if (authLoading || !isAdmin) return null;
 
   const statuses = ["all", "pending", "completed", "failed"];
@@ -78,7 +89,18 @@ export default function AdminTransactionsPage() {
 
   return (
     <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
-      <PageHeader badgeLabel="Admin" heading="Transaction" accentText="Ledger" description="Monitor all platform money movement, deposits, withdrawals, and loan flows." />
+      <div className="mb-8 pt-2 pb-6 border-b border-slate-200/80 dark:border-slate-800/80">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 rounded-full bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800/80 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1">
+              <ArrowLeftRight className="w-3.5 h-3.5 text-rose-500" />
+              <span>Admin</span>
+            </span>
+          </div>
+          <h3 className="font-display font-bold text-xl sm:text-2xl text-slate-900 dark:text-white mt-1">Transaction <span className="bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 bg-clip-text font-display font-bold text-transparent">Ledger</span></h3>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Monitor all platform money movement, deposits, withdrawals, and loan flows.</p>
+        </div>
+      </div>
 
       <FadeInUp delay={100}>
         <div className="mb-6 grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-3">
@@ -90,61 +112,22 @@ export default function AdminTransactionsPage() {
       </FadeInUp>
 
       <FadeInUp delay={200}>
-        <Card padding="1.5rem">
+        <Card padding="1.5rem" className="rounded-3xl">
           <div className="mb-4 flex flex-wrap gap-3">
             <input
               placeholder="Search reference, email, name..."
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              className="min-w-[200px] flex-1 rounded-lg border border-gray-200 px-3 py-2 text-[12px] outline-none"
+              className="min-w-[200px] flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[12px] outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
             />
             <FilterSelect value={typeFilter} onChange={(v) => { setTypeFilter(v); setPage(1); }} options={types} />
             <FilterSelect value={statusFilter} onChange={(v) => { setStatusFilter(v); setPage(1); }} options={statuses} />
           </div>
 
           {loading ? (
-            <div className="p-12 text-center text-[13px] text-gray-500">Loading transactions...</div>
-          ) : items.length === 0 ? (
-            <div className="p-8 text-center text-[13px] text-gray-500">No transactions found.</div>
+            <div className="p-12 text-center text-[13px] text-slate-500 dark:text-slate-400">Loading transactions...</div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse text-[12px] min-w-[820px]">
-                <thead>
-                  <tr className="border-b border-gray-100 font-mono text-[9px] uppercase tracking-[0.1em] text-gray-500">
-                    <th className="pb-3 text-left font-semibold">User</th>
-                    <th className="pb-3 text-left font-semibold">Type</th>
-                    <th className="pb-3 text-right font-semibold">Amount</th>
-                    <th className="pb-3 text-left font-semibold">Status</th>
-                    <th className="pb-3 text-left font-semibold">Date</th>
-                    <th className="pb-3 text-left font-semibold">Reference</th>
-                    <th className="pb-3 text-right font-semibold"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((t) => (
-                    <tr key={t.id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-3">
-                        <span className="block font-semibold text-brand-dark">{t.user?.name || "—"}</span>
-                        <span className="text-[11px] text-gray-500">{t.user?.email}</span>
-                      </td>
-                      <td className="py-3 capitalize text-gray-500">{t.type.replace(/_/g, " ")}</td>
-                      <td className="py-3 text-right font-mono font-semibold text-brand-dark">{formatNaira(t.amount)}</td>
-                      <td className="py-3"><StatusBadge status={t.status} /></td>
-                      <td className="py-3 text-gray-500">{formatDate(new Date(t.createdAt))}</td>
-                      <td className="py-3 font-mono text-[10px] text-gray-500">{t.reference || "—"}</td>
-                      <td className="py-3 text-right">
-                        <button
-                          onClick={() => router.push(`/admin/transactions/${t.id}`)}
-                          className="cursor-pointer rounded-md border border-gray-200 bg-white px-3 py-1 text-[10px] font-semibold text-brand-dark transition-colors hover:bg-gray-50"
-                        >
-                          View
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <SimpleTable columns={columns} data={items} minWidth="820px" emptyMessage="No transactions found." />
           )}
           <Pagination page={page} totalPages={totalPages} total={total} limit={LIMIT} onPageChange={setPage} loading={loading} />
         </Card>
@@ -153,20 +136,10 @@ export default function AdminTransactionsPage() {
   );
 }
 
-function StatCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
-  return (
-    <div className="rounded-xl border border-gray-100 bg-white p-4">
-      <div className="font-mono text-[9px] uppercase tracking-[0.08em] text-gray-500">{label}</div>
-      <div className="mt-1 text-base font-bold text-brand-dark">{value}</div>
-      {sub && <div className="mt-0.5 text-[10px] text-gray-500">{sub}</div>}
-    </div>
-  );
-}
-
 function FilterSelect({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: string[] }) {
   return (
     <select value={value} onChange={(e) => onChange(e.target.value)}
-      className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-[12px] capitalize">
+      className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-[12px] capitalize dark:border-slate-700 dark:bg-slate-800 dark:text-white">
       {options.map((o) => <option key={o} value={o}>{o}</option>)}
     </select>
   );

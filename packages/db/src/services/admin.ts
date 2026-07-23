@@ -1,4 +1,5 @@
 import { prisma } from "./prisma";
+import { toNum } from "./decimal";
 
 export async function getAdminStats() {
   const [
@@ -40,8 +41,8 @@ export async function getAdminStats() {
     }),
   ]);
 
-  const principal = circlePrincipal._sum.principalAmount ?? 0;
-  const interest = circlePrincipal._sum.interestEarned ?? 0;
+  const principal = toNum(circlePrincipal._sum.principalAmount);
+  const interest = toNum(circlePrincipal._sum.interestEarned);
 
   return {
     users: {
@@ -61,11 +62,11 @@ export async function getAdminStats() {
     },
     donations: {
       completedCount: completedDonations._count,
-      completedAmount: completedDonations._sum.amount ?? 0,
+      completedAmount: toNum(completedDonations._sum.amount),
     },
     wallet: {
-      totalCredited: walletCredits._sum.amount ?? 0,
-      totalDebited: walletDebits._sum.amount ?? 0,
+      totalCredited: toNum(walletCredits._sum.amount),
+      totalDebited: toNum(walletDebits._sum.amount),
     },
   };
 }
@@ -169,8 +170,8 @@ export async function getUserDetail(id: string) {
   let credited = 0;
   let debited = 0;
   for (const row of walletAgg) {
-    if (row.type === "credit") credited = row._sum.amount ?? 0;
-    if (row.type === "debit") debited = row._sum.amount ?? 0;
+    if (row.type === "credit") credited = toNum(row._sum.amount);
+    if (row.type === "debit") debited = toNum(row._sum.amount);
   }
 
   return {

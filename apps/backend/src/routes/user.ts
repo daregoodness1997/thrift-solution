@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { authMiddleware } from "../middleware/auth";
-import { getUserProfile, updateUserProfile, getUserGroups, setUserBankDetails, findUserByBankAccountNumber } from "@thrift/db";
+import { getUserProfile, updateUserProfile, getUserGroups, setUserBankDetails, findUserByBankAccountNumber, getDefaultsSummary, getUpcomingClearance } from "@thrift/db";
 import { resolveAccountNumber } from "../services/payments";
 
 export const userRouter = Router();
@@ -113,5 +113,27 @@ userRouter.get("/groups", authMiddleware, async (req, res) => {
   } catch (err) {
     console.error("Get user groups error:", err);
     res.status(500).json({ success: false, error: "Failed to fetch groups" });
+  }
+});
+
+userRouter.get("/overview", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user!.userId;
+
+    const [defaultsSummary, upcomingClearance] = await Promise.all([
+      getDefaultsSummary(userId),
+      getUpcomingClearance(userId),
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        defaults: defaultsSummary,
+        upcomingClearance,
+      },
+    });
+  } catch (err) {
+    console.error("Get overview error:", err);
+    res.status(500).json({ success: false, error: "Failed to fetch overview" });
   }
 });

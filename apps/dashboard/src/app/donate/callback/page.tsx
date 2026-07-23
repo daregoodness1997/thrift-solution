@@ -2,9 +2,9 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { config } from "@thrift/config";
-import { Card, Button, ColorfulBadge, FadeInUp, HourglassIcon, CheckIcon, CrossIcon } from "@thrift/ui";
+import { Card, FadeInUp } from "@thrift/ui";
 import { ColorBar } from "@thrift/ui";
+import { CheckCircle, XCircle, Clock, ArrowRight, Home } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -43,79 +43,84 @@ function CallbackContent() {
   }, [reference, provider]);
 
   return (
-    <div className="mx-auto max-w-[480px] p-[clamp(1rem,3vw,2rem)] text-center">
-      <ColorBar />
-      <FadeInUp>
-        <Card padding="2rem">
-          {status === "verifying" && (
-            <>
-              <div className="mb-4" style={{ color: config.colors.primary, animation: "spin 1s linear infinite" }}><HourglassIcon size={32} /></div>
-              <h2 className="mb-2 text-[1.25rem] font-semibold text-brand-dark">
-                Verifying Payment...
-              </h2>
-              <p className="text-[13px] text-gray-500">
-                Please wait while we confirm your donation.
-              </p>
-            </>
-          )}
-
-          {status === "success" && (
-            <>
-              <div className="mb-4 text-emerald-600"><CheckIcon size={48} /></div>
-              <ColorfulBadge label="Payment Confirmed" color="#059669" />
-              <h2 className="mt-4 mb-2 text-[1.5rem] font-semibold text-brand-dark">
-                Donation Successful!
-              </h2>
-              <p className="mb-4 text-[13px] text-gray-500 leading-[1.6]">
-                Thank you for your generous contribution. Your donation has been recorded.
-              </p>
-              {details.amount && (
-                <div className="mb-6 rounded-xl bg-green-50 px-4 py-3">
-                  <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-emerald-600">Amount</span>
-                  <span className="mt-1 block font-mono text-[1.25rem] font-bold text-emerald-600">
-                    ₦{(details.amount || 0).toLocaleString()}
-                  </span>
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 p-[clamp(1rem,3vw,2rem)]">
+      <div className="mx-auto max-w-[480px] w-full text-center">
+        <ColorBar />
+        <FadeInUp>
+          <Card padding="2rem" className="rounded-3xl">
+            {status === "verifying" && (
+              <>
+                <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400">
+                  <Clock className="h-8 w-8 animate-spin" />
                 </div>
-              )}
-            </>
-          )}
+                <h2 className="mb-2 font-heading text-[1.25rem] font-bold text-slate-900 dark:text-white">
+                  Verifying Payment...
+                </h2>
+                <p className="text-[13px] text-slate-500 dark:text-slate-400">
+                  Please wait while we confirm your donation.
+                </p>
+              </>
+            )}
 
-          {status === "failed" && (
-            <>
-              <div className="mb-4" style={{ color: config.colors.accent }}><CrossIcon size={48} /></div>
-              <h2 className="mb-2 text-[1.5rem] font-semibold text-brand-dark">
-                Payment Failed
-              </h2>
-              <p className="mb-6 text-[13px] text-gray-500 leading-[1.6]">
-                We couldn&apos;t verify your payment. Please try again or contact support.
-              </p>
-            </>
-          )}
+            {status === "success" && (
+              <>
+                <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400">
+                  <CheckCircle className="h-8 w-8" />
+                </div>
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                  Payment Confirmed
+                </span>
+                <h2 className="mt-4 mb-2 font-heading text-[1.5rem] font-bold text-slate-900 dark:text-white">
+                  Donation Successful!
+                </h2>
+                <p className="mb-4 text-[13px] text-slate-500 dark:text-slate-400 leading-[1.6]">
+                  Thank you for your generous contribution. Your donation has been recorded.
+                </p>
+                {details.amount && (
+                  <div className="mb-6 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 px-4 py-3">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-emerald-600 dark:text-emerald-400">Amount</span>
+                    <span className="mt-1 block font-mono text-[1.25rem] font-bold text-emerald-600 dark:text-emerald-400">
+                      ₦{(details.amount || 0).toLocaleString()}
+                    </span>
+                  </div>
+                )}
+              </>
+            )}
 
-          <div className="flex justify-center gap-3">
-            <a href="/donate" className="inline-flex items-center rounded-full px-6 py-3 text-[14px] font-semibold text-white no-underline transition-all duration-200" style={{ backgroundColor: config.colors.primary }}>
-              {status === "success" ? "Make Another" : "Try Again"}
-            </a>
-            <a href="/donations" className="inline-flex items-center rounded-full border border-gray-200 bg-white px-6 py-3 text-[14px] font-semibold text-gray-500 no-underline transition-all duration-200">
-              View Donations
-            </a>
-          </div>
-        </Card>
-      </FadeInUp>
+            {status === "failed" && (
+              <>
+                <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-950 text-red-600 dark:text-red-400">
+                  <XCircle className="h-8 w-8" />
+                </div>
+                <h2 className="mb-2 font-heading text-[1.5rem] font-bold text-slate-900 dark:text-white">
+                  Payment Failed
+                </h2>
+                <p className="mb-6 text-[13px] text-slate-500 dark:text-slate-400 leading-[1.6]">
+                  We couldn&apos;t verify your payment. Please try again or contact support.
+                </p>
+              </>
+            )}
 
-      <style jsx>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
+            <div className="flex justify-center gap-3">
+              <a href="/donate" className="btn-primary text-[14px] py-3 px-6 rounded-xl no-underline">
+                <span>{status === "success" ? "Make Another" : "Try Again"}</span>
+                <ArrowRight className="h-4 w-4" />
+              </a>
+              <a href="/donations" className="btn-secondary text-[14px] py-3 px-6 rounded-xl no-underline">
+                <Home className="h-4 w-4" />
+                <span>View Donations</span>
+              </a>
+            </div>
+          </Card>
+        </FadeInUp>
+      </div>
     </div>
   );
 }
 
 export default function DonateCallbackPage() {
   return (
-    <Suspense fallback={<div className="p-16 text-center text-gray-400">Loading...</div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-400">Loading...</div>}>
       <CallbackContent />
     </Suspense>
   );

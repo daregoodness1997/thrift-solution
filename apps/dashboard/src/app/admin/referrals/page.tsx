@@ -7,6 +7,7 @@ import { formatNaira, formatDate } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
 import Pagination from "@/components/Pagination";
+import { SimpleTable, SimpleColumn } from "@/components/SimpleTable";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const LIMIT = 20;
@@ -83,13 +84,71 @@ export default function AdminReferralsPage() {
 
   const statuses = ["all", "pending", "credited", "cancelled"];
 
+  const columns: SimpleColumn<Earning>[] = [
+    {
+      key: "referrer",
+      header: "Referrer",
+      render: (e) => (
+        <>
+          <span className="block font-semibold text-slate-900 dark:text-white">{e.referrer?.name || "—"}</span>
+          <span className="text-[11px] text-slate-500 dark:text-slate-400">{e.referrer?.email}</span>
+        </>
+      ),
+    },
+    {
+      key: "referred",
+      header: "Referred",
+      render: (e) => (
+        <>
+          <span className="block text-slate-500 dark:text-slate-400">{e.referredUser?.name || "—"}</span>
+          <span className="text-[11px] text-slate-500 dark:text-slate-400">{e.referredUser?.email}</span>
+        </>
+      ),
+    },
+    {
+      key: "amount",
+      header: "Amount",
+      align: "right",
+      mono: true,
+      render: (e) => formatNaira(e.amount),
+    },
+    {
+      key: "level",
+      header: "Level",
+      render: (e) => `L${e.level}`,
+    },
+    {
+      key: "status",
+      header: "Status",
+      render: (e) => <StatusBadge status={e.status} />,
+    },
+    {
+      key: "date",
+      header: "Date",
+      render: (e) => formatDate(new Date(e.createdAt)),
+    },
+    {
+      key: "action",
+      header: "Action",
+      align: "right",
+      render: (e) =>
+        e.status === "pending" ? (
+          <button onClick={(ev) => { ev.stopPropagation(); pay(e); }} disabled={busyId === e.id}
+            className="cursor-pointer rounded-md border border-emerald-600/25 bg-emerald-600/10 px-2 py-1 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400"
+            style={{ opacity: busyId === e.id ? 0.5 : 1 }}>
+            {busyId === e.id ? "..." : "Pay"}
+          </button>
+        ) : <span className="text-[10px] text-slate-400">—</span>,
+    },
+  ];
+
   return (
     <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
       <PageHeader badgeLabel="Admin" heading="Referral" accentText="Earnings" description="Review referral bonuses and pay out pending earnings to members." />
 
       {message && (
         <FadeIn>
-          <div className={`mb-6 rounded-xl border px-4 py-3 text-[13px] font-medium ${message.type === "success" ? "bg-emerald-50 text-emerald-600 border-emerald-200" : "bg-red-50 text-red-600 border-red-200"}`}>
+          <div className={`mb-6 rounded-2xl border px-4 py-3 text-[13px] font-medium ${message.type === "success" ? "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800" : "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800"}`}>
             {message.text}
           </div>
         </FadeIn>
@@ -97,10 +156,10 @@ export default function AdminReferralsPage() {
 
       <FadeInUp delay={100}>
         <div className="mb-6 grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-3">
-          <div className="rounded-xl border border-[#FDE68A] bg-amber-50 p-4">
-            <div className="font-mono text-[9px] uppercase tracking-[0.08em] text-amber-600">Pending Payout</div>
-            <div className="mt-1 text-base font-bold text-amber-600">{formatNaira(pending.amount)}</div>
-            <div className="mt-0.5 text-[10px] text-gray-500">{pending.count} earnings</div>
+          <div className="rounded-2xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 p-4">
+            <div className="font-mono text-[9px] uppercase tracking-[0.08em] text-amber-600 dark:text-amber-400">Pending Payout</div>
+            <div className="mt-1 text-base font-bold text-amber-600 dark:text-amber-400">{formatNaira(pending.amount)}</div>
+            <div className="mt-0.5 text-[10px] text-slate-500 dark:text-slate-400">{pending.count} earnings</div>
           </div>
         </div>
       </FadeInUp>
@@ -109,58 +168,17 @@ export default function AdminReferralsPage() {
         <Card padding="1.5rem">
           <div className="mb-4 flex flex-wrap gap-3">
             <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-              className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-[12px] capitalize">
+              className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-[12px] capitalize dark:text-white">
               {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
 
           {loading ? (
-            <div className="p-12 text-center text-[13px] text-gray-500">Loading earnings...</div>
+            <div className="p-12 text-center text-[13px] text-slate-500 dark:text-slate-400">Loading earnings...</div>
           ) : items.length === 0 ? (
-            <div className="p-8 text-center text-[13px] text-gray-500">No referral earnings found.</div>
+            <div className="p-8 text-center text-[13px] text-slate-500 dark:text-slate-400">No referral earnings found.</div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse text-[12px] min-w-[820px]">
-                <thead>
-                  <tr className="border-b border-gray-100 font-mono text-[9px] uppercase tracking-[0.1em] text-gray-500">
-                    <th className="pb-3 text-left font-semibold">Referrer</th>
-                    <th className="pb-3 text-left font-semibold">Referred</th>
-                    <th className="pb-3 text-right font-semibold">Amount</th>
-                    <th className="pb-3 text-left font-semibold">Level</th>
-                    <th className="pb-3 text-left font-semibold">Status</th>
-                    <th className="pb-3 text-left font-semibold">Date</th>
-                    <th className="pb-3 text-right font-semibold">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((e) => (
-                    <tr key={e.id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-3">
-                        <span className="block font-semibold text-brand-dark">{e.referrer?.name || "—"}</span>
-                        <span className="text-[11px] text-gray-500">{e.referrer?.email}</span>
-                      </td>
-                      <td className="py-3">
-                        <span className="block text-gray-500">{e.referredUser?.name || "—"}</span>
-                        <span className="text-[11px] text-gray-500">{e.referredUser?.email}</span>
-                      </td>
-                      <td className="py-3 text-right font-mono font-semibold text-brand-dark">{formatNaira(e.amount)}</td>
-                      <td className="py-3 text-gray-500">L{e.level}</td>
-                      <td className="py-3"><StatusBadge status={e.status} /></td>
-                      <td className="py-3 text-gray-500">{formatDate(new Date(e.createdAt))}</td>
-                      <td className="py-3 text-right">
-                        {e.status === "pending" ? (
-                          <button onClick={() => pay(e)} disabled={busyId === e.id}
-                            className="cursor-pointer rounded-md border border-emerald-600/25 bg-emerald-600/10 px-2 py-1 text-[10px] font-semibold text-emerald-600"
-                            style={{ opacity: busyId === e.id ? 0.5 : 1 }}>
-                            {busyId === e.id ? "..." : "Pay"}
-                          </button>
-                        ) : <span className="text-[10px] text-[#B0B0B0]">—</span>}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <SimpleTable columns={columns} data={items} minWidth="820px" />
           )}
           <Pagination page={page} totalPages={totalPages} total={total} limit={LIMIT} onPageChange={setPage} loading={loading} />
         </Card>
@@ -171,10 +189,10 @@ export default function AdminReferralsPage() {
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { bg: string; color: string; border: string }> = {
-    credited: { bg: "#ECFDF5", color: "#059669", border: "#A7F3D0" },
-    pending: { bg: "#FFFBEB", color: "#D97706", border: "#FDE68A" },
-    cancelled: { bg: "#FEF2F2", color: "#DC2626", border: "#FECACA" },
+    credited: { bg: "bg-emerald-50 dark:bg-emerald-900/20", color: "text-emerald-600 dark:text-emerald-400", border: "border-emerald-200 dark:border-emerald-800" },
+    pending: { bg: "bg-amber-50 dark:bg-amber-900/20", color: "text-amber-600 dark:text-amber-400", border: "border-amber-200 dark:border-amber-800" },
+    cancelled: { bg: "bg-red-50 dark:bg-red-900/20", color: "text-red-600 dark:text-red-400", border: "border-red-200 dark:border-red-800" },
   };
-  const s = map[status] || { bg: "#F3F4F6", color: "#4B5563", border: "#E5E7EB" };
-  return <span className="rounded-md px-2 py-0.5 font-mono text-[9px] font-bold uppercase" style={{ backgroundColor: s.bg, color: s.color, border: `1px solid ${s.border}` }}>{status}</span>;
+  const s = map[status] || { bg: "bg-slate-50 dark:bg-slate-800", color: "text-slate-600 dark:text-slate-400", border: "border-slate-200 dark:border-slate-700" };
+  return <span className={`rounded-md px-2 py-0.5 font-mono text-[9px] font-bold uppercase border ${s.bg} ${s.color} ${s.border}`}>{status}</span>;
 }

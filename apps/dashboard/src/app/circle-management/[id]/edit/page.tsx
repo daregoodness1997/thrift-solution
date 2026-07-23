@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { config, BrandConfig } from "@thrift/config";
-import { Card, Button, ColorfulBadge, FadeInUp } from "@thrift/ui";
+import { Card, Button, FadeInUp } from "@thrift/ui";
 import { formatNaira } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter, useParams } from "next/navigation";
@@ -271,25 +271,25 @@ export default function EditCirclePage() {
         <Card padding="2rem">
           <div className="flex flex-col gap-6">
             <div>
-              <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Name *</label>
+              <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Name *</label>
               <input type="text" value={form.name} onChange={(e) => setForm((p) => ({ ...p!, name: e.target.value }))}
                 placeholder="e.g. Gold Circle"
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-[13px] outline-none" />
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-[13px] outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white" />
             </div>
 
             <div>
-              <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Description</label>
+              <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Description</label>
               <textarea value={form.description} onChange={(e) => setForm((p) => ({ ...p!, description: e.target.value }))}
                 placeholder="Optional description"
                 rows={2}
-                className="w-full resize-y rounded-lg border border-gray-200 px-3 py-2 text-[13px] outline-none" />
+                className="w-full resize-y rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-[13px] outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white" />
             </div>
 
             <div>
-              <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Circle Image URL</label>
+              <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Circle Image URL</label>
               <input type="text" value={form.imageUrl} onChange={(e) => setForm((p) => ({ ...p!, imageUrl: e.target.value }))}
                 placeholder="https://example.com/circle-image.jpg"
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-[13px] outline-none" />
+                className="w-full rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-[13px] outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white" />
               {form.imageUrl && (
                 <div className="mt-2 h-24 w-full overflow-hidden rounded-lg">
                   <img src={form.imageUrl} alt="Preview" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
@@ -298,7 +298,7 @@ export default function EditCirclePage() {
             </div>
 
             <div>
-              <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Cycle Type *</label>
+              <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Cycle Type *</label>
               <div className="grid grid-cols-2 gap-2">
                 {([
                   { v: "deposit", label: "Lump Deposit", desc: "One-time deposit" },
@@ -306,9 +306,9 @@ export default function EditCirclePage() {
                 ] as const).map((opt) => (
                   <button key={opt.v} type="button" onClick={() => setForm((p) => ({ ...p!, cycleType: opt.v }))}
                     className="cursor-pointer rounded-lg border p-3 text-left"
-                    style={{ borderColor: form.cycleType === opt.v ? cfg.colors.primary : "#e5e7eb", backgroundColor: form.cycleType === opt.v ? `${cfg.colors.primary}08` : "#fff" }}>
-                    <span className="block text-[12px] font-semibold text-brand-dark">{opt.label}</span>
-                    <span className="text-[10px] text-gray-500">{opt.desc}</span>
+                    style={{ borderColor: form.cycleType === opt.v ? "#2563EB" : "#e5e7eb", backgroundColor: form.cycleType === opt.v ? "#EFF6FF" : "#fff" }}>
+                    <span className="block text-[12px] font-semibold text-slate-900 dark:text-white">{opt.label}</span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400">{opt.desc}</span>
                   </button>
                 ))}
               </div>
@@ -317,50 +317,50 @@ export default function EditCirclePage() {
             {form.cycleType === "deposit" ? (
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Deposit Amount *</label>
+                  <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Deposit Amount *</label>
                   <input type="number" value={form.amount} onChange={(e) => setForm((p) => ({ ...p!, amount: e.target.value }))}
                     placeholder="e.g. 25000"
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 font-mono text-[13px] outline-none" />
+                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 font-mono text-[13px] outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white" />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Duration (months) *</label>
+                  <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Duration (months) *</label>
                   <input type="number" value={form.durationMonths} onChange={(e) => setForm((p) => ({ ...p!, durationMonths: e.target.value }))}
                     placeholder="e.g. 12"
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 font-mono text-[13px] outline-none" />
+                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 font-mono text-[13px] outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white" />
                 </div>
               </div>
             ) : (
               <>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Weekly Amount *</label>
+                    <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Weekly Amount *</label>
                     <input type="number" value={form.weeklyAmount} onChange={(e) => setForm((p) => ({ ...p!, weeklyAmount: e.target.value }))}
                       placeholder="e.g. 5000"
-                      className="w-full rounded-lg border border-gray-200 px-3 py-2 font-mono text-[13px] outline-none" />
+                      className="w-full rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 font-mono text-[13px] outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white" />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Total Weeks *</label>
+                    <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Total Weeks *</label>
                     <input type="number" value={form.totalWeeks} onChange={(e) => setForm((p) => ({ ...p!, totalWeeks: e.target.value }))}
                       placeholder="e.g. 52"
-                      className="w-full rounded-lg border border-gray-200 px-3 py-2 font-mono text-[13px] outline-none" />
+                      className="w-full rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 font-mono text-[13px] outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white" />
                   </div>
                 </div>
                 {form.totalWeeks && Number(form.totalWeeks) > 0 && (
-                  <p className="text-[11px] text-gray-500">
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
                     Maturity: ~{Math.ceil(Number(form.totalWeeks) / 4.345)} month(s) ({form.totalWeeks} weeks from start).
                   </p>
                 )}
-                <div className="rounded-lg border border-gray-200 p-4">
+                <div className="rounded-lg border border-slate-200 dark:border-slate-700 p-4">
                   <div className="mb-2">
-                    <label className="block text-[11px] font-semibold text-brand-dark">Initial Weeks Collection</label>
-                    <p className="text-[11px] text-gray-500">Number of weeks collected upfront when a user joins</p>
+                    <label className="block text-[11px] font-semibold text-slate-900 dark:text-white">Initial Weeks Collection</label>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">Number of weeks collected upfront when a user joins</p>
                   </div>
                   <div className="flex items-center gap-3">
                     <input type="number" min={1} max={Number(form.totalWeeks) || 52} value={form.initialWeeksCount} onChange={(e) => setForm((p) => ({ ...p!, initialWeeksCount: e.target.value }))}
-                      className="w-24 rounded-lg border border-gray-200 px-3 py-2 font-mono text-[13px] outline-none" />
-                    <span className="text-[11px] text-gray-500">weeks</span>
+                      className="w-24 rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 font-mono text-[13px] outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white" />
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400">weeks</span>
                     {form.weeklyAmount && Number(form.weeklyAmount) > 0 && form.initialWeeksCount && Number(form.initialWeeksCount) > 0 && (
-                      <span className="ml-auto text-[11px] font-semibold text-brand-dark">
+                      <span className="ml-auto text-[11px] font-semibold text-slate-900 dark:text-white">
                         Upfront: {formatNaira(Number(form.weeklyAmount) * Number(form.initialWeeksCount))}
                       </span>
                     )}
@@ -371,50 +371,50 @@ export default function EditCirclePage() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Interest Rate (% p.a.) *</label>
+                <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Interest Rate (% p.a.) *</label>
                 <input type="number" step="0.1" value={form.interestRateAnnual} onChange={(e) => setForm((p) => ({ ...p!, interestRateAnnual: e.target.value }))}
                   placeholder="e.g. 10"
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 font-mono text-[13px] outline-none" />
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 font-mono text-[13px] outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white" />
               </div>
               <div>
-                <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Max Accounts/User</label>
+                <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Max Accounts/User</label>
                 <input type="number" min={0} value={form.maxAccountsPerUser} onChange={(e) => setForm((p) => ({ ...p!, maxAccountsPerUser: e.target.value }))}
                   placeholder="∞ (no limit)"
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 font-mono text-[13px] outline-none" />
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 font-mono text-[13px] outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white" />
               </div>
               <div>
-                <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Max Subscribers</label>
+                <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Max Subscribers</label>
                 <input type="number" min={0} value={form.maxSubscribers} onChange={(e) => setForm((p) => ({ ...p!, maxSubscribers: e.target.value }))}
                   placeholder="∞ (no limit)"
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 font-mono text-[13px] outline-none" />
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 font-mono text-[13px] outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white" />
               </div>
             </div>
 
             <div>
-              <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Processing Fee</label>
-              <p className="mb-2 text-[11px] text-gray-500">Charged from the wallet when a member opens an account.</p>
+              <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Processing Fee</label>
+              <p className="mb-2 text-[11px] text-slate-500 dark:text-slate-400">Charged from the wallet when a member opens an account.</p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Type</label>
+                  <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Type</label>
                   <select value={form.processingFeeType} onChange={(e) => setForm((p) => ({ ...p!, processingFeeType: e.target.value as CircleFormData["processingFeeType"] }))}
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-[13px] outline-none">
+                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-[13px] outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
                     <option value="">None</option>
                     <option value="fixed">Fixed (₦)</option>
                     <option value="percent">Percent of deposit (%)</option>
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Value</label>
+                  <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Value</label>
                   <input type="number" step="0.01" value={form.processingFeeValue} onChange={(e) => setForm((p) => ({ ...p!, processingFeeValue: e.target.value }))}
                     placeholder={form.processingFeeType === "percent" ? "e.g. 2" : "e.g. 500"}
                     disabled={!form.processingFeeType}
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 font-mono text-[13px] outline-none disabled:bg-gray-100" />
+                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 font-mono text-[13px] outline-none disabled:bg-slate-100 dark:disabled:bg-slate-800 bg-white dark:bg-slate-800 text-slate-900 dark:text-white" />
                 </div>
               </div>
             </div>
 
             <div>
-              <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Payout Mode *</label>
+              <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Payout Mode *</label>
               <div className="grid grid-cols-2 gap-2">
                 {([
                   { v: "auto", label: "Auto", desc: "Credit wallet on maturity" },
@@ -422,24 +422,24 @@ export default function EditCirclePage() {
                 ] as const).map((opt) => (
                   <button key={opt.v} type="button" onClick={() => setForm((p) => ({ ...p!, payoutMode: opt.v }))}
                     className="cursor-pointer rounded-lg border p-3 text-left"
-                    style={{ borderColor: form.payoutMode === opt.v ? cfg.colors.primary : "#e5e7eb", backgroundColor: form.payoutMode === opt.v ? `${cfg.colors.primary}08` : "#fff" }}>
-                    <span className="block text-[12px] font-semibold text-brand-dark">{opt.label}</span>
-                    <span className="text-[10px] text-gray-500">{opt.desc}</span>
+                    style={{ borderColor: form.payoutMode === opt.v ? "#2563EB" : "#e5e7eb", backgroundColor: form.payoutMode === opt.v ? "#EFF6FF" : "#fff" }}>
+                    <span className="block text-[12px] font-semibold text-slate-900 dark:text-white">{opt.label}</span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400">{opt.desc}</span>
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="rounded-xl border border-gray-200 p-5">
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
               <div className="mb-4">
-                <label className="block text-[11px] font-semibold text-brand-dark">Defaults & Penalties</label>
-                <p className="text-[11px] text-gray-500">Configure what happens when weekly contributions are missed</p>
+                <label className="block text-[11px] font-semibold text-slate-900 dark:text-white">Defaults & Penalties</label>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">Configure what happens when weekly contributions are missed</p>
               </div>
 
-              <div className="mb-4 flex items-center justify-between rounded-lg bg-gray-50 p-3">
+              <div className="mb-4 flex items-center justify-between rounded-lg bg-slate-50 dark:bg-slate-800/60 p-3">
                 <div>
-                  <span className="block text-[12px] font-semibold text-brand-dark">Block Payout on Default</span>
-                  <span className="text-[11px] text-gray-500">{form.blockPayoutOnDefault ? "Outstanding defaults block maturity payouts" : "Payouts proceed regardless of defaults"}</span>
+                  <span className="block text-[12px] font-semibold text-slate-900 dark:text-white">Block Payout on Default</span>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400">{form.blockPayoutOnDefault ? "Outstanding defaults block maturity payouts" : "Payouts proceed regardless of defaults"}</span>
                 </div>
                 <button type="button" onClick={() => setForm((p) => ({ ...p!, blockPayoutOnDefault: !p!.blockPayoutOnDefault }))}
                   style={{ width: "44px", height: "24px", borderRadius: "12px", border: "none", cursor: "pointer", position: "relative", backgroundColor: form.blockPayoutOnDefault ? "#059669" : "#D1D5DB" }}>
@@ -451,22 +451,22 @@ export default function EditCirclePage() {
                 <>
                   <div className="mb-3 grid grid-cols-3 gap-3">
                     <div>
-                      <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Penalty Type</label>
+                      <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Penalty Type</label>
                       <select value={form.defaultPenaltyType} onChange={(e) => setForm((p) => ({ ...p!, defaultPenaltyType: e.target.value as "percent" | "fixed" }))}
-                        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-[13px] outline-none">
+                        className="w-full rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-[13px] outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
                         <option value="percent">Percent (%)</option>
                         <option value="fixed">Fixed (₦)</option>
                       </select>
                     </div>
                     <div>
-                      <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Penalty Value</label>
+                      <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Penalty Value</label>
                       <input type="number" step="0.01" value={form.defaultPenaltyValue} onChange={(e) => setForm((p) => ({ ...p!, defaultPenaltyValue: e.target.value }))}
                         placeholder={form.defaultPenaltyType === "percent" ? "e.g. 100" : "e.g. 500"}
-                        className="w-full rounded-lg border border-gray-200 px-3 py-2 font-mono text-[13px] outline-none" />
+                        className="w-full rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 font-mono text-[13px] outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white" />
                     </div>
                     <div>
-                      <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Clearance Cost</label>
-                      <div className="rounded-lg bg-gray-50 px-3 py-2 font-mono text-[13px]">
+                      <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Clearance Cost</label>
+                      <div className="rounded-lg bg-slate-50 dark:bg-slate-800/60 px-3 py-2 font-mono text-[13px] text-slate-900 dark:text-white">
                         {(() => {
                           const weekly = Number(form.weeklyAmount) || 0;
                           const val = Number(form.defaultPenaltyValue) || 0;
@@ -479,7 +479,7 @@ export default function EditCirclePage() {
                       </div>
                     </div>
                   </div>
-                  <p className="text-[10px] text-gray-400">
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500">
                     {form.defaultPenaltyType === "percent" && Number(form.defaultPenaltyValue) === 100
                       ? "At 100%, clearance = 2× the missed weekly amount"
                       : `Clearance = weekly amount + ${form.defaultPenaltyType === "percent" ? `${form.defaultPenaltyValue}%` : formatNaira(Number(form.defaultPenaltyValue) || 0)}`}
@@ -491,44 +491,43 @@ export default function EditCirclePage() {
             <div>
               <div className="mb-3 flex items-center justify-between">
                 <div>
-                  <label className="block text-[11px] font-semibold text-brand-dark">Maturity Addons (Rewards)</label>
-                  <p className="text-[11px] text-gray-500">Optional items members receive when circle matures (e.g., bag of rice, groundnut oil)</p>
+                  <label className="block text-[11px] font-semibold text-slate-900 dark:text-white">Maturity Addons (Rewards)</label>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">Optional items members receive when circle matures (e.g., bag of rice, groundnut oil)</p>
                 </div>
                 <button type="button" onClick={() => setShowAddonForm(!showAddonForm)}
-                  className="cursor-pointer rounded-lg px-3 py-1.5 text-[11px] font-semibold"
-                  style={{ border: `1px solid ${cfg.colors.primary}30`, backgroundColor: `${cfg.colors.primary}08`, color: cfg.colors.primary }}>
+                  className="cursor-pointer rounded-lg px-3 py-1.5 text-[11px] font-semibold border border-blue-200 bg-blue-50 text-blue-600 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
                   {showAddonForm ? "Cancel" : "+ Add Reward"}
                 </button>
               </div>
 
               {showAddonForm && (
-                <div className="mb-3 rounded-lg border border-gray-200 p-4">
+                <div className="mb-3 rounded-lg border border-slate-200 dark:border-slate-700 p-4">
                   <div className="mb-3 grid grid-cols-2 gap-3">
                     <div>
-                      <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Item Name *</label>
+                      <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Item Name *</label>
                       <input type="text" id="edit-addon-name" placeholder="e.g., Bag of Rice (10kg)"
-                        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-[13px] outline-none" />
+                        className="w-full rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-[13px] outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white" />
                     </div>
                     <div>
-                      <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Estimated Cost (₦) *</label>
+                      <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Estimated Cost (₦) *</label>
                       <input type="number" id="edit-addon-cost" placeholder="e.g., 8000"
-                        className="w-full rounded-lg border border-gray-200 px-3 py-2 font-mono text-[13px] outline-none" />
+                        className="w-full rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 font-mono text-[13px] outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white" />
                     </div>
                     <div>
-                      <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Quantity</label>
+                      <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Quantity</label>
                       <input type="number" id="edit-addon-qty" placeholder="1" defaultValue="1"
-                        className="w-full rounded-lg border border-gray-200 px-3 py-2 font-mono text-[13px] outline-none" />
+                        className="w-full rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 font-mono text-[13px] outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white" />
                     </div>
                     <div>
-                      <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Image URL (optional)</label>
+                      <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Image URL (optional)</label>
                       <input type="text" id="edit-addon-image" placeholder="https://..."
-                        className="w-full rounded-lg border border-gray-200 px-3 py-2 text-[13px] outline-none" />
+                        className="w-full rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-[13px] outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white" />
                     </div>
                   </div>
                   <div className="mb-3">
-                    <label className="mb-1.5 block text-[11px] font-semibold text-brand-dark">Description</label>
+                    <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Description</label>
                     <textarea id="edit-addon-desc" placeholder="Optional description" rows={2}
-                      className="w-full resize-y rounded-lg border border-gray-200 px-3 py-2 text-[13px] outline-none" />
+                      className="w-full resize-y rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-[13px] outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white" />
                   </div>
                   <button type="button" onClick={() => {
                     const nameEl = document.getElementById("edit-addon-name") as HTMLInputElement;
@@ -554,8 +553,7 @@ export default function EditCirclePage() {
                     descEl.value = "";
                     setShowAddonForm(false);
                   }}
-                    className="cursor-pointer rounded-lg px-3 py-1.5 text-[11px] font-semibold"
-                    style={{ backgroundColor: cfg.colors.primary, color: "#fff" }}>
+                    className="cursor-pointer rounded-lg px-3 py-1.5 text-[11px] font-semibold bg-blue-600 text-white">
                     Add to List
                   </button>
                 </div>
@@ -564,15 +562,15 @@ export default function EditCirclePage() {
               {addons.length > 0 && (
                 <div className="space-y-2">
                   {addons.map((addon, idx) => (
-                    <div key={addon.id || idx} className="flex items-center gap-3 rounded-lg bg-gray-50 p-3">
+                    <div key={addon.id || idx} className="flex items-center gap-3 rounded-lg bg-slate-50 dark:bg-slate-800/60 p-3">
                       {addon.imageUrl && (
                         <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-lg">
                           <img src={addon.imageUrl} alt={addon.name} className="h-full w-full object-cover" />
                         </div>
                       )}
                       <div className="flex-1">
-                        <span className="block text-[12px] font-semibold text-brand-dark">{addon.name}</span>
-                        <span className="text-[11px] text-gray-500">
+                        <span className="block text-[12px] font-semibold text-slate-900 dark:text-white">{addon.name}</span>
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400">
                           Qty: {addon.quantity} × {formatNaira(Number(addon.estimatedCost))}
                           {addon.description && ` — ${addon.description}`}
                         </span>
@@ -589,7 +587,7 @@ export default function EditCirclePage() {
             </div>
 
             {((form.cycleType === "deposit" && form.amount && form.durationMonths) || (form.cycleType === "weekly_contribution" && form.weeklyAmount && form.totalWeeks)) && form.interestRateAnnual && (
-              <div className="rounded-xl bg-gray-50 p-4 text-[12px]">
+              <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-4 text-[12px]">
                 {(() => {
                   const isWeekly = form.cycleType === "weekly_contribution";
                   const principal = isWeekly
@@ -600,34 +598,34 @@ export default function EditCirclePage() {
                     : Number(form.durationMonths);
                   return (
                     <>
-                      <div className="mb-1.5 font-semibold text-brand-dark">Preview</div>
+                      <div className="mb-1.5 font-semibold text-slate-900 dark:text-white">Preview</div>
                       {isWeekly ? (
                         <div className="mb-1 flex justify-between">
-                          <span className="text-gray-500">Contribution</span>
-                          <span className="font-mono font-semibold">{formatNaira(Number(form.weeklyAmount))}/wk × {form.totalWeeks}</span>
+                          <span className="text-slate-500 dark:text-slate-400">Contribution</span>
+                          <span className="font-mono font-semibold text-slate-900 dark:text-white">{formatNaira(Number(form.weeklyAmount))}/wk × {form.totalWeeks}</span>
                         </div>
                       ) : (
                         <div className="mb-1 flex justify-between">
-                          <span className="text-gray-500">Deposit</span>
-                          <span className="font-mono font-semibold">{formatNaira(Number(form.amount))}</span>
+                          <span className="text-slate-500 dark:text-slate-400">Deposit</span>
+                          <span className="font-mono font-semibold text-slate-900 dark:text-white">{formatNaira(Number(form.amount))}</span>
                         </div>
                       )}
                       <div className="mb-1 flex justify-between">
-                        <span className="text-gray-500">Total Principal</span>
-                        <span className="font-mono font-semibold">{formatNaira(principal)}</span>
+                        <span className="text-slate-500 dark:text-slate-400">Total Principal</span>
+                        <span className="font-mono font-semibold text-slate-900 dark:text-white">{formatNaira(principal)}</span>
                       </div>
                       <div className="mb-1 flex justify-between">
-                        <span className="text-gray-500">Duration</span>
-                        <span className="font-medium">{isWeekly ? `${form.totalWeeks} weeks (~${formatDuration(durationMonths)})` : formatDuration(durationMonths)}</span>
+                        <span className="text-slate-500 dark:text-slate-400">Duration</span>
+                        <span className="font-medium text-slate-900 dark:text-white">{isWeekly ? `${form.totalWeeks} weeks (~${formatDuration(durationMonths)})` : formatDuration(durationMonths)}</span>
                       </div>
                       <div className="mb-1 flex justify-between">
-                        <span className="text-gray-500">Annual Rate</span>
-                        <span className="font-medium">{form.interestRateAnnual}%</span>
+                        <span className="text-slate-500 dark:text-slate-400">Annual Rate</span>
+                        <span className="font-medium text-slate-900 dark:text-white">{form.interestRateAnnual}%</span>
                       </div>
                       {form.processingFeeType && form.processingFeeValue ? (
                         <div className="mb-1 flex justify-between">
-                          <span className="text-gray-500">Processing Fee</span>
-                          <span className="font-mono font-semibold">
+                          <span className="text-slate-500 dark:text-slate-400">Processing Fee</span>
+                          <span className="font-mono font-semibold text-slate-900 dark:text-white">
                             {form.processingFeeType === "percent"
                               ? `${form.processingFeeValue}% (${formatNaira(principal * (Number(form.processingFeeValue) / 100))})`
                               : formatNaira(Number(form.processingFeeValue))}
@@ -635,7 +633,7 @@ export default function EditCirclePage() {
                         </div>
                       ) : null}
                       <div className="flex justify-between">
-                        <span className="text-gray-500">Est. Maturity Value</span>
+                        <span className="text-slate-500 dark:text-slate-400">Est. Maturity Value</span>
                         <span className="font-mono font-bold text-emerald-600">
                           {formatNaira(principal * (1 + (Number(form.interestRateAnnual) / 100) * (durationMonths / 12)))}
                         </span>

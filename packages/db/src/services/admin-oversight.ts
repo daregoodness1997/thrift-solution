@@ -1,4 +1,5 @@
 import { prisma } from "./prisma";
+import { toNum } from "./decimal";
 
 /* ---------------- Transactions ---------------- */
 
@@ -49,7 +50,7 @@ export async function getTransactionStats() {
 
   return {
     totalCount,
-    byType: byType.map((t) => ({ type: t.type, total: t._sum.amount ?? 0, count: t._count })),
+    byType: byType.map((t) => ({ type: t.type, total: toNum(t._sum.amount), count: t._count })),
   };
 }
 
@@ -82,7 +83,7 @@ export async function getAllReferralEarnings(params: {
     page,
     limit,
     totalPages: Math.ceil(total / limit),
-    pending: { count: pendingAgg._count, amount: pendingAgg._sum.amount ?? 0 },
+    pending: { count: pendingAgg._count, amount: toNum(pendingAgg._sum.amount) },
   };
 }
 
@@ -268,7 +269,7 @@ export async function getDonationStatsAdmin() {
   ]);
 
   return {
-    totalRaised: monetaryAgg._sum.amount ?? 0,
+    totalRaised: toNum(monetaryAgg._sum.amount),
     monetaryCount: monetaryAgg._count,
     itemCount,
     byStatus: byStatus.map((s) => ({ status: s.status, count: s._count })),

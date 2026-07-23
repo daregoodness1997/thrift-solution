@@ -83,7 +83,7 @@ async function main() {
     created.accountId = account.id;
     check("account created", !!account.id);
     check("weeksContributed == 1 after open", account.weeksContributed === 1, account.weeksContributed);
-    check("principal == weeklyAmount (1000)", account.principalAmount === 1000, account.principalAmount);
+    check("principal == weeklyAmount (1000)", Number(account.principalAmount) === 1000, account.principalAmount);
     check("wallet debited to 4000", (await getWalletBalance(user.id)) === 4000);
 
     section("Force a default: drain wallet + backdate contribution attempt");
@@ -116,8 +116,8 @@ async function main() {
     const defaultsRes = await getDefaultsByUser(user.id, { status: "outstanding" });
     check("1 outstanding default exists", defaultsRes.total === 1, defaultsRes.total);
     const def = defaultsRes.items[0];
-    check("default amountDue == 1000", def?.amountDue === 1000, def?.amountDue);
-    check("default clearanceAmount == 2000 (2x)", def?.clearanceAmount === 2000, def?.clearanceAmount);
+    check("default amountDue == 1000", Number(def?.amountDue) === 1000, def?.amountDue);
+    check("default clearanceAmount == 2000 (2x)", Number(def?.clearanceAmount) === 2000, def?.clearanceAmount);
 
     const afterDefaultAcct = await getCircleAccountById(account.id);
     check("weeksDefaulted == 1", afterDefaultAcct?.weeksDefaulted === 1, afterDefaultAcct?.weeksDefaulted);

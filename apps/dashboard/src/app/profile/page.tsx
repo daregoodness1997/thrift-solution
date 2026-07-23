@@ -4,14 +4,12 @@ import { useState, useEffect, useCallback } from "react";
 import { config, BrandConfig } from "@thrift/config";
 import {
   Card,
-  Button,
-  ColorfulBadge,
   FadeInUp,
   StaggerChildren,
 } from "@thrift/ui";
 import { formatNaira, NIGERIAN_BANKS, getBankByCode } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
-import { PageHeader } from "@/components/PageHeader";
+import { User, CreditCard, PiggyBank, Star, Copy, CheckCircle2 } from "lucide-react";
 
 interface UserProfile {
   id: string;
@@ -261,7 +259,7 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="max-w-[900px] mx-auto p-[clamp(1rem,3vw,2rem)]">
-        <div className="text-center p-16 text-gray-400 text-[13px]">
+        <div className="text-center p-16 text-slate-400 text-[13px]">
           Loading profile...
         </div>
       </div>
@@ -271,7 +269,7 @@ export default function ProfilePage() {
   if (!profile) {
     return (
       <div className="max-w-[900px] mx-auto p-[clamp(1rem,3vw,2rem)]">
-        <div className="text-center p-16 text-gray-400 text-[13px]">
+        <div className="text-center p-16 text-slate-400 text-[13px]">
           Failed to load profile.
         </div>
       </div>
@@ -291,42 +289,42 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-[900px] mx-auto p-[clamp(1rem,3vw,2rem)]">
-      <PageHeader badgeLabel="Account" heading="My" accentText="Profile" />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4 mb-8">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1">
+              <User className="w-3.5 h-3.5 text-blue-500" />
+              <span>Account</span>
+            </span>
+          </div>
+          <h3 className="font-display font-bold text-xl sm:text-2xl text-slate-900 dark:text-white mt-1">My <span className="bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 bg-clip-text text-transparent">Profile</span></h3>
+        </div>
+      </div>
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-6 mb-8">
         <FadeInUp delay={200}>
-          <Card padding="1.5rem">
+          <Card padding="1.5rem" className="rounded-3xl">
             <div className="flex items-center gap-4 mb-6">
               <div
-                className="w-16 h-16 rounded-full text-white flex items-center justify-center text-2xl font-bold flex-shrink-0"
-                style={{ background: `linear-gradient(135deg, ${cfg.colors.primary}, ${cfg.colors.accent})` }}
+                className="w-16 h-16 rounded-full text-white flex items-center justify-center text-2xl font-bold flex-shrink-0 bg-gradient-to-br from-blue-600 to-blue-400"
               >
                 {initials}
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-brand-dark">
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
                   {profile.name}
                 </h2>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   {profile.email}
                 </p>
                 <div className="flex items-center gap-1.5 mt-1">
                   <div
-                    className="w-4 h-4 rounded-full flex items-center justify-center"
-                    style={{ background: `linear-gradient(135deg, ${cfg.colors.primary}, ${cfg.colors.accent})` }}
+                    className="w-4 h-4 rounded-full flex items-center justify-center bg-gradient-to-br from-blue-600 to-blue-400"
                   >
-                    <svg
-                      width="10"
-                      height="10"
-                      viewBox="0 0 24 24"
-                      fill="#ffffff"
-                    >
-                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                    </svg>
+                    <Star className="w-2.5 h-2.5 text-white" />
                   </div>
                   <span
-                    className="text-[10px] font-bold"
-                    style={{ color: cfg.colors.accent }}
+                    className="text-[10px] font-bold text-blue-500 dark:text-blue-400"
                   >
                     {profile.stats.trustLevel}
                   </span>
@@ -352,12 +350,12 @@ export default function ProfilePage() {
               ].map((item) => (
                 <div
                   key={item.label}
-                  className="p-2.5 rounded-lg bg-gray-50"
+                  className="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60"
                 >
-                  <span className="block text-[9px] uppercase tracking-[0.1em] text-gray-400 font-bold">
+                  <span className="block text-[9px] uppercase tracking-[0.1em] text-slate-400 font-bold">
                     {item.label}
                   </span>
-                  <span className="block text-[13px] font-semibold text-brand-dark mt-0.5">
+                  <span className="block text-[13px] font-semibold text-slate-900 dark:text-white mt-0.5">
                     {item.value}
                   </span>
                 </div>
@@ -367,50 +365,52 @@ export default function ProfilePage() {
         </FadeInUp>
 
         <FadeInUp delay={250}>
-          <Card padding="1.5rem">
+          <Card padding="1.5rem" className="rounded-3xl">
             <div className="mb-5">
-              <ColorfulBadge label="Account" color={cfg.colors.primary} />
-              <h3 className="text-base font-medium text-brand-dark mt-2">
+              <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1 w-fit">
+                <CreditCard className="w-3.5 h-3.5 text-blue-500" />
+                <span>Account</span>
+              </span>
+              <h3 className="text-base font-medium text-slate-900 dark:text-white mt-2">
                 Account Details
               </h3>
             </div>
 
             <div className="mb-5">
-              <span className="block text-[9px] uppercase tracking-[0.1em] text-gray-400 font-bold mb-1.5">
+              <span className="block text-[9px] uppercase tracking-[0.1em] text-slate-400 font-bold mb-1.5">
                 {virtualAccount ? "Bank Account Number" : "Account Number"}
               </span>
               <div className="flex items-center gap-2">
-                <span className="text-[1.25rem] font-mono font-bold text-brand-dark tracking-[0.05em]">
+                <span className="text-[1.25rem] font-mono font-bold text-slate-900 dark:text-white tracking-[0.05em]">
                   {virtualAccount
                     ? virtualAccount.accountNumber
                     : profile.accountNumber}
                 </span>
                 <button
                   onClick={handleCopyAccount}
-                  className="px-2 py-1 rounded-md text-[10px] font-semibold cursor-pointer transition whitespace-nowrap border"
-                  style={{
-                    borderColor: cfg.colors.primary,
-                    backgroundColor: accountCopied ? "#ECFDF5" : "transparent",
-                    color: accountCopied ? "#059669" : cfg.colors.primary,
-                  }}
+                  className={`px-2 py-1 rounded-md text-[10px] font-semibold cursor-pointer transition whitespace-nowrap border ${
+                    accountCopied
+                      ? "border-emerald-300 bg-emerald-50 text-emerald-600"
+                      : "border-blue-600 bg-transparent text-blue-600 dark:text-blue-400 dark:border-blue-400"
+                  }`}
                 >
                   {accountCopied ? "Copied!" : "Copy"}
                 </button>
               </div>
               {virtualAccount && (
-                <span className="block text-[11px] text-gray-500 mt-1">
+                <span className="block text-[11px] text-slate-500 dark:text-slate-400 mt-1">
                   {virtualAccount.bankName}
                 </span>
               )}
               {virtualAccount && (
-                <span className="block text-[13px] text-gray-500 mt-1 uppercase font-bold">
+                <span className="block text-[13px] text-slate-500 dark:text-slate-400 mt-1 uppercase font-bold">
                   {virtualAccount.accountName}
                 </span>
               )}
             </div>
 
             <div className="mb-5">
-              <span className="block text-[9px] uppercase tracking-[0.1em] text-gray-400 font-bold mb-1.5">
+              <span className="block text-[9px] uppercase tracking-[0.1em] text-slate-400 font-bold mb-1.5">
                 Account Tier
               </span>
               {(() => {
@@ -447,11 +447,11 @@ export default function ProfilePage() {
               })()}
             </div>
 
-            <div className="p-3 rounded-lg bg-gray-50">
-              <span className="block text-[9px] uppercase tracking-[0.1em] text-gray-400 font-bold mb-1">
+            <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-800/60">
+              <span className="block text-[9px] uppercase tracking-[0.1em] text-slate-400 font-bold mb-1">
                 Role
               </span>
-              <span className="text-[13px] font-semibold text-brand-dark capitalize">
+              <span className="text-[13px] font-semibold text-slate-900 dark:text-white capitalize">
                 {profile.role}
               </span>
             </div>
@@ -459,21 +459,23 @@ export default function ProfilePage() {
         </FadeInUp>
 
         <FadeInUp delay={300}>
-          <Card padding="1.5rem">
+          <Card padding="1.5rem" className="rounded-3xl">
             <div className="mb-5">
               <div className="flex justify-between items-center">
-                <ColorfulBadge label="Financial" color={cfg.colors.primary} />
+                <span className="px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1 w-fit">
+                  <PiggyBank className="w-3.5 h-3.5 text-emerald-500" />
+                  <span>Financial</span>
+                </span>
                 {!editing && (
                   <button
                     onClick={() => setEditing(true)}
-                    className="text-[11px] font-semibold bg-none border-none cursor-pointer"
-                    style={{ color: cfg.colors.primary }}
+                    className="text-[11px] font-semibold bg-none border-none cursor-pointer text-blue-600 dark:text-blue-400"
                   >
                     Edit
                   </button>
                 )}
               </div>
-              <h3 className="text-base font-medium text-brand-dark mt-2">
+              <h3 className="text-base font-medium text-slate-900 dark:text-white mt-2">
                 Financial Summary
               </h3>
             </div>
@@ -500,9 +502,9 @@ export default function ProfilePage() {
               ].map((item) => (
                 <div
                   key={item.label}
-                  className="flex justify-between items-center py-2.5 border-b border-gray-100"
+                  className="flex justify-between items-center py-2.5 border-b border-slate-200/80 dark:border-slate-800/80"
                 >
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-slate-500 dark:text-slate-400">
                     {item.label}
                   </span>
                   <span
@@ -516,20 +518,18 @@ export default function ProfilePage() {
             </div>
 
             <div className="mt-5">
-              <span className="block text-[9px] uppercase tracking-[0.1em] text-gray-400 font-bold mb-2">
+              <span className="block text-[9px] uppercase tracking-[0.1em] text-slate-400 font-bold mb-2">
                 Trust Score
               </span>
               <div className="flex gap-1">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <div
                     key={star}
-                    className="w-6 h-6 rounded-full flex items-center justify-center"
-                    style={{
-                      backgroundColor:
-                        star <= profile.stats.trustScore
-                          ? `${cfg.colors.primary}15`
-                          : "#F0F0F0",
-                    }}
+                    className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                      star <= profile.stats.trustScore
+                        ? "bg-blue-100 dark:bg-blue-900/40"
+                        : "bg-slate-100 dark:bg-slate-800"
+                    }`}
                   >
                     <svg
                       width="14"
@@ -537,7 +537,7 @@ export default function ProfilePage() {
                       viewBox="0 0 24 24"
                       fill={
                         star <= profile.stats.trustScore
-                          ? cfg.colors.accent
+                          ? "#3B82F6"
                           : "#D1D5DB"
                       }
                     >
@@ -552,9 +552,12 @@ export default function ProfilePage() {
       </div>
 
       <FadeInUp delay={400}>
-        <Card padding="1.5rem" className="mb-6">
+        <Card padding="1.5rem" className="mb-6 rounded-3xl">
           <div className="flex justify-between items-center mb-4">
-            <ColorfulBadge label="Contact" color={cfg.colors.primary} />
+            <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1 w-fit">
+              <User className="w-3.5 h-3.5 text-blue-500" />
+              <span>Contact</span>
+            </span>
             {saved && (
               <span className="text-[11px] text-emerald-600 font-medium">
                 Saved!
@@ -563,36 +566,30 @@ export default function ProfilePage() {
           </div>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] uppercase tracking-[0.1em] text-gray-400 font-bold">
+              <label className="text-[10px] uppercase tracking-[0.1em] text-slate-400 font-bold">
                 Full Name
               </label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 disabled={!editing}
-                className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-brand-dark outline-none font-sans transition-colors"
-                style={{
-                  backgroundColor: editing ? "#ffffff" : "#FAFAFA",
-                  border: `1px solid ${editing ? cfg.colors.primary : "#EAEAEA"}`,
-                }}
+                className={`bg-slate-50 dark:bg-slate-800/60 border rounded-2xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none font-sans transition-colors ${
+                  editing ? "border-blue-600 dark:border-blue-400 bg-white dark:bg-slate-800" : "border-slate-200 dark:border-slate-700"
+                }`}
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] uppercase tracking-[0.1em] text-gray-400 font-bold">
+              <label className="text-[10px] uppercase tracking-[0.1em] text-slate-400 font-bold">
                 Email
               </label>
               <input
                 value={profile.email}
                 disabled
-                className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-gray-400 outline-none font-sans"
-                style={{
-                  backgroundColor: "#FAFAFA",
-                  border: "1px solid #EAEAEA",
-                }}
+                className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-2xl px-3 py-2 text-xs text-slate-400 outline-none font-sans"
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] uppercase tracking-[0.1em] text-gray-400 font-bold">
+              <label className="text-[10px] uppercase tracking-[0.1em] text-slate-400 font-bold">
                 Phone Number
               </label>
               <input
@@ -600,47 +597,48 @@ export default function ProfilePage() {
                 onChange={(e) => setPhone(e.target.value)}
                 disabled={!editing}
                 placeholder="Not set"
-                className="bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs text-brand-dark outline-none font-sans transition-colors"
-                style={{
-                  backgroundColor: editing ? "#ffffff" : "#FAFAFA",
-                  border: `1px solid ${editing ? cfg.colors.primary : "#EAEAEA"}`,
-                }}
+                className={`bg-slate-50 dark:bg-slate-800/60 border rounded-2xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none font-sans transition-colors ${
+                  editing ? "border-blue-600 dark:border-blue-400 bg-white dark:bg-slate-800" : "border-slate-200 dark:border-slate-700"
+                }`}
               />
             </div>
           </div>
           {editing && (
             <div className="flex justify-end gap-2 mt-4">
-              <button
+               <button
                 onClick={() => {
                   setEditing(false);
                   setName(profile.name);
                 }}
-                className="px-4 py-2 rounded-full text-xs font-semibold border border-gray-200 bg-white text-gray-500 cursor-pointer"
+                className="btn-secondary py-2 px-4 text-xs"
               >
                 Cancel
               </button>
-              <Button onClick={handleSave} size="sm">
+              <button onClick={handleSave} className="btn-primary py-2 px-4 text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-md">
                 Save Changes
-              </Button>
+              </button>
             </div>
           )}
         </Card>
       </FadeInUp>
 
       <FadeInUp delay={450}>
-        <Card padding="1.5rem" className="mb-6">
+        <Card padding="1.5rem" className="mb-6 rounded-3xl">
           <div className="flex justify-between items-center mb-2">
-            <ColorfulBadge label="Payout Bank Account" color={cfg.colors.primary} />
+            <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1 w-fit">
+              <CreditCard className="w-3.5 h-3.5 text-blue-500" />
+              <span>Payout Bank Account</span>
+            </span>
             {bankSaved && (
               <span className="text-[11px] text-emerald-600 font-medium">Saved!</span>
             )}
           </div>
-          <p className="text-[12px] text-gray-500 mb-4">
+           <p className="text-[12px] text-slate-500 dark:text-slate-400 mb-4">
             Used for circle payout disbursements via bank transfer. Keep this accurate to avoid failed transfers.
           </p>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] uppercase tracking-[0.1em] text-gray-400 font-bold">Bank</label>
+              <label className="text-[10px] uppercase tracking-[0.1em] text-slate-400 font-bold">Bank</label>
               <select
                 value={bankCode}
                 onChange={(e) => {
@@ -653,8 +651,7 @@ export default function ProfilePage() {
                   setMatchedUser(null);
                   setResolveError("");
                 }}
-                className="bg-white border rounded-xl px-3 py-2 text-xs text-brand-dark outline-none font-sans"
-                style={{ border: `1px solid ${cfg.colors.primary}30` }}
+                className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none font-sans"
               >
                 <option value="">Select bank</option>
                 {NIGERIAN_BANKS.map((b) => (
@@ -665,7 +662,7 @@ export default function ProfilePage() {
               </select>
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] uppercase tracking-[0.1em] text-gray-400 font-bold">Account Number</label>
+              <label className="text-[10px] uppercase tracking-[0.1em] text-slate-400 font-bold">Account Number</label>
               <div className="flex gap-2">
                 <input
                   value={bankAccountNumber}
@@ -677,27 +674,26 @@ export default function ProfilePage() {
                   }}
                   placeholder="10-digit NUBAN"
                   maxLength={15}
-                  className="flex-1 bg-white border rounded-xl px-3 py-2 text-xs text-brand-dark outline-none font-mono"
-                  style={{ border: `1px solid ${cfg.colors.primary}30` }}
+                  className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none font-mono"
                 />
-                <Button
-                  size="sm"
-                  variant="outline"
+                <button
+                  className="btn-secondary py-2 px-4 text-xs"
                   onClick={handleResolveAccount}
                   disabled={resolving || !bankCode || bankAccountNumber.trim().length < 6}
                 >
                   {resolving ? "Verifying..." : "Verify"}
-                </Button>
+                </button>
               </div>
             </div>
             <div className="flex flex-col gap-1.5 md:col-span-2">
-              <label className="text-[10px] uppercase tracking-[0.1em] text-gray-400 font-bold">Account Name</label>
+              <label className="text-[10px] uppercase tracking-[0.1em] text-slate-400 font-bold">Account Name</label>
               <input
                 value={bankAccountName}
                 onChange={(e) => setBankAccountName(e.target.value)}
                 placeholder={resolvedName ? resolvedName : "Resolved automatically after verify"}
-                className="bg-white border rounded-xl px-3 py-2 text-xs text-brand-dark outline-none font-sans"
-                style={{ border: `1px solid ${resolvedName ? "#059669" : cfg.colors.primary}30` }}
+                className={`bg-white dark:bg-slate-800 border rounded-2xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none font-sans ${
+                  resolvedName ? "border-emerald-300 dark:border-emerald-600" : "border-slate-200 dark:border-slate-700"
+                }`}
               />
               {resolvedName && (
                 <span className="text-[10px] text-emerald-600 font-medium">
@@ -707,25 +703,25 @@ export default function ProfilePage() {
             </div>
           </div>
           {matchedUser && (
-            <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-xs font-medium text-emerald-700">
+            <div className="mt-3 rounded-2xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 px-4 py-2.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
               This account belongs to a Thrift Solution member: <strong>{matchedUser.name}</strong> ({matchedUser.accountNumber}).
               Transfers to this account will be processed in-app.
             </div>
           )}
           {resolveError && (
-            <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-xs font-medium text-red-600">
+            <div className="mt-3 rounded-2xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/40 px-4 py-2.5 text-xs font-medium text-red-600 dark:text-red-400">
               {resolveError}
             </div>
           )}
           {bankError && (
-            <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-xs font-medium text-red-600">
+            <div className="mt-3 rounded-2xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/40 px-4 py-2.5 text-xs font-medium text-red-600 dark:text-red-400">
               {bankError}
             </div>
           )}
           <div className="flex justify-end mt-4">
-            <Button onClick={handleSaveBank} size="sm" disabled={savingBank}>
+            <button onClick={handleSaveBank} className="btn-primary py-3 px-5 text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-md" disabled={savingBank}>
               {savingBank ? "Saving..." : "Save Bank Details"}
-            </Button>
+            </button>
           </div>
         </Card>
       </FadeInUp>

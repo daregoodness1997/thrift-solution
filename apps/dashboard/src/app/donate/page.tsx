@@ -2,10 +2,19 @@
 
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { config } from "@thrift/config";
-import { Card, Button, ColorfulBadge, FadeInUp } from "@thrift/ui";
+import { Card, FadeInUp } from "@thrift/ui";
 import { useAuth } from "@/lib/auth-context";
-import { PageHeader } from "@/components/PageHeader";
+import {
+  Heart,
+  CreditCard,
+  Package,
+  CheckCircle,
+  ArrowRight,
+  MessageCircle,
+  Upload,
+  X,
+  Sparkles,
+} from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -52,6 +61,9 @@ export default function DonatePage() {
   const [itemImage, setItemImage] = useState<ItemImageFile | null>(null);
 
   const itemImageRef = useRef<HTMLInputElement>(null);
+
+  const inputClass =
+    "w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3.5 py-3 text-[13px] text-slate-900 dark:text-slate-100 outline-none transition focus:border-[var(--color-brand-primary)] focus:ring-2 focus:ring-[var(--color-brand-primary)]/20 placeholder:text-slate-400 dark:placeholder:text-slate-500";
 
   useEffect(() => {
     if (!token) return;
@@ -216,22 +228,23 @@ export default function DonatePage() {
     return (
       <div className="mx-auto max-w-[900px] p-[clamp(1rem,3vw,2rem)]">
         <FadeInUp>
-          <Card padding="2rem" className="text-center">
-            <div className="mb-4 text-5xl">
-              {activeTab === "monetary" ? "\uD83C\uDF81" : "\uD83C\uDF8D"}
+          <Card padding="2rem" className="text-center rounded-3xl">
+            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400">
+              <CheckCircle className="h-8 w-8" />
             </div>
-            <h2 className="mb-2 text-2xl font-semibold text-brand-dark">
+            <h2 className="mb-2 font-heading text-2xl font-bold text-slate-900 dark:text-white">
               {activeTab === "monetary"
                 ? "Thank you for your donation!"
                 : "Item donation submitted!"}
             </h2>
-            <p className="mb-6 text-[14px] leading-[1.6] text-gray-500">
+            <p className="mb-6 text-[14px] leading-[1.6] text-slate-500 dark:text-slate-400">
               {activeTab === "monetary"
                 ? "Your payment is being processed. You will be redirected to complete the transaction."
                 : "Your item donation has been recorded. Our team will review it shortly."}
             </p>
             <div className="flex items-center justify-center gap-3">
-              <Button
+              <button
+                className="btn-primary py-3 px-6 text-xs"
                 onClick={() => {
                   setSuccess(false);
                   setAmount("");
@@ -240,10 +253,11 @@ export default function DonatePage() {
                 }}
               >
                 Make Another Donation
-              </Button>
+                <ArrowRight className="h-4 w-4" />
+              </button>
               <a
                 href="/donations"
-                className="inline-flex items-center rounded-full border border-gray-100 bg-white px-6 py-3 text-[14px] font-semibold text-gray-500 no-underline transition-all duration-200"
+                className="btn-secondary py-3 px-6 text-xs no-underline"
               >
                 View History
               </a>
@@ -256,15 +270,28 @@ export default function DonatePage() {
 
   return (
     <div className="mx-auto max-w-[900px] p-[clamp(1rem,3vw,2rem)]">
-      <PageHeader
-        badgeLabel="Support the Community"
-        heading="Make a"
-        accentText="Donation"
-        description="Contribute funds or items to support your circles and community."
-      />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4 mb-8">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1">
+              <Heart className="w-3.5 h-3.5" />
+              <span>Support the Community</span>
+            </span>
+          </div>
+          <h3 className="font-display font-bold text-xl sm:text-2xl text-slate-900 dark:text-white mt-1">
+            Make a{" "}
+            <span className="bg-gradient-to-r from-blue-600 to-emerald-500 bg-clip-text text-transparent">
+              Donation
+            </span>
+          </h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">
+            Contribute funds or items to support your circles and community.
+          </p>
+        </div>
+      </div>
 
       <FadeInUp delay={200}>
-        <div className="mb-6 flex gap-1 rounded-xl bg-[#F5F7F5] p-1">
+        <div className="mb-6 flex gap-1 rounded-2xl bg-slate-100 dark:bg-slate-800 p-1">
           {(["monetary", "item"] as const).map((tab) => (
             <button
               key={tab}
@@ -272,24 +299,23 @@ export default function DonatePage() {
                 setActiveTab(tab);
                 setError("");
               }}
-              style={{
-                flex: 1,
-                padding: "0.625rem 1rem",
-                borderRadius: "0.625rem",
-                fontSize: "13px",
-                fontWeight: 600,
-                border: "none",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-                backgroundColor: activeTab === tab ? "#ffffff" : "transparent",
-                color: activeTab === tab ? config.colors.primary : "#717171",
-                boxShadow:
-                  activeTab === tab ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
-              }}
+              className={`flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-semibold border-none cursor-pointer transition-all duration-200 ${
+                activeTab === tab
+                  ? "bg-white dark:bg-slate-900 text-[var(--color-brand-primary)] shadow-sm"
+                  : "bg-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
+              }`}
             >
-              {tab === "monetary"
-                ? "\uD83D\uDCB3 Monetary"
-                : "\uD83C\uDFFC\uFE0F Item Donation"}
+              {tab === "monetary" ? (
+                <>
+                  <CreditCard className="h-4 w-4" />
+                  Monetary
+                </>
+              ) : (
+                <>
+                  <Package className="h-4 w-4" />
+                  Item Donation
+                </>
+              )}
             </button>
           ))}
         </div>
@@ -297,7 +323,7 @@ export default function DonatePage() {
 
       {error && (
         <FadeInUp delay={50}>
-          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-[13px] text-red-600">
+          <div className="mb-4 rounded-2xl border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-900/30 p-3 text-[13px] text-red-600 dark:text-red-400">
             {error}
           </div>
         </FadeInUp>
@@ -305,16 +331,16 @@ export default function DonatePage() {
 
       {activeTab === "monetary" ? (
         <FadeInUp delay={300}>
-          <Card padding="1.5rem">
+          <Card padding="1.5rem" className="rounded-3xl">
             {groups.length > 0 && (
               <div className="mb-6">
-                <label className="mb-2 block text-[12px] font-semibold text-brand-dark">
+                <label className="mb-2 block text-[12px] font-semibold text-slate-600 dark:text-slate-300">
                   Donate to a Circle (optional)
                 </label>
                 <select
                   value={groupId}
                   onChange={(e) => setGroupId(e.target.value)}
-                  className="w-full cursor-pointer rounded-xl border border-gray-100 bg-white px-3 py-2.5 text-[13px] text-brand-dark outline-none"
+                  className="w-full cursor-pointer rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2.5 text-[13px] text-slate-900 dark:text-white outline-none focus:border-[var(--color-brand-primary)] focus:ring-2 focus:ring-[var(--color-brand-primary)]/20"
                 >
                   <option value="">General Fund</option>
                   {groups.map((g) => (
@@ -328,7 +354,7 @@ export default function DonatePage() {
             )}
 
             <div className="mb-6">
-              <label className="mb-2 block text-[12px] font-semibold text-brand-dark">
+              <label className="mb-2 block text-[12px] font-semibold text-slate-600 dark:text-slate-300">
                 Select Amount
               </label>
               <div className="mb-3 grid grid-cols-3 gap-2">
@@ -339,31 +365,18 @@ export default function DonatePage() {
                       setAmount(String(preset));
                       setCustomAmount("");
                     }}
-                    style={{
-                      padding: "0.75rem",
-                      borderRadius: "0.75rem",
-                      border: `1px solid ${amount === String(preset) ? config.colors.primary : "#EAEAEA"}`,
-                      backgroundColor:
-                        amount === String(preset)
-                          ? `${config.colors.primary}0A`
-                          : "#ffffff",
-                      color:
-                        amount === String(preset)
-                          ? config.colors.primary
-                          : "#717171",
-                      fontSize: "13px",
-                      fontWeight: 600,
-                      fontFamily: "'JetBrains Mono', monospace",
-                      cursor: "pointer",
-                      transition: "all 0.2s ease",
-                    }}
+                    className={`rounded-xl border px-3 py-3 font-mono text-[13px] font-semibold transition-all cursor-pointer ${
+                      amount === String(preset)
+                        ? "border-[var(--color-brand-primary)] bg-[var(--color-brand-primary)]/10 text-[var(--color-brand-primary)] shadow-sm"
+                        : "border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-[var(--color-brand-primary)]/40 hover:bg-slate-50 dark:hover:bg-slate-800"
+                    }`}
                   >
                     ₦{preset.toLocaleString()}
                   </button>
                 ))}
               </div>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[13px] font-semibold text-gray-400">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[13px] font-semibold text-slate-400 dark:text-slate-500">
                   ₦
                 </span>
                 <input
@@ -374,53 +387,48 @@ export default function DonatePage() {
                     setCustomAmount(e.target.value);
                     setAmount("");
                   }}
-                  className="w-full rounded-xl border border-gray-100 p-3 pl-7 font-mono text-[13px] outline-none transition-colors"
-                  onFocus={(e) => {
-                    e.currentTarget.style.borderColor = config.colors.primary;
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.borderColor = "#EAEAEA";
-                  }}
+                  className={`${inputClass} pl-7 font-mono`}
                 />
               </div>
             </div>
 
             <div className="mb-6">
-              <label className="mb-2 block text-[12px] font-semibold text-brand-dark">
+              <label className="mb-2 block text-[12px] font-semibold text-slate-600 dark:text-slate-300">
                 Notes (optional)
               </label>
-              <textarea
-                placeholder="Add a note to your donation..."
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={3}
-                className="w-full resize-y rounded-xl border border-gray-100 p-3 text-[13px] font-sans outline-none transition-colors"
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = config.colors.primary;
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = "#EAEAEA";
-                }}
-              />
+              <div className="relative">
+                <MessageCircle className="absolute left-3.5 top-3 h-4 w-4 text-slate-400 dark:text-slate-500" />
+                <textarea
+                  placeholder="Add a note to your donation..."
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={3}
+                  className={`${inputClass} resize-none pl-9`}
+                />
+              </div>
             </div>
 
-            <Button
+            <button
               onClick={handleMonetaryDonation}
               disabled={loading || (!amount && !customAmount)}
-              className="w-full justify-center"
-              style={{
-                opacity: loading || (!amount && !customAmount) ? 0.5 : 1,
-              }}
+              className="btn-primary py-3.5 text-xs w-full disabled:opacity-50"
             >
-              {loading ? "Processing..." : "Donate Now"}
-            </Button>
+              {loading ? (
+                "Processing..."
+              ) : (
+                <>
+                  Donate Now
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
+            </button>
           </Card>
         </FadeInUp>
       ) : (
         <FadeInUp delay={300}>
-          <Card padding="1.5rem">
+          <Card padding="1.5rem" className="rounded-3xl">
             <div className="mb-5">
-              <label className="mb-2 block text-[12px] font-semibold text-brand-dark">
+              <label className="mb-2 block text-[12px] font-semibold text-slate-600 dark:text-slate-300">
                 Item Name *
               </label>
               <input
@@ -428,25 +436,19 @@ export default function DonatePage() {
                 placeholder="e.g. Winter Jacket, Laptop Bag"
                 value={itemName}
                 onChange={(e) => setItemName(e.target.value)}
-                className="w-full rounded-xl border border-gray-100 p-3 text-[13px] outline-none transition-colors"
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = config.colors.primary;
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = "#EAEAEA";
-                }}
+                className={inputClass}
               />
             </div>
 
             <div className="mb-5 grid grid-cols-2 gap-4">
               <div>
-                <label className="mb-2 block text-[12px] font-semibold text-brand-dark">
+                <label className="mb-2 block text-[12px] font-semibold text-slate-600 dark:text-slate-300">
                   Category
                 </label>
                 <select
                   value={itemCategory}
                   onChange={(e) => setItemCategory(e.target.value)}
-                  className="w-full cursor-pointer rounded-xl border border-gray-100 bg-white p-3 text-[13px] text-brand-dark outline-none"
+                  className="w-full cursor-pointer rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-3 text-[13px] text-slate-900 dark:text-white outline-none focus:border-[var(--color-brand-primary)] focus:ring-2 focus:ring-[var(--color-brand-primary)]/20"
                 >
                   <option value="">Select category</option>
                   {itemCategories.map((c) => (
@@ -457,13 +459,13 @@ export default function DonatePage() {
                 </select>
               </div>
               <div>
-                <label className="mb-2 block text-[12px] font-semibold text-brand-dark">
+                <label className="mb-2 block text-[12px] font-semibold text-slate-600 dark:text-slate-300">
                   Condition
                 </label>
                 <select
                   value={itemCondition}
                   onChange={(e) => setItemCondition(e.target.value)}
-                  className="w-full cursor-pointer rounded-xl border border-gray-100 bg-white p-3 text-[13px] text-brand-dark outline-none"
+                  className="w-full cursor-pointer rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-3 text-[13px] text-slate-900 dark:text-white outline-none focus:border-[var(--color-brand-primary)] focus:ring-2 focus:ring-[var(--color-brand-primary)]/20"
                 >
                   <option value="">Select condition</option>
                   {itemConditions.map((c) => (
@@ -476,7 +478,7 @@ export default function DonatePage() {
             </div>
 
             <div className="mb-5">
-              <label className="mb-2 block text-[12px] font-semibold text-brand-dark">
+              <label className="mb-2 block text-[12px] font-semibold text-slate-600 dark:text-slate-300">
                 Description
               </label>
               <textarea
@@ -484,18 +486,12 @@ export default function DonatePage() {
                 value={itemDescription}
                 onChange={(e) => setItemDescription(e.target.value)}
                 rows={3}
-                className="w-full resize-y rounded-xl border border-gray-100 p-3 text-[13px] font-sans outline-none transition-colors"
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = config.colors.primary;
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = "#EAEAEA";
-                }}
+                className={`${inputClass} resize-none`}
               />
             </div>
 
             <div className="mb-5">
-              <label className="mb-2 block text-[12px] font-semibold text-brand-dark">
+              <label className="mb-2 block text-[12px] font-semibold text-slate-600 dark:text-slate-300">
                 Item Image (optional)
               </label>
               <input
@@ -506,64 +502,39 @@ export default function DonatePage() {
                 className="hidden"
               />
               {itemImage ? (
-                <div className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+                <div className="flex items-center gap-3 rounded-xl border border-emerald-200 dark:border-emerald-900 bg-emerald-50 dark:bg-emerald-900/30 p-3">
                   <img
                     src={itemImage.preview}
                     alt="Preview"
                     className="h-16 w-16 rounded-lg object-cover"
                   />
                   <div className="min-w-0 flex-1">
-                    <span className="block truncate text-[12px] font-medium text-brand-dark">
+                    <span className="block truncate text-[12px] font-medium text-slate-900 dark:text-white">
                       {itemImage.file.name}
                     </span>
-                    <span className="text-[10px] text-emerald-600">
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400">
                       {(itemImage.file.size / 1024).toFixed(1)} KB
                     </span>
                   </div>
                   <button
                     type="button"
                     onClick={removeItemImage}
-                    className="cursor-pointer border-0 bg-none p-1 text-red-600"
+                    className="cursor-pointer border-0 bg-none p-1 text-red-600 hover:text-red-700"
                   >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path d="M18 6L6 18M6 6l12 12" />
-                    </svg>
+                    <X className="h-4 w-4" />
                   </button>
                 </div>
               ) : (
                 <button
                   type="button"
                   onClick={() => itemImageRef.current?.click()}
-                  className="w-full cursor-pointer rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 p-6 text-center transition-all duration-200"
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = config.colors.primary;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = "#D1D5DB";
-                  }}
+                  className="w-full cursor-pointer rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-6 text-center transition-all duration-200 hover:border-[var(--color-brand-primary)]"
                 >
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#9CA3AF"
-                    strokeWidth={1.5}
-                    className="mx-auto mb-1.5"
-                  >
-                    <path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                  </svg>
-                  <span className="block text-[12px] text-gray-500">
+                  <Upload className="mx-auto mb-1.5 h-5 w-5 text-slate-400" />
+                  <span className="block text-[12px] text-slate-500 dark:text-slate-400">
                     Click to upload item image
                   </span>
-                  <span className="mt-1 block text-[10px] text-gray-400">
+                  <span className="mt-1 block text-[10px] text-slate-400 dark:text-slate-500">
                     JPEG, PNG, WebP, or GIF up to 10MB
                   </span>
                 </button>
@@ -571,7 +542,7 @@ export default function DonatePage() {
             </div>
 
             <div className="mb-6">
-              <label className="mb-2 block text-[12px] font-semibold text-brand-dark">
+              <label className="mb-2 block text-[12px] font-semibold text-slate-600 dark:text-slate-300">
                 Additional Notes (optional)
               </label>
               <input
@@ -579,24 +550,24 @@ export default function DonatePage() {
                 placeholder="Any pickup preferences or other details..."
                 value={itemNotes}
                 onChange={(e) => setItemNotes(e.target.value)}
-                className="w-full rounded-xl border border-gray-100 p-3 text-[13px] outline-none transition-colors"
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = config.colors.primary;
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = "#EAEAEA";
-                }}
+                className={inputClass}
               />
             </div>
 
-            <Button
+            <button
               onClick={handleItemDonation}
               disabled={loading || !itemName.trim()}
-              className="w-full justify-center"
-              style={{ opacity: loading || !itemName.trim() ? 0.5 : 1 }}
+              className="btn-primary py-3.5 text-xs w-full disabled:opacity-50"
             >
-              {loading ? "Submitting..." : "Submit Item Donation"}
-            </Button>
+              {loading ? (
+                "Submitting..."
+              ) : (
+                <>
+                  Submit Item Donation
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
+            </button>
           </Card>
         </FadeInUp>
       )}

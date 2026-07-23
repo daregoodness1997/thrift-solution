@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { config, BrandConfig } from "@thrift/config";
-import { Card, Button, ColorfulBadge, FadeInUp, FadeIn, StaggerChildren } from "@thrift/ui";
+import { Card, Button, FadeInUp, FadeIn, StaggerChildren } from "@thrift/ui";
 import { formatNaira } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
@@ -108,7 +108,7 @@ export default function MarketplacePage() {
         <div className="mb-8">
           <form onSubmit={handleSearch} className="mb-4 flex flex-wrap gap-3">
             <div className="relative flex-[1_1_300px]">
-              <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
                 <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
               </svg>
               <input
@@ -116,15 +116,12 @@ export default function MarketplacePage() {
                 placeholder="Search items..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 py-2.5 pl-9 pr-3 text-[13px] outline-none box-border transition-colors"
-                onFocus={(e) => { e.currentTarget.style.borderColor = cfg.colors.primary; }}
-                onBlur={(e) => { e.currentTarget.style.borderColor = "#EAEAEA"; }}
+                className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-2.5 pl-9 pr-3 text-[13px] text-slate-900 dark:text-white outline-none box-border transition-colors focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               />
             </div>
-            <a
+              <a
               href="/marketplace/my"
-              className="flex items-center rounded-xl px-4 py-2.5 text-xs font-semibold whitespace-nowrap no-underline transition-all"
-              style={{ color: cfg.colors.primary, border: `1px solid ${cfg.colors.primary}30`, backgroundColor: `${cfg.colors.primary}08` }}
+              className="btn-secondary py-2.5 px-4 text-xs"
             >
               My Listings
             </a>
@@ -134,8 +131,11 @@ export default function MarketplacePage() {
               <button
                 key={c.key}
                 onClick={() => { setCategory(c.key); setPage(1); }}
-                className="rounded-full px-3 py-1.5 text-[11px] font-semibold cursor-pointer transition-all"
-                style={{ border: `1px solid ${category === c.key ? cfg.colors.primary : "#EAEAEA"}`, backgroundColor: category === c.key ? `${cfg.colors.primary}0A` : "#ffffff", color: category === c.key ? cfg.colors.primary : "#717171" }}
+                className={`rounded-full px-3 py-1.5 text-[11px] font-semibold cursor-pointer transition-all border ${
+                  category === c.key
+                    ? "border-blue-600 bg-blue-600/5 text-blue-600"
+                    : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400"
+                }`}
               >
                 {c.label}
               </button>
@@ -155,13 +155,13 @@ export default function MarketplacePage() {
         <FadeInUp>
           <Card padding="3rem">
             <div className="text-center">
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[#1D4ED810]">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={cfg.colors.primary} strokeWidth={1.5} strokeLinecap="round">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-600/10">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth={1.5} strokeLinecap="round">
                   <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                 </svg>
               </div>
-              <h3 className="mb-2 text-base font-semibold text-brand-dark">No listings found</h3>
-              <p className="mb-6 text-[13px] text-gray-500">
+              <h3 className="mb-2 text-base font-semibold text-slate-900 dark:text-white">No listings found</h3>
+              <p className="mb-6 text-[13px] text-slate-500 dark:text-slate-400">
                 {search || category ? "Try adjusting your search or filters." : "Be the first to list an item on the marketplace!"}
               </p>
               <a href="/marketplace/new">
@@ -176,37 +176,35 @@ export default function MarketplacePage() {
             {listings.map((listing) => (
               <a key={listing.id} href={`/marketplace/${listing.id}`} className="no-underline">
                 <div
-                  className="overflow-hidden rounded-3xl cursor-pointer bg-[#FFFFFFDF] transition-all shadow-[0_2px_8px_rgba(0,0,0,0.04),0_0_0_1px_rgba(0,0,0,0.02)] hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)]"
-                  style={{ borderTop: `3px solid ${cfg.colors.primary}22` }}
+                  className="overflow-hidden rounded-3xl cursor-pointer bg-white dark:bg-slate-900 transition-all shadow-[0_2px_8px_rgba(0,0,0,0.04),0_0_0_1px_rgba(0,0,0,0.02)] hover:-translate-y-1 hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] border border-slate-200/80 dark:border-slate-800/80"
                 >
-                  <div className="relative flex h-40 items-center justify-center bg-[#F5F7F5]">
+                  <div className="relative flex h-40 items-center justify-center bg-slate-50 dark:bg-slate-800/60">
                     {listing.imageUrl ? (
                       <img src={listing.imageUrl} alt={listing.title} className="h-full w-full object-cover" />
                     ) : (
-                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#CCC" strokeWidth={1.5}>
+                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" strokeWidth={1.5}>
                         <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                       </svg>
                     )}
                     <span
-                      className="absolute top-3 right-3 rounded-full bg-white px-2 py-0.5 text-[9px] font-bold capitalize"
-                      style={{ color: CONDITION_COLORS[listing.condition] || "#717171", border: `1px solid ${CONDITION_COLORS[listing.condition] || "#EAEAEA"}` }}
+                      className="absolute top-3 right-3 px-2.5 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-[10px] font-mono font-bold uppercase tracking-wider"
                     >
                       {listing.condition.replace("_", " ")}
                     </span>
                   </div>
                   <div className="p-4">
                     <div className="mb-2 flex items-start justify-between">
-                      <h3 className="flex-1 mr-2 text-sm font-semibold leading-[1.3] text-brand-dark">{listing.title}</h3>
-                      <span className="whitespace-nowrap text-sm font-mono font-bold" style={{ color: cfg.colors.primary }}>
+                      <h3 className="flex-1 mr-2 text-sm font-semibold leading-[1.3] text-slate-900 dark:text-white">{listing.title}</h3>
+                      <span className="whitespace-nowrap text-sm font-mono font-bold text-blue-600">
                         {formatNaira(listing.price)}
                       </span>
                     </div>
-                    <p className="mb-3 line-clamp-2 text-[11px] text-gray-500">
+                    <p className="mb-3 line-clamp-2 text-[11px] text-slate-500 dark:text-slate-400">
                       {listing.description}
                     </p>
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-gray-500">by {listing.seller.name}</span>
-                      <span className="text-[10px] text-gray-500">{listing._count.offers} offer{listing._count.offers !== 1 ? "s" : ""}</span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400">by {listing.seller.name}</span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400">{listing._count.offers} offer{listing._count.offers !== 1 ? "s" : ""}</span>
                     </div>
                   </div>
                 </div>
@@ -216,9 +214,9 @@ export default function MarketplacePage() {
 
           {totalPages > 1 && (
             <div className="flex justify-center gap-2">
-              <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-xs font-semibold transition-colors" style={{ color: page <= 1 ? "#CCC" : "#717171", cursor: page <= 1 ? "not-allowed" : "pointer" }}>Previous</button>
-              <span className="px-4 py-2 text-xs text-gray-500 font-mono">Page {page} of {totalPages}</span>
-              <button disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)} className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-xs font-semibold transition-colors" style={{ color: page >= totalPages ? "#CCC" : "#717171", cursor: page >= totalPages ? "not-allowed" : "pointer" }}>Next</button>
+              <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="btn-secondary py-2 px-4 text-xs disabled:opacity-50 disabled:cursor-not-allowed">Previous</button>
+              <span className="px-4 py-2 text-xs text-slate-500 dark:text-slate-400 font-mono">Page {page} of {totalPages}</span>
+              <button disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)} className="btn-secondary py-2 px-4 text-xs disabled:opacity-50 disabled:cursor-not-allowed">Next</button>
             </div>
           )}
         </>

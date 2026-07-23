@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
 import Pagination from "@/components/Pagination";
 import { StatusBadge, FilterSelect, ActionMessage, useFlashMessage } from "@/components/AdminShared";
+import { SimpleTable, SimpleColumn } from "@/components/SimpleTable";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const LIMIT = 20;
@@ -161,6 +162,22 @@ export default function AdminVirtualAccountsPage() {
     setReconciling(false);
   };
 
+  const columns: SimpleColumn<VAccount>[] = [
+    { key: "user", header: "User", render: (va) => <><span className="block font-semibold text-slate-900 dark:text-white">{va.user?.name || "—"}</span><span className="text-[11px] text-slate-500 dark:text-slate-400">{va.user?.email}</span></> },
+    { key: "account", header: "Account", mono: true, render: (va) => <><span className="block font-semibold text-slate-900 dark:text-white">{va.accountNumber}</span><span className="text-[11px] text-slate-500 dark:text-slate-400">{va.bankName || "—"}</span></> },
+    { key: "provider", header: "Provider", render: (va) => <span className="capitalize text-slate-500 dark:text-slate-400">{va.provider}</span> },
+    { key: "wallet", header: "Wallet", mono: true, render: (va) => <span className="font-semibold text-slate-900 dark:text-white">{formatNaira(va.walletBalance || 0)}</span> },
+    { key: "status", header: "Status", render: (va) => <StatusBadge status={va.status} /> },
+    { key: "created", header: "Created", render: (va) => <span className="text-slate-500 dark:text-slate-400">{formatDate(new Date(va.createdAt))}</span> },
+    { key: "actions", header: "Actions", align: "right", render: (va) => (
+      <div className="flex justify-end gap-1.5">
+        {va.status !== "active" && <button onClick={(e) => { e.stopPropagation(); setStatus(va, "active"); }} disabled={busyId === va.id} className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold" style={btn("#059669")}>{busyId === va.id ? "..." : "Activate"}</button>}
+        {va.status !== "inactive" && <button onClick={(e) => { e.stopPropagation(); setStatus(va, "inactive"); }} disabled={busyId === va.id} className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold" style={btn("#DC2626")}>{busyId === va.id ? "..." : "Deactivate"}</button>}
+        <button onClick={(e) => { e.stopPropagation(); openRegenerate(va); }} disabled={busyId === va.id} className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold" style={btn("#7C3AED")}>{busyId === va.id ? "..." : "Regenerate"}</button>
+      </div>
+    ) },
+  ];
+
   if (authLoading || !isAdmin) return null;
 
   return (
@@ -176,69 +193,26 @@ export default function AdminVirtualAccountsPage() {
               placeholder="Search account no, email, name..."
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              className="min-w-[200px] flex-1 rounded-lg border border-gray-200 px-3 py-2 text-[12px] outline-none"
+              className="min-w-[200px] flex-1 rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-[12px] outline-none dark:bg-slate-800 dark:text-white"
             />
             <FilterSelect value={providerFilter} onChange={(v) => { setProviderFilter(v); setPage(1); }} options={["all", "monnify", "flutterwave", "paystack"]} />
             <FilterSelect value={statusFilter} onChange={(v) => { setStatusFilter(v); setPage(1); }} options={["all", "active", "inactive", "pending"]} />
             <button onClick={generateMissing} disabled={generating}
-              className="cursor-pointer whitespace-nowrap rounded-lg border border-[#16A34A40] bg-[#16A34A0F] px-3 py-2 text-[12px] font-semibold text-[#16A34A]"
+              className="cursor-pointer whitespace-nowrap rounded-lg border border-emerald-600/25 bg-emerald-600/10 px-3 py-2 text-[12px] font-semibold text-emerald-600 dark:text-emerald-400"
               style={{ opacity: generating ? 0.5 : 1 }}>
               {generating ? "Generating..." : "Generate missing"}
             </button>
             <button onClick={reconcileAll} disabled={reconciling}
-              className="cursor-pointer whitespace-nowrap rounded-lg border border-[#2563EB40] bg-[#2563EB0F] px-3 py-2 text-[12px] font-semibold text-[#2563EB]"
+              className="cursor-pointer whitespace-nowrap rounded-lg border border-blue-600/25 bg-blue-600/10 px-3 py-2 text-[12px] font-semibold text-blue-600 dark:text-blue-400"
               style={{ opacity: reconciling ? 0.5 : 1 }}>
               {reconciling ? "Reconciling..." : "Reconcile all"}
             </button>
           </div>
 
           {loading ? (
-            <div className="p-12 text-center text-[13px] text-gray-500">Loading accounts...</div>
-          ) : items.length === 0 ? (
-            <div className="p-8 text-center text-[13px] text-gray-500">No virtual accounts found.</div>
+            <div className="p-12 text-center text-[13px] text-slate-500 dark:text-slate-400">Loading accounts...</div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse text-[12px] min-w-[820px]">
-                <thead>
-                  <tr className="border-b border-gray-100 font-mono text-[9px] uppercase tracking-[0.1em] text-gray-500">
-                    <th className="pb-3 text-left font-semibold">User</th>
-                    <th className="pb-3 text-left font-semibold">Account</th>
-                    <th className="pb-3 text-left font-semibold">Provider</th>
-                    <th className="pb-3 text-left font-semibold">Wallet</th>
-                    <th className="pb-3 text-left font-semibold">Status</th>
-                    <th className="pb-3 text-left font-semibold">Created</th>
-                    <th className="pb-3 text-right font-semibold">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((va) => (
-                    <tr key={va.id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-3">
-                        <span className="block font-semibold text-brand-dark">{va.user?.name || "—"}</span>
-                        <span className="text-[11px] text-gray-500">{va.user?.email}</span>
-                      </td>
-                      <td className="py-3">
-                        <span className="block font-mono text-brand-dark">{va.accountNumber}</span>
-                        <span className="text-[11px] text-gray-500">{va.bankName || "—"}</span>
-                      </td>
-                      <td className="py-3 capitalize text-gray-500">{va.provider}</td>
-                      <td className="py-3">
-                        <span className="font-mono font-semibold text-brand-dark">{formatNaira(va.walletBalance || 0)}</span>
-                      </td>
-                      <td className="py-3"><StatusBadge status={va.status} /></td>
-                      <td className="py-3 text-gray-500">{formatDate(new Date(va.createdAt))}</td>
-                      <td className="py-3 text-right">
-                        <div className="flex justify-end gap-1.5">
-                          {va.status !== "active" && <button onClick={() => setStatus(va, "active")} disabled={busyId === va.id} className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold" style={btn("#059669")}>{busyId === va.id ? "..." : "Activate"}</button>}
-                          {va.status !== "inactive" && <button onClick={() => setStatus(va, "inactive")} disabled={busyId === va.id} className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold" style={btn("#DC2626")}>{busyId === va.id ? "..." : "Deactivate"}</button>}
-                          <button onClick={() => openRegenerate(va)} disabled={busyId === va.id} className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold" style={btn("#7C3AED")}>{busyId === va.id ? "..." : "Regenerate"}</button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <SimpleTable columns={columns} data={items} minWidth="820px" emptyMessage="No virtual accounts found." />
           )}
           <Pagination page={page} totalPages={totalPages} total={total} limit={LIMIT} onPageChange={setPage} loading={loading} />
         </Card>
@@ -246,43 +220,43 @@ export default function AdminVirtualAccountsPage() {
 
       {regen.open && regen.va && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
-            <h3 className="mb-1 text-[15px] font-bold text-brand-dark">Regenerate Virtual Account</h3>
-            <p className="mb-4 text-[12px] text-gray-500">
+          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-xl">
+            <h3 className="mb-1 text-[15px] font-bold text-slate-900 dark:text-white">Regenerate Virtual Account</h3>
+            <p className="mb-4 text-[12px] text-slate-500 dark:text-slate-400">
               This will deactivate the current account <span className="font-mono font-semibold">{regen.va.accountNumber}</span> and create a new one for <span className="font-semibold">{regen.va.user?.name || regen.va.user?.email}</span>.
             </p>
 
-            <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500">Provider</label>
+            <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Provider</label>
             <select
               value={regen.provider}
               onChange={(e) => setRegen((r) => ({ ...r, provider: e.target.value }))}
-              className="mb-3 w-full rounded-lg border border-gray-200 px-3 py-2 text-[12px] outline-none"
+              className="mb-3 w-full rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-[12px] outline-none dark:bg-slate-800 dark:text-white"
             >
               <option value="flutterwave">Flutterwave</option>
               <option value="paystack">Paystack</option>
               <option value="nomba">Nomba</option>
             </select>
 
-            <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500">Reason (required)</label>
+            <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Reason (required)</label>
             <textarea
               value={regen.reason}
               onChange={(e) => setRegen((r) => ({ ...r, reason: e.target.value }))}
               placeholder="e.g. User reported issues with current account..."
               rows={3}
-              className="mb-4 w-full resize-none rounded-lg border border-gray-200 px-3 py-2 text-[12px] outline-none"
+              className="mb-4 w-full resize-none rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-[12px] outline-none dark:bg-slate-800 dark:text-white"
             />
 
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setRegen({ open: false, va: null, provider: "flutterwave", reason: "" })}
-                className="cursor-pointer rounded-lg border border-gray-200 px-4 py-2 text-[12px] font-semibold text-gray-600 hover:bg-gray-50"
+                className="cursor-pointer rounded-lg border border-slate-200 dark:border-slate-700 px-4 py-2 text-[12px] font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
               >
                 Cancel
               </button>
               <button
                 onClick={handleRegenerate}
                 disabled={regenerating || !regen.reason.trim()}
-                className="cursor-pointer rounded-lg bg-[#7C3AED] px-4 py-2 text-[12px] font-semibold text-white hover:bg-[#6D28D9]"
+                className="cursor-pointer rounded-lg bg-blue-600 px-4 py-2 text-[12px] font-semibold text-white hover:bg-blue-700"
                 style={{ opacity: regenerating || !regen.reason.trim() ? 0.5 : 1 }}
               >
                 {regenerating ? "Regenerating..." : "Regenerate"}

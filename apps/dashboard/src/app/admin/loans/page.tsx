@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useCallback, Fragment } from "react";
 import { useRouter } from "next/navigation";
-import { config } from "@thrift/config";
 import { Card, FadeIn, FadeInUp } from "@thrift/ui";
 import { formatNaira } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
-import { PageHeader } from "@/components/PageHeader";
+import { Landmark } from "lucide-react";
 import Pagination from "@/components/Pagination";
+import { SimpleTable, SimpleColumn } from "@/components/SimpleTable";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const LIMIT = 20;
@@ -172,44 +172,54 @@ export default function AdminLoansPage() {
 
   return (
     <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
-      <PageHeader badgeLabel="Admin" heading="Loan" accentText="Requests" description="Review, approve, and disburse member loan requests." />
+      <div className="mb-8 pt-2 pb-6 border-b border-slate-200/80 dark:border-slate-800/80">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/80 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1">
+              <Landmark className="w-3.5 h-3.5 text-emerald-500" />
+              <span>Admin</span>
+            </span>
+          </div>
+          <h3 className="font-display font-bold text-xl sm:text-2xl text-slate-900 dark:text-white mt-1">Loan <span className="bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 bg-clip-text font-display font-bold text-transparent">Requests</span></h3>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Review, approve, and disburse member loan requests.</p>
+        </div>
+      </div>
 
       {message && (
         <FadeIn>
-          <div className={`mb-6 rounded-xl border px-4 py-3 text-[13px] font-medium ${message.type === "success" ? "bg-emerald-50 text-emerald-600 border-emerald-200" : "bg-red-50 text-red-600 border-red-200"}`}>
+          <div className={`mb-6 rounded-2xl border px-4 py-3 text-[13px] font-medium ${message.type === "success" ? "bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/50" : "bg-red-50 text-red-600 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-900/50"}`}>
             {message.text}
           </div>
         </FadeIn>
       )}
 
       <FadeInUp delay={200}>
-        <Card padding="1.5rem">
-          <div className="mb-4 flex w-fit flex-wrap gap-1 rounded-lg bg-gray-100 p-1">
+        <Card padding="1.5rem" className="rounded-3xl">
+          <div className="mb-4 flex w-fit flex-wrap gap-1 rounded-lg bg-slate-100 p-1 dark:bg-slate-800">
             {filters.map((f) => (
               <button key={f} onClick={() => { setFilter(f); setPage(1); }}
-                className="cursor-pointer rounded-md px-3 py-1.5 text-[11px] font-semibold capitalize"
-                style={{ backgroundColor: filter === f ? "#ffffff" : "transparent", color: filter === f ? config.colors.primary : "#717171", boxShadow: filter === f ? "0 1px 3px rgba(0,0,0,0.08)" : "none" }}>
+                className={`cursor-pointer rounded-md px-3 py-1.5 text-[11px] font-semibold capitalize transition-colors ${filter === f ? "bg-white text-blue-600 shadow-sm dark:bg-slate-700 dark:text-blue-400" : "text-slate-500 dark:text-slate-400"}`}>
                 {f}
               </button>
             ))}
           </div>
 
           {loading ? (
-            <div className="p-12 text-center text-[13px] text-gray-500">Loading loans...</div>
+            <div className="p-12 text-center text-[13px] text-slate-500 dark:text-slate-400">Loading loans...</div>
           ) : loans.length === 0 ? (
-            <div className="p-8 text-center text-[13px] text-gray-500">No loans found.</div>
+            <div className="p-8 text-center text-[13px] text-slate-500 dark:text-slate-400">No loans found.</div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full border-collapse text-[12px] min-w-[820px]">
+              <table className="w-full text-[12px] border-collapse" style={{ minWidth: "820px" }}>
                 <thead>
-                  <tr className="border-b border-gray-100 font-mono text-[9px] uppercase tracking-[0.1em] text-gray-500">
-                    <th className="pb-3 text-left font-semibold">Borrower</th>
-                    <th className="pb-3 text-right font-semibold">Amount</th>
-                    <th className="pb-3 text-left font-semibold">Term</th>
-                    <th className="pb-3 text-right font-semibold">Repayment</th>
-                    <th className="pb-3 text-right font-semibold">Fee</th>
-                    <th className="pb-3 text-left font-semibold">Status</th>
-                    <th className="pb-3 text-right font-semibold">Actions</th>
+                  <tr className="border-b border-slate-200/80 dark:border-slate-800/80 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-400 dark:text-slate-500">
+                    <th className="px-4 py-3 text-left font-semibold">Borrower</th>
+                    <th className="px-4 py-3 text-right font-semibold">Amount</th>
+                    <th className="px-4 py-3 text-left font-semibold">Term</th>
+                    <th className="px-4 py-3 text-right font-semibold">Repayment</th>
+                    <th className="px-4 py-3 text-right font-semibold">Fee</th>
+                    <th className="px-4 py-3 text-left font-semibold">Status</th>
+                    <th className="px-4 py-3 text-right font-semibold">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -218,23 +228,23 @@ export default function AdminLoansPage() {
                     const detail = scheduleCache[loan.id];
                     return (
                       <Fragment key={loan.id}>
-                        <tr className="border-b border-gray-100 hover:bg-gray-50" onClick={() => toggleExpand(loan)} style={{ cursor: "pointer" }}>
-                          <td className="py-3">
-                            <span className="block font-semibold text-brand-dark">{loan.borrower?.name || "—"}</span>
-                            <span className="text-[11px] text-gray-500">{loan.borrower?.email}</span>
+                        <tr className="border-b border-slate-100 dark:border-slate-800/50 transition-colors duration-150 hover:bg-slate-50 dark:hover:bg-slate-800/40" onClick={() => toggleExpand(loan)} style={{ cursor: "pointer" }}>
+                          <td className="px-4 py-3">
+                            <span className="block font-semibold text-slate-900 dark:text-white">{loan.borrower?.name || "—"}</span>
+                            <span className="text-[11px] text-slate-500 dark:text-slate-400">{loan.borrower?.email}</span>
                           </td>
-                          <td className="py-3 text-right font-mono font-semibold text-brand-dark">{formatNaira(loan.amount)}</td>
-                          <td className="py-3 text-gray-500">{loan.termMonths}mo @ {loan.interestRate}%</td>
-                          <td className="py-3 text-right font-mono text-gray-500">{formatNaira(loan.totalRepayment)}</td>
-                          <td className="py-3 text-right font-mono font-semibold text-brand-dark">
+                          <td className="px-4 py-3 text-right font-mono font-semibold text-slate-900 dark:text-white">{formatNaira(loan.amount)}</td>
+                          <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{loan.termMonths}mo @ {loan.interestRate}%</td>
+                          <td className="px-4 py-3 text-right font-mono text-slate-500 dark:text-slate-400">{formatNaira(loan.totalRepayment)}</td>
+                          <td className="px-4 py-3 text-right font-mono font-semibold text-slate-900 dark:text-white">
                             {loan.outstandingBalance !== undefined && loan.status === "disbursed"
                               ? `${formatNaira(loan.outstandingBalance)} owed`
                               : "—"}
                           </td>
-                          <td className="py-3">
+                          <td className="px-4 py-3">
                             <span className="rounded-md px-2 py-0.5 font-mono text-[9px] font-bold uppercase" style={{ backgroundColor: sc.bg, color: sc.color, border: `1px solid ${sc.border}` }}>{loan.status}</span>
                           </td>
-                          <td className="py-3 text-right">
+                          <td className="px-4 py-3 text-right">
                             <div className="flex justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
                               {loan.status === "pending" && (
                                 <>
@@ -250,61 +260,46 @@ export default function AdminLoansPage() {
                                   <ActionBtn label="Settle / Write-off" color="#7C3AED" onClick={() => act(loan, "settle")} disabled={busyId === loan.id} />
                                 </>
                               )}
-                              {(loan.status === "completed" || loan.status === "rejected") && <span className="text-[10px] text-[#B0B0B0]">—</span>}
+                              {(loan.status === "completed" || loan.status === "rejected") && <span className="text-[10px] text-slate-400">—</span>}
                             </div>
                           </td>
                         </tr>
                         {expandedId === loan.id && detail && (
-                          <tr className="border-b border-gray-100 bg-gray-50">
-                            <td colSpan={8} className="py-4 px-3">
+                          <tr className="border-b border-slate-100 dark:border-slate-800/50 bg-slate-50 dark:bg-slate-800/40">
+                            <td colSpan={7} className="px-4 py-3">
                               <div className="text-xs">
                                 <div className="mb-2 grid grid-cols-[repeat(auto-fit,minmax(130px,1fr))] gap-3">
-                                  <div><span className="block text-gray-400">Disbursed</span><span className="font-mono font-semibold text-brand-dark">{loan.disbursedAmount ? formatNaira(loan.disbursedAmount) : "—"}</span></div>
-                                  <div><span className="block text-gray-400">Paid</span><span className="font-mono font-semibold text-brand-dark">{loan.paidAmount ? formatNaira(loan.paidAmount) : formatNaira(0)}</span></div>
-                                  <div><span className="block text-gray-400">Outstanding</span><span className="font-mono font-semibold text-brand-dark">{loan.outstandingBalance !== undefined ? formatNaira(loan.outstandingBalance) : "—"}</span></div>
-                                  <div><span className="block text-gray-400">Next Due</span><span className="font-semibold text-brand-dark">{loan.nextDueDate ? new Date(loan.nextDueDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}</span></div>
+                                  <div><span className="block text-slate-400 dark:text-slate-500">Disbursed</span><span className="font-mono font-semibold text-slate-900 dark:text-white">{loan.disbursedAmount ? formatNaira(loan.disbursedAmount) : "—"}</span></div>
+                                  <div><span className="block text-slate-400 dark:text-slate-500">Paid</span><span className="font-mono font-semibold text-slate-900 dark:text-white">{loan.paidAmount ? formatNaira(loan.paidAmount) : formatNaira(0)}</span></div>
+                                  <div><span className="block text-slate-400 dark:text-slate-500">Outstanding</span><span className="font-mono font-semibold text-slate-900 dark:text-white">{loan.outstandingBalance !== undefined ? formatNaira(loan.outstandingBalance) : "—"}</span></div>
+                                  <div><span className="block text-slate-400 dark:text-slate-500">Next Due</span><span className="font-semibold text-slate-900 dark:text-white">{loan.nextDueDate ? new Date(loan.nextDueDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}</span></div>
                                 </div>
-                                <h4 className="mb-1 mt-2 font-semibold text-brand-dark">Payment Schedule</h4>
-                                <div className="overflow-x-auto">
-                                  <table className="w-full text-left text-[11px]">
-                                    <thead>
-                                      <tr className="text-gray-400">
-                                        <th className="py-1 pr-3 font-medium">#</th>
-                                        <th className="py-1 pr-3 font-medium">Due</th>
-                                        <th className="py-1 pr-3 font-medium text-right">Principal</th>
-                                        <th className="py-1 pr-3 font-medium text-right">Interest</th>
-                                        <th className="py-1 pr-3 font-medium text-right">Total</th>
-                                        <th className="py-1 font-medium">Status</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {detail.schedule.map((s) => (
-                                        <tr key={s.id} className="border-t border-gray-200">
-                                          <td className="py-1 pr-3 font-mono">{s.installmentNo}</td>
-                                          <td className="py-1 pr-3">{new Date(s.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</td>
-                                          <td className="py-1 pr-3 text-right font-mono">{formatNaira(s.principal)}</td>
-                                          <td className="py-1 pr-3 text-right font-mono">{formatNaira(s.interest)}</td>
-                                          <td className="py-1 pr-3 text-right font-mono">{formatNaira(s.totalDue)}</td>
-                                          <td className="py-1">
-                                            <span className="rounded px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase"
-                                              style={{ color: STATUS_COLORS[s.status]?.color || "#717171", backgroundColor: `${STATUS_COLORS[s.status]?.color || "#717171"}12` }}>
-                                              {s.status}
-                                            </span>
-                                          </td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
-                                </div>
+                                <h4 className="mb-1 mt-2 font-semibold text-slate-900 dark:text-white">Payment Schedule</h4>
+                                <SimpleTable
+                                  columns={[
+                                    { key: "installmentNo", header: "#", mono: true, render: (s: ScheduleItem) => s.installmentNo },
+                                    { key: "dueDate", header: "Due", render: (s: ScheduleItem) => new Date(s.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) },
+                                    { key: "principal", header: "Principal", align: "right", mono: true, render: (s: ScheduleItem) => formatNaira(s.principal) },
+                                    { key: "interest", header: "Interest", align: "right", mono: true, render: (s: ScheduleItem) => formatNaira(s.interest) },
+                                    { key: "totalDue", header: "Total", align: "right", mono: true, render: (s: ScheduleItem) => formatNaira(s.totalDue) },
+                                    { key: "status", header: "Status", render: (s: ScheduleItem) => (
+                                      <span className="rounded px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase"
+                                        style={{ color: STATUS_COLORS[s.status]?.color || "#717171", backgroundColor: `${STATUS_COLORS[s.status]?.color || "#717171"}12` }}>
+                                        {s.status}
+                                      </span>
+                                    )},
+                                  ]}
+                                  data={detail.schedule}
+                                />
                                 {detail.repayments.length > 0 && (
                                   <div className="mt-3">
-                                    <h4 className="mb-1 font-semibold text-brand-dark">Repayments</h4>
+                                    <h4 className="mb-1 font-semibold text-slate-900 dark:text-white">Repayments</h4>
                                     <div className="flex flex-col gap-1">
                                       {detail.repayments.map((r) => (
-                                        <div key={r.id} className="flex flex-wrap items-center justify-between rounded border border-gray-200 px-2 py-1">
-                                          <span className="font-mono font-semibold text-brand-dark">{formatNaira(r.amount)}</span>
-                                          <span className="text-gray-400">{r.method}</span>
-                                          <span className="text-gray-500">{new Date(r.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                                        <div key={r.id} className="flex flex-wrap items-center justify-between rounded border border-slate-200 px-2 py-1 dark:border-slate-700">
+                                          <span className="font-mono font-semibold text-slate-900 dark:text-white">{formatNaira(r.amount)}</span>
+                                          <span className="text-slate-400 dark:text-slate-500">{r.method}</span>
+                                          <span className="text-slate-500 dark:text-slate-400">{new Date(r.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
                                         </div>
                                       ))}
                                     </div>
@@ -327,24 +322,24 @@ export default function AdminLoansPage() {
 
       {repayId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={closeRepay}>
-          <div className="w-full max-w-[420px] rounded-2xl bg-white p-6" onClick={(e) => e.stopPropagation()}>
-            <h2 className="mb-1 font-display text-lg font-semibold tracking-tight text-brand-dark">Record Repayment</h2>
-            <p className="mb-4 text-[12px] text-gray-500">
+          <div className="w-full max-w-[420px] rounded-3xl bg-white p-6 dark:bg-slate-900" onClick={(e) => e.stopPropagation()}>
+            <h2 className="mb-1 font-display text-lg font-semibold tracking-tight text-slate-900 dark:text-white">Record Repayment</h2>
+            <p className="mb-4 text-[12px] text-slate-500 dark:text-slate-400">
               Outstanding: {formatNaira(loans.find((l) => l.id === repayId)?.outstandingBalance ?? 0)}
             </p>
             <form onSubmit={submitRepay}>
               <div className="mb-4">
-                <label className="mb-1.5 block text-xs font-semibold text-brand-dark">Amount</label>
+                <label className="mb-1.5 block text-xs font-semibold text-slate-900 dark:text-white">Amount</label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 font-mono text-[13px] text-gray-400">&#8358;</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 font-mono text-[13px] text-slate-400">&#8358;</span>
                   <input type="number" value={repayAmount} onChange={(e) => setRepayAmount(e.target.value)} step="100" min="1"
-                    className="box-border w-full rounded-xl border border-gray-200 py-2.5 pl-8 pr-3 font-mono text-[13px] outline-none" />
+                    className="box-border w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-8 pr-3 font-mono text-[13px] outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white" />
                 </div>
               </div>
               {repayError && <div className="mb-3 text-xs text-red-600">{repayError}</div>}
               <div className="flex gap-2">
-                <button type="button" onClick={closeRepay} className="cursor-pointer rounded-xl border border-gray-200 px-4 py-2 text-[13px] font-semibold text-gray-600">Cancel</button>
-                <button type="submit" disabled={repaying} className="cursor-pointer rounded-xl px-4 py-2 text-[13px] font-semibold text-white" style={{ backgroundColor: config.colors.primary, opacity: repaying ? 0.6 : 1 }}>{repaying ? "Processing..." : "Record"}</button>
+                <button type="button" onClick={closeRepay} className="btn-secondary">Cancel</button>
+                <button type="submit" disabled={repaying} className={`btn-primary ${repaying ? "opacity-60" : ""}`}>{repaying ? "Processing..." : "Record"}</button>
               </div>
             </form>
           </div>

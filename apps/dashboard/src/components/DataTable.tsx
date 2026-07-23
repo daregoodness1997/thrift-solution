@@ -41,14 +41,13 @@ export function DataTable<T>({
   loading = false,
   emptyMessage = "No data found.",
   emptyAction,
-  accentColor = "#1D4ED8",
   minWidth,
 }: DataTableProps<T>) {
   const { page, total, totalPages } = pagination;
 
   if (loading) {
     return (
-      <div className="text-center p-12 text-gray-400 text-[13px]">
+      <div className="text-center p-12 text-slate-400 text-[13px]">
         Loading...
       </div>
     );
@@ -56,7 +55,7 @@ export function DataTable<T>({
 
   if (data.length === 0) {
     return (
-      <div className="text-center p-12 text-gray-400 text-[13px]">
+      <div className="text-center p-12 text-slate-400 text-[13px]">
         {emptyMessage}
         {emptyAction && <div className="mt-3">{emptyAction}</div>}
       </div>
@@ -66,13 +65,13 @@ export function DataTable<T>({
   return (
     <div>
       <div className="overflow-x-auto">
-        <table className="w-full text-xs border-collapse" style={minWidth ? { minWidth } : undefined}>
+        <table className="w-full text-[12px] border-collapse" style={minWidth ? { minWidth } : undefined}>
           <thead>
-            <tr className="border-b border-gray-100 text-gray-400 uppercase tracking-[0.1em] text-[9px] font-mono">
+            <tr className="border-b border-slate-200/80 dark:border-slate-800/80 font-mono text-[9px] uppercase tracking-[0.1em] text-slate-400 dark:text-slate-500">
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className="px-6 py-4 font-semibold"
+                  className="px-4 py-3 font-semibold"
                   style={{ textAlign: col.align || "left", ...(col.width ? { width: col.width } : {}) }}
                 >
                   {col.header}
@@ -84,14 +83,14 @@ export function DataTable<T>({
             {data.map((item, idx) => (
               <tr
                 key={idx}
-                className="border-b border-[#F5F5F5] transition-colors duration-150 hover:bg-gray-50"
+                className="border-b border-slate-100 dark:border-slate-800/50 transition-colors duration-150 hover:bg-slate-50 dark:hover:bg-slate-800/40"
                 style={{ cursor: onRowClick ? "pointer" : "default" }}
                 onClick={() => onRowClick?.(item)}
               >
                 {columns.map((col) => (
                   <td
                     key={col.key}
-                    className={`px-6 py-3.5 ${col.mono ? "font-mono" : ""}`}
+                    className={`px-4 py-3 ${col.mono ? "font-mono" : ""}`}
                     style={{ textAlign: col.align || "left" }}
                   >
                     {col.render(item, idx)}

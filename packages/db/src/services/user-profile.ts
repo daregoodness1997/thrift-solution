@@ -1,6 +1,7 @@
 import { prisma } from "./prisma";
 import { getWalletBalance } from "./wallet";
 import { getVirtualAccountsByUser } from "./virtual-accounts";
+import { toNum } from "./decimal";
 
 export async function getUserProfile(userId: string) {
   const user = await prisma.user.findUnique({ where: { id: userId } });
@@ -26,7 +27,7 @@ export async function getUserProfile(userId: string) {
     getVirtualAccountsByUser(userId),
   ]);
 
-  const totalSaved = totalContributed._sum.amount ?? 0;
+  const totalSaved = toNum(totalContributed._sum.amount);
   const walletBalance = await getWalletBalance(userId);
   const trustScore = Math.min(5, Math.max(1, Math.ceil(totalSaved / 100000) + (activeCircles > 0 ? 1 : 0)));
   const trustLevels = ["", "Bronze", "Silver", "Gold", "Platinum", "Diamond"];
@@ -59,9 +60,9 @@ export async function getUserProfile(userId: string) {
     virtualAccount,
     stats: {
       totalSaved,
-      totalDonated: totalDonated._sum.amount ?? 0,
-      totalContributed: totalContributed._sum.amount ?? 0,
-      totalReceived: totalReceived._sum.amount ?? 0,
+      totalDonated: toNum(totalDonated._sum.amount),
+      totalContributed: toNum(totalContributed._sum.amount),
+      totalReceived: toNum(totalReceived._sum.amount),
       activeCircles,
       trustScore,
       trustLevel,

@@ -1,4 +1,35 @@
 import { prisma } from "./prisma";
+import { toNum } from "./decimal";
+
+export async function getDefaultsSummary(userId: string) {
+  const defaults = await prisma.circleDefault.findMany({
+    where: { userId, status: "outstanding" },
+    include: {
+      circleAccount: {
+        include: { circle: { select: { name: true } } },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  const totalDefaults = defaults.length;
+  const totalAmount = defaults.reduce((sum, d) => sum + toNum(d.amountDue), 0);
+  const totalClearanceAmount = defaults.reduce((sum, d) => sum + toNum(d.clearanceAmount), 0);
+
+  return {
+    totalDefaults,
+    totalAmount,
+    totalClearanceAmount,
+    defaults: defaults.map((d) => ({
+      id: d.id,
+      circleName: d.circleAccount.circle.name,
+      amountDue: toNum(d.amountDue),
+      clearanceAmount: toNum(d.clearanceAmount),
+      weekNumber: d.weekNumber,
+      createdAt: d.createdAt,
+    })),
+  };
+}
 
 export async function getDefaultsForUser(userId: string, opts?: { page?: number; limit?: number; status?: string }) {
   const user = await prisma.user.findUnique({ where: { id: userId } });
@@ -29,7 +60,7 @@ export async function getDefaultsForUser(userId: string, opts?: { page?: number;
         userName: user.name,
         groupId: gm.groupId,
         groupName: gm.group.name,
-        amount: pc.amount,
+        amount: toNum(pc.amount),
         dueDate: new Date(pc.createdAt.getTime() + 7 * 24 * 60 * 60 * 1000),
         status: daysOverdue > 0 ? "overdue" : "pending",
         daysOverdue,

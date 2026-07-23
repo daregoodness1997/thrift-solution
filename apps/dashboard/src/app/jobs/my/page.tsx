@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { config, BrandConfig } from "@thrift/config";
-import { Card, Button, ColorfulBadge, FadeInUp, StaggerChildren, StatCard } from "@thrift/ui";
+import { Card, Button, FadeInUp, StaggerChildren, StatCard } from "@thrift/ui";
 import { formatNaira } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
@@ -81,11 +81,10 @@ export default function MyJobsPage() {
       </StaggerChildren>
 
       <FadeInUp delay={200}>
-        <div className="mb-6 flex w-fit gap-1 rounded-lg bg-[#F5F7F5] p-0.5">
+        <div className="mb-6 flex w-fit gap-1 rounded-lg bg-slate-100 dark:bg-slate-800 p-0.5">
           {([["posted", "Posted Jobs"], ["received", "Received Applications"], ["applied", "My Applications"]] as const).map(([key, label]) => (
             <button key={key} onClick={() => { setTab(key); setListingsPage(1); setReceivedPage(1); setApplicationsPage(1); }}
-              className="cursor-pointer rounded-md px-4 py-2 text-xs font-semibold transition-all"
-              style={{ backgroundColor: tab === key ? "#ffffff" : "transparent", color: tab === key ? cfg.colors.primary : "#717171" }}>
+              className={`cursor-pointer rounded-md px-4 py-2 text-xs font-semibold transition-all ${tab === key ? "bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"}`}>
               {label}
             </button>
           ))}
@@ -96,21 +95,21 @@ export default function MyJobsPage() {
         <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-6">{Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)}</div>
       ) : tab === "posted" ? (
         listings.length === 0 ? (
-          <Card padding="3rem"><div className="text-center"><h3 className="mb-2 text-base font-semibold text-brand-dark">No jobs posted yet</h3><a href="/jobs/new"><Button variant="primary" size="sm">Post a Job</Button></a></div></Card>
+          <Card padding="3rem"><div className="text-center"><h3 className="mb-2 text-base font-semibold text-slate-900 dark:text-white">No jobs posted yet</h3><a href="/jobs/new"><Button variant="primary" size="sm">Post a Job</Button></a></div></Card>
         ) : (
           <>
             <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-6">
               {listings.map((job) => (
                 <a key={job.id} href={`/jobs/${job.id}`} className="no-underline">
-                  <Card padding="1.25rem">
+                   <Card padding="1.5rem" className="rounded-3xl">
                     <div className="mb-3 flex items-start justify-between">
-                      <h3 className="flex-1 mr-2 text-sm font-semibold text-brand-dark">{job.title}</h3>
-                      <span className="rounded-md px-2 py-0.5 text-[9px] font-bold uppercase font-mono" style={{ color: STATUS_COLORS[job.status], backgroundColor: `${STATUS_COLORS[job.status]}12` }}>{job.status}</span>
+                      <h3 className="flex-1 mr-2 text-sm font-semibold text-slate-900 dark:text-white">{job.title}</h3>
+                      <span className="px-2.5 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-[10px] font-mono font-bold uppercase tracking-wider">{job.status}</span>
                     </div>
-                    <span className="mb-2 inline-block rounded-full px-2 py-0.5 text-[9px] font-bold capitalize" style={{ color: JOB_TYPE_COLORS[job.jobType], backgroundColor: `${JOB_TYPE_COLORS[job.jobType]}12` }}>{job.jobType.replace("_", " ")}</span>
+                    <span className="px-2.5 py-0.5 rounded-md bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-[10px] font-mono font-bold uppercase tracking-wider">{job.jobType.replace("_", " ")}</span>
                     <div className="mt-2 flex items-center justify-between">
-                      <span className="text-[11px] text-gray-500">{job.location}</span>
-                      <span className="text-[11px] text-gray-500">{job._count.applications} applicant{job._count.applications !== 1 ? "s" : ""}</span>
+                      <span className="text-[11px] text-slate-500 dark:text-slate-400">{job.location}</span>
+                      <span className="text-[11px] text-slate-500 dark:text-slate-400">{job._count.applications} applicant{job._count.applications !== 1 ? "s" : ""}</span>
                     </div>
                   </Card>
                 </a>
@@ -121,24 +120,24 @@ export default function MyJobsPage() {
         )
       ) : tab === "received" ? (
         receivedApps.length === 0 ? (
-          <Card padding="3rem"><div className="text-center"><h3 className="mb-2 text-base font-semibold text-brand-dark">No applications received</h3><p className="text-[13px] text-gray-500">Applications to your job listings will appear here.</p></div></Card>
+          <Card padding="3rem"><div className="text-center"><h3 className="mb-2 text-base font-semibold text-slate-900 dark:text-white">No applications received</h3><p className="text-[13px] text-slate-500 dark:text-slate-400">Applications to your job listings will appear here.</p></div></Card>
         ) : (
           <>
             <div className="flex flex-col gap-3">
               {receivedApps.map((app) => (
                 <a key={app.id} href={`/jobs/applications/${app.id}`} className="no-underline">
-                  <Card padding="1.25rem">
+                   <Card padding="1.5rem" className="rounded-3xl">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-xs font-bold text-gray-500">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-500 dark:text-slate-400">
                           {app.applicant.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}
                         </div>
                         <div>
-                          <span className="block text-xs font-semibold text-brand-dark">{app.applicant.name}</span>
-                          <span className="text-[11px] text-gray-500">for {app.listing.title}</span>
+                          <span className="block text-xs font-semibold text-slate-900 dark:text-white">{app.applicant.name}</span>
+                          <span className="text-[11px] text-slate-500 dark:text-slate-400">for {app.listing.title}</span>
                         </div>
                       </div>
-                      <span className="rounded-md px-2 py-0.5 text-[9px] font-bold uppercase font-mono" style={{ color: STATUS_COLORS[app.status], backgroundColor: `${STATUS_COLORS[app.status]}12` }}>{app.status}</span>
+                      <span className="px-2.5 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 text-[10px] font-mono font-bold uppercase tracking-wider">{app.status}</span>
                     </div>
                   </Card>
                 </a>
@@ -148,21 +147,21 @@ export default function MyJobsPage() {
           </>
         )
       ) : myApps.length === 0 ? (
-        <Card padding="3rem"><div className="text-center"><h3 className="mb-2 text-base font-semibold text-brand-dark">No applications yet</h3><p className="text-[13px] text-gray-500">Your job applications will appear here.</p></div></Card>
+        <Card padding="3rem"><div className="text-center"><h3 className="mb-2 text-base font-semibold text-slate-900 dark:text-white">No applications yet</h3><p className="text-[13px] text-slate-500 dark:text-slate-400">Your job applications will appear here.</p></div></Card>
       ) : (
         <>
           <div className="flex flex-col gap-3">
             {myApps.map((app) => (
               <a key={app.id} href={`/jobs/applications/${app.id}`} className="no-underline">
-                <Card padding="1.25rem">
+                 <Card padding="1.5rem" className="rounded-3xl">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <span className="block text-xs font-semibold text-brand-dark">{app.listing.title}</span>
-                      <span className="text-[11px] text-gray-500">{app.listing.company || "Community"} &middot; {app.listing.location}</span>
+                      <span className="block text-xs font-semibold text-slate-900 dark:text-white">{app.listing.title}</span>
+                      <span className="text-[11px] text-slate-500 dark:text-slate-400">{app.listing.company || "Community"} &middot; {app.listing.location}</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="rounded-full px-2 py-0.5 text-[9px] font-bold capitalize" style={{ color: JOB_TYPE_COLORS[app.listing.jobType], backgroundColor: `${JOB_TYPE_COLORS[app.listing.jobType]}12` }}>{app.listing.jobType.replace("_", " ")}</span>
-                      <span className="rounded-md px-2 py-0.5 text-[9px] font-bold uppercase font-mono" style={{ color: STATUS_COLORS[app.status], backgroundColor: `${STATUS_COLORS[app.status]}12` }}>{app.status}</span>
+                      <span className="px-2.5 py-0.5 rounded-md bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-[10px] font-mono font-bold uppercase tracking-wider">{app.listing.jobType.replace("_", " ")}</span>
+                      <span className="px-2.5 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 text-[10px] font-mono font-bold uppercase tracking-wider">{app.status}</span>
                     </div>
                   </div>
                 </Card>

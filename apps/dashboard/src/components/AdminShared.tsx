@@ -20,20 +20,10 @@ export function StatusBadge({ status }: { status: string }) {
   return <span className="text-[9px] font-bold uppercase font-mono px-2 py-0.5 rounded-md" style={{ backgroundColor: s.bg, color: s.color, border: `1px solid ${s.border}` }}>{status}</span>;
 }
 
-export function StatCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
-  return (
-    <div className="bg-white border border-gray-100 rounded-xl p-4">
-      <div className="text-[9px] uppercase tracking-[0.08em] text-gray-400 font-mono">{label}</div>
-      <div className="text-base font-bold text-brand-dark mt-1">{value}</div>
-      {sub && <div className="text-[10px] text-gray-400 mt-0.5">{sub}</div>}
-    </div>
-  );
-}
-
 export function FilterSelect({ value, onChange, options, capitalize = true }: { value: string; onChange: (v: string) => void; options: string[]; capitalize?: boolean }) {
   return (
     <select value={value} onChange={(e) => onChange(e.target.value)}
-      className="px-3 py-2 rounded-lg border border-gray-200 text-xs bg-white"
+      className="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
       style={{ textTransform: capitalize ? "capitalize" : "none" }}>
       {options.map((o) => <option key={o} value={o} style={{ textTransform: capitalize ? "capitalize" : "none" }}>{o}</option>)}
     </select>

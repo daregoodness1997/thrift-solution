@@ -4,14 +4,13 @@ import { useState, useEffect, useCallback } from "react";
 import { config, BrandConfig } from "@thrift/config";
 import {
   Card,
-  ColorfulBadge,
   FadeInUp,
   StatCard,
   StaggerChildren,
 } from "@thrift/ui";
 import { formatNaira } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
-import { PageHeader } from "@/components/PageHeader";
+import { BadgeCheck, PiggyBank, Clock, Filter } from "lucide-react";
 import { DataTable, Column, PaginationInfo } from "@/components/DataTable";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -195,10 +194,10 @@ export default function MyClearancePage() {
       render: (row) =>
         row._type === "group" ? (
           <div>
-            <span className="block font-medium text-brand-dark">
+            <span className="block font-medium text-slate-900 dark:text-white">
               {row.groupName}
             </span>
-            <span className="text-[11px] text-gray-500">
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">
               Cycle {row.cycleNumber} payout
             </span>
           </div>
@@ -210,7 +209,7 @@ export default function MyClearancePage() {
       mono: true,
       render: (row) =>
         row._type === "group" ? (
-          <span className="font-semibold text-brand-dark">
+          <span className="font-semibold text-slate-900 dark:text-white">
             {formatNaira(row.contributed)}
           </span>
         ) : null,
@@ -235,7 +234,7 @@ export default function MyClearancePage() {
       render: (row) =>
         row._type === "group" ? (
           row.clearedDate ? (
-            <span className="text-gray-500">
+            <span className="text-slate-500 dark:text-slate-400">
               {new Date(row.clearedDate).toLocaleDateString("en-US", {
                 year: "numeric",
                 month: "short",
@@ -243,7 +242,7 @@ export default function MyClearancePage() {
               })}
             </span>
           ) : (
-            <span className="text-gray-300">—</span>
+            <span className="text-slate-300 dark:text-slate-600">—</span>
           )
         ) : null,
     },
@@ -273,10 +272,10 @@ export default function MyClearancePage() {
       render: (row) =>
         row._type === "circle" ? (
           <div>
-            <span className="block font-medium text-brand-dark">
+            <span className="block font-medium text-slate-900 dark:text-white">
               {row.circleAccount.circle.name}
             </span>
-            <span className="text-[11px] text-gray-500">
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">
               {formatNaira(row.circleAccount.principalAmount)} &middot;{" "}
               {row.circleAccount.circle.interestRateAnnual}% p.a.
             </span>
@@ -289,7 +288,7 @@ export default function MyClearancePage() {
       mono: true,
       render: (row) =>
         row._type === "circle" ? (
-          <span className="font-semibold" style={{ color: cfg.colors.primary }}>
+          <span className="font-semibold" style={{ color: "#2563EB" }}>
             {formatNaira(row.circleAccount.principalAmount)}
           </span>
         ) : null,
@@ -311,7 +310,7 @@ export default function MyClearancePage() {
       mono: true,
       render: (row) =>
         row._type === "circle" ? (
-          <span className="font-semibold text-brand-dark">
+          <span className="font-semibold text-slate-900 dark:text-white">
             {formatNaira(row.amount)}
           </span>
         ) : null,
@@ -323,7 +322,7 @@ export default function MyClearancePage() {
       mono: true,
       render: (row) =>
         row._type === "circle" ? (
-          <span className="text-gray-500">
+          <span className="text-slate-500 dark:text-slate-400">
             {new Date(row.createdAt).toLocaleDateString("en-US", {
               year: "numeric",
               month: "short",
@@ -367,7 +366,7 @@ export default function MyClearancePage() {
   if (loading) {
     return (
       <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
-        <div className="p-16 text-center text-[13px] text-gray-400">
+        <div className="p-16 text-center text-[13px] text-slate-400 dark:text-slate-500">
           Loading clearances...
         </div>
       </div>
@@ -376,13 +375,18 @@ export default function MyClearancePage() {
 
   return (
     <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
-      <PageHeader
-        badgeLabel="Clearance History"
-        badgeColor={cfg.colors.accent}
-        heading="My"
-        accentText="Clearance"
-        description="Track your payout clearances and circle progress."
-      />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4 mb-8">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1">
+              <BadgeCheck className="w-3.5 h-3.5 text-blue-500" />
+              <span>Clearance History</span>
+            </span>
+          </div>
+          <h3 className="font-display font-bold text-xl sm:text-2xl text-slate-900 dark:text-white mt-1">My <span className="bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 bg-clip-text text-transparent">Clearance</span></h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">Track your payout clearances and circle progress.</p>
+        </div>
+      </div>
 
       <StaggerChildren
         staggerDelay={100}
@@ -414,22 +418,20 @@ export default function MyClearancePage() {
       </StaggerChildren>
 
       <FadeInUp delay={400}>
-        <Card padding="1.5rem">
-          <div className="mb-6 flex items-center justify-between border-b border-gray-100 pb-4">
+        <Card padding="1.5rem" className="rounded-3xl">
+          <div className="mb-6 flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800/80 pb-4">
             <div>
-              <ColorfulBadge
-                label={
-                  activeTab === "group" ? "Group Clearances" : "Circle Payouts"
-                }
-                color={cfg.colors.primary}
-              />
-              <h2 className="mt-2 text-[1.125rem] font-medium text-brand-dark">
+              <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1 w-fit">
+                <BadgeCheck className="w-3.5 h-3.5 text-blue-500" />
+                <span>{activeTab === "group" ? "Group Clearances" : "Circle Payouts"}</span>
+              </span>
+              <h2 className="mt-2 text-[1.125rem] font-medium text-slate-900 dark:text-white">
                 {activeTab === "group"
                   ? "My Payout Clearances"
                   : "My Circle Payout Requests"}
               </h2>
             </div>
-            <div className="flex gap-1 rounded-lg bg-[#F5F7F5] p-1">
+            <div className="flex gap-1 rounded-lg bg-slate-100 dark:bg-slate-800 p-1">
               {(["group", "circle"] as const).map((t) => (
                 <button
                   key={t}
@@ -438,7 +440,7 @@ export default function MyClearancePage() {
                   style={{
                     backgroundColor:
                       activeTab === t ? "#ffffff" : "transparent",
-                    color: activeTab === t ? cfg.colors.primary : "#717171",
+                    color: activeTab === t ? "#2563EB" : "#717171",
                   }}
                 >
                   {t === "group" ? "Group" : "Circle"}
@@ -458,16 +460,19 @@ export default function MyClearancePage() {
                 ? "No clearances yet. Join a circle to start earning payouts."
                 : "No circle payout requests yet. Maturity payouts will appear here when requested."
             }
-            accentColor={cfg.colors.accent}
+            accentColor="#2563EB"
           />
         </Card>
       </FadeInUp>
 
       <FadeInUp delay={500} className="mt-6">
-        <Card padding="1.5rem">
+        <Card padding="1.5rem" className="rounded-3xl">
           <div className="mb-4">
-            <ColorfulBadge label="How It Works" color={cfg.colors.accent} />
-            <h2 className="mt-2 text-[1.125rem] font-medium text-brand-dark">
+            <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1 w-fit">
+              <Clock className="w-3.5 h-3.5 text-blue-500" />
+              <span>How It Works</span>
+            </span>
+            <h2 className="mt-2 text-[1.125rem] font-medium text-slate-900 dark:text-white">
               Clearance Process
             </h2>
           </div>
@@ -477,7 +482,7 @@ export default function MyClearancePage() {
                 step: 1,
                 title: "Contribute",
                 desc: "Make your contributions each cycle to build your eligibility.",
-                color: cfg.colors.primary,
+                color: "#2563EB",
               },
               {
                 step: 2,
@@ -494,7 +499,7 @@ export default function MyClearancePage() {
             ].map((item) => (
               <div
                 key={item.step}
-                className="rounded-xl bg-gray-50 p-4 text-center"
+                className="rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-4 text-center"
               >
                 <div
                   className="mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-full font-mono text-[13px] font-bold"
@@ -505,10 +510,10 @@ export default function MyClearancePage() {
                 >
                   {item.step}
                 </div>
-                <span className="block text-xs font-semibold text-[#2D2D2D]">
+                <span className="block text-xs font-semibold text-slate-900 dark:text-white">
                   {item.title}
                 </span>
-                <span className="text-[10px] font-light text-gray-500">
+                <span className="text-[10px] font-light text-slate-500 dark:text-slate-400">
                   {item.desc}
                 </span>
               </div>

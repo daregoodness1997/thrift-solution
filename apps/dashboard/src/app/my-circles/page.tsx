@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { config, BrandConfig } from "@thrift/config";
-import { Card, Button, ColorfulBadge, FadeIn, FadeInUp, StaggerChildren, StatCard } from "@thrift/ui";
+import { Card, Button, FadeIn, FadeInUp, StaggerChildren, StatCard } from "@thrift/ui";
 import { formatNaira } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
 import { Skeleton, SkeletonCard } from "@/components/Skeleton";
+import { SimpleTable, SimpleColumn } from "@/components/SimpleTable";
 
 const fallback = config;
 
@@ -131,6 +132,7 @@ export default function MyCirclesPage() {
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [expandedAccount, setExpandedAccount] = useState<string | null>(null);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [accountSubTab, setAccountSubTab] = useState<"interest" | "transactions">("interest");
   const [interestLogs, setInterestLogs] = useState<InterestLog[]>([]);
   const [accountTransactions, setAccountTransactions] = useState<CircleTransaction[]>([]);
@@ -239,14 +241,50 @@ export default function MyCirclesPage() {
 
   const filteredAccounts = myAccounts;
 
+  const circleGroups = useMemo(() => {
+    const map = new Map<string, { circle: CircleAccount["circle"]; accounts: CircleAccount[] }>();
+    for (const account of filteredAccounts) {
+      const key = account.circleId;
+      if (!map.has(key)) {
+        map.set(key, { circle: account.circle, accounts: [] });
+      }
+      map.get(key)!.accounts.push(account);
+    }
+    return Array.from(map.entries()).map(([circleId, { circle, accounts }]) => ({
+      circleId,
+      circle,
+      accounts,
+      totalInvested: accounts.reduce((s, a) => s + a.principalAmount, 0),
+      totalInterest: accounts.reduce((s, a) => s + a.interestEarned, 0),
+      activeCount: accounts.filter((a) => a.status === "active").length,
+    }));
+  }, [filteredAccounts]);
+
+  const toggleGroup = (circleId: string) => {
+    setExpandedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(circleId)) next.delete(circleId);
+      else next.add(circleId);
+      return next;
+    });
+  };
+
+  const expandAllGroups = () => {
+    setExpandedGroups(new Set(circleGroups.map((g) => g.circleId)));
+  };
+
+  const collapseAllGroups = () => {
+    setExpandedGroups(new Set());
+  };
+
   return (
     <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
       <PageHeader badgeLabel="Savings" heading="My" accentText="Circles" description="Detailed view of all your circle savings accounts, interest earnings, and transaction history."
-        right={<span className="text-[12px] text-gray-500">Wallet: <span className="font-mono font-semibold" style={{ color: cfg.colors.primary }}>{formatNaira(walletBalance)}</span></span>} />
+        right={<span className="text-[12px] text-slate-500 dark:text-slate-400">Wallet: <span className="font-mono font-semibold text-blue-600">{formatNaira(walletBalance)}</span></span>} />
 
       {message && (
         <FadeIn>
-          <div className="mb-6 rounded-xl px-4 py-3 text-[13px] font-medium" style={{ backgroundColor: message.type === "success" ? "#ECFDF5" : "#FEF2F2", color: message.type === "success" ? "#059669" : "#DC2626", border: `1px solid ${message.type === "success" ? "#A7F3D0" : "#FECACA"}` }}>
+          <div className="mb-6 rounded-2xl px-4 py-3 text-[13px] font-medium" style={{ backgroundColor: message.type === "success" ? "#ECFDF5" : "#FEF2F2", color: message.type === "success" ? "#059669" : "#DC2626", border: `1px solid ${message.type === "success" ? "#A7F3D0" : "#FECACA"}` }}>
             {message.text}
           </div>
         </FadeIn>
@@ -259,17 +297,29 @@ export default function MyCirclesPage() {
         <StatCard label="Active Accounts" value={String(stats.activeCount)} change={stats.maturedCount > 0 ? `${stats.maturedCount} matured` : "None matured"} positive variant="warm" />
       </StaggerChildren>
 
-      <div className="mb-6 flex flex-wrap gap-2">
-        {(["all", "active", "matured", "withdrawn", "reversed"] as StatusFilter[]).map((filter) => {
-          const count = filter === "all" ? stats.total : myAccounts.filter((a) => a.status === filter).length;
-          return (
-            <button key={filter} onClick={() => setStatusFilter(filter)}
-              className="cursor-pointer rounded-full border-[1.5px] px-5 py-2 text-[12px] font-semibold transition-all duration-150"
-              style={{ backgroundColor: statusFilter === filter ? cfg.colors.primary : "#ffffff", color: statusFilter === filter ? "#ffffff" : "#717171", borderColor: statusFilter === filter ? cfg.colors.primary : "#EAEAEA" }}>
-              {filter.charAt(0).toUpperCase() + filter.slice(1)} ({count})
+      <div className="mb-6 flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap gap-2 flex-1">
+          {(["all", "active", "matured", "withdrawn", "reversed"] as StatusFilter[]).map((filter) => {
+            const count = filter === "all" ? stats.total : myAccounts.filter((a) => a.status === filter).length;
+            return (
+              <button key={filter} onClick={() => setStatusFilter(filter)}
+                className="cursor-pointer rounded-full border-[1.5px] px-5 py-2 text-[12px] font-semibold transition-all duration-150"
+                style={{ backgroundColor: statusFilter === filter ? "#2563EB" : "#ffffff", color: statusFilter === filter ? "#ffffff" : "#717171", borderColor: statusFilter === filter ? "#2563EB" : "#EAEAEA" }}>
+                {filter.charAt(0).toUpperCase() + filter.slice(1)} ({count})
+              </button>
+            );
+          })}
+        </div>
+        {circleGroups.length > 1 && (
+          <div className="flex gap-1.5">
+            <button onClick={expandAllGroups} className="cursor-pointer rounded-full border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-[11px] font-medium text-slate-500 dark:text-slate-400 hover:border-blue-400 hover:text-blue-600 transition-all">
+              Expand All
             </button>
-          );
-        })}
+            <button onClick={collapseAllGroups} className="cursor-pointer rounded-full border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-[11px] font-medium text-slate-500 dark:text-slate-400 hover:border-blue-400 hover:text-blue-600 transition-all">
+              Collapse All
+            </button>
+          </div>
+        )}
       </div>
 
       {loading ? (
@@ -278,11 +328,11 @@ export default function MyCirclesPage() {
         <FadeInUp delay={200}>
           <Card padding="3rem">
               <div className="text-center">
-                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-[20px]">&#8358;</div>
-                <h3 className="mb-2 text-[1rem] font-semibold text-brand-dark">
+                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-[20px]">&#8358;</div>
+                <h3 className="mb-2 text-[1rem] font-semibold text-slate-900 dark:text-white">
                   {statusFilter === "all" ? "No circle accounts yet" : `No ${statusFilter} accounts`}
                 </h3>
-                <p className="mb-4 text-[13px] text-gray-500">
+                <p className="mb-4 text-[13px] text-slate-500 dark:text-slate-400">
                   {statusFilter === "all" ? "Open a circle account to start earning weekly interest." : "Try a different filter."}
                 </p>
               {statusFilter === "all" && <Button variant="primary" size="sm" onClick={() => window.location.href = "/circles"}>Browse Circles</Button>}
@@ -291,204 +341,223 @@ export default function MyCirclesPage() {
         </FadeInUp>
       ) : (
         <FadeInUp delay={200}>
-          <Card padding="1.5rem">
-            <ColorfulBadge label="My Accounts" color={cfg.colors.primary} />
-              <h2 className="mt-2 mb-4 text-[1.125rem] font-medium text-brand-dark">
-                Circle Accounts ({filteredAccounts.length})
-              </h2>
-              <div className="flex flex-col gap-3">
-              {filteredAccounts.map((account) => {
-                const progress = getMaturityProgress(account.startDate, account.maturityDate);
-                const days = daysUntil(account.maturityDate);
-                const isExpanded = expandedAccount === account.id;
-
-                return (
-                  <div key={account.id} className="rounded-xl border border-gray-100 p-4 transition-all duration-200" style={{ backgroundColor: isExpanded ? "#FAF9F5" : "#ffffff" }}>
-                    <div className="flex flex-wrap items-center justify-between gap-3" onClick={() => setExpandedAccount(isExpanded ? null : account.id)}>
-                      <div className="flex flex-1 items-center gap-4 min-w-0">
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl font-mono text-[11px] font-bold" style={{ backgroundColor: ACCOUNT_STATUS_BG[account.status], color: ACCOUNT_STATUS_COLORS[account.status] }}>
-                          {formatNaira(account.principalAmount).split(" ")[0]}
-                        </div>
-                        <div className="min-w-0">
-                          <div className="mb-0.5 flex items-center gap-2">
-                            <span className="truncate text-[14px] font-semibold text-brand-dark">{account.circle.name}</span>
-                            <span className="shrink-0 rounded-[0.375rem] px-2 py-0.5 text-[9px] font-bold uppercase font-mono" style={{ color: ACCOUNT_STATUS_COLORS[account.status], backgroundColor: `${ACCOUNT_STATUS_COLORS[account.status]}12` }}>{account.status.replace("_", " ")}</span>
-                            {account.circle.cycleType === "weekly_contribution" && (
-                              <span className="shrink-0 rounded-[0.375rem] px-2 py-0.5 text-[9px] font-bold uppercase font-mono" style={{ color: "#2563EB", backgroundColor: "#EFF6FF" }}>Weekly</span>
-                            )}
-                            {(account.weeksDefaulted ?? 0) > 0 && (
-                              <span className="shrink-0 rounded-[0.375rem] px-2 py-0.5 text-[9px] font-bold uppercase font-mono" style={{ color: "#DC2626", backgroundColor: "#FEF2F2" }}>{account.weeksDefaulted} default</span>
-                            )}
-                          </div>
-                          <span className="text-[11px] text-gray-400">{formatNaira(account.principalAmount)} &middot; {account.circle.interestRateAnnual}% p.a. &middot; {formatDuration(account.circle.durationMonths)}</span>
-                        </div>
+          <div className="flex flex-col gap-4">
+            {circleGroups.map((group) => {
+              const isGroupExpanded = expandedGroups.has(group.circleId);
+              return (
+                <Card key={group.circleId} padding="0" className="rounded-3xl overflow-hidden">
+                  {/* Group Header */}
+                  <div
+                    className="flex items-center justify-between gap-4 px-5 py-4 cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                    onClick={() => toggleGroup(group.circleId)}
+                  >
+                    <div className="flex items-center gap-4 min-w-0">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-50 dark:bg-blue-950/50 font-mono text-[12px] font-bold text-blue-600 dark:text-blue-400">
+                        {group.accounts.length}
                       </div>
-                      <div className="flex items-center gap-3">
-                        {account.status === "active" && (
-                          <span className="font-mono text-[11px] text-[#666]">{days}d left</span>
-                        )}
-                        <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); window.location.href = `/my-circles/${account.id}`; }}>
-                          View Details
-                        </Button>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isExpanded ? cfg.colors.primary : "#999"} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="shrink-0" style={{ transition: "transform 0.2s", transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)" }}>
-                          <path d="M6 9l6 6 6-6" />
-                        </svg>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="truncate text-[15px] font-semibold text-slate-900 dark:text-white">{group.circle.name}</span>
+                          {group.circle.cycleType === "weekly_contribution" && (
+                            <span className="shrink-0 rounded-[0.375rem] px-2 py-0.5 text-[9px] font-bold uppercase font-mono text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400">Weekly</span>
+                          )}
+                        </div>
+                        <span className="text-[11px] text-slate-400 dark:text-slate-500">
+                          {group.accounts.length} account{group.accounts.length !== 1 ? "s" : ""} &middot; {formatNaira(group.totalInvested)} invested &middot; {group.circle.interestRateAnnual}% p.a. &middot; {formatDuration(group.circle.durationMonths)}
+                        </span>
                       </div>
                     </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      {group.activeCount > 0 && (
+                        <span className="rounded-full bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                          {group.activeCount} active
+                        </span>
+                      )}
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={isGroupExpanded ? "#2563EB" : "#999"} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="shrink-0 transition-transform duration-200" style={{ transform: isGroupExpanded ? "rotate(180deg)" : "rotate(0deg)" }}>
+                        <path d="M6 9l6 6 6-6" />
+                      </svg>
+                    </div>
+                  </div>
 
-                    {account.status === "active" && (
-                      <div className="mt-3">
-                        <div className="mb-1.5 flex justify-between text-[10px] text-gray-400">
-                          <span>Maturity Progress</span>
-                          <span>{progress}%</span>
-                        </div>
-                        <div className="h-1 overflow-hidden rounded-[2px] bg-gray-100">
-                          <div className="h-full rounded-[2px]" style={{ width: `${progress}%`, backgroundColor: cfg.colors.primary, transition: "width 0.5s ease" }} />
-                        </div>
-                      </div>
-                    )}
+                  {/* Group Summary Bar */}
+                  <div className="border-t border-slate-100 dark:border-slate-800 px-5 py-2.5 bg-slate-50/50 dark:bg-slate-800/30 flex gap-6 text-[11px]">
+                    <span className="text-slate-400 dark:text-slate-500">Total Invested: <span className="font-mono font-semibold text-slate-700 dark:text-slate-300">{formatNaira(group.totalInvested)}</span></span>
+                    <span className="text-slate-400 dark:text-slate-500">Interest Earned: <span className="font-mono font-semibold text-emerald-600 dark:text-emerald-400">{formatNaira(group.totalInterest)}</span></span>
+                    <span className="text-slate-400 dark:text-slate-500">Maturity: <span className="font-mono font-semibold text-slate-900 dark:text-white">{formatNaira(group.totalInvested + group.totalInterest)}</span></span>
+                  </div>
 
-                    {isExpanded && (
-                        <div className="mt-4 border-t border-gray-100 pt-4">
-                          <div className="mb-4 grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-4 text-[12px]">
-                            <div><span className="mb-1 block text-gray-400">Principal</span><span className="font-mono font-semibold" style={{ color: cfg.colors.primary }}>{formatNaira(account.principalAmount)}</span></div>
-                            <div><span className="mb-1 block text-gray-400">Interest Earned</span><span className="font-mono font-semibold text-emerald-500">{formatNaira(account.interestEarned)}</span></div>
-                            <div><span className="mb-1 block text-gray-400">Maturity Payout</span><span className="font-mono font-semibold text-brand-dark">{formatNaira(account.principalAmount + account.interestEarned)}</span></div>
-                            <div><span className="mb-1 block text-gray-400">Start Date</span><span className="font-medium text-brand-dark">{formatDate(account.startDate)}</span></div>
-                            <div><span className="mb-1 block text-gray-400">Maturity Date</span><span className="font-medium text-brand-dark">{formatDate(account.maturityDate)}</span></div>
-                            {account.lastInterestCalculation && (
-                              <div><span className="mb-1 block text-gray-400">Last Interest</span><span className="font-medium text-brand-dark">{formatDate(account.lastInterestCalculation)}</span></div>
+                  {/* Accounts List */}
+                  {isGroupExpanded && (
+                    <div className="border-t border-slate-100 dark:border-slate-800 px-5 py-3 flex flex-col gap-2">
+                      {group.accounts.map((account) => {
+                        const progress = getMaturityProgress(account.startDate, account.maturityDate);
+                        const days = daysUntil(account.maturityDate);
+                        const isExpanded = expandedAccount === account.id;
+
+                        return (
+                          <div key={account.id} className="rounded-2xl border border-slate-200/80 dark:border-slate-800/80 p-4 transition-all duration-200" style={{ backgroundColor: isExpanded ? "#FAF9F5" : "#ffffff" }}>
+                            <div className="flex flex-wrap items-center justify-between gap-3" onClick={() => setExpandedAccount(isExpanded ? null : account.id)}>
+                              <div className="flex flex-1 items-center gap-4 min-w-0">
+                                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl font-mono text-[11px] font-bold" style={{ backgroundColor: ACCOUNT_STATUS_BG[account.status], color: ACCOUNT_STATUS_COLORS[account.status] }}>
+                                  {formatNaira(account.principalAmount).split(" ")[0]}
+                                </div>
+                                <div className="min-w-0">
+                                  <div className="mb-0.5 flex items-center gap-2">
+                                    <span className="shrink-0 rounded-[0.375rem] px-2 py-0.5 text-[9px] font-bold uppercase font-mono" style={{ color: ACCOUNT_STATUS_COLORS[account.status], backgroundColor: `${ACCOUNT_STATUS_COLORS[account.status]}12` }}>{account.status.replace("_", " ")}</span>
+                                    {(account.weeksDefaulted ?? 0) > 0 && (
+                                      <span className="shrink-0 rounded-[0.375rem] px-2 py-0.5 text-[9px] font-bold uppercase font-mono text-red-600 bg-red-50 dark:bg-red-900/30 dark:text-red-400">{account.weeksDefaulted} default</span>
+                                    )}
+                                  </div>
+                                  <span className="text-[11px] text-slate-400 dark:text-slate-500">{formatNaira(account.principalAmount)} &middot; Started {formatDate(account.startDate)}</span>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                {account.status === "active" && (
+                                  <span className="font-mono text-[11px] text-[#666] dark:text-slate-400">{days}d left</span>
+                                )}
+                                <Button variant="outline" size="sm" onClick={(e) => { e.stopPropagation(); window.location.href = `/my-circles/${account.id}`; }}>
+                                  View Details
+                                </Button>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isExpanded ? "#2563EB" : "#999"} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="shrink-0" style={{ transition: "transform 0.2s", transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)" }}>
+                                  <path d="M6 9l6 6 6-6" />
+                                </svg>
+                              </div>
+                            </div>
+
+                            {account.status === "active" && (
+                              <div className="mt-3">
+                                <div className="mb-1.5 flex justify-between text-[10px] text-slate-400 dark:text-slate-500">
+                                  <span>Maturity Progress</span>
+                                  <span>{progress}%</span>
+                                </div>
+                                <div className="h-1 overflow-hidden rounded-[2px] bg-slate-100 dark:bg-slate-800">
+                                  <div className="h-full rounded-[2px] bg-blue-600" style={{ width: `${progress}%`, transition: "width 0.5s ease" }} />
+                                </div>
+                              </div>
                             )}
-                            {account.circle.cycleType === "weekly_contribution" && (
-                              <>
-                                <div><span className="mb-1 block text-gray-400">Weeks Paid</span><span className="font-mono font-semibold text-emerald-500">{account.weeksContributed ?? 0}/{account.circle.totalWeeks ?? 0}</span></div>
-                                <div><span className="mb-1 block text-gray-400">Weeks Defaulted</span><span className="font-mono font-semibold" style={{ color: (account.weeksDefaulted ?? 0) > 0 ? "#DC2626" : "#6B7280" }}>{account.weeksDefaulted ?? 0}</span></div>
-                              </>
-                            )}
-                          </div>
 
-                          {(account.weeksDefaulted ?? 0) > 0 && (
-                            <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-[11px] text-red-700">
-                              You have {account.weeksDefaulted} missed contribution(s). Clear them on the <a href="/my-defaults" className="font-semibold underline">My Defaults</a> page ({formatClearanceLabel(account.circle.defaultPenaltyType, account.circle.defaultPenaltyValue)} clearance applies).
+                            {isExpanded && (
+                              <div className="mt-4 border-t border-slate-200/80 dark:border-slate-800/80 pt-4">
+                                <div className="mb-4 grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-4 text-[12px]">
+                                  <div><span className="mb-1 block text-slate-400 dark:text-slate-500">Principal</span><span className="font-mono font-semibold text-blue-600">{formatNaira(account.principalAmount)}</span></div>
+                                  <div><span className="mb-1 block text-slate-400 dark:text-slate-500">Interest Earned</span><span className="font-mono font-semibold text-emerald-500">{formatNaira(account.interestEarned)}</span></div>
+                                  <div><span className="mb-1 block text-slate-400 dark:text-slate-500">Maturity Payout</span><span className="font-mono font-semibold text-slate-900 dark:text-white">{formatNaira(account.principalAmount + account.interestEarned)}</span></div>
+                                  <div><span className="mb-1 block text-slate-400 dark:text-slate-500">Start Date</span><span className="font-medium text-slate-900 dark:text-white">{formatDate(account.startDate)}</span></div>
+                                  <div><span className="mb-1 block text-slate-400 dark:text-slate-500">Maturity Date</span><span className="font-medium text-slate-900 dark:text-white">{formatDate(account.maturityDate)}</span></div>
+                                  {account.lastInterestCalculation && (
+                                    <div><span className="mb-1 block text-slate-400 dark:text-slate-500">Last Interest</span><span className="font-medium text-slate-900 dark:text-white">{formatDate(account.lastInterestCalculation)}</span></div>
+                                  )}
+                                  {account.circle.cycleType === "weekly_contribution" && (
+                                    <>
+                                      <div><span className="mb-1 block text-slate-400 dark:text-slate-500">Weeks Paid</span><span className="font-mono font-semibold text-emerald-500">{account.weeksContributed ?? 0}/{account.circle.totalWeeks ?? 0}</span></div>
+                                      <div><span className="mb-1 block text-slate-400 dark:text-slate-500">Weeks Defaulted</span><span className="font-mono font-semibold" style={{ color: (account.weeksDefaulted ?? 0) > 0 ? "#DC2626" : "#6B7280" }}>{account.weeksDefaulted ?? 0}</span></div>
+                                    </>
+                                  )}
+                                </div>
+
+                                {(account.weeksDefaulted ?? 0) > 0 && (
+                                  <div className="mb-4 rounded-lg bg-red-50 dark:bg-red-900/20 px-3 py-2 text-[11px] text-red-700 dark:text-red-400">
+                                    You have {account.weeksDefaulted} missed contribution(s). Clear them on the <a href="/my-defaults" className="font-semibold underline">My Defaults</a> page ({formatClearanceLabel(account.circle.defaultPenaltyType, account.circle.defaultPenaltyValue)} clearance applies).
+                                  </div>
+                                )}
+
+                                <div className="mb-4 flex gap-1.5">
+                                <button onClick={() => setAccountSubTab("interest")}
+                                  className="cursor-pointer rounded-full border-[1.5px] px-4 py-1.5 text-[11px] font-semibold transition-all duration-150"
+                                  style={{ backgroundColor: accountSubTab === "interest" ? "#2563EB" : "#ffffff", color: accountSubTab === "interest" ? "#ffffff" : "#717171", borderColor: accountSubTab === "interest" ? "#2563EB" : "#EAEAEA" }}>
+                                  Interest Logs
+                                </button>
+                                <button onClick={() => setAccountSubTab("transactions")}
+                                  className="cursor-pointer rounded-full border-[1.5px] px-4 py-1.5 text-[11px] font-semibold transition-all duration-150"
+                                  style={{ backgroundColor: accountSubTab === "transactions" ? "#2563EB" : "#ffffff", color: accountSubTab === "transactions" ? "#ffffff" : "#717171", borderColor: accountSubTab === "transactions" ? "#2563EB" : "#EAEAEA" }}>
+                                  Transactions
+                                </button>
+                              </div>
+
+                              {loadingDetails ? (
+                                <div className="p-6 text-center text-[12px] text-slate-400 dark:text-slate-500">Loading details...</div>
+                              ) : accountSubTab === "interest" ? (
+                                <div className="max-h-[280px] overflow-y-auto rounded-lg border border-slate-200/80 dark:border-slate-800/80">
+                                  {(() => {
+                                    const cumData = interestLogs.reduce((acc, log) => {
+                                      const prevCum = acc.length > 0 ? acc[acc.length - 1].cumulative : 0;
+                                      acc.push({ ...log, cumulative: prevCum + log.amount });
+                                      return acc;
+                                    }, [] as (InterestLog & { cumulative: number })[]);
+                                    return (
+                                      <SimpleTable
+                                        columns={[
+                                          { key: "date", header: "Date", render: (log) => <span className="font-mono text-[#666] dark:text-slate-400">{formatDate(log.calculatedAt)}</span> },
+                                          { key: "principal", header: "Principal", align: "right", render: (log) => <span className="font-mono text-[#666] dark:text-slate-400">{formatNaira(log.principalAtCalculation)}</span> },
+                                          { key: "interest", header: "Interest", align: "right", render: (log) => <span className="font-mono font-medium text-emerald-500">+{formatNaira(log.amount)}</span> },
+                                          { key: "cumulative", header: "Cumulative", align: "right", render: (log) => <span className="font-mono text-slate-900 dark:text-white">{formatNaira(log.cumulative)}</span> },
+                                        ]}
+                                        data={cumData}
+                                        emptyMessage="No interest calculations yet"
+                                      />
+                                    );
+                                  })()}
+                                </div>
+                              ) : (
+                                <div className="max-h-[280px] overflow-y-auto rounded-lg border border-slate-200/80 dark:border-slate-800/80">
+                                  <SimpleTable
+                                    columns={[
+                                      { key: "date", header: "Date", render: (tx) => <span className="font-mono text-[#666] dark:text-slate-400">{formatDateTime(tx.createdAt)}</span> },
+                                      { key: "type", header: "Type", render: (tx) => {
+                                        const color = getTransactionTypeColor(tx.type);
+                                        return <span className="rounded-[0.375rem] px-2 py-0.5 text-[9px] font-bold uppercase font-mono" style={{ color, backgroundColor: `${color}12` }}>{getTransactionTypeLabel(tx.type)}</span>;
+                                      }},
+                                      { key: "amount", header: "Amount", align: "right", render: (tx) => (
+                                        <span className="font-mono font-semibold" style={{ color: tx.type === "circle_withdrawal" || tx.type === "circle_reversal" ? "#DC2626" : tx.type === "circle_interest" ? "#10B981" : "#2563EB" }}>
+                                          {tx.type === "circle_withdrawal" || tx.type === "circle_reversal" ? "-" : "+"}{formatNaira(tx.amount)}
+                                        </span>
+                                      )},
+                                      { key: "status", header: "Status", render: (tx) => (
+                                        <span className="rounded-[0.375rem] px-2 py-0.5 text-[9px] font-semibold uppercase" style={{ color: tx.status === "completed" ? "#059669" : "#D97706", backgroundColor: tx.status === "completed" ? "#ECFDF5" : "#FFFBEB" }}>
+                                          {tx.status}
+                                        </span>
+                                      )},
+                                    ]}
+                                    data={accountTransactions}
+                                    emptyMessage="No transactions yet"
+                                  />
+                                </div>
+                              )}
+
+                              {account.status === "reversed" && (
+                                <div className="mb-3 rounded-lg border border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20 px-3 py-2 text-[12px] font-medium text-red-700 dark:text-red-400">
+                                  This subscription was reversed because the linked payment was reversed or refunded. Any funds debited for it have been returned to your wallet.
+                                </div>
+                              )}
+
+                              <div className="mt-4 flex flex-wrap gap-2">
+                                {account.status === "active" && (
+                                  <>
+                                    <Button variant="primary" size="sm" disabled={claiming === account.id || daysUntil(account.maturityDate) > 0} onClick={() => handleClaim(account.id)}>
+                                      {claiming === account.id ? "Processing..." : daysUntil(account.maturityDate) > 0 ? `Matures in ${daysUntil(account.maturityDate)}d` : isAutoPayout(account.circle) ? "Claim Maturity" : "Request Payout"}
+                                    </Button>
+                                    <Button variant="secondary" size="sm" disabled={withdrawing === account.id} onClick={() => handleWithdraw(account.id)}>
+                                      {withdrawing === account.id ? "Withdrawing..." : "Early Withdraw (Forfeit Interest)"}
+                                    </Button>
+                                  </>
+                                )}
+                                {account.status === "matured" && (
+                                  <Button variant="primary" size="sm" disabled={claiming === account.id} onClick={() => handleClaim(account.id)}>
+                                    {claiming === account.id ? "Processing..." : isAutoPayout(account.circle) ? "Claim Maturity Payout" : "Request Payout"}
+                                  </Button>
+                                )}
+                              </div>
                             </div>
                           )}
-
-                          <div className="mb-4 flex gap-1.5">
-                          <button onClick={() => setAccountSubTab("interest")}
-                            style={{ padding: "0.375rem 1rem", borderRadius: "9999px", fontSize: "11px", fontWeight: 600, border: "1.5px solid", cursor: "pointer", transition: "all 0.15s ease", backgroundColor: accountSubTab === "interest" ? cfg.colors.primary : "#ffffff", color: accountSubTab === "interest" ? "#ffffff" : "#717171", borderColor: accountSubTab === "interest" ? cfg.colors.primary : "#EAEAEA" }}>
-                            Interest Logs
-                          </button>
-                          <button onClick={() => setAccountSubTab("transactions")}
-                            style={{ padding: "0.375rem 1rem", borderRadius: "9999px", fontSize: "11px", fontWeight: 600, border: "1.5px solid", cursor: "pointer", transition: "all 0.15s ease", backgroundColor: accountSubTab === "transactions" ? cfg.colors.primary : "#ffffff", color: accountSubTab === "transactions" ? "#ffffff" : "#717171", borderColor: accountSubTab === "transactions" ? cfg.colors.primary : "#EAEAEA" }}>
-                            Transactions
-                          </button>
                         </div>
-
-                        {loadingDetails ? (
-                          <div className="p-6 text-center text-[12px] text-gray-400">Loading details...</div>
-                        ) : accountSubTab === "interest" ? (
-                          <div className="max-h-[280px] overflow-y-auto rounded-lg border border-gray-100">
-                            {interestLogs.length === 0 ? (
-                              <div className="p-6 text-center text-[12px] text-gray-400">No interest calculations yet</div>
-                            ) : (
-                              <table className="w-full border-collapse text-[11px]">
-                                <thead className="sticky top-0 z-[1]">
-                                  <tr className="bg-gray-50">
-                                    <th className="border-b border-gray-100 px-3 py-2.5 text-left text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400">Date</th>
-                                    <th className="border-b border-gray-100 px-3 py-2.5 text-right text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400">Principal</th>
-                                    <th className="border-b border-gray-100 px-3 py-2.5 text-right text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400">Interest</th>
-                                    <th className="border-b border-gray-100 px-3 py-2.5 text-right text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400">Cumulative</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {interestLogs.reduce((acc, log) => {
-                                    const prevCum = acc.length > 0 ? acc[acc.length - 1].cumulative : 0;
-                                    acc.push({ ...log, cumulative: prevCum + log.amount });
-                                    return acc;
-                                  }, [] as (InterestLog & { cumulative: number })[]).map((log, idx) => (
-                                    <tr key={log.id} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                                      <td className="px-3 py-2 font-mono text-[#666]">{formatDate(log.calculatedAt)}</td>
-                                      <td className="px-3 py-2 text-right font-mono text-[#666]">{formatNaira(log.principalAtCalculation)}</td>
-                                      <td className="px-3 py-2 text-right font-mono font-medium text-emerald-500">+{formatNaira(log.amount)}</td>
-                                      <td className="px-3 py-2 text-right font-mono text-brand-dark">{formatNaira(log.cumulative)}</td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="max-h-[280px] overflow-y-auto rounded-lg border border-gray-100">
-                            {accountTransactions.length === 0 ? (
-                              <div className="p-6 text-center text-[12px] text-gray-400">No transactions yet</div>
-                            ) : (
-                              <table className="w-full border-collapse text-[11px]">
-                                <thead className="sticky top-0 z-[1]">
-                                  <tr className="bg-gray-50">
-                                    <th className="border-b border-gray-100 px-3 py-2.5 text-left text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400">Date</th>
-                                    <th className="border-b border-gray-100 px-3 py-2.5 text-left text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400">Type</th>
-                                    <th className="border-b border-gray-100 px-3 py-2.5 text-right text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400">Amount</th>
-                                    <th className="border-b border-gray-100 px-3 py-2.5 text-left text-[9px] font-semibold uppercase tracking-[0.05em] text-gray-400">Status</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {accountTransactions.map((tx, idx) => {
-                                    const color = getTransactionTypeColor(tx.type);
-                                    return (
-                                      <tr key={tx.id} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                                        <td className="px-3 py-2 font-mono text-[#666]">{formatDateTime(tx.createdAt)}</td>
-                                        <td className="px-3 py-2">
-                                          <span className="rounded-[0.375rem] px-2 py-0.5 text-[9px] font-bold uppercase font-mono" style={{ color, backgroundColor: `${color}12` }}>
-                                            {getTransactionTypeLabel(tx.type)}
-                                          </span>
-                                        </td>
-                                        <td className="px-3 py-2 text-right font-mono font-semibold" style={{ color: tx.type === "circle_withdrawal" || tx.type === "circle_reversal" ? "#DC2626" : tx.type === "circle_interest" ? "#10B981" : cfg.colors.primary }}>
-                                          {tx.type === "circle_withdrawal" || tx.type === "circle_reversal" ? "-" : "+"}{formatNaira(tx.amount)}
-                                        </td>
-                                        <td className="px-3 py-2">
-                                          <span className="rounded-[0.375rem] px-2 py-0.5 text-[9px] font-semibold uppercase" style={{ color: tx.status === "completed" ? "#059669" : "#D97706", backgroundColor: tx.status === "completed" ? "#ECFDF5" : "#FFFBEB" }}>
-                                            {tx.status}
-                                          </span>
-                                        </td>
-                                      </tr>
-                                    );
-                                  })}
-                                </tbody>
-                              </table>
-                            )}
-                          </div>
-                        )}
-
-                        {account.status === "reversed" && (
-                          <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[12px] font-medium text-red-700">
-                            This subscription was reversed because the linked payment was reversed or refunded. Any funds debited for it have been returned to your wallet.
-                          </div>
-                        )}
-
-                        <div className="mt-4 flex flex-wrap gap-2">
-                          {account.status === "active" && (
-                            <>
-                              <Button variant="primary" size="sm" disabled={claiming === account.id || daysUntil(account.maturityDate) > 0} onClick={() => handleClaim(account.id)}>
-                                {claiming === account.id ? "Processing..." : daysUntil(account.maturityDate) > 0 ? `Matures in ${daysUntil(account.maturityDate)}d` : isAutoPayout(account.circle) ? "Claim Maturity" : "Request Payout"}
-                              </Button>
-                              <Button variant="secondary" size="sm" disabled={withdrawing === account.id} onClick={() => handleWithdraw(account.id)}>
-                                {withdrawing === account.id ? "Withdrawing..." : "Early Withdraw (Forfeit Interest)"}
-                              </Button>
-                            </>
-                          )}
-                          {account.status === "matured" && (
-                            <Button variant="primary" size="sm" disabled={claiming === account.id} onClick={() => handleClaim(account.id)}>
-                              {claiming === account.id ? "Processing..." : isAutoPayout(account.circle) ? "Claim Maturity Payout" : "Request Payout"}
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </Card>
+                      );
+                    })}
+                    </div>
+                  )}
+                </Card>
+              );
+            })}
+          </div>
         </FadeInUp>
       )}
     </div>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Card, FadeInUp } from "@thrift/ui";
+import { Card, FadeInUp, StatCard } from "@thrift/ui";
 import { formatNaira, formatDate } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
@@ -12,8 +12,8 @@ import {
   FilterSelect,
   ActionMessage,
   useFlashMessage,
-  StatCard,
 } from "@/components/AdminShared";
+import { SimpleTable, SimpleColumn } from "@/components/SimpleTable";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const LIMIT = 20;
@@ -124,6 +124,84 @@ export default function AdminDonationsPage() {
   const statuses = ["all", "pending", "completed", "failed", "cancelled"];
   const types = ["all", "monetary", "item"];
 
+  const columns: SimpleColumn<Donation>[] = [
+    {
+      key: "donor",
+      header: "Donor",
+      render: (d) => (
+        <>
+          <span className="block font-semibold text-slate-900 dark:text-white">
+            {d.user?.name || "—"}
+          </span>
+          <span className="text-[11px] text-slate-500 dark:text-slate-400">
+            {d.user?.email}
+          </span>
+        </>
+      ),
+    },
+    {
+      key: "item",
+      header: "Item / Type",
+      render: (d) => (
+        <>
+          <span className="block text-slate-500 dark:text-slate-400">
+            {d.type === "item" ? d.itemName || "Item" : "Monetary"}
+          </span>
+          {d.group && (
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">
+              {d.group.name}
+            </span>
+          )}
+        </>
+      ),
+    },
+    {
+      key: "amount",
+      header: "Amount",
+      align: "right",
+      mono: true,
+      render: (d) =>
+        d.type === "monetary" ? formatNaira(d.amount ?? 0) : "—",
+    },
+    {
+      key: "status",
+      header: "Status",
+      render: (d) => <StatusBadge status={d.status} />,
+    },
+    {
+      key: "date",
+      header: "Date",
+      render: (d) => formatDate(new Date(d.createdAt)),
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      align: "right",
+      render: (d) => (
+        <div className="flex justify-end gap-1.5">
+          {d.status !== "completed" && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setStatus(d, "completed"); }}
+              disabled={busyId === d.id}
+              className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold border border-emerald-400/40 bg-emerald-500/[0.06] text-emerald-600"
+            >
+              Complete
+            </button>
+          )}
+          {d.status !== "failed" && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setStatus(d, "failed"); }}
+              disabled={busyId === d.id}
+              className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold border border-red-400/40 bg-red-500/[0.06] text-red-600"
+            >
+              Fail
+            </button>
+          )}
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
       <PageHeader
@@ -163,7 +241,7 @@ export default function AdminDonationsPage() {
                 setSearch(e.target.value);
                 setPage(1);
               }}
-              className="min-w-[200px] flex-1 rounded-lg border border-gray-200 px-3 py-2 text-[12px] outline-none"
+              className="min-w-[200px] flex-1 rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-[12px] outline-none bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400"
             />
             <FilterSelect
               value={typeFilter}
@@ -184,94 +262,15 @@ export default function AdminDonationsPage() {
           </div>
 
           {loading ? (
-            <div className="p-12 text-center text-[13px] text-gray-500">
+            <div className="p-12 text-center text-[13px] text-slate-500 dark:text-slate-400">
               Loading donations...
             </div>
           ) : items.length === 0 ? (
-            <div className="p-8 text-center text-[13px] text-gray-500">
+            <div className="p-8 text-center text-[13px] text-slate-500 dark:text-slate-400">
               No donations found.
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse text-[12px] min-w-[820px]">
-                <thead>
-                  <tr className="border-b border-gray-100 font-mono text-[9px] uppercase tracking-[0.1em] text-gray-500">
-                    <th className="pb-3 text-left font-semibold">Donor</th>
-                    <th className="pb-3 text-left font-semibold">
-                      Item / Type
-                    </th>
-                    <th className="pb-3 text-right font-semibold">Amount</th>
-                    <th className="pb-3 text-left font-semibold">Status</th>
-                    <th className="pb-3 text-left font-semibold">Date</th>
-                    <th className="pb-3 text-right font-semibold">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((d) => (
-                    <tr
-                      key={d.id}
-                      className="border-b border-gray-100 hover:bg-gray-50"
-                    >
-                      <td className="py-3">
-                        <span className="block font-semibold text-brand-dark">
-                          {d.user?.name || "—"}
-                        </span>
-                        <span className="text-[11px] text-gray-500">
-                          {d.user?.email}
-                        </span>
-                      </td>
-                      <td className="py-3">
-                        <span className="block text-gray-500">
-                          {d.type === "item"
-                            ? d.itemName || "Item"
-                            : "Monetary"}
-                        </span>
-                        {d.group && (
-                          <span className="text-[11px] text-gray-500">
-                            {d.group.name}
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-3 text-right font-mono font-semibold text-brand-dark">
-                        {d.type === "monetary"
-                          ? formatNaira(d.amount ?? 0)
-                          : "—"}
-                      </td>
-                      <td className="py-3">
-                        <StatusBadge status={d.status} />
-                      </td>
-                      <td className="py-3 text-gray-500">
-                        {formatDate(new Date(d.createdAt))}
-                      </td>
-                      <td className="py-3 text-right">
-                        <div className="flex justify-end gap-1.5">
-                          {d.status !== "completed" && (
-                            <button
-                              onClick={() => setStatus(d, "completed")}
-                              disabled={busyId === d.id}
-                              className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold"
-                              style={btn("#059669")}
-                            >
-                              Complete
-                            </button>
-                          )}
-                          {d.status !== "failed" && (
-                            <button
-                              onClick={() => setStatus(d, "failed")}
-                              disabled={busyId === d.id}
-                              className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold"
-                              style={btn("#DC2626")}
-                            >
-                              Fail
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <SimpleTable columns={columns} data={items} minWidth="820px" />
           )}
           <Pagination
             page={page}
@@ -287,15 +286,4 @@ export default function AdminDonationsPage() {
   );
 }
 
-function btn(color: string): React.CSSProperties {
-  return {
-    padding: "0.25rem 0.5rem",
-    borderRadius: "0.375rem",
-    fontSize: "10px",
-    fontWeight: 600,
-    border: `1px solid ${color}40`,
-    backgroundColor: `${color}0F`,
-    color,
-    cursor: "pointer",
-  };
-}
+

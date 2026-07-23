@@ -101,7 +101,7 @@ export default function AdminTransactionDetailPage() {
   if (authLoading || loading) {
     return (
       <div className="mx-auto max-w-[800px] p-[clamp(1rem,3vw,2rem)]">
-        <div className="p-16 text-center text-[13px] text-gray-400">Loading transaction details...</div>
+        <div className="p-16 text-center text-[13px] text-slate-400 dark:text-slate-500">Loading transaction details...</div>
       </div>
     );
   }
@@ -112,8 +112,8 @@ export default function AdminTransactionDetailPage() {
     return (
       <div className="mx-auto max-w-[800px] p-[clamp(1rem,3vw,2rem)]">
         <div className="p-16 text-center">
-          <div className="mb-4 text-[14px] text-gray-500">{error || "Transaction not found"}</div>
-          <button onClick={() => router.push("/admin/transactions")} className="cursor-pointer rounded-full border-0 bg-brand-dark px-5 py-2 text-[12px] font-semibold text-white">
+          <div className="mb-4 text-[14px] text-slate-500 dark:text-slate-400">{error || "Transaction not found"}</div>
+          <button onClick={() => router.push("/admin/transactions")} className="cursor-pointer rounded-full border-0 bg-slate-900 px-5 py-2 text-[12px] font-semibold text-white dark:bg-white dark:text-slate-900">
             Back to Transactions
           </button>
         </div>
@@ -169,14 +169,14 @@ export default function AdminTransactionDetailPage() {
         accentText="Details"
         description="Full details for this transaction."
         right={
-          <button onClick={() => router.push("/admin/transactions")} className="cursor-pointer rounded-full border border-transparent bg-transparent px-4 py-2 text-[11px] font-semibold text-brand-dark transition-all duration-200 hover:border-gray-200">
+          <button onClick={() => router.push("/admin/transactions")} className="cursor-pointer rounded-full border border-transparent bg-transparent px-4 py-2 text-[11px] font-semibold text-slate-900 transition-all duration-200 hover:border-slate-200 dark:text-white dark:hover:border-slate-700">
             &larr; All Transactions
           </button>
         }
       />
 
       <Card padding="0">
-        <div className="border-b border-gray-100 px-8 pb-6 pt-8">
+        <div className="border-b border-slate-200/80 px-8 pb-6 pt-8 dark:border-slate-800/80">
           <div className="mb-5 flex flex-wrap items-center gap-4">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: `${typeColor}12` }}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={typeColor} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -194,10 +194,10 @@ export default function AdminTransactionDetailPage() {
               </svg>
             </div>
             <div>
-              <h2 className="m-0 font-mono text-[1.5rem] font-bold text-brand-dark">
+              <h2 className="m-0 font-mono text-[1.5rem] font-bold text-slate-900 dark:text-white">
                 {formatNaira(transaction.amount)}
               </h2>
-              <span className="text-[11px] text-gray-500">{getTypeLabel(transaction.type)}</span>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400">{getTypeLabel(transaction.type)}</span>
             </div>
             <div className="flex gap-2">
               <span className="rounded-full border px-3 py-1 text-[10px] font-bold uppercase font-mono" style={{ backgroundColor: `${typeColor}12`, color: typeColor, borderColor: `${typeColor}20` }}>
@@ -212,8 +212,8 @@ export default function AdminTransactionDetailPage() {
 
         <div className="px-8 pb-8 pt-6">
           {detailRows.map((row, idx) => (
-            <div key={idx} className={`flex items-start justify-between gap-4 py-[0.875rem] ${idx < detailRows.length - 1 ? "border-b border-gray-100" : ""}`}>
-              <span className="min-w-[120px] shrink-0 text-[11px] font-medium uppercase tracking-[0.05em] text-gray-400">{row.label}</span>
+            <div key={idx} className={`flex items-start justify-between gap-4 py-[0.875rem] ${idx < detailRows.length - 1 ? "border-b border-slate-200/80 dark:border-slate-800/80" : ""}`}>
+              <span className="min-w-[120px] shrink-0 text-[11px] font-medium uppercase tracking-[0.05em] text-slate-400 dark:text-slate-500">{row.label}</span>
               <div className="flex items-center gap-2 text-right">
                 {row.badge ? (
                   <span className="rounded-full px-3 py-1 text-[10px] font-bold uppercase font-mono" style={{ backgroundColor: row.badgeBg || `${row.badgeColor}12`, color: row.badgeColor }}>
@@ -221,7 +221,7 @@ export default function AdminTransactionDetailPage() {
                   </span>
                 ) : (
                   <span
-                    className={`block break-all ${row.mono ? "font-mono" : ""} ${row.amountColor || row.mono ? "text-gray-500" : "text-brand-dark"}`}
+                    className={`block break-all ${row.mono ? "font-mono text-slate-500 dark:text-slate-400" : "text-slate-900 dark:text-white"}`}
                     style={{
                       fontSize: row.large ? "16px" : "12px",
                       fontWeight: row.large ? 700 : 500,
@@ -233,7 +233,7 @@ export default function AdminTransactionDetailPage() {
                 {row.copyable && (
                   <button
                     onClick={() => copyToClipboard(row.value, row.label)}
-                    className="group relative shrink-0 cursor-pointer rounded-[0.25rem] border-0 bg-transparent p-1 text-gray-400 transition-colors duration-150 hover:text-brand-primary"
+                    className="group relative shrink-0 cursor-pointer rounded-[0.25rem] border-0 bg-transparent p-1 text-slate-400 transition-colors duration-150 hover:text-blue-600 dark:hover:text-blue-400"
                     title="Copy to clipboard"
                   >
                     {copiedKey === row.label ? (
@@ -246,7 +246,7 @@ export default function AdminTransactionDetailPage() {
                       </svg>
                     )}
                     <span
-                      className={`pointer-events-none absolute -top-7 right-0 whitespace-nowrap rounded-md bg-brand-dark px-2 py-1 text-[10px] font-semibold text-white transition-opacity duration-150 ${copiedKey === row.label ? "opacity-100" : "opacity-0"}`}
+                      className={`pointer-events-none absolute -top-7 right-0 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-[10px] font-semibold text-white transition-opacity duration-150 dark:bg-white dark:text-slate-900 ${copiedKey === row.label ? "opacity-100" : "opacity-0"}`}
                     >
                       Copied!
                     </span>

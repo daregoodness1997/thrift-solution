@@ -1,6 +1,16 @@
 import { PrismaClient } from "@prisma/client";
 import crypto from "crypto";
 
+function toNum(value: unknown): number {
+  if (value == null) return 0;
+  if (typeof value === "number") return value;
+  if (typeof value === "string") return Number(value);
+  if (typeof value === "object" && value !== null && "toNumber" in value) {
+    return (value as { toNumber(): number }).toNumber();
+  }
+  return Number(value);
+}
+
 const prisma = new PrismaClient();
 
 function generateRef(prefix: string): string {
@@ -365,12 +375,12 @@ async function simulateCirclesAndTestJob(users: { id: string; name: string; emai
       accountsCreated++;
       depositTxCreated++;
 
-      const expectedWeeklyInterest = (circle.amount * circle.interestRateAnnual / 100) / 52;
+      const expectedWeeklyInterest = (toNum(circle.amount) * toNum(circle.interestRateAnnual) / 100) / 52;
       const expectedTotalInterest = Math.round(expectedWeeklyInterest * weeksAgoStart * 100) / 100;
 
       console.log(
         "  " + user.name + " -> " + circle.name + " | " +
-        circle.amount.toLocaleString() + " NGN | " +
+        Number(circle.amount).toLocaleString() + " NGN | " +
         "Started " + weeksAgoStart + "w ago | Rate: " + circle.interestRateAnnual + "% | " +
         "Maturity: " + (isAlreadyMatured ? "PAST (should mature)" : "future") + " | " +
         "Expected interest: ~" + expectedTotalInterest.toLocaleString() + " NGN"
@@ -408,13 +418,13 @@ async function simulateCirclesAndTestJob(users: { id: string; name: string; emai
 
   for (const acc of updatedAccounts) {
     const logCount = acc.interestLogs.length;
-    totalInterest += acc.interestEarned;
+    totalInterest += toNum(acc.interestEarned);
     if (acc.status === "matured") maturedCount++;
 
     console.log(
       "  " + acc.user.name + " | " + acc.circle.name + " | " +
-      "Principal: " + acc.principalAmount.toLocaleString() + " NGN | " +
-      "Interest earned: " + acc.interestEarned.toLocaleString() + " NGN | " +
+      "Principal: " + Number(acc.principalAmount).toLocaleString() + " NGN | " +
+      "Interest earned: " + Number(acc.interestEarned).toLocaleString() + " NGN | " +
       "Logs: " + logCount + " | Status: " + acc.status
     );
   }

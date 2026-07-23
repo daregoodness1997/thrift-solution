@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
 import Pagination from "@/components/Pagination";
 import { ActionMessage, useFlashMessage } from "@/components/AdminShared";
+import { SimpleTable, SimpleColumn } from "@/components/SimpleTable";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const LIMIT = 20;
@@ -188,9 +189,96 @@ export default function AdminPrayerRequestsPage() {
 
   if (authLoading || !isAdmin) return null;
 
-  const inputClass = "w-full rounded-lg border border-gray-200 px-3 py-2 text-[13px] outline-none focus:border-brand-primary focus:ring-2 focus:ring-brand-primary/20";
+  const inputClass = "w-full rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-[13px] outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400";
 
   const categories = ["Academic & Exams", "Micro-Loan & Equipment", "Family & Health", "Career Breakthrough", "Spiritual Wisdom"];
+
+  const columns: SimpleColumn<PrayerRequest>[] = [
+    {
+      key: "author",
+      header: "Author",
+      render: (p) => (
+        <>
+          <span className="block font-semibold text-slate-900 dark:text-white">
+            {p.authorName}
+          </span>
+          {p.location && (
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">
+              {p.location}
+            </span>
+          )}
+        </>
+      ),
+    },
+    {
+      key: "category",
+      header: "Category",
+      render: (p) => (
+        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+          {p.category}
+        </span>
+      ),
+    },
+    {
+      key: "request",
+      header: "Request",
+      width: "250px",
+      render: (p) => (
+        <span className="text-[11px] text-slate-600 dark:text-slate-300 line-clamp-2">
+          {p.request}
+        </span>
+      ),
+    },
+    {
+      key: "prayersCount",
+      header: "Prayers",
+      align: "right",
+      mono: true,
+      render: (p) => p.prayersCount,
+    },
+    {
+      key: "status",
+      header: "Status",
+      render: (p) => (
+        <button
+          onClick={(e) => { e.stopPropagation(); toggleStatus(p); }}
+          className={`rounded-full px-2 py-0.5 text-[10px] font-semibold cursor-pointer ${
+            p.isActive
+              ? "bg-emerald-100 text-emerald-700"
+              : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
+          }`}
+        >
+          {p.isActive ? "Active" : "Inactive"}
+        </button>
+      ),
+    },
+    {
+      key: "createdAt",
+      header: "Created",
+      render: (p) => formatDate(new Date(p.createdAt)),
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      align: "right",
+      render: (p) => (
+        <div className="flex justify-end gap-1.5">
+          <button
+            onClick={(e) => { e.stopPropagation(); openEdit(p); }}
+            className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold border border-blue-400/40 bg-blue-500/[0.06] text-blue-600"
+          >
+            Edit
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); handleDelete(p); }}
+            className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold border border-red-400/40 bg-red-500/[0.06] text-red-600"
+          >
+            Delete
+          </button>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
@@ -213,7 +301,7 @@ export default function AdminPrayerRequestsPage() {
                 setSearch(e.target.value);
                 setPage(1);
               }}
-              className="min-w-[200px] flex-1 rounded-lg border border-gray-200 px-3 py-2 text-[12px] outline-none"
+              className="min-w-[200px] flex-1 rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-[12px] outline-none bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400"
             />
             <select
               value={categoryFilter}
@@ -221,7 +309,7 @@ export default function AdminPrayerRequestsPage() {
                 setCategoryFilter(e.target.value);
                 setPage(1);
               }}
-              className="rounded-lg border border-gray-200 px-3 py-2 text-[12px] outline-none"
+              className="rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-[12px] outline-none bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
             >
               <option value="">All Categories</option>
               {categories.map((c) => (
@@ -234,7 +322,7 @@ export default function AdminPrayerRequestsPage() {
                 setStatusFilter(e.target.value);
                 setPage(1);
               }}
-              className="rounded-lg border border-gray-200 px-3 py-2 text-[12px] outline-none"
+              className="rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-[12px] outline-none bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
             >
               <option value="">All Status</option>
               <option value="true">Active</option>
@@ -242,101 +330,22 @@ export default function AdminPrayerRequestsPage() {
             </select>
             <button
               onClick={openCreate}
-              className="rounded-lg bg-brand-primary px-4 py-2 text-[12px] font-semibold text-white hover:bg-brand-secondary"
+              className="rounded-lg bg-blue-600 px-4 py-2 text-[12px] font-semibold text-white hover:bg-blue-700"
             >
               + New Request
             </button>
           </div>
 
           {loading ? (
-            <div className="p-12 text-center text-[13px] text-gray-500">
+            <div className="p-12 text-center text-[13px] text-slate-500 dark:text-slate-400">
               Loading prayer requests...
             </div>
           ) : items.length === 0 ? (
-            <div className="p-8 text-center text-[13px] text-gray-500">
+            <div className="p-8 text-center text-[13px] text-slate-500 dark:text-slate-400">
               No prayer requests found.
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse text-[12px] min-w-[800px]">
-                <thead>
-                  <tr className="border-b border-gray-100 font-mono text-[9px] uppercase tracking-[0.1em] text-gray-500">
-                    <th className="pb-3 text-left font-semibold">Author</th>
-                    <th className="pb-3 text-left font-semibold">Category</th>
-                    <th className="pb-3 text-left font-semibold">Request</th>
-                    <th className="pb-3 text-right font-semibold">Prayers</th>
-                    <th className="pb-3 text-left font-semibold">Status</th>
-                    <th className="pb-3 text-left font-semibold">Created</th>
-                    <th className="pb-3 text-right font-semibold">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {items.map((p) => (
-                    <tr
-                      key={p.id}
-                      className="border-b border-gray-100 hover:bg-gray-50"
-                    >
-                      <td className="py-3">
-                        <span className="block font-semibold text-brand-dark">
-                          {p.authorName}
-                        </span>
-                        {p.location && (
-                          <span className="text-[11px] text-gray-500">
-                            {p.location}
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-3">
-                        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
-                          {p.category}
-                        </span>
-                      </td>
-                      <td className="py-3 max-w-[250px]">
-                        <span className="text-[11px] text-gray-600 line-clamp-2">
-                          {p.request}
-                        </span>
-                      </td>
-                      <td className="py-3 text-right font-mono">
-                        {p.prayersCount}
-                      </td>
-                      <td className="py-3">
-                        <button
-                          onClick={() => toggleStatus(p)}
-                          className={`rounded-full px-2 py-0.5 text-[10px] font-semibold cursor-pointer ${
-                            p.isActive
-                              ? "bg-emerald-100 text-emerald-700"
-                              : "bg-gray-100 text-gray-500"
-                          }`}
-                        >
-                          {p.isActive ? "Active" : "Inactive"}
-                        </button>
-                      </td>
-                      <td className="py-3 text-gray-500">
-                        {formatDate(new Date(p.createdAt))}
-                      </td>
-                      <td className="py-3 text-right">
-                        <div className="flex justify-end gap-1.5">
-                          <button
-                            onClick={() => openEdit(p)}
-                            className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold"
-                            style={btnStyle("#2563EB")}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDelete(p)}
-                            className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold"
-                            style={btnStyle("#DC2626")}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <SimpleTable columns={columns} data={items} minWidth="800px" />
           )}
           <Pagination
             page={page}
@@ -351,12 +360,12 @@ export default function AdminPrayerRequestsPage() {
 
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="mb-4 text-lg font-semibold text-brand-dark">
+          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-xl">
+            <h3 className="mb-4 text-lg font-semibold text-slate-900 dark:text-white">
               {editingPrayer ? "Edit Prayer Request" : "Create Prayer Request"}
             </h3>
             <div className="mb-4">
-              <label className="mb-1.5 block text-xs font-medium text-gray-700">
+              <label className="mb-1.5 block text-xs font-medium text-slate-700 dark:text-slate-300">
                 Author Name *
               </label>
               <input
@@ -368,7 +377,7 @@ export default function AdminPrayerRequestsPage() {
               />
             </div>
             <div className="mb-4">
-              <label className="mb-1.5 block text-xs font-medium text-gray-700">
+              <label className="mb-1.5 block text-xs font-medium text-slate-700 dark:text-slate-300">
                 Location
               </label>
               <input
@@ -380,7 +389,7 @@ export default function AdminPrayerRequestsPage() {
               />
             </div>
             <div className="mb-4">
-              <label className="mb-1.5 block text-xs font-medium text-gray-700">
+              <label className="mb-1.5 block text-xs font-medium text-slate-700 dark:text-slate-300">
                 Category *
               </label>
               <select
@@ -394,7 +403,7 @@ export default function AdminPrayerRequestsPage() {
               </select>
             </div>
             <div className="mb-4">
-              <label className="mb-1.5 block text-xs font-medium text-gray-700">
+              <label className="mb-1.5 block text-xs font-medium text-slate-700 dark:text-slate-300">
                 Prayer Request *
               </label>
               <textarea
@@ -413,21 +422,21 @@ export default function AdminPrayerRequestsPage() {
                 onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                 className="h-4 w-4 rounded border-gray-300"
               />
-              <label htmlFor="isActive" className="text-xs font-medium text-gray-700">
+              <label htmlFor="isActive" className="text-xs font-medium text-slate-700 dark:text-slate-300">
                 Active (visible on landing page)
               </label>
             </div>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowModal(false)}
-                className="flex-1 rounded-lg border border-gray-200 px-4 py-2.5 text-[13px] font-semibold text-gray-600 hover:bg-gray-50"
+                className="flex-1 rounded-lg border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-[13px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="flex-1 rounded-lg bg-brand-primary px-4 py-2.5 text-[13px] font-semibold text-white hover:bg-brand-secondary disabled:opacity-50"
+                className="flex-1 rounded-lg bg-blue-600 px-4 py-2.5 text-[13px] font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
               >
                 {saving ? "Saving..." : editingPrayer ? "Update" : "Create"}
               </button>
@@ -439,15 +448,4 @@ export default function AdminPrayerRequestsPage() {
   );
 }
 
-function btnStyle(color: string): React.CSSProperties {
-  return {
-    padding: "0.25rem 0.5rem",
-    borderRadius: "0.375rem",
-    fontSize: "10px",
-    fontWeight: 600,
-    border: `1px solid ${color}40`,
-    backgroundColor: `${color}0F`,
-    color,
-    cursor: "pointer",
-  };
-}
+

@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { config, BrandConfig } from "@thrift/config";
-import { Card, Button, ColorfulBadge, FadeIn, FadeInUp, StaggerChildren } from "@thrift/ui";
+import { Card, FadeIn, FadeInUp, StaggerChildren } from "@thrift/ui";
 import { formatNaira } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
-import { PageHeader } from "@/components/PageHeader";
+import { AlertTriangle, DollarSign, Wallet, Filter } from "lucide-react";
 import Pagination from "@/components/Pagination";
 
 const fallback = config;
@@ -108,42 +108,55 @@ export default function MyDefaultsPage() {
 
   return (
     <div className="mx-auto max-w-[900px] p-[clamp(1rem,3vw,2rem)]">
-      <PageHeader
-        badgeLabel="Member Portal"
-        heading="My"
-        accentText="Defaults"
-        description="Missed weekly contributions. Clear them to keep your circle in good standing."
-        right={<span className="text-[12px] text-gray-500">Wallet: <span className="font-mono font-semibold" style={{ color: cfg.colors.primary }}>{formatNaira(walletBalance)}</span></span>}
-      />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4 mb-8">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1">
+              <AlertTriangle className="w-3.5 h-3.5 text-blue-500" />
+              <span>Member Portal</span>
+            </span>
+          </div>
+          <h3 className="font-display font-bold text-xl sm:text-2xl text-slate-900 dark:text-white mt-1">My <span className="bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 bg-clip-text text-transparent">Defaults</span></h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">Missed weekly contributions. Clear them to keep your circle in good standing.</p>
+        </div>
+        <span className="text-[12px] text-slate-500 dark:text-slate-400 shrink-0">Wallet: <span className="font-mono font-semibold text-blue-600">{formatNaira(walletBalance)}</span></span>
+      </div>
 
       {message && (
         <FadeIn>
-          <div className="mb-6 rounded-xl px-4 py-3 text-[13px] font-medium" style={{ backgroundColor: message.type === "success" ? "#ECFDF5" : "#FEF2F2", color: message.type === "success" ? "#059669" : "#DC2626", border: `1px solid ${message.type === "success" ? "#A7F3D0" : "#FECACA"}` }}>
+          <div className="mb-6 rounded-2xl px-4 py-3 text-[13px] font-medium" style={{ backgroundColor: message.type === "success" ? "#ECFDF5" : "#FEF2F2", color: message.type === "success" ? "#059669" : "#DC2626", border: `1px solid ${message.type === "success" ? "#A7F3D0" : "#FECACA"}` }}>
             {message.text}
           </div>
         </FadeIn>
       )}
 
       <StaggerChildren staggerDelay={100} className="mb-8 grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
-        <Card padding="1.25rem">
-          <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-400">Outstanding Defaults</span>
-          <span className="mt-1 block font-mono text-2xl font-bold text-red-600">{outstandingCount}</span>
-        </Card>
-        <Card padding="1.25rem">
-          <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-400">Clearance Owed</span>
-          <span className="mt-1 block font-mono text-2xl font-bold text-brand-dark">{formatNaira(outstandingTotal)}</span>
-        </Card>
+        <div className="p-4 rounded-2xl bg-rose-50/60 dark:bg-rose-950/30 border border-rose-200/80 dark:border-rose-900/50 space-y-1">
+          <div className="text-[10px] font-bold uppercase text-rose-700 dark:text-rose-400 tracking-wider flex items-center gap-1">
+            <AlertTriangle className="w-3.5 h-3.5" /><span>Outstanding Defaults</span>
+          </div>
+          <div className="font-display font-bold text-2xl text-rose-600 dark:text-rose-400">{outstandingCount}</div>
+        </div>
+        <div className="p-4 rounded-2xl bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200/80 dark:border-blue-900/50 space-y-1">
+          <div className="text-[10px] font-bold uppercase text-blue-700 dark:text-blue-400 tracking-wider flex items-center gap-1">
+            <DollarSign className="w-3.5 h-3.5" /><span>Clearance Owed</span>
+          </div>
+          <div className="font-display font-bold text-2xl text-slate-900 dark:text-white">{formatNaira(outstandingTotal)}</div>
+        </div>
       </StaggerChildren>
 
       <FadeInUp delay={200}>
-        <Card padding="1.5rem">
+        <Card padding="1.5rem" className="rounded-3xl">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-            <ColorfulBadge label="Circle Defaults" color={cfg.colors.primary} />
-            <div className="flex gap-1 rounded-lg bg-gray-100 p-1">
+            <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1 w-fit">
+              <AlertTriangle className="w-3.5 h-3.5 text-blue-500" />
+              <span>Circle Defaults</span>
+            </span>
+            <div className="flex gap-1 rounded-lg bg-slate-100 dark:bg-slate-800 p-1">
               {(["outstanding", "cleared", "all"] as const).map((f) => (
                 <button key={f} onClick={() => { setFilter(f); setPage(1); }}
                   className="cursor-pointer rounded-md px-3 py-1.5 text-[11px] font-semibold capitalize"
-                  style={{ backgroundColor: filter === f ? "#ffffff" : "transparent", color: filter === f ? cfg.colors.primary : "#717171", boxShadow: filter === f ? "0 1px 3px rgba(0,0,0,0.08)" : "none" }}>
+                  style={{ backgroundColor: filter === f ? "#ffffff" : "transparent", color: filter === f ? "#2563EB" : "#717171", boxShadow: filter === f ? "0 1px 3px rgba(0,0,0,0.08)" : "none" }}>
                   {f}
                 </button>
               ))}
@@ -151,9 +164,9 @@ export default function MyDefaultsPage() {
           </div>
 
           {loading ? (
-            <div className="p-8 text-center text-[13px] text-gray-400">Loading defaults...</div>
+            <div className="p-8 text-center text-[13px] text-slate-400 dark:text-slate-500">Loading defaults...</div>
           ) : defaults.length === 0 ? (
-            <div className="p-8 text-center text-[13px] text-gray-400">
+            <div className="p-8 text-center text-[13px] text-slate-400 dark:text-slate-500">
               {filter === "outstanding" ? "No outstanding defaults. You're all caught up!" : "No defaults found."}
             </div>
           ) : (
@@ -161,37 +174,37 @@ export default function MyDefaultsPage() {
               {defaults.map((d) => {
                 const st = statusStyles[d.status] || statusStyles.outstanding;
                 return (
-                  <div key={d.id} className="rounded-xl p-5" style={{ border: `1px solid ${st.border}`, backgroundColor: st.bg + "30" }}>
+                  <div key={d.id} className="rounded-2xl p-5" style={{ border: `1px solid ${st.border}`, backgroundColor: st.bg + "30" }}>
                     <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
                       <div>
-                        <span className="block text-[13px] font-semibold text-[#2D2D2D]">{d.circleAccount.circle.name}</span>
-                        <span className="text-[11px] text-gray-500">Week {d.weekNumber} missed &middot; {new Date(d.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                        <span className="block text-[13px] font-semibold text-slate-900 dark:text-white">{d.circleAccount.circle.name}</span>
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400">Week {d.weekNumber} missed &middot; {new Date(d.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
                       </div>
                       <span className="rounded-md border px-2 py-0.5 text-[9px] font-bold capitalize" style={{ backgroundColor: st.bg, color: st.color, borderColor: st.border }}>{d.status}</span>
                     </div>
 
                     <div className="mb-3 grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-3">
                       <div>
-                        <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-400">Amount Due</span>
-                        <span className="mt-0.5 block font-mono text-sm font-bold text-[#2D2D2D]">{formatNaira(d.amountDue)}</span>
+                        <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-slate-400 dark:text-slate-500">Amount Due</span>
+                        <span className="mt-0.5 block font-mono text-sm font-bold text-slate-900 dark:text-white">{formatNaira(d.amountDue)}</span>
                       </div>
                       <div>
-                        <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-400">Clearance ({formatClearanceLabel(d.circleAccount.circle.defaultPenaltyType, d.circleAccount.circle.defaultPenaltyValue)})</span>
+                        <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-slate-400 dark:text-slate-500">Clearance ({formatClearanceLabel(d.circleAccount.circle.defaultPenaltyType, d.circleAccount.circle.defaultPenaltyValue)})</span>
                         <span className="mt-0.5 block font-mono text-base font-bold text-red-600">{formatNaira(d.clearanceAmount)}</span>
                       </div>
                       {d.clearedAt && (
                         <div>
-                          <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-gray-400">Cleared On</span>
-                          <span className="mt-0.5 block font-mono text-xs font-medium text-[#2D2D2D]">{new Date(d.clearedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                          <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-slate-400 dark:text-slate-500">Cleared On</span>
+                          <span className="mt-0.5 block font-mono text-xs font-medium text-slate-900 dark:text-white">{new Date(d.clearedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
                         </div>
                       )}
                     </div>
 
                     {d.status === "outstanding" && (
                       <div className="flex items-center gap-3">
-                        <Button variant="primary" size="sm" disabled={clearingId === d.id || walletBalance < d.clearanceAmount} onClick={() => handleClear(d.id)}>
+                        <button className="btn-primary py-2 px-4 text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-md" disabled={clearingId === d.id || walletBalance < d.clearanceAmount} onClick={() => handleClear(d.id)}>
                           {clearingId === d.id ? "Clearing..." : `Clear ${formatNaira(d.clearanceAmount)}`}
-                        </Button>
+                        </button>
                         {walletBalance < d.clearanceAmount && (
                           <span className="text-[11px] font-medium text-red-600">Insufficient wallet balance</span>
                         )}
@@ -207,12 +220,15 @@ export default function MyDefaultsPage() {
       </FadeInUp>
 
       <FadeInUp delay={300}>
-        <Card padding="1.5rem" className="mt-6">
+        <Card padding="1.5rem" className="mt-6 rounded-3xl">
           <div className="mb-4">
-            <ColorfulBadge label="How It Works" color={cfg.colors.accent} />
-            <h2 className="mt-2 text-lg font-medium text-brand-dark">Weekly Defaults</h2>
+            <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1 w-fit">
+              <Wallet className="w-3.5 h-3.5 text-blue-500" />
+              <span>How It Works</span>
+            </span>
+            <h2 className="mt-2 text-lg font-medium text-slate-900 dark:text-white">Weekly Defaults</h2>
           </div>
-          <p className="text-[12px] leading-relaxed text-gray-500">
+          <p className="text-[12px] leading-relaxed text-slate-500 dark:text-slate-400">
             When your wallet has insufficient funds on a weekly contribution date, that week is recorded as a default.
             To resolve it and keep your account eligible for payout, you must clear it by paying the clearance amount,
             which is the missed weekly amount plus a penalty configured by the circle admin. The base contribution is

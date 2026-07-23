@@ -1,5 +1,6 @@
 import nodeCrypto from "node:crypto";
 import { prisma } from "./prisma";
+import { toNum } from "./decimal";
 
 const TIERS = [
   { name: "Bronze", min: 0, max: 5, amount: 200 },
@@ -117,7 +118,7 @@ export async function getReferralStats(userId: string) {
     prisma.referralEarning.groupBy({ by: ["tier"], where: { referrerId: userId, status: "credited" }, _count: true, _sum: { amount: true } }),
   ]);
 
-  const totalEarnings = earningsAgg._sum.amount ?? 0;
+  const totalEarnings = toNum(earningsAgg._sum.amount);
   const currentTier = getTierForCount(completedReferrals);
   const nextTier = getNextTier(currentTier.name);
 
@@ -132,7 +133,7 @@ export async function getReferralStats(userId: string) {
     tierBreakdown: tierCounts.map((tc) => ({
       tier: tc.tier,
       count: tc._count,
-      earnings: tc._sum.amount ?? 0,
+      earnings: toNum(tc._sum.amount),
     })),
   };
 }

@@ -1,4 +1,5 @@
 import { prisma } from "./prisma";
+import { toNum } from "./decimal";
 
 export async function createDonation(data: {
   userId: string;
@@ -73,7 +74,7 @@ export async function getDonationStats(userId: string) {
     prisma.donation.count({ where: { userId, status: "completed" } }),
   ]);
   return {
-    totalDonated: totalMonetary._sum.amount ?? 0,
+    totalDonated: toNum(totalMonetary._sum.amount),
     totalCount,
     completedCount,
   };

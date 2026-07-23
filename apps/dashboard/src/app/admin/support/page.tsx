@@ -2,10 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { config } from "@thrift/config";
-import { Card, Button, ColorfulBadge, StatCard } from "@thrift/ui";
+import { Card, Button, StatCard } from "@thrift/ui";
 import { useAuth } from "@/lib/auth-context";
-import { PageHeader } from "@/components/PageHeader";
+import { Headphones } from "lucide-react";
 import {
   TICKET_STATUS_CONFIG,
   TICKET_PRIORITY_CONFIG,
@@ -85,13 +84,18 @@ export default function AdminSupportPage() {
 
   return (
     <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
-      <PageHeader
-        badgeLabel="Support"
-        badgeColor={config.colors.primary}
-        heading="Ticket"
-        accentText="Inbox"
-        description="Manage and respond to member support tickets."
-      />
+      <div className="mb-8 pt-2 pb-6 border-b border-slate-200/80 dark:border-slate-800/80">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200/80 dark:border-blue-800/80 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1">
+              <Headphones className="w-3.5 h-3.5 text-blue-500" />
+              <span>Support</span>
+            </span>
+          </div>
+          <h3 className="font-display font-bold text-xl sm:text-2xl text-slate-900 dark:text-white mt-1">Ticket <span className="bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 bg-clip-text font-display font-bold text-transparent">Inbox</span></h3>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Manage and respond to member support tickets.</p>
+        </div>
+      </div>
 
       <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
         <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -135,7 +139,7 @@ export default function AdminSupportPage() {
               setPage(1);
               setPriorityFilter(e.target.value);
             }}
-            className="rounded-xl border border-[#EAEAEA] bg-white p-2 text-xs text-brand-dark outline-none focus:border-brand-primary"
+            className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-2 text-xs text-slate-900 dark:text-white outline-none focus:border-blue-600"
           >
             <option value="">All priorities</option>
             {Object.entries(TICKET_PRIORITY_CONFIG).map(([k, c]) => (
@@ -150,7 +154,7 @@ export default function AdminSupportPage() {
               setPage(1);
               setAssigneeFilter(e.target.value);
             }}
-            className="rounded-xl border border-[#EAEAEA] bg-white p-2 text-xs text-brand-dark outline-none focus:border-brand-primary"
+            className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-2 text-xs text-slate-900 dark:text-white outline-none focus:border-blue-600"
           >
             <option value="">Anyone</option>
             <option value="unassigned">Unassigned</option>
@@ -162,11 +166,11 @@ export default function AdminSupportPage() {
               onChange={(e) => setSearchInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && runSearch()}
               placeholder="Search tickets..."
-              className="min-w-0 flex-1 rounded-xl border border-[#EAEAEA] bg-white p-2 text-xs text-brand-dark outline-none focus:border-brand-primary"
+              className="min-w-0 flex-1 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-2 text-xs text-slate-900 dark:text-white outline-none focus:border-blue-600"
             />
-            <Button variant="outline" size="sm" onClick={runSearch}>
+            <button className="btn-secondary" onClick={runSearch}>
               Search
-            </Button>
+            </button>
           </div>
         </div>
 
@@ -175,13 +179,13 @@ export default function AdminSupportPage() {
             {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
-                className="h-16 animate-pulse rounded-xl bg-gray-100"
+                className="h-16 animate-pulse rounded-3xl bg-slate-100 dark:bg-slate-800"
               />
             ))}
           </div>
         ) : tickets.length === 0 ? (
-          <Card className="p-10 text-center">
-            <p className="text-sm text-gray-400">
+          <Card className="p-10 text-center rounded-3xl">
+            <p className="text-sm text-slate-400">
               No tickets match your filters.
             </p>
           </Card>
@@ -191,22 +195,22 @@ export default function AdminSupportPage() {
               <button
                 key={t.id}
                 onClick={() => router.push(`/admin/support/${t.id}`)}
-                className="w-full rounded-xl border border-black/5 bg-white p-4 text-left transition-all hover:translate-x-1 hover:border-brand-primary/30 hover:shadow-sm"
+                className="w-full rounded-3xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 p-4 text-left transition-all hover:translate-x-1 hover:border-blue-600/30 hover:shadow-sm"
               >
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-semibold text-brand-dark">
+                  <span className="font-semibold text-slate-900 dark:text-white">
                     {t.subject}
                   </span>
-                  <ColorfulBadge
+                  <ColorfulBadgeInline
                     label={TICKET_STATUS_CONFIG[t.status].label}
                     color={TICKET_STATUS_CONFIG[t.status].color}
                   />
-                  <ColorfulBadge
+                  <ColorfulBadgeInline
                     label={TICKET_PRIORITY_CONFIG[t.priority].label}
                     color={TICKET_PRIORITY_CONFIG[t.priority].color}
                   />
                 </div>
-                <div className="mt-1.5 flex flex-wrap items-center gap-3 text-[11px] text-gray-400">
+                <div className="mt-1.5 flex flex-wrap items-center gap-3 text-[11px] text-slate-400">
                   <span>#{t.id.slice(0, 8)}</span>
                   <span>{t.userName}</span>
                   {t.categoryName && <span>· {t.categoryName}</span>}
@@ -224,25 +228,23 @@ export default function AdminSupportPage() {
 
         {totalPages > 1 && (
           <div className="mt-6 flex items-center justify-center gap-3">
-            <Button
-              variant="outline"
-              size="sm"
+            <button
+              className="btn-secondary"
               disabled={page === 1}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
             >
               Prev
-            </Button>
-            <span className="text-xs text-gray-500">
+            </button>
+            <span className="text-xs text-slate-500 dark:text-slate-400">
               Page {page} of {totalPages} · {total} total
             </span>
-            <Button
-              variant="outline"
-              size="sm"
+            <button
+              className="btn-secondary"
               disabled={page === totalPages}
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             >
               Next
-            </Button>
+            </button>
           </div>
         )}
       </div>
@@ -264,11 +266,26 @@ function FilterChip({
       onClick={onClick}
       className={`rounded-full px-3 py-1.5 text-[11px] font-semibold transition-all ${
         active
-          ? "bg-brand-primary text-white"
-          : "bg-white text-gray-500 hover:bg-brand-primary/5"
+          ? "bg-blue-600 text-white"
+          : "bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-blue-600/5"
       }`}
     >
       {children}
     </button>
+  );
+}
+
+function ColorfulBadgeInline({ label, color }: { label: string; color: string }) {
+  return (
+    <span
+      className="rounded-full px-2 py-0.5 text-[10px] font-semibold border"
+      style={{
+        backgroundColor: `${color}15`,
+        color,
+        borderColor: `${color}30`,
+      }}
+    >
+      {label}
+    </span>
   );
 }

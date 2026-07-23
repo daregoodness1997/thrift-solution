@@ -1,11 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { config } from "@thrift/config";
-import { Card, ColorfulBadge, FadeInUp, StatCard, StaggerChildren } from "@thrift/ui";
+import { Card, FadeInUp, StatCard, StaggerChildren } from "@thrift/ui";
 import { formatNaira } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
-import { PageHeader } from "@/components/PageHeader";
+import { Heart, DollarSign, Package, Filter } from "lucide-react";
 import { DataTable, Column, PaginationInfo } from "@/components/DataTable";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -78,7 +77,7 @@ export default function DonationsPage() {
       header: "Date",
       mono: true,
       render: (d) => (
-        <span className="text-gray-500">
+        <span className="text-slate-500 dark:text-slate-400">
           {new Date(d.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
         </span>
       ),
@@ -87,7 +86,7 @@ export default function DonationsPage() {
       key: "type",
       header: "Type",
       render: (d) => (
-        <span className="rounded-[0.375rem] border px-2 py-0.5 text-[9px] font-bold uppercase font-mono" style={{ backgroundColor: d.type === "monetary" ? `${config.colors.primary}12` : "#FEF3C7", color: d.type === "monetary" ? config.colors.primary : "#D97706", borderColor: d.type === "monetary" ? `${config.colors.primary}20` : "#FDE68A" }}>
+        <span className="rounded-[0.375rem] border px-2 py-0.5 text-[9px] font-bold uppercase font-mono" style={{ backgroundColor: d.type === "monetary" ? "#2563EB12" : "#FEF3C7", color: d.type === "monetary" ? "#2563EB" : "#D97706", borderColor: d.type === "monetary" ? "#2563EB20" : "#FDE68A" }}>
           {d.type === "monetary" ? "Funds" : "Item"}
         </span>
       ),
@@ -96,7 +95,7 @@ export default function DonationsPage() {
       key: "details",
       header: "Details",
       render: (d) => (
-        <span className="font-medium text-brand-dark">
+        <span className="font-medium text-slate-900 dark:text-white">
           {d.type === "monetary"
             ? `${d.paymentProvider ? d.paymentProvider.charAt(0).toUpperCase() + d.paymentProvider.slice(1) : "Payment"}`
             : d.itemName || "Item donation"}
@@ -107,9 +106,9 @@ export default function DonationsPage() {
       key: "group",
       header: "Circle",
       render: (d) => d.group ? (
-        <span className="text-[11px] text-gray-500">{d.group.name}</span>
+        <span className="text-[11px] text-slate-500 dark:text-slate-400">{d.group.name}</span>
       ) : (
-        <span className="text-[11px] text-gray-300">—</span>
+        <span className="text-[11px] text-slate-300 dark:text-slate-600">—</span>
       ),
     },
     {
@@ -128,7 +127,7 @@ export default function DonationsPage() {
       align: "right",
       mono: true,
       render: (d) => (
-        <span className="font-semibold text-brand-dark">
+        <span className="font-semibold text-slate-900 dark:text-white">
           {d.type === "monetary" && d.amount ? formatNaira(d.amount) : "—"}
         </span>
       ),
@@ -137,13 +136,18 @@ export default function DonationsPage() {
 
   return (
     <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
-      <PageHeader
-        badgeLabel="Donation History"
-        badgeColor={config.colors.accent}
-        heading="My"
-        accentText="Donations"
-        description="Track all your monetary and item contributions."
-      />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4 mb-8">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1">
+              <Heart className="w-3.5 h-3.5 text-blue-500" />
+              <span>Donation History</span>
+            </span>
+          </div>
+          <h3 className="font-display font-bold text-xl sm:text-2xl text-slate-900 dark:text-white mt-1">My <span className="bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 bg-clip-text text-transparent">Donations</span></h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl leading-relaxed">Track all your monetary and item contributions.</p>
+        </div>
+      </div>
 
       <StaggerChildren staggerDelay={100} className="mb-8 grid grid-cols-3 gap-6">
         <StatCard label="Total Donated" value={formatNaira(stats.totalDonated)} change="All time" positive variant="default" />
@@ -152,13 +156,16 @@ export default function DonationsPage() {
       </StaggerChildren>
 
       <FadeInUp delay={400}>
-        <Card padding="1.5rem">
-          <div className="mb-6 flex items-center justify-between border-b border-gray-100 pb-4">
+        <Card padding="1.5rem" className="rounded-3xl">
+           <div className="mb-6 flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800/80 pb-4">
             <div>
-              <ColorfulBadge label="All Donations" color="#8A7D73" />
-              <h2 className="mt-2 text-[1.125rem] font-medium text-brand-dark">Donation Records</h2>
+              <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1 w-fit">
+                <Heart className="w-3.5 h-3.5 text-blue-500" />
+                <span>All Donations</span>
+              </span>
+              <h2 className="mt-2 text-[1.125rem] font-medium text-slate-900 dark:text-white">Donation Records</h2>
             </div>
-            <div className="flex gap-1 rounded-lg bg-[#F5F7F5] p-1">
+            <div className="flex gap-1 rounded-lg bg-slate-100 dark:bg-slate-800 p-1">
               {(["all", "monetary", "item"] as const).map((f) => (
                 <button
                   key={f}
@@ -166,7 +173,7 @@ export default function DonationsPage() {
                   className="cursor-pointer rounded-[0.375rem] border-0 px-3 py-1.5 text-[11px] font-semibold capitalize transition-all duration-200"
                   style={{
                     backgroundColor: filter === f ? "#ffffff" : "transparent",
-                    color: filter === f ? config.colors.primary : "#717171",
+                    color: filter === f ? "#2563EB" : "#717171",
                   }}
                 >
                   {f}
@@ -183,11 +190,11 @@ export default function DonationsPage() {
             loading={loading}
             emptyMessage={filter === "all" ? "No donations yet." : `No ${filter} donations.`}
             emptyAction={
-        <a href="/donate" className="text-[12px] font-semibold no-underline" style={{ color: config.colors.primary }}>
+        <a href="/donate" className="text-[12px] font-semibold no-underline text-blue-600">
           Make your first donation &rarr;
         </a>
             }
-            accentColor={config.colors.accent}
+            accentColor="#2563EB"
           />
         </Card>
       </FadeInUp>

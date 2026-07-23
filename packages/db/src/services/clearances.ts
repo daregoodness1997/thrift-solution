@@ -1,4 +1,53 @@
 import { prisma } from "./prisma";
+import { toNum } from "./decimal";
+
+export async function getUpcomingClearance(userId: string) {
+  const groupMemberships = await prisma.groupMember.findMany({
+    where: { userId },
+    include: { group: true },
+  });
+
+  const upcomingClearances = [];
+
+  for (const gm of groupMemberships) {
+    const circleAccount = await prisma.circleAccount.findFirst({
+      where: { userId, circleId: gm.groupId, status: "active" },
+      include: { circle: true },
+    });
+
+    if (circleAccount) {
+      const weeksContributed = circleAccount.weeksContributed;
+      const totalWeeks = circleAccount.circle.durationMonths * 4;
+      const nextWeek = weeksContributed + 1;
+      const weeklyAmount = toNum(circleAccount.principalAmount) / totalWeeks;
+
+      const lastContribution = await prisma.circleContribution.findFirst({
+        where: { circleAccountId: circleAccount.id },
+        orderBy: { createdAt: "desc" },
+      });
+
+      const baseDate = lastContribution ? new Date(lastContribution.createdAt) : new Date(circleAccount.startDate);
+      const nextDueDate = new Date(baseDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+      if (nextWeek <= totalWeeks) {
+        upcomingClearances.push({
+          circleName: circleAccount.circle.name,
+          circleAccountId: circleAccount.id,
+          amount: weeklyAmount,
+          dueDate: nextDueDate,
+          weekNumber: nextWeek,
+          totalWeeks,
+        });
+      }
+    }
+  }
+
+  const sorted = upcomingClearances.sort(
+    (a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+  );
+
+  return sorted.length > 0 ? sorted[0] : null;
+}
 
 export async function getClearancesForUser(userId: string, opts?: { page?: number; limit?: number; status?: string }) {
   const user = await prisma.user.findUnique({ where: { id: userId } });
@@ -37,8 +86,8 @@ export async function getClearancesForUser(userId: string, opts?: { page?: numbe
         groupId: gm.groupId,
         groupName: gm.group.name,
         cycleNumber: payoutTransactions.indexOf(pt) + 1,
-        payoutAmount: pt.amount,
-        contributed: contributionCount * gm.group.targetAmount / gm.group.memberCount,
+        payoutAmount: toNum(pt.amount),
+        contributed: contributionCount * toNum(gm.group.targetAmount) / gm.group.memberCount,
         status: pt.userId === userId ? "cleared" : "pending",
         clearedDate: pt.createdAt,
         createdAt: pt.createdAt,
