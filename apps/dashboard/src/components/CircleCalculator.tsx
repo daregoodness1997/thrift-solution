@@ -276,7 +276,7 @@ export function CircleCalculator({
               </span>
             </div>
 
-            <div className="flex gap-6 justify-center mb-6">
+            <div className="flex gap-6 justify-center mb-5">
               <div className="text-center">
                 <span className="block text-[10px] text-slate-400 mb-0.5">You Invest</span>
                 <span className="text-sm font-bold font-mono text-slate-900 dark:text-white">{formatNaira(totalInvestment)}</span>
@@ -288,43 +288,61 @@ export function CircleCalculator({
               </div>
             </div>
 
-            <div className="h-2 rounded-full bg-slate-100 dark:bg-slate-800 flex overflow-hidden mb-5">
-              <div className="bg-blue-600 transition-[width] duration-300" style={{ width: `${principalPct}%` }} />
-              <div className="bg-emerald-500 transition-[width] duration-300" style={{ width: `${interestPct}%` }} />
-            </div>
-
-            <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 mb-4">
-              <span>{principalPct.toFixed(1)}% Principal</span>
-              <span>{interestPct.toFixed(1)}% Interest</span>
-            </div>
-
-            <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
-              <div className="flex justify-between text-xs mb-2">
-                <span className="text-slate-400">Weekly Interest (per account)</span>
-                <span className="font-mono font-bold text-emerald-500">{formatNaira(results.weeklyPerAccount)}</span>
+            <div className="flex items-center justify-center gap-8 mb-4">
+              <div className="relative w-20 h-20">
+                <svg className="w-20 h-20 transform -rotate-90" viewBox="0 0 36 36">
+                  <path className="fill-none stroke-slate-200 dark:stroke-slate-800" strokeWidth="3" d="M18 2.0845a16 16 0 0 1 0 31.832a16 16 0 0 1 0-31.832" />
+                  <path className="fill-none stroke-blue-600" strokeWidth="3" strokeDasharray={`${principalPct} 100`} strokeLinecap="round" d="M18 2.0845a16 16 0 0 1 0 31.832" />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-[10px] font-bold text-slate-600 dark:text-slate-400">Principal</div>
+                </div>
               </div>
-              <div className="flex justify-between text-xs mb-2">
-                <span className="text-slate-400">{results.isCycleSelected ? `Interest (${results.cycleWeeks} weeks)` : "Total Interest (all accounts)"}</span>
+              <div className="relative w-20 h-20">
+                <svg className="w-20 h-20 transform -rotate-90" viewBox="0 0 36 36">
+                  <path className="fill-none stroke-slate-200 dark:stroke-slate-800" strokeWidth="3" d="M18 2.0845a16 16 0 0 1 0 31.832a16 16 0 0 1 0-31.832" />
+                  <path className="fill-none stroke-emerald-500" strokeWidth="3" strokeDasharray={`${interestPct} 100`} strokeLinecap="round" d="M18 2.0845a16 16 0 0 1 0 31.832" />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-[10px] font-bold text-slate-600 dark:text-slate-400">Interest</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 text-[11px] text-slate-500 dark:text-slate-400 mb-3">
+              <div className="flex justify-between">
+                <span>Duration</span>
+                <span className="font-bold text-slate-900 dark:text-white">{formatDuration(duration)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Rate</span>
+                <span className="font-bold text-slate-900 dark:text-white">{activeRate}% p.a.</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Accounts</span>
+                <span className="font-bold text-slate-900 dark:text-white">{effectiveAccounts}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Weekly</span>
+                <span className="font-bold text-emerald-500 font-mono">{formatNaira(results.weeklyPerAccount)}</span>
+              </div>
+            </div>
+
+            <div className="p-3 rounded-lg bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800/60 dark:to-slate-900/60 border border-slate-200/80 dark:border-slate-700/80">
+              <div className="flex justify-between text-xs">
+                <span className="text-slate-500">Total Investment</span>
+                <span className="font-mono font-bold text-slate-900 dark:text-white">{formatNaira(totalInvestment)}</span>
+              </div>
+              <div className="flex justify-between text-xs mt-1">
+                <span className="text-slate-500">{results.isCycleSelected ? `Interest (${results.cycleWeeks} weeks)` : "Total Interest"}</span>
                 <span className="font-mono font-bold text-emerald-500">{formatNaira(results.isCycleSelected ? results.cycleInterest : results.totalInterest)}</span>
               </div>
               {results.isCycleSelected && (
-                <div className="flex justify-between text-xs mb-2">
-                  <span className="text-slate-400">At Maturity ({results.totalWeeks} weeks)</span>
-                  <span className="font-mono font-bold text-slate-900 dark:text-white">{formatNaira(results.totalInterest)}</span>
+                <div className="flex justify-between text-xs mt-1">
+                  <span className="text-slate-500">Maturity Value</span>
+                  <span className="font-mono font-bold text-slate-900 dark:text-white">{formatNaira(results.totalPayout)}</span>
                 </div>
               )}
-              <div className="flex justify-between text-xs mb-2">
-                <span className="text-slate-400">Duration</span>
-                <span className="font-bold text-slate-900 dark:text-white">{formatDuration(duration)}</span>
-              </div>
-              <div className="flex justify-between text-xs mb-2">
-                <span className="text-slate-400">Interest Rate</span>
-                <span className="font-bold text-slate-900 dark:text-white">{activeRate}% p.a.</span>
-              </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-slate-400">Accounts</span>
-                <span className="font-bold text-slate-900 dark:text-white">{effectiveAccounts}</span>
-              </div>
             </div>
           </div>
         </div>

@@ -18,6 +18,7 @@ import {
   findUserById,
   getCirclePayoutRequests,
   getCirclePayoutRequestsByUser,
+  getCirclePayoutRequestsByCircle,
   approveCirclePayoutRequest,
   declineCirclePayoutRequest,
   clearCirclePayoutRequest,
@@ -600,6 +601,19 @@ circlesRouter.get("/:id/accounts-list", adminMiddleware, async (req, res) => {
   } catch (err) {
     console.error("Get circle accounts error:", err);
     res.status(500).json({ success: false, error: "Failed to fetch circle accounts" });
+  }
+});
+
+circlesRouter.get("/:id/payout-requests", adminMiddleware, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 100;
+    const status = req.query.status as string | undefined;
+    const result = await getCirclePayoutRequestsByCircle(req.params.id, { page, limit, status });
+    res.json({ success: true, data: result });
+  } catch (err) {
+    console.error("Get circle payout requests error:", err);
+    res.status(500).json({ success: false, error: "Failed to fetch circle payout requests" });
   }
 });
 

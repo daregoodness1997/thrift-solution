@@ -707,6 +707,33 @@ export async function getCirclePayoutRequests(params: {
   return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
 }
 
+export async function getCirclePayoutRequestsByCircle(circleId: string, params?: {
+  page?: number;
+  limit?: number;
+  status?: string;
+}) {
+  const page = params?.page ?? 1;
+  const limit = params?.limit ?? 100;
+  const where: Record<string, unknown> = { circleAccount: { circleId } };
+  if (params?.status) where.status = params.status;
+
+  const [items, total] = await Promise.all([
+    prisma.circlePayoutRequest.findMany({
+      where,
+      include: {
+        circleAccount: { select: { id: true, principalAmount: true, interestEarned: true } },
+        user: { select: { id: true, name: true, email: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.circlePayoutRequest.count({ where }),
+  ]);
+
+  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+}
+
 export async function getCirclePayoutRequestsByUser(userId: string, params?: {
   page?: number;
   limit?: number;

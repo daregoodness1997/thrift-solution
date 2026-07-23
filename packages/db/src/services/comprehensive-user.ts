@@ -9,10 +9,8 @@ export async function getComprehensiveUserDetail(userId: string) {
       kyc: true,
       transactions: {
         include: {
-          circleAccount: true,
           donation: true,
           loan: true,
-          group: true,
         },
         orderBy: { createdAt: "desc" },
         take: 50,
@@ -43,22 +41,12 @@ export async function getComprehensiveUserDetail(userId: string) {
           },
         },
       },
-      referrals: {
-        include: {
-          referredUser: {
-            select: { id: true, name: true, email: true, createdAt: true },
-          },
-        },
-      },
+      referrals: true,
       donations: {
         orderBy: { createdAt: "desc" },
         take: 20,
       },
       circlePayoutRequests: {
-        orderBy: { createdAt: "desc" },
-        take: 10,
-      },
-      defaults: {
         include: {
           circleAccount: {
             include: { circle: true },
@@ -72,10 +60,29 @@ export async function getComprehensiveUserDetail(userId: string) {
 
   if (!user) return null;
 
-  const [walletBalance, virtualAccounts] = await Promise.all([
+  const [walletBalance, virtualAccounts, userDefaults] = await Promise.all([
     getWalletBalance(userId),
     getVirtualAccountsByUser(userId),
+    prisma.circleDefault.findMany({
+      where: { userId },
+      include: {
+        circleAccount: {
+          include: { circle: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+    }),
   ]);
+
+  const referredUserIds = user.referrals.map((r) => r.referredUserId);
+  const referredUsers = referredUserIds.length
+    ? await prisma.user.findMany({
+        where: { id: { in: referredUserIds } },
+        select: { id: true, name: true, email: true, createdAt: true },
+      })
+    : [];
+  const referredUserMap = new Map(referredUsers.map((u) => [u.id, u]));
 
   const userTransactions = user.transactions.map((t) => ({
     id: t.id,
@@ -86,12 +93,6 @@ export async function getComprehensiveUserDetail(userId: string) {
     description: t.description,
     createdAt: t.createdAt,
     metadata: t.metadata,
-    circleAccount: t.circleAccount ? {
-      id: t.circleAccount.id,
-      circleName: t.circleAccount.circle.name,
-      principalAmount: t.circleAccount.principalAmount,
-      status: t.circleAccount.status,
-    } : null,
     donation: t.donation ? {
       id: t.donation.id,
       itemName: t.donation.itemName,
@@ -101,10 +102,6 @@ export async function getComprehensiveUserDetail(userId: string) {
       id: t.loan.id,
       amount: t.loan.amount,
       status: t.loan.status,
-    } : null,
-    group: t.group ? {
-      id: t.group.id,
-      name: t.group.name,
     } : null,
   }));
 
@@ -149,7 +146,7 @@ export async function getComprehensiveUserDetail(userId: string) {
     processingFee: loan.processingFee,
     schedule: loan.schedule.map((s) => ({
       installmentNo: s.installmentNo,
-      amount: s.amount,
+      amount: s.totalDue,
       dueDate: s.dueDate,
       status: s.status,
     })),
@@ -162,16 +159,19 @@ export async function getComprehensiveUserDetail(userId: string) {
     })),
   }));
 
-  const userReferrals = user.referrals.map((r) => ({
-    id: r.id,
-    referredUserId: r.referredUserId,
-    referredUserName: r.referredUser.name,
-    referredUserEmail: r.referredUser.email,
-    createdAt: r.createdAt,
-    status: r.status,
-  }));
+  const userReferrals = user.referrals.map((r) => {
+    const referredUser = referredUserMap.get(r.referredUserId);
+    return {
+      id: r.id,
+      referredUserId: r.referredUserId,
+      referredUserName: referredUser?.name ?? null,
+      referredUserEmail: referredUser?.email ?? null,
+      createdAt: r.createdAt,
+      status: r.status,
+    };
+  });
 
-  const defaults = user.defaults.map((d) => ({
+  const defaults = userDefaults.map((d) => ({
     id: d.id,
     weekNumber: d.weekNumber,
     amountDue: d.amountDue,
@@ -233,7 +233,7 @@ export async function getComprehensiveUserDetail(userId: string) {
     email2faEnabled: user.email2faEnabled,
     bvn: user.bvn,
     nin: user.nin,
-    verifiedName: user.verifiedName,
+    verifiedName: user.kyc?.verifiedName ?? null,
     registrationStep: user.registrationStep,
     registrationFeePaid: user.registrationFeePaid,
     registrationCompletedAt: user.registrationCompletedAt,

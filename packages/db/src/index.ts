@@ -170,6 +170,7 @@ export {
   runWeeklyInterestJob,
   getCirclePayoutRequests,
   getCirclePayoutRequestsByUser,
+  getCirclePayoutRequestsByCircle,
   approveCirclePayoutRequest,
   declineCirclePayoutRequest,
   clearCirclePayoutRequest,
@@ -242,6 +243,11 @@ export {
   suspendUser,
   reactivateUser,
 } from "./services/admin";
+
+export {
+  getComprehensiveUserDetail,
+  getUserDashboardOverview,
+} from "./services/comprehensive-user";
 
 export {
   getAllTransactions,
