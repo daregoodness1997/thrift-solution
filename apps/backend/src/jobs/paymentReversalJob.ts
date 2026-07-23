@@ -32,8 +32,10 @@ export async function paymentReversalReconciliationJob() {
   let errors = 0;
 
   for (const txn of candidates) {
-    // Skip virtual-account deposit refs — not verifiable by tx_ref here.
-    if (txn.reference.startsWith("va_flw_")) continue;
+    // Skip refs that aren't real Flutterwave transactions.
+    // Virtual-account deposits use "va_flw_" prefix and aren't verifiable by tx_ref here.
+    // Seed/test transactions ("SEED-") were created locally and have no Flutterwave record.
+    if (txn.reference.startsWith("va_flw_") || txn.reference.startsWith("SEED-")) continue;
 
     try {
       const provider = getPaymentProvider("flutterwave");

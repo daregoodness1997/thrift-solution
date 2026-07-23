@@ -64,6 +64,13 @@ const team = [
     location: "Lagos, Nigeria",
     photo: "/cord-2.jpeg",
   },
+  {
+    name: "Itohan Mercy Ekhoragbon",
+    role: "Admin & Community Manager",
+    bio: "Fosters engaged learning communities where people support each other's growth.",
+    location: "Lagos, Nigeria",
+    photo: "/admin.jpeg",
+  },
 ];
 
 export function Team() {
@@ -103,7 +110,9 @@ export function Team() {
                 <p className="mt-0.5 text-sm font-semibold text-brand-accent">
                   {member.role}
                 </p>
-                <p className="mt-0.5 text-sm text-brand-muted dark:text-slate-400">{member.location}</p>
+                <p className="mt-0.5 text-sm text-brand-muted dark:text-slate-400">
+                  {member.location}
+                </p>
               </div>
             </div>
           ))}
