@@ -39,6 +39,8 @@ import {
   createWhatsappGroup,
   creditWallet,
   updateVirtualAccountLastTransfer,
+  getComprehensiveUserDetail,
+  getUserDashboardOverview,
 } from "@thrift/db";
 
 export const adminRouter = Router();
@@ -234,6 +236,34 @@ adminRouter.get("/transactions/:id", requireAdmin, async (req, res) => {
   } catch (err) {
     console.error("Admin transaction detail error:", err);
     res.status(500).json({ success: false, error: "Failed to fetch transaction" });
+  }
+});
+
+adminRouter.get("/users/:id/comprehensive", requireAdmin, async (req, res) => {
+  try {
+    const user = await getComprehensiveUserDetail(req.params.id);
+    if (!user) {
+      res.status(404).json({ success: false, error: "User not found" });
+      return;
+    }
+    res.json({ success: true, data: user });
+  } catch (err) {
+    console.error("Get comprehensive user detail error:", err);
+    res.status(500).json({ success: false, error: "Failed to fetch user details" });
+  }
+});
+
+adminRouter.get("/users/:id/dashboard-overview", requireAdmin, async (req, res) => {
+  try {
+    const overview = await getUserDashboardOverview(req.params.id);
+    if (!overview) {
+      res.status(404).json({ success: false, error: "User not found" });
+      return;
+    }
+    res.json({ success: true, data: overview });
+  } catch (err) {
+    console.error("Get user dashboard overview error:", err);
+    res.status(500).json({ success: false, error: "Failed to fetch user overview" });
   }
 });
 

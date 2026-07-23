@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
 import Pagination from "@/components/Pagination";
 import { SimpleTable, SimpleColumn } from "@/components/SimpleTable";
+import { Users, Wallet, TrendingUp, Activity, AlertTriangle, CheckCircle, Clock, Coins, CreditCard } from "lucide-react";
 
 const fallback = config;
 
@@ -52,15 +53,145 @@ export default function CircleManagementPage() {
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [runningJob, setRunningJob] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [selectedCircleForUsers, setSelectedCircleForUsers] = useState<Circle | null>(null);
+  const [usersData, setUsersData] = useState<any>(null);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [activeTab, setActiveTab] = useState<'overview' | 'transactions' | 'circles' | 'interests' | 'defaults' | 'donations'>('overview');
+
+  const circleAccountColumns: SimpleColumn<any>[] = [
+    {
+      key: "user",
+      header: "User",
+      render: (account: any) => (
+        <div>
+          <span className="block font-semibold text-slate-900 dark:text-white">{account.user.name}</span>
+          <span className="text-[11px] text-slate-500 dark:text-slate-400">{account.user.email}</span>
+        </div>
+      ),
+    },
+    {
+      key: "principalAmount",
+      header: "Principal",
+      align: "right",
+      mono: true,
+      render: (account: any) => <span>{formatNaira(account.principalAmount)}</span>,
+    },
+    {
+      key: "maxAccountsPerUser",
+      header: "Max/User",
+      align: "right",
+      mono: true,
+      render: (circle) => <span>{circle.maxAccountsPerUser > 0 ? circle.maxAccountsPerUser : "∞"}</span>,
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      align: "right",
+      render: (circle) => (
+        <div className="flex justify-end gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => openCircleUsers(circle)}
+            className="text-[11px] h-7"
+          >
+            <Users className="w-3.5 h-3.5 mr-1" />
+            View Users
+          </Button>
+        </div>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      render: (account: any) => {
+        const statusColor = account.status === "active" ? "bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/50" :
+          account.status === "matured" ? "bg-blue-50 text-blue-600 border-blue-200 dark:bg-blue-950/30 dark:text-blue-400 dark:border-blue-900/50" :
+          account.status === "early_withdrawn" ? "bg-red-50 text-red-600 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-900/50" :
+          "bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-950/30 dark:text-slate-400 dark:border-slate-800/50";
+        return (
+          <span className={`rounded-md px-2 py-0.5 font-mono text-[9px] font-bold uppercase border ${statusColor}`}>{account.status}</span>
+        );
+      },
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      align: "right",
+      render: (account: any) => (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => openUserDetail(account.userId, account.id)}
+          className="text-[11px] h-7"
+        >
+          View Details
+        </Button>
+      ),
+    },
+  ];
 
   const LIMIT = 20;
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
-  const stats = {
-    total: circles.length,
-    active: circles.filter((c) => c.status === "active").length,
-    inactive: circles.filter((c) => c.status === "inactive").length,
-    totalAccounts: circles.reduce((sum, c) => sum + (c._count?.accounts || 0), 0),
+  const openUserDetail = async (userId: string, circleAccountId: string) => {
+    if (!token) return;
+    setLoadingUsers(true);
+    setSelectedCircleForUsers(null);
+    setActiveTab('overview');
+    try {
+      const res = await fetch(`${API_URL}/api/admin/users/${userId}/comprehensive`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success) {
+        setUsersData(data.data);
+        setSelectedCircleForUsers(data.data);
+      }
+    } catch (e) {
+      console.error("Failed to fetch user details:", e);
+    }
+    setLoadingUsers(false);
+  };
+
+  const openCircleUsers = async (circle: Circle) => {
+    setLoadingUsers(true);
+    setSelectedCircleForUsers(circle);
+    const circleAccounts = await fetchCircleAccounts(circle.id);
+    setSelectedCircleForUsers({ ...circle, accounts: circleAccounts });
+    setLoadingUsers(false);
+  }; 
+  
+  const handleModalClose = () => {
+    setSelectedCircleForUsers(null);
+    setUsersData(null);
+    setActiveTab('overview');
+  }; 
+  
+  const getTabIcon = (tab: string) => {
+    switch(tab) {
+      case 'overview': return <Users className="w-4 h-4" />;
+      case 'transactions': return <Activity className="w-4 h-4" />;
+      case 'circles': return <Coins className="w-4 h-4" />;
+      case 'interests': return <TrendingUp className="w-4 h-4" />;
+      case 'defaults': return <AlertTriangle className="w-4 h-4" />;
+      case 'donations': return <CreditCard className="w-4 h-4" />;
+      default: return null;
+    }
+  };
+
+  const fetchCircleAccounts = async (circleId: string) => {
+    if (!token) return [];
+    try {
+      const res = await fetch(`${API_URL}/api/admin/circles/${circleId}/accounts?page=1&limit=10`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      return data.success ? data.data.items || [] : [];
+    } catch (e) {
+      console.error("Failed to fetch circle accounts:", e);
+      return [];
+    }
   };
 
   const fetchCircles = useCallback(async () => {
@@ -98,36 +229,36 @@ export default function CircleManagementPage() {
   const handleToggleStatus = async (circle: Circle) => {
     setTogglingId(circle.id);
     try {
-      const newStatus = circle.status === "active" ? "inactive" : "active";
+      const action = circle.status === "active" ? "inactive" : "active";
       const res = await fetch(`${API_URL}/api/circles/${circle.id}`, {
-        method: "PUT",
+        method: "PATCH",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({ status: action }),
       });
       const data = await res.json();
       if (data.success) {
-        showMessage("success", `Circle ${newStatus === "active" ? "activated" : "deactivated"}`);
+        showMessage("success", `Circle ${action === 'active' ? 'activated' : 'deactivated'}`);
         fetchCircles();
       } else {
-        showMessage("error", data.error || "Failed to update status");
+        showMessage("error", data.error || "Failed to update circle");
       }
     } catch {
-      showMessage("error", "Failed to update circle status");
+      showMessage("error", "Failed to update circle");
     }
     setTogglingId(null);
   };
 
   const handleRunInterestJob = async () => {
+    if (!token || runningJob) return;
     setRunningJob(true);
     try {
-      const res = await fetch(`${API_URL}/api/circles/admin/run-interest-job`, {
+      const res = await fetch(`${API_URL}/api/circles/run-weekly-interest`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
       if (data.success) {
-        const r = data.data;
-        showMessage("success", `Interest job completed: ${r.processed} processed, ${r.errors} errors, ${r.total} total`);
+        showMessage("success", `Interest job completed: ${data.processed} processed, ${data.errors} errors, ${data.total} total`);
       } else {
         showMessage("error", data.error || "Failed to run interest job");
       }
@@ -203,56 +334,9 @@ export default function CircleManagementPage() {
     {
       key: "maxAccountsPerUser",
       header: "Max/User",
-      mono: true,
-      render: (circle) => <span className="text-slate-500 dark:text-slate-400">{circle.maxAccountsPerUser > 0 ? circle.maxAccountsPerUser : "∞"}</span>,
-    },
-    {
-      key: "subscribers",
-      header: "Subscribers",
-      mono: true,
-      render: (circle) => (
-        <span className="text-slate-500 dark:text-slate-400">
-          {circle._count?.accounts || 0}
-          {circle.maxSubscribers != null && (
-            <span className="text-slate-400 dark:text-slate-500"> / {circle.maxSubscribers}</span>
-          )}
-        </span>
-      ),
-    },
-    {
-      key: "addons",
-      header: "Addons",
-      render: (circle) => {
-        if (!circle.addons || circle.addons.length === 0) {
-          return <span className="text-[11px] text-slate-400 dark:text-slate-500">—</span>;
-        }
-        return (
-          <div className="flex flex-wrap gap-1">
-            {circle.addons.slice(0, 2).map((a) => (
-              <span key={a.id} className="rounded-md px-2 py-0.5 font-mono text-[9px] font-bold"
-                style={{ backgroundColor: "#FEF3C7", color: "#D97706", border: "1px solid #FDE68A" }}>
-                {a.name}
-              </span>
-            ))}
-            {circle.addons.length > 2 && (
-              <span className="rounded-md px-2 py-0.5 font-mono text-[9px] text-slate-500 dark:text-slate-400">
-                +{circle.addons.length - 2} more
-              </span>
-            )}
-          </div>
-        );
-      },
-    },
-    {
-      key: "status",
-      header: "Status",
       align: "right",
-      render: (circle) => (
-        <span className="rounded-md px-2 py-0.5 font-mono text-[9px] font-bold uppercase"
-          style={{ backgroundColor: circle.status === "active" ? "#ECFDF5" : "#FFFBEB", color: circle.status === "active" ? "#059669" : "#D97706", border: `1px solid ${circle.status === "active" ? "#A7F3D0" : "#FDE68A"}` }}>
-          {circle.status}
-        </span>
-      ),
+      mono: true,
+      render: (circle) => <span>{circle.maxAccountsPerUser > 0 ? circle.maxAccountsPerUser : "∞"}</span>,
     },
     {
       key: "actions",
@@ -260,17 +344,23 @@ export default function CircleManagementPage() {
       align: "right",
       render: (circle) => (
         <div className="flex justify-end gap-1.5">
-          <button onClick={(e) => { e.stopPropagation(); router.push(`/circle-management/${circle.id}`); }}
-            className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold border border-blue-200 bg-blue-50 text-blue-600 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
-            View
-          </button>
-          <button onClick={(e) => { e.stopPropagation(); openEdit(circle); }}
-            className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold border border-blue-200 bg-blue-50 text-blue-600 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-400">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              openEdit(circle);
+            }}
+            className="cursor-pointer rounded-md border border-blue-600/20 bg-blue-600/5 px-2 py-1 text-[10px] font-semibold text-blue-600 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-400"
+          >
             Edit
           </button>
-          <button onClick={(e) => { e.stopPropagation(); handleToggleStatus(circle); }} disabled={togglingId === circle.id}
-            className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold"
-            style={{ border: `1px solid ${circle.status === "active" ? "#FDE68A" : "#A7F3D0"}`, backgroundColor: circle.status === "active" ? "#FFFBEB" : "#ECFDF5", color: circle.status === "active" ? "#D97706" : "#059669", opacity: togglingId === circle.id ? 0.5 : 1 }}>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleToggleStatus(circle);
+            }}
+            disabled={togglingId === circle.id}
+            className={`cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold ${togglingId === circle.id ? "opacity-50" : ""} ${circle.status === "active" ? "border border-red-300 bg-red-50 text-red-600 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-400" : "border border-emerald-300 bg-emerald-50 text-emerald-600 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-400"}`}
+          >
             {togglingId === circle.id ? "..." : circle.status === "active" ? "Deactivate" : "Activate"}
           </button>
         </div>
@@ -357,6 +447,342 @@ export default function CircleManagementPage() {
           <Pagination page={page} totalPages={totalPages} total={total} limit={LIMIT} onPageChange={setPage} loading={loading} />
         </Card>
       </FadeInUp>
+
+      {selectedCircleForUsers && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={handleModalClose}>
+          <div className="w-full max-w-6xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white dark:bg-slate-900 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6 border-b border-slate-200 dark:border-slate-700 sticky top-0 bg-white dark:bg-slate-900 z-10">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+                    {selectedCircleForUsers.name}
+                  </h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Circle Management</p>
+                </div>
+                <Button variant="outline" size="sm" onClick={handleModalClose}>
+                  Close
+                </Button>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <div className="flex gap-2 mb-6 border-b border-slate-200 dark:border-slate-700">
+                {[
+                  { id: 'overview', label: 'Overview' },
+                  { id: 'transactions', label: 'Transactions' },
+                  { id: 'circles', label: 'Circles' },
+                  { id: 'interests', label: 'Interests' },
+                  { id: 'defaults', label: 'Defaults' },
+                  { id: 'donations', label: 'Donations' }
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id as any)}
+                    className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === tab.id
+                      ? 'text-blue-600 border-blue-600 dark:text-blue-400 dark:border-blue-400'
+                      : 'text-slate-500 dark:text-slate-400 border-transparent hover:text-slate-700 dark:hover:text-slate-300'}
+                    `}
+                  >
+                    {getTabIcon(tab.id)}
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {loadingUsers ? (
+                <div className="p-12 text-center text-[13px] text-slate-500 dark:text-slate-400">
+                  Loading user details...
+                </div>
+              ) : activeTab === 'overview' && usersData ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                  <Card padding="1.25rem">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-blue-50 dark:bg-blue-950/30 rounded-lg">
+                        <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div>
+                        <span className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase">Total Users</span>
+                        <span className="text-xl font-bold text-slate-900 dark:text-white">{
+                          usersData.stats ? usersData.stats.totalUsers || usersData.stats.allUsers : '0'
+                        }</span>
+                      </div>
+                    </div>
+                  </Card>
+                  <Card padding="1.25rem">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg">
+                        <Wallet className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                      </div>
+                      <div>
+                        <span className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase">Wallet Balance</span>
+                        <span className="text-xl font-bold text-slate-900 dark:text-white">{formatNaira(usersData.stats?.walletBalance || 0)}</span>
+                      </div>
+                    </div>
+                  </Card>
+                  <Card padding="1.25rem">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-violet-50 dark:bg-violet-950/30 rounded-lg">
+                        <Coins className="w-5 h-5 text-violet-600 dark:text-violet-400" />
+                      </div>
+                      <div>
+                        <span className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase">Total Saved</span>
+                        <span className="text-xl font-bold text-slate-900 dark:text-white">{formatNaira(usersData.stats?.totalSaved || 0)}</span>
+                      </div>
+                    </div>
+                  </Card>
+                  <Card padding="1.25rem">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-orange-50 dark:bg-orange-950/30 rounded-lg">
+                        <TrendingUp className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                      </div>
+                      <div>
+                        <span className="block text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase">Trust Score</span>
+                        <span className="text-xl font-bold text-slate-900 dark:text-white">{usersData.stats?.trustScore || 0}</span>
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+              ) : activeTab === 'transactions' && usersData ? (
+                <div>
+                  <h4 className="text-base font-semibold text-slate-900 dark:text-white mb-4">Transaction History</h4>
+                  <SimpleTable
+                    columns={[
+                      {
+                        key: "type",
+                        header: "Type",
+                        render: (t: any) => <span className="font-mono text-[11px]">{t.type}</span>,
+                      },
+                      {
+                        key: "amount",
+                        header: "Amount",
+                        align: "right",
+                        mono: true,
+                        render: (t: any) => <span className="font-semibold">{formatNaira(t.amount)}</span>,
+                      },
+                      {
+                        key: "status",
+                        header: "Status",
+                        render: (t: any) => {
+                          const statusColor = {
+                            completed: "bg-emerald-50 text-emerald-600 border-emerald-200",
+                            pending: "bg-amber-50 text-amber-600 border-amber-200",
+                            failed: "bg-red-50 text-red-600 border-red-200",
+                          };
+                          return (
+                            <span className={`rounded-md px-2 py-0.5 font-mono text-[9px] font-bold uppercase border ${statusColor[t.status as keyof typeof statusColor]}`}>{t.status}</span>
+                          );
+                        },
+                      },
+                      {
+                        key: "createdAt",
+                        header: "Date",
+                        render: (t: any) => (
+                          <span className="text-[12px] text-slate-500 dark:text-slate-400">
+                            {new Date(t.createdAt).toLocaleDateString()}
+                          </span>
+                        ),
+                      },
+                    ]}
+                    data={usersData.transactions}
+                    minWidth="600px"
+                  />
+                </div>
+              ) : activeTab === 'circles' && usersData ? (
+                <div>
+                  <h4 className="text-base font-semibold text-slate-900 dark:text-white mb-4">Circle Memberships</h4>
+                  {usersData.circleAccounts && usersData.circleAccounts.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {usersData.circleAccounts.map((account: any) => (
+                        <Card key={account.id} padding="1.25rem" className="hover:shadow-md transition-shadow">
+                          <div className="flex items-start justify-between mb-3">
+                            <div>
+                              <h5 className="font-semibold text-slate-900 dark:text-white text-sm">{account.circle.name}</h5>
+                              <p className="text-[12px] text-slate-500 dark:text-slate-400 mt-1">ID: {account.id.substring(0, 8)}...</p>
+                            </div>
+                            <span className={`rounded-md px-2 py-0.5 font-mono text-[9px] font-bold uppercase border ${account.status === "active" ? "bg-emerald-50 text-emerald-600 border-emerald-200" :
+                              account.status === "matured" ? "bg-blue-50 text-blue-600 border-blue-200" :
+                              account.status === "early_withdrawn" ? "bg-red-50 text-red-600 border-red-200" :
+                              "bg-slate-50 text-slate-600 border-slate-200"}`}>{account.status}</span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-3 text-[12px]">
+                            <div>
+                              <span className="block text-slate-500 dark:text-slate-400">Principal</span>
+                              <span className="font-semibold text-slate-900 dark:text-white">{formatNaira(account.principalAmount)}</span>
+                            </div>
+                            <div>
+                              <span className="block text-slate-500 dark:text-slate-400">Interest</span>
+                              <span className="font-semibold text-slate-900 dark:text-white">{formatNaira(account.interestEarned)}</span>
+                            </div>
+                            <div>
+                              <span className="block text-slate-500 dark:text-slate-400">Weeks Contributed</span>
+                              <span className="font-semibold text-slate-900 dark:text-white">{account.weeksContributed}</span>
+                            </div>
+                            <div>
+                              <span className="block text-slate-500 dark:text-slate-400">Weeks Defaulted</span>
+                              <span className="font-semibold text-slate-900 dark:text-white">{account.weeksDefaulted}</span>
+                            </div>
+                          </div>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-8 text-center text-[13px] text-slate-500 dark:text-slate-400">
+                      No circle accounts found.
+                    </div>
+                  )}
+                </div>
+              ) : activeTab === 'interests' && usersData ? (
+                <div>
+                  <h4 className="text-base font-semibold text-slate-900 dark:text-white mb-4">Interest History</h4>
+                  {usersData.interestLogs && usersData.interestLogs.length > 0 ? (
+                    <SimpleTable
+                      columns={[
+                        {
+                          key: "calculatedAt",
+                          header: "Date",
+                          render: (log: any) => (
+                            <span className="text-[12px] text-slate-500 dark:text-slate-400">
+                              {new Date(log.calculatedAt).toLocaleDateString()}
+                            </span>
+                          ),
+                        },
+                        {
+                          key: "amount",
+                          header: "Amount",
+                          align: "right",
+                          mono: true,
+                          render: (log: any) => <span className="font-semibold">{formatNaira(log.amount)}</span>,
+                        },
+                        {
+                          key: "annualRate",
+                          header: "Rate",
+                          mono: true,
+                          render: (log: any) => <span className="font-semibold text-blue-600">{log.annualRate}%</span>,
+                        },
+                      ]}
+                      data={usersData.interestLogs}
+                      minWidth="600px"
+                    />
+                  ) : (
+                    <div className="p-8 text-center text-[13px] text-slate-500 dark:text-slate-400">
+                      No interest logs found.
+                    </div>
+                  )}
+                </div>
+              ) : activeTab === 'defaults' && usersData ? (
+                <div>
+                  <h4 className="text-base font-semibold text-slate-900 dark:text-white mb-4">Outstanding Defaults</h4>
+                  {usersData.defaults && usersData.defaults.length > 0 ? (
+                    <SimpleTable
+                      columns={[
+                        {
+                          key: "circleAccount",
+                          header: "Circle",
+                          render: (d: any) => <span className="font-medium">{d.circleAccount.circleName}</span>,
+                        },
+                        {
+                          key: "weekNumber",
+                          header: "Week",
+                          mono: true,
+                          render: (d: any) => <span>W{d.weekNumber}</span>,
+                        },
+                        {
+                          key: "amountDue",
+                          header: "Amount Due",
+                          align: "right",
+                          mono: true,
+                          render: (d: any) => <span className="font-semibold">{formatNaira(d.amountDue)}</span>,
+                        },
+                        {
+                          key: "clearanceAmount",
+                          header: "Clearance Amount",
+                          align: "right",
+                          mono: true,
+                          render: (d: any) => <span className="font-semibold text-emerald-600">{formatNaira(d.clearanceAmount)}</span>,
+                        },
+                        {
+                          key: "status",
+                          header: "Status",
+                          render: (d: any) => {
+                            const statusColor = {
+                              outstanding: "bg-red-50 text-red-600 border-red-200",
+                              cleared: "bg-emerald-50 text-emerald-600 border-emerald-200",
+                            };
+                            return (
+                              <span className={`rounded-md px-2 py-0.5 font-mono text-[9px] font-bold uppercase border ${statusColor[d.status as keyof typeof statusColor]}`}>{d.status}</span>
+                            );
+                          },
+                        },
+                      ]}
+                      data={usersData.defaults}
+                      minWidth="800px"
+                    />
+                  ) : (
+                    <div className="p-8 text-center text-[13px] text-slate-500 dark:text-slate-400">
+                      No outstanding defaults found.
+                    </div>
+                  )}
+                </div>
+              ) : activeTab === 'donations' && usersData ? (
+                <div>
+                  <h4 className="text-base font-semibold text-slate-900 dark:text-white mb-4">Donation History</h4>
+                  {usersData.donations && usersData.donations.length > 0 ? (
+                    <SimpleTable
+                      columns={[
+                        {
+                          key: "createdAt",
+                          header: "Date",
+                          render: (d: any) => (
+                            <span className="text-[12px] text-slate-500 dark:text-slate-400">
+                              {new Date(d.createdAt).toLocaleDateString()}
+                            </span>
+                          ),
+                        },
+                        {
+                          key: "itemName",
+                          header: "Item Name",
+                          render: (d: any) => <span className="font-medium">{d.itemName}</span>,
+                        },
+                        {
+                          key: "amount",
+                          header: "Amount",
+                          align: "right",
+                          mono: true,
+                          render: (d: any) => <span className="font-semibold">{formatNaira(d.amount)}</span>,
+                        },
+                        {
+                          key: "status",
+                          header: "Status",
+                          render: (d: any) => {
+                            const statusColor = {
+                              completed: "bg-emerald-50 text-emerald-600 border-emerald-200",
+                              pending: "bg-amber-50 text-amber-600 border-amber-200",
+                              failed: "bg-red-50 text-red-600 border-red-200",
+                            };
+                            return (
+                              <span className={`rounded-md px-2 py-0.5 font-mono text-[9px] font-bold uppercase border ${statusColor[d.status as keyof typeof statusColor]}`}>{d.status}</span>
+                            );
+                          },
+                        },
+                      ]}
+                      data={usersData.donations}
+                      minWidth="800px"
+                    />
+                  ) : (
+                    <div className="p-8 text-center text-[13px] text-slate-500 dark:text-slate-400">
+                      No donation history found.
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="p-8 text-center text-[13px] text-slate-500 dark:text-slate-400">
+                  Select a tab to view details.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
