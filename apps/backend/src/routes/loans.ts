@@ -163,7 +163,7 @@ loansRouter.post("/:id/repay", authMiddleware, async (req, res) => {
       res.status(400).json({ success: false, error: "A valid repayment amount is required" });
       return;
     }
-    if (loan.outstandingBalance > 0 && amount > toNum(loan.outstandingBalance) + 1) {
+    if (toNum(loan.outstandingBalance) > 0 && amount > toNum(loan.outstandingBalance) + 1) {
       res.status(400).json({
         success: false,
         error: `Repayment cannot exceed the outstanding balance of ${Number(loan.outstandingBalance).toFixed(2)}`,
@@ -231,7 +231,7 @@ loansRouter.post("/:id/pay", authMiddleware, async (req, res) => {
         res.status(400).json({ success: false, error: "This installment is already paid" });
         return;
       }
-      const remaining = Math.round((item.principal + item.interest - item.principalPaid - item.interestPaid) * 100) / 100;
+      const remaining = Math.round((toNum(item.principal) + toNum(item.interest) - toNum(item.principalPaid) - toNum(item.interestPaid)) * 100) / 100;
       amount = remaining;
       metaNote = `Installment #${installmentNo}`;
     } else {
@@ -322,7 +322,7 @@ loansRouter.get("/pay/verify/:reference", authMiddleware, async (req, res) => {
       reference,
       loanId: txn.loanId,
       borrowerId: txn.userId,
-      amount: verification.amount || txn.amount,
+      amount: verification.amount || toNum(txn.amount),
       provider,
       installmentNo: (txn.metadata as { installmentNo?: number } | null)?.installmentNo,
     });

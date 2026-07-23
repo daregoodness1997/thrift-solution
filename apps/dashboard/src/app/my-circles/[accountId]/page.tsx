@@ -55,6 +55,16 @@ interface CircleTransaction {
   createdAt: string;
 }
 
+interface CircleDefault {
+  id: string;
+  weekNumber: number;
+  amountDue: number;
+  clearanceAmount: number;
+  status: string;
+  clearedAt?: string;
+  createdAt: string;
+}
+
 const STATUS_STYLES: Record<string, { color: string; bg: string }> = {
   active: { color: "#10B981", bg: "#ECFDF5" },
   matured: { color: "#F59E0B", bg: "#FFFBEB" },
@@ -114,8 +124,9 @@ export default function AccountDetailPage() {
   const [account, setAccount] = useState<CircleAccount | null>(null);
   const [breakdown, setBreakdown] = useState<InterestWeek[]>([]);
   const [transactions, setTransactions] = useState<CircleTransaction[]>([]);
+  const [defaults, setDefaults] = useState<CircleDefault[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"breakdown" | "logs" | "transactions">("breakdown");
+  const [activeTab, setActiveTab] = useState<"breakdown" | "logs" | "transactions" | "defaults">("breakdown");
   const [withdrawing, setWithdrawing] = useState(false);
   const [claiming, setClaiming] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -130,17 +141,20 @@ export default function AccountDetailPage() {
     if (!token || !accountId) return;
     setLoading(true);
     try {
-      const [acctRes, breakdownRes, txRes] = await Promise.all([
+      const [acctRes, breakdownRes, txRes, defaultsRes] = await Promise.all([
         fetch(`${API_URL}/api/circles/accounts/${accountId}`, { headers: { Authorization: `Bearer ${token}` } }),
         fetch(`${API_URL}/api/circles/accounts/${accountId}/interest-breakdown`, { headers: { Authorization: `Bearer ${token}` } }),
         fetch(`${API_URL}/api/circles/accounts/${accountId}/transactions`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${API_URL}/api/circles/accounts/${accountId}/defaults`, { headers: { Authorization: `Bearer ${token}` } }),
       ]);
       const acctData = await acctRes.json();
       const breakdownData = await breakdownRes.json();
       const txData = await txRes.json();
+      const defaultsData = await defaultsRes.json();
       if (acctData.success) setAccount(acctData.data);
       if (breakdownData.success) setBreakdown(breakdownData.data);
       if (txData.success) setTransactions(txData.data);
+      if (defaultsData.success) setDefaults(defaultsData.data);
     } catch {}
     setLoading(false);
   }, [token, accountId, API_URL]);
@@ -447,6 +461,7 @@ export default function AccountDetailPage() {
             ["breakdown", "Interest Breakdown"],
             ["logs", "Interest Logs"],
             ["transactions", "Transactions"],
+            ["defaults", "Defaults"],
           ] as const
         ).map(([key, label]) => (
           <button
@@ -580,6 +595,46 @@ export default function AccountDetailPage() {
                   data={transactions}
                   emptyMessage="No transactions yet"
                 />
+              </div>
+            )}
+          </Card>
+        </FadeInUp>
+      )}
+
+      {activeTab === "defaults" && (
+        <FadeInUp>
+          <Card padding="1.5rem">
+            <h3 className="mb-4 text-[14px] font-semibold text-slate-900 dark:text-white">
+              Defaults (Missed Contributions)
+            </h3>
+            {defaults.length === 0 ? (
+              <div className="p-8 text-center text-[13px] text-slate-400 dark:text-slate-500">
+                No defaults recorded for this account
+              </div>
+            ) : (
+              <div className="max-h-[480px] overflow-y-auto rounded-lg border border-slate-200/80 dark:border-slate-800/80">
+                <SimpleTable
+                  columns={[
+                    { key: "weekNumber", header: "Week", align: "center", render: (d) => <span className="font-mono">#{d.weekNumber}</span> },
+                    { key: "amountDue", header: "Amount Due", align: "right", render: (d) => <span className="font-mono text-[#666] dark:text-slate-400">{formatNaira(d.amountDue)}</span> },
+                    { key: "clearanceAmount", header: "Clearance", align: "right", render: (d) => <span className="font-mono font-semibold text-red-600">{formatNaira(d.clearanceAmount)}</span> },
+                    { key: "status", header: "Status", align: "center", render: (d) => (
+                      <span className="rounded-[0.375rem] px-2 py-0.5 text-[9px] font-bold uppercase" style={{ color: d.status === "outstanding" ? "#DC2626" : "#059669", backgroundColor: d.status === "outstanding" ? "#FEF2F2" : "#ECFDF5" }}>
+                        {d.status}
+                      </span>
+                    )},
+                    { key: "clearedAt", header: "Cleared", render: (d) => d.clearedAt ? <span className="font-mono text-[11px] text-[#666] dark:text-slate-400">{formatDate(d.clearedAt)}</span> : <span className="text-[11px] text-slate-300">—</span> },
+                  ]}
+                  data={defaults}
+                  emptyMessage="No defaults recorded"
+                />
+              </div>
+            )}
+            {defaults.some((d) => d.status === "outstanding") && (
+              <div className="mt-4 rounded-lg bg-red-50 dark:bg-red-900/20 p-3 text-[11px] text-red-700 dark:text-red-400">
+                <strong>Note:</strong> Outstanding defaults must be cleared from the{" "}
+                <a href="/my-defaults" className="underline font-semibold">My Defaults</a>{" "}
+                page to keep your account eligible for payout.
               </div>
             )}
           </Card>
