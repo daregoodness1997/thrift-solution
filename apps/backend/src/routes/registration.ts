@@ -20,8 +20,12 @@ import { runAutomatedKyc } from "../services/kyc-automation";
 
 export const registrationRouter = Router();
 
-const REGISTRATION_FEE = parseInt(process.env.REGISTRATION_FEE_NGN || "4200", 10);
-const REGISTRATION_PROVIDER = process.env.REGISTRATION_PAYMENT_PROVIDER || "flutterwave";
+const REGISTRATION_FEE = parseInt(
+  process.env.REGISTRATION_FEE_NGN || "4200",
+  10,
+);
+const REGISTRATION_PROVIDER =
+  process.env.REGISTRATION_PAYMENT_PROVIDER || "flutterwave";
 const DASHBOARD_URL = process.env.DASHBOARD_URL || "http://localhost:3001";
 
 function publicUser(user: {
@@ -58,20 +62,31 @@ registrationRouter.post("/basic", async (req, res) => {
       phone,
       referralCode: rawReferralCode,
     } = req.body;
-    const referralCode = typeof rawReferralCode === "string" ? rawReferralCode.trim() : rawReferralCode;
+    const referralCode =
+      typeof rawReferralCode === "string"
+        ? rawReferralCode.trim()
+        : rawReferralCode;
 
     if (!email || !name || !password) {
-      res.status(400).json({ success: false, error: "Email, name, and password are required" });
+      res.status(400).json({
+        success: false,
+        error: "Email, name, and password are required",
+      });
       return;
     }
     if (password.length < 6) {
-      res.status(400).json({ success: false, error: "Password must be at least 6 characters" });
+      res.status(400).json({
+        success: false,
+        error: "Password must be at least 6 characters",
+      });
       return;
     }
 
     const existing = await findUserByEmail(email);
     if (existing) {
-      res.status(409).json({ success: false, error: "Email already registered" });
+      res
+        .status(409)
+        .json({ success: false, error: "Email already registered" });
       return;
     }
 
@@ -125,7 +140,11 @@ registrationRouter.post("/basic", async (req, res) => {
 
     res.status(201).json({
       success: true,
-      data: { userId: user.id, emailVerified: false, message: "Verification code sent to your email" },
+      data: {
+        userId: user.id,
+        emailVerified: false,
+        message: "Verification code sent to your email",
+      },
     });
   } catch (err) {
     console.error("Registration basic error:", err);
@@ -138,7 +157,9 @@ registrationRouter.post("/verify-email", async (req, res) => {
   try {
     const { userId, email, code } = req.body;
     if ((!userId && !email) || !code) {
-      res.status(400).json({ success: false, error: "User and code are required" });
+      res
+        .status(400)
+        .json({ success: false, error: "User and code are required" });
       return;
     }
 
@@ -153,7 +174,9 @@ registrationRouter.post("/verify-email", async (req, res) => {
 
     const ok = await verifyOtp(user.id, "email_verification", code);
     if (!ok) {
-      res.status(400).json({ success: false, error: "Invalid or expired code" });
+      res
+        .status(400)
+        .json({ success: false, error: "Invalid or expired code" });
       return;
     }
 
@@ -166,7 +189,9 @@ registrationRouter.post("/verify-email", async (req, res) => {
     });
   } catch (err) {
     console.error("Registration verify email error:", err);
-    res.status(500).json({ success: false, error: "Email verification failed" });
+    res
+      .status(500)
+      .json({ success: false, error: "Email verification failed" });
   }
 });
 
@@ -206,55 +231,71 @@ registrationRouter.get("/status", authMiddleware, async (req, res) => {
 });
 
 // ── Step 2: Initialize registration payment (₦4,200) ────────────────────
-registrationRouter.post("/payment/initialize", authMiddleware, async (req, res) => {
-  try {
-    const user = await prisma.user.findUnique({ where: { id: req.user!.userId } });
-    if (!user) {
-      res.status(404).json({ success: false, error: "User not found" });
-      return;
+registrationRouter.post(
+  "/payment/initialize",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: req.user!.userId },
+      });
+      if (!user) {
+        res.status(404).json({ success: false, error: "User not found" });
+        return;
+      }
+      if (user.registrationFeePaid) {
+        res
+          .status(409)
+          .json({ success: false, error: "Registration fee already paid" });
+        return;
+      }
+
+      const amount = REGISTRATION_FEE;
+      const reference = `REG-${user.id}-${Date.now()}`;
+
+      await createTransaction({
+        userId: user.id,
+        type: "registration_fee",
+        amount,
+        reference,
+        description: "Registration fee",
+      });
+
+      const provider = getPaymentProvider(REGISTRATION_PROVIDER);
+      const result = await provider.initializePayment({
+        amount,
+        email: user.email,
+        reference,
+        metadata: { type: "registration_fee", userId: user.id },
+        callbackUrl: `${DASHBOARD_URL}/register?reference=${encodeURIComponent(reference)}`,
+      });
+
+      // Store payment URL on transaction for later resumption
+      const transaction = await prisma.transaction.findUnique({
+        where: { reference },
+      });
+      if (transaction) {
+        await updateTransactionPaymentUrl(
+          transaction.id,
+          result.authorizationUrl,
+          REGISTRATION_PROVIDER,
+        );
+      }
+
+      await setRegistrationProgress(user.id, { step: 2 });
+
+      res.json({
+        success: true,
+        data: { authorizationUrl: result.authorizationUrl, reference, amount },
+      });
+    } catch (err) {
+      console.error("Registration payment init error:", err);
+      res
+        .status(500)
+        .json({ success: false, error: "Failed to initialize payment" });
     }
-    if (user.registrationFeePaid) {
-      res.status(409).json({ success: false, error: "Registration fee already paid" });
-      return;
-    }
-
-    const amount = REGISTRATION_FEE;
-    const reference = `REG-${user.id}-${Date.now()}`;
-
-    await createTransaction({
-      userId: user.id,
-      type: "registration_fee",
-      amount,
-      reference,
-      description: "Registration fee",
-    });
-
-    const provider = getPaymentProvider(REGISTRATION_PROVIDER);
-    const result = await provider.initializePayment({
-      amount,
-      email: user.email,
-      reference,
-      metadata: { type: "registration_fee", userId: user.id },
-      callbackUrl: `${DASHBOARD_URL}/register?reference=${encodeURIComponent(reference)}`,
-    });
-
-    // Store payment URL on transaction for later resumption
-    const transaction = await prisma.transaction.findUnique({ where: { reference } });
-    if (transaction) {
-      await updateTransactionPaymentUrl(transaction.id, result.authorizationUrl, REGISTRATION_PROVIDER);
-    }
-
-    await setRegistrationProgress(user.id, { step: 2 });
-
-    res.json({
-      success: true,
-      data: { authorizationUrl: result.authorizationUrl, reference, amount },
-    });
-  } catch (err) {
-    console.error("Registration payment init error:", err);
-    res.status(500).json({ success: false, error: "Failed to initialize payment" });
-  }
-});
+  },
+);
 
 // ── Step 2 (cont.): Verify registration payment ──────────────────────────
 registrationRouter.post("/payment/verify", authMiddleware, async (req, res) => {
@@ -265,12 +306,18 @@ registrationRouter.post("/payment/verify", authMiddleware, async (req, res) => {
       return;
     }
 
-    const transaction = await prisma.transaction.findUnique({ where: { reference } });
+    const transaction = await prisma.transaction.findUnique({
+      where: { reference },
+    });
     if (!transaction || transaction.userId !== req.user!.userId) {
       res.status(404).json({ success: false, error: "Transaction not found" });
       return;
     }
     if (transaction.status === "completed") {
+      await setRegistrationProgress(req.user!.userId, {
+        step: 3,
+        feePaid: true,
+      });
       res.json({ success: true, data: { status: "completed", feePaid: true } });
       return;
     }
@@ -283,7 +330,10 @@ registrationRouter.post("/payment/verify", authMiddleware, async (req, res) => {
         where: { reference },
         data: { status: "completed" },
       });
-      await setRegistrationProgress(req.user!.userId, { step: 3, feePaid: true });
+      await setRegistrationProgress(req.user!.userId, {
+        step: 3,
+        feePaid: true,
+      });
 
       res.json({ success: true, data: { status: "completed", feePaid: true } });
     } else {
@@ -301,7 +351,9 @@ registrationRouter.post("/kyc", authMiddleware, async (req, res) => {
     const { bvn, nin } = req.body;
 
     if (!bvn || !nin) {
-      res.status(400).json({ success: false, error: "Both BVN and NIN are required" });
+      res
+        .status(400)
+        .json({ success: false, error: "Both BVN and NIN are required" });
       return;
     }
     if (!/^\d{11}$/.test(bvn.replace(/\D/g, ""))) {
@@ -322,6 +374,9 @@ registrationRouter.post("/kyc", authMiddleware, async (req, res) => {
     res.status(201).json({ success: true, data: result });
   } catch (err: any) {
     console.error("Registration KYC error:", err);
-    res.status(400).json({ success: false, error: err.message || "KYC verification failed" });
+    res.status(400).json({
+      success: false,
+      error: err.message || "KYC verification failed",
+    });
   }
 });

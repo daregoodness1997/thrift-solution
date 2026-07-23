@@ -13,11 +13,13 @@ import {
   processPaymentReversal,
   reconcileLoanDisbursementByRef,
   reconcileCirclePayoutDisbursementByRef,
+  setRegistrationProgress,
 } from "@thrift/db";
 
 const REVERSED_STATUSES = ["reversed", "refunded", "chargeback", "failed"];
 const isReversed = (status: unknown) =>
-  typeof status === "string" && REVERSED_STATUSES.includes(status.toLowerCase());
+  typeof status === "string" &&
+  REVERSED_STATUSES.includes(status.toLowerCase());
 
 // --- Signature verification -------------------------------------------------
 //
@@ -35,9 +37,13 @@ const isReversed = (status: unknown) =>
 // We accept both so the handler works regardless of dashboard configuration.
 
 const SECRET_KEY = () => process.env.FLUTTERWAVE_SECRET_KEY || "";
-const WEBHOOK_SECRET = () => process.env.FLUTTERWAVE_WEBHOOK_SECRET || SECRET_KEY();
+const WEBHOOK_SECRET = () =>
+  process.env.FLUTTERWAVE_WEBHOOK_SECRET || SECRET_KEY();
 
-export function verifyFlutterwaveSignature(rawBody: Buffer | undefined, headerValue: unknown): boolean {
+export function verifyFlutterwaveSignature(
+  rawBody: Buffer | undefined,
+  headerValue: unknown,
+): boolean {
   if (typeof headerValue !== "string" || headerValue.length === 0) return false;
 
   const webhookSecret = WEBHOOK_SECRET();
@@ -46,7 +52,10 @@ export function verifyFlutterwaveSignature(rawBody: Buffer | undefined, headerVa
   if (rawBody && rawBody.length > 0) {
     const secretKey = SECRET_KEY();
     if (secretKey) {
-      const expected = crypto.createHmac("sha256", secretKey).update(rawBody).digest("hex");
+      const expected = crypto
+        .createHmac("sha256", secretKey)
+        .update(rawBody)
+        .digest("hex");
       const a = Buffer.from(expected);
       const b = Buffer.from(headerValue);
       if (a.length === b.length && crypto.timingSafeEqual(a, b)) return true;
@@ -82,13 +91,24 @@ async function handleChargeCompleted(data: Record<string, any>): Promise<void> {
       await updateTransactionStatus(transaction.id, "completed");
     }
 
+    if (/^REG-/.test(reference)) {
+      if (transaction) {
+        await setRegistrationProgress(transaction.userId, {
+          step: 3,
+          feePaid: true,
+        });
+      }
+    }
+
     // Loan repayment payments are keyed by the transaction reference. Record the
     // repayment against the schedule once the charge is successful.
     if (reference && /^LOANPAY-|LOANLIQ-/.test(reference)) {
       const already = await findLoanRepaymentByReference(reference);
       if (!already) {
         const { prisma } = await import("@thrift/db");
-        const txn = await prisma.transaction.findUnique({ where: { reference } });
+        const txn = await prisma.transaction.findUnique({
+          where: { reference },
+        });
         if (txn?.loanId) {
           await recordLoanRepaymentByReference({
             reference,
@@ -96,7 +116,8 @@ async function handleChargeCompleted(data: Record<string, any>): Promise<void> {
             borrowerId: txn.userId,
             amount: Number(data.amount),
             provider: "flutterwave",
-            installmentNo: (txn.metadata as { installmentNo?: number } | null)?.installmentNo,
+            installmentNo: (txn.metadata as { installmentNo?: number } | null)
+              ?.installmentNo,
           });
         }
       }
@@ -105,14 +126,23 @@ async function handleChargeCompleted(data: Record<string, any>): Promise<void> {
 
   // Virtual account deposits arrive with an `account` object.
   const accountNumber =
-    data.account?.account_number || data.account_number || data.meta?.account_number;
+    data.account?.account_number ||
+    data.account_number ||
+    data.meta?.account_number;
   if (accountNumber) {
-    const virtualAccount = await getVirtualAccountByAccountNumber(accountNumber);
+    const virtualAccount =
+      await getVirtualAccountByAccountNumber(accountNumber);
     if (virtualAccount) {
       const amount = Number(data.amount);
       const txRef = `va_flw_${data.id}`;
       const description = `Wallet funding via Flutterwave virtual account ${accountNumber}`;
-      await creditWallet(virtualAccount.userId, amount, "wallet_funding", description, txRef);
+      await creditWallet(
+        virtualAccount.userId,
+        amount,
+        "wallet_funding",
+        description,
+        txRef,
+      );
       await updateVirtualAccountLastTransfer(virtualAccount.id);
     }
   }
@@ -123,7 +153,9 @@ async function handleTransfer(data: Record<string, any>): Promise<void> {
   const reference = data.reference as string | undefined;
   const providerRef = data.id != null ? String(data.id) : undefined;
 
-  const success = ["SUCCESSFUL", "successful", "completed"].includes(data.status);
+  const success = ["SUCCESSFUL", "successful", "completed"].includes(
+    data.status,
+  );
   const failed = ["FAILED", "failed", "rejected"].includes(data.status);
   if (!success && !failed) return;
 
@@ -138,10 +170,15 @@ async function handleTransfer(data: Record<string, any>): Promise<void> {
 
   // Loan and circle disbursements store either our own reference or the
   // provider's transfer id as `disbursementRef`. Try both.
-  for (const ref of [reference, providerRef].filter((r): r is string => Boolean(r))) {
+  for (const ref of [reference, providerRef].filter((r): r is string =>
+    Boolean(r),
+  )) {
     const loanMatched = await reconcileLoanDisbursementByRef(ref, status);
     if (loanMatched) return;
-    const circleMatched = await reconcileCirclePayoutDisbursementByRef(ref, status);
+    const circleMatched = await reconcileCirclePayoutDisbursementByRef(
+      ref,
+      status,
+    );
     if (circleMatched) return;
   }
 }
@@ -171,11 +208,14 @@ async function handleReversal(data: Record<string, any>): Promise<void> {
   }
   if (vaRef) {
     const result = await processPaymentReversal(vaRef, reason);
-    processed = processed || result.walletReversed || result.reversedAccounts > 0;
+    processed =
+      processed || result.walletReversed || result.reversedAccounts > 0;
   }
 
   if (processed) {
-    console.warn(`Flutterwave reversal processed: ref=${reference ?? vaRef} status=${data.status}`);
+    console.warn(
+      `Flutterwave reversal processed: ref=${reference ?? vaRef} status=${data.status}`,
+    );
   }
 }
 
@@ -188,9 +228,13 @@ type FlutterwaveEvent = {
  * Core webhook handler. Returns true when the request was processed (or safely
  * ignored as a non-relevant event), false when signature verification failed.
  */
-export async function processFlutterwaveWebhook(req: Request): Promise<boolean> {
+export async function processFlutterwaveWebhook(
+  req: Request,
+): Promise<boolean> {
   const signature =
-    req.headers["verif-hash"] ?? req.headers["x-flutterwave-signature"] ?? req.headers["authorization"];
+    req.headers["verif-hash"] ??
+    req.headers["x-flutterwave-signature"] ??
+    req.headers["authorization"];
 
   if (!verifyFlutterwaveSignature(getRawBody(req), signature)) {
     return false;
@@ -227,7 +271,10 @@ export async function processFlutterwaveWebhook(req: Request): Promise<boolean> 
 
 // --- Express router ---------------------------------------------------------
 
-export function registerFlutterwaveWebhook(router: Router, path = "/webhook/flutterwave"): void {
+export function registerFlutterwaveWebhook(
+  router: Router,
+  path = "/webhook/flutterwave",
+): void {
   router.post(path, async (req: Request, res: Response) => {
     // Always acknowledge quickly so Flutterwave does not retry.
     res.status(200).json({ received: true });
