@@ -142,6 +142,9 @@ export default function LoginPage() {
       const data = await res.json();
       if (data.success && data.data?.token) {
         localStorage.setItem("token", data.data.token);
+        if (data.data.refreshToken) {
+          localStorage.setItem("refreshToken", data.data.refreshToken);
+        }
         toast.success("Welcome back!");
         window.location.href = "/";
       } else {

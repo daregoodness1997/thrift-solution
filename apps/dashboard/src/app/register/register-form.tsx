@@ -328,7 +328,8 @@ export default function RegisterForm() {
   };
 
   // ── Step 3: KYC ────────────────────────────────────────────────────
-  const handleKyc = async () => {
+  const handleKyc = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!/^\d{11}$/.test(bvn)) return setError("BVN must be 11 digits");
     if (!/^\d{11}$/.test(nin)) return setError("NIN must be 11 digits");
     setLoading(true);
