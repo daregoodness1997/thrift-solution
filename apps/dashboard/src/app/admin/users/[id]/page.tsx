@@ -269,7 +269,7 @@ export default function AdminUserDetailPage() {
                 { key: "createdAt", header: "Date", render: (t: any) => <span className="text-slate-500 dark:text-slate-400">{new Date(t.createdAt).toLocaleDateString()}</span> },
               ]}
               data={userData.transactions}
-              emptyText="No transactions found"
+              emptyMessage="No transactions found"
             />
           ) : (
             <p className="text-[13px] text-slate-500 dark:text-slate-400">No transactions found.</p>
@@ -300,7 +300,7 @@ export default function AdminUserDetailPage() {
                 { key: "createdAt", header: "Joined", render: (ca: any) => <span className="text-slate-500 dark:text-slate-400">{new Date(ca.createdAt).toLocaleDateString()}</span> },
               ]}
               data={userData.circleAccounts}
-              emptyText="No circle memberships"
+              emptyMessage="No circle memberships"
             />
           ) : (
             <p className="text-[13px] text-slate-500 dark:text-slate-400">No circle memberships found.</p>
@@ -321,7 +321,7 @@ export default function AdminUserDetailPage() {
                 { key: "calculatedAt", header: "Date", render: (log: any) => <span className="text-slate-500 dark:text-slate-400">{new Date(log.calculatedAt).toLocaleDateString()}</span> },
               ]}
               data={userData.circleAccounts.flatMap((ca: any) => ca.interestLogs || [])}
-              emptyText="No interest logs"
+              emptyMessage="No interest logs"
             />
           ) : (
             <p className="text-[13px] text-slate-500 dark:text-slate-400">No interest logs found.</p>
@@ -352,7 +352,7 @@ export default function AdminUserDetailPage() {
                 { key: "createdAt", header: "Date", render: (d: any) => <span className="text-slate-500 dark:text-slate-400">{new Date(d.createdAt).toLocaleDateString()}</span> },
               ]}
               data={userData.defaults}
-              emptyText="No defaults"
+              emptyMessage="No defaults"
             />
           ) : (
             <p className="text-[13px] text-slate-500 dark:text-slate-400">No defaults found.</p>
@@ -382,7 +382,7 @@ export default function AdminUserDetailPage() {
                 { key: "createdAt", header: "Date", render: (d: any) => <span className="text-slate-500 dark:text-slate-400">{new Date(d.createdAt).toLocaleDateString()}</span> },
               ]}
               data={userData.donations}
-              emptyText="No donations"
+              emptyMessage="No donations"
             />
           ) : (
             <p className="text-[13px] text-slate-500 dark:text-slate-400">No donations found.</p>

@@ -579,7 +579,7 @@ export default function AdminCircleDetailPage() {
               },
             ]}
             data={accounts}
-            emptyText="No accounts in this circle"
+            emptyMessage="No accounts in this circle"
           />
           {totalPages > 1 && (
             <div className="mt-4 flex items-center justify-between">
@@ -613,7 +613,7 @@ export default function AdminCircleDetailPage() {
               { key: "createdAt", header: "Date", render: (d: any) => <span className="text-slate-500 dark:text-slate-400">{new Date(d.createdAt).toLocaleDateString()}</span> },
             ]}
             data={defaults}
-            emptyText="No outstanding defaults"
+            emptyMessage="No outstanding defaults"
           />
         </div>
       )}
@@ -637,7 +637,7 @@ export default function AdminCircleDetailPage() {
               { key: "createdAt", header: "Date", render: (d: any) => <span className="text-slate-500 dark:text-slate-400">{new Date(d.createdAt).toLocaleDateString()}</span> },
             ]}
             data={clearances}
-            emptyText="No cleared defaults"
+            emptyMessage="No cleared defaults"
           />
         </div>
       )}
@@ -662,7 +662,7 @@ export default function AdminCircleDetailPage() {
               { key: "createdAt", header: "Date", render: (p: any) => <span className="text-slate-500 dark:text-slate-400">{new Date(p.createdAt).toLocaleDateString()}</span> },
             ]}
             data={payouts}
-            emptyText="No payout requests"
+            emptyMessage="No payout requests"
           />
         </div>
       )}
@@ -682,7 +682,7 @@ export default function AdminCircleDetailPage() {
               { key: "calculatedAt", header: "Date", render: (l: any) => <span className="text-slate-500 dark:text-slate-400">{new Date(l.calculatedAt).toLocaleDateString()}</span> },
             ]}
             data={interestLogs}
-            emptyText="No interest logs"
+            emptyMessage="No interest logs"
           />
         </div>
       )}
@@ -709,7 +709,7 @@ export default function AdminCircleDetailPage() {
               { key: "createdAt", header: "Date", render: (t: any) => <span className="text-slate-500 dark:text-slate-400">{new Date(t.createdAt).toLocaleDateString()}</span> },
             ]}
             data={transactions}
-            emptyText="No transactions found"
+            emptyMessage="No transactions found"
           />
         </div>
       )}
