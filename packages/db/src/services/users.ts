@@ -125,6 +125,20 @@ export async function setUserBankDetails(
   });
 }
 
+export async function setTransactionPin(userId: string, pinHash: string) {
+  return prisma.user.update({
+    where: { id: userId },
+    data: { transactionPinHash: pinHash },
+  });
+}
+
+export async function findUserByAccountNumber(accountNumber: string) {
+  return prisma.user.findFirst({
+    where: { accountNumber, deletedAt: null },
+    select: { id: true, name: true, accountNumber: true, email: true },
+  });
+}
+
 export async function setRegistrationProgress(
   userId: string,
   data: { step?: number; feePaid?: boolean; completedAt?: Date | null }

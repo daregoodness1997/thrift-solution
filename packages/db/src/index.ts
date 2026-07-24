@@ -4,7 +4,7 @@ export { toNum } from "./services/decimal";
 
 export { getConfig, saveConfig } from "./services/config";
 
-export { findUserByEmail, findUserByPhone, findUserById, findUserByBankAccountNumber, createUser, setEmailVerified, setPhoneVerified, setTotpSecret, setTwoFactorEnabled, setEmail2faEnabled, updatePasswordHash, setUserIdentity, setUserBankDetails, setRegistrationProgress } from "./services/users";
+export { findUserByEmail, findUserByPhone, findUserById, findUserByBankAccountNumber, findUserByAccountNumber as findUserByThrAccountNumber, createUser, setEmailVerified, setPhoneVerified, setTotpSecret, setTwoFactorEnabled, setEmail2faEnabled, updatePasswordHash, setUserIdentity, setUserBankDetails, setRegistrationProgress, setTransactionPin } from "./services/users";
 
 export {
   createVerificationToken,
@@ -139,7 +139,7 @@ export {
   adminSettleLoan,
 } from "./services/loans";
 
-export { getWalletBalance, getWalletBreakdown, debitWallet, creditWallet } from "./services/wallet";
+export { getWalletBalance, getWalletBreakdown, debitWallet, creditWallet, debitWalletPending, confirmTransaction, reverseTransaction } from "./services/wallet";
 
 export {
   findFundingTransactionByReference,
@@ -248,6 +248,14 @@ export {
   getComprehensiveUserDetail,
   getUserDashboardOverview,
 } from "./services/comprehensive-user";
+
+export {
+  createTransfer,
+  updateTransferStatus,
+  findTransferByReference,
+  findTransferById,
+  getUserTransfers,
+} from "./services/transfers";
 
 export {
   getAllTransactions,

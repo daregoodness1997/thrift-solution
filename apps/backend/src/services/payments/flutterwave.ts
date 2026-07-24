@@ -15,37 +15,80 @@ import type {
 const FLW_SECRET = process.env.FLUTTERWAVE_SECRET_KEY || "";
 const FLW_BASE = "https://api.flutterwave.com/v3";
 
+async function flwPost(path: string, body: Record<string, unknown>): Promise<any> {
+  let response: Response;
+  try {
+    response = await fetch(`${FLW_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${FLW_SECRET}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+  } catch (err) {
+    const cause = err instanceof Error ? err.message : String(err);
+    throw new Error(`Failed to connect to Flutterwave API: ${cause}`);
+  }
+
+  const contentType = response.headers.get("content-type") || "";
+  if (!contentType.includes("application/json")) {
+    const text = await response.text().catch(() => "");
+    console.error(`Flutterwave ${path} returned non-JSON (${response.status}):`, text.slice(0, 300));
+    throw new Error(`Flutterwave API returned an unexpected response (status ${response.status}). Check your API key.`);
+  }
+
+  const data: any = await response.json();
+  if (data.status !== "success") {
+    const detail =
+      data?.error?.message ||
+      data?.errors?.[0]?.message ||
+      data?.message ||
+      "Flutterwave API error";
+    console.error(`Flutterwave ${path} error:`, JSON.stringify(data).slice(0, 500));
+    throw new Error(detail);
+  }
+  return data;
+}
+
+async function flwGet(path: string): Promise<any> {
+  let response: Response;
+  try {
+    response = await fetch(`${FLW_BASE}${path}`, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${FLW_SECRET}` },
+    });
+  } catch (err) {
+    const cause = err instanceof Error ? err.message : String(err);
+    throw new Error(`Failed to connect to Flutterwave API: ${cause}`);
+  }
+
+  const contentType = response.headers.get("content-type") || "";
+  if (!contentType.includes("application/json")) {
+    const text = await response.text().catch(() => "");
+    console.error(`Flutterwave ${path} returned non-JSON (${response.status}):`, text.slice(0, 300));
+    throw new Error(`Flutterwave API returned an unexpected response (status ${response.status}). Check your API key.`);
+  }
+
+  const data: any = await response.json();
+  if (data.status !== "success") {
+    throw new Error(data.message || "Flutterwave API error");
+  }
+  return data;
+}
+
 export const flutterwaveProvider: PaymentProvider = {
   name: "flutterwave",
 
   async initializePayment(params: PaymentInitParams): Promise<PaymentInitResult> {
-    let response: Response;
-    try {
-      response = await fetch(`${FLW_BASE}/payments`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${FLW_SECRET}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          tx_ref: params.reference,
-          amount: params.amount,
-          currency: "NGN",
-          redirect_url: params.callbackUrl,
-          customer: { email: params.email },
-          meta: params.metadata,
-        }),
-      });
-    } catch (err) {
-      const cause = err instanceof Error ? err.message : String(err);
-      throw new Error(`Failed to connect to Flutterwave API: ${cause}`);
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const data: any = await response.json();
-    if (data.status !== "success") {
-      throw new Error(data.message || "Flutterwave initialization failed");
-    }
+    const data = await flwPost("/payments", {
+      tx_ref: params.reference,
+      amount: params.amount,
+      currency: "NGN",
+      redirect_url: params.callbackUrl,
+      customer: { email: params.email },
+      meta: params.metadata,
+    });
 
     return {
       authorizationUrl: data.data.link,
@@ -54,21 +97,7 @@ export const flutterwaveProvider: PaymentProvider = {
   },
 
   async verifyPayment(reference: string): Promise<PaymentVerificationResult> {
-    let response: Response;
-    try {
-      response = await fetch(`${FLW_BASE}/transactions/verify_by_reference?tx_ref=${reference}`, {
-        headers: { Authorization: `Bearer ${FLW_SECRET}` },
-      });
-    } catch (err) {
-      const cause = err instanceof Error ? err.message : String(err);
-      throw new Error(`Failed to connect to Flutterwave API: ${cause}`);
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const data: any = await response.json();
-    if (data.status !== "success") {
-      throw new Error(data.message || "Flutterwave verification failed");
-    }
+    const data = await flwGet(`/transactions/verify_by_reference?tx_ref=${reference}`);
 
     return {
       status: data.data.status === "successful" ? "completed" : "failed",
@@ -78,45 +107,19 @@ export const flutterwaveProvider: PaymentProvider = {
   },
 
   async createVirtualAccount(params: VirtualAccountParams): Promise<VirtualAccountResult> {
-    let response: Response;
-    try {
-      const body: Record<string, unknown> = {
-        email: params.email,
-        tx_ref: params.reference,
-        firstname: params.firstName,
-        lastname: params.lastName,
-        narration: params.narration || "Thrift Solution Virtual Account",
-        is_permanent: true,
-      };
+    const body: Record<string, unknown> = {
+      email: params.email,
+      tx_ref: params.reference,
+      firstname: params.firstName,
+      lastname: params.lastName,
+      narration: params.narration || "Thrift Solution Virtual Account",
+      is_permanent: true,
+    };
+    if (params.bvn) body.bvn = params.bvn;
+    if (params.nin) body.nin = params.nin;
+    if (params.phone) body.phonenumber = params.phone;
 
-      if (params.bvn) {
-        body.bvn = params.bvn;
-      }
-      if (params.nin) {
-        body.nin = params.nin;
-      }
-      if (params.phone) {
-        body.phonenumber = params.phone;
-      }
-
-      response = await fetch(`${FLW_BASE}/virtual-account-numbers`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${FLW_SECRET}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      });
-    } catch (err) {
-      const cause = err instanceof Error ? err.message : String(err);
-      throw new Error(`Failed to connect to Flutterwave API: ${cause}`);
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const data: any = await response.json();
-    if (data.status !== "success") {
-      throw new Error(data.message || "Flutterwave virtual account creation failed");
-    }
+    const data = await flwPost("/virtual-account-numbers", body);
 
     return {
       accountNumber: data.data.account_number,
@@ -127,47 +130,20 @@ export const flutterwaveProvider: PaymentProvider = {
   },
 
   async initiateTransfer(params: VirtualAccountTransferParams): Promise<VirtualAccountTransferResult> {
-    // Flutterwave sandbox rejects real bank transfers. When running on a TEST
-    // key, route to their designated test account so disbursement can be
-    // exercised end-to-end in development. Live keys use the real details.
     const isTestKey = FLW_SECRET.includes("_TEST") || FLW_SECRET.includes("-TEST");
-    const accountBank = isTestKey ? "044" : params.bankCode;
+    const bankCode = isTestKey ? "044" : params.bankCode;
     const accountNumber = isTestKey ? "0690000031" : params.accountNumber;
 
-    let response: Response;
-    try {
-      response = await fetch(`${FLW_BASE}/transfers`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${FLW_SECRET}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          account_bank: accountBank,
-          account_number: accountNumber,
-          amount: params.amount,
-          currency: "NGN",
-          reference: params.reference,
-          narration: params.narration || "Thrift Solution payout",
-        }),
-      });
-    } catch (err) {
-      const cause = err instanceof Error ? err.message : String(err);
-      throw new Error(`Failed to connect to Flutterwave API: ${cause}`);
-    }
+    const data = await flwPost("/transfers", {
+      account_bank: bankCode,
+      account_number: accountNumber,
+      amount: params.amount,
+      currency: "NGN",
+      reference: params.reference,
+      narration: params.narration || "Thrift Solution payout",
+    });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const data: any = await response.json();
-    if (data.status !== "success") {
-      const detail =
-        data?.errors?.[0]?.message ||
-        (data?.data && typeof data.data === "object" ? data.data.complete_message || data.data.message : undefined) ||
-        data.message;
-      console.error("Flutterwave transfer error:", JSON.stringify(data));
-      throw new Error(detail || "Flutterwave transfer failed");
-    }
-
-    const flwStatus: string = data.data?.status || "";
+    const flwStatus: string = (data.data?.status || "").toUpperCase();
     const status: VirtualAccountTransferResult["status"] =
       flwStatus === "SUCCESSFUL"
         ? "completed"
@@ -183,25 +159,14 @@ export const flutterwaveProvider: PaymentProvider = {
   },
 
   async resolveAccount(params: ResolveAccountParams): Promise<ResolveAccountResult> {
-    let response: Response;
-    try {
-      response = await fetch(
-        `${FLW_BASE}/accounts/resolve?account_number=${encodeURIComponent(params.accountNumber)}&bank_code=${encodeURIComponent(params.bankCode)}`,
-        {
-          method: "GET",
-          headers: { Authorization: `Bearer ${FLW_SECRET}` },
-        },
-      );
-    } catch (err) {
-      const cause = err instanceof Error ? err.message : String(err);
-      throw new Error(`Failed to connect to Flutterwave API: ${cause}`);
-    }
+    const isTestKey = FLW_SECRET.includes("_TEST") || FLW_SECRET.includes("-TEST");
+    const bankCode = isTestKey ? "044" : params.bankCode;
+    const accountNumber = isTestKey ? "0690000032" : params.accountNumber;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const data: any = await response.json();
-    if (data.status !== "success") {
-      throw new Error(data.message || "Flutterwave account resolution failed");
-    }
+    const data = await flwPost("/accounts/resolve", {
+      account_number: accountNumber,
+      account_bank: bankCode,
+    });
 
     return {
       accountNumber: data.data.account_number,
@@ -217,14 +182,7 @@ export const flutterwaveProvider: PaymentProvider = {
     const REVERSED_STATUSES = ["reversed", "refunded"];
 
     async function fetchPage(page: number): Promise<{ txs: any[]; totalPages: number }> {
-      const response = await fetch(
-        `${FLW_BASE}/transactions?from=${fromStr}&status=successful&page=${page}`,
-        { headers: { Authorization: `Bearer ${FLW_SECRET}` } },
-      );
-      const data: any = await response.json();
-      if (data.status !== "success") {
-        throw new Error(data.message || "Flutterwave transaction fetch failed");
-      }
+      const data = await flwGet(`/transactions?from=${fromStr}&status=successful&page=${page}`);
       const totalPages = data.meta?.page_info?.total_pages ?? 1;
       return { txs: data.data || [], totalPages };
     }
@@ -237,9 +195,6 @@ export const flutterwaveProvider: PaymentProvider = {
       transactions.push(...pageTxs);
     }
 
-    // Filter by tx_ref (VA reference) — this is the only reliable way to match
-    // a Flutterwave transaction to a specific virtual account. The /transactions
-    // endpoint does not expose the receiving VA account number in a queryable field.
     const filtered = txRef
       ? transactions.filter((tx: any) => tx.tx_ref === txRef)
       : transactions.filter(

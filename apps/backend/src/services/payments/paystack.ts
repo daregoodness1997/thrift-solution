@@ -140,6 +140,13 @@ export const paystackProvider: PaymentProvider = {
         },
       );
 
+      const contentType = response.headers.get("content-type") || "";
+      if (!contentType.includes("application/json")) {
+        const text = await response.text().catch(() => "");
+        console.error(`Paystack resolveAccount returned non-JSON (${response.status}):`, text.slice(0, 200));
+        throw new Error(`Paystack API returned an unexpected response (status ${response.status}). Check your API key.`);
+      }
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const data: any = await response.json();
       if (!data.status) {

@@ -47,6 +47,7 @@ model User {
   bankName                String?                 @map("bank_name")
   deletedAt               DateTime?               @map("deleted_at")
   email2faEnabled         Boolean                 @default(false) @map("email_2fa_enabled")
+  transactionPinHash      String?                 @map("transaction_pin_hash")
   auditLogs               AuditLog[]              @relation("AuditActor")
   circleAccounts          CircleAccount[]
   reviewedPayoutRequests  CirclePayoutRequest[]   @relation("ReviewedBy")
@@ -73,6 +74,7 @@ model User {
   transactions            Transaction[]
   verificationTokens      VerificationToken[]
   virtualAccounts         VirtualAccount[]
+  transfers               Transfer[]
   whatsappGroupMembers    WhatsappGroupMember[]
 
   @@map("users")
@@ -975,4 +977,28 @@ model ImpactTimelineMilestone {
   @@index([narrativeId])
   @@index([sortOrder])
   @@map("impact_timeline_milestones")
+}
+
+model Transfer {
+  id              String    @id @default(uuid())
+  senderId        String    @map("sender_id")
+  recipientType   String    @map("recipient_type")
+  recipientUserId String?   @map("recipient_user_id")
+  recipientName   String?   @map("recipient_name")
+  recipientBank   String?   @map("recipient_bank")
+  recipientAccount String?  @map("recipient_account")
+  amount          Decimal
+  fee             Decimal   @default(0)
+  reference       String    @unique
+  status          String    @default("pending")
+  description     String?
+  metadata        Json?
+  createdAt       DateTime  @default(now()) @map("created_at")
+  completedAt     DateTime? @map("completed_at")
+
+  sender User @relation(fields: [senderId], references: [id])
+
+  @@index([senderId])
+  @@index([reference])
+  @@map("transfers")
 }

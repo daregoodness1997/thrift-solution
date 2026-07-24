@@ -83,6 +83,7 @@ export default function ClearanceManagementPage() {
   const [proofUploading, setProofUploading] = useState(false);
   const [manualRef, setManualRef] = useState("");
   const [manualNote, setManualNote] = useState("");
+  const [disbursePin, setDisbursePin] = useState("");
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -178,16 +179,22 @@ export default function ClearanceManagementPage() {
   };
 
   const handleDisburseFlutterwave = async (id: string) => {
+    if (!disbursePin || !/^\d{4,6}$/.test(disbursePin)) {
+      showMessage("error", "Enter your 4-6 digit PIN");
+      return;
+    }
     setProcessingId(id);
     try {
       const res = await fetch(`${API_URL}/api/circles/admin/payout-requests/${id}/disburse`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ pin: disbursePin }),
       });
       const data = await res.json();
       if (data.success) {
         showMessage("success", "Flutterwave transfer initiated");
         setDisburseTarget(null);
+        setDisbursePin("");
         fetchPayoutRequests();
       } else {
         showMessage("error", data.error || "Failed to disburse via Flutterwave");
@@ -199,6 +206,10 @@ export default function ClearanceManagementPage() {
   };
 
   const handleMarkDisbursed = async (id: string) => {
+    if (!disbursePin || !/^\d{4,6}$/.test(disbursePin)) {
+      showMessage("error", "Enter your 4-6 digit PIN");
+      return;
+    }
     if (!proofFile && !manualRef.trim()) {
       showMessage("error", "Provide a proof of payment or a reference");
       return;
@@ -227,13 +238,14 @@ export default function ClearanceManagementPage() {
       }
       const res = await fetch(`${API_URL}/api/circles/admin/payout-requests/${id}/mark-disbursed`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ proofUrl, reference: manualRef || undefined, note: manualNote || undefined }),
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ proofUrl, reference: manualRef || undefined, note: manualNote || undefined, pin: disbursePin }),
       });
       const data = await res.json();
       if (data.success) {
         showMessage("success", "Payout marked as disbursed");
         setDisburseTarget(null);
+        setDisbursePin("");
         setProofFile(null);
         setManualRef("");
         setManualNote("");
@@ -644,6 +656,19 @@ export default function ClearanceManagementPage() {
             <p className="mb-4 text-[12px] text-slate-500 dark:text-slate-400">
               {disburseTarget.user.name} · <span className="font-mono font-semibold">{formatNaira(disburseTarget.amount)}</span>
             </p>
+
+            <div className="mb-5 flex flex-col gap-1.5">
+              <label className="text-[10px] uppercase tracking-[0.1em] text-slate-400 dark:text-slate-500 font-bold">Admin Transaction PIN</label>
+              <input
+                type="password"
+                value={disbursePin}
+                onChange={(e) => setDisbursePin(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                placeholder="Enter your 4-6 digit PIN"
+                maxLength={6}
+                className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs font-mono text-slate-900 dark:text-white outline-none"
+              />
+              <span className="text-[10px] text-slate-400 dark:text-slate-500">Required to authorize disbursement. Set in Settings if not configured.</span>
+            </div>
 
             <div className="mb-5 rounded-2xl border border-emerald-100 dark:border-emerald-900 bg-emerald-50/50 dark:bg-emerald-900/20 p-4">
               <span className="mb-1 block text-[11px] font-semibold text-slate-900 dark:text-white">Option 1 — Flutterwave Transfer</span>

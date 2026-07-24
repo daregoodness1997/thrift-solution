@@ -20,6 +20,7 @@ import {
   Lock,
   Clock,
   PieChart,
+  Send,
 } from "lucide-react";
 
 const fallback = config;
@@ -48,6 +49,7 @@ const CREDIT_TYPES = [
   "circle_interest",
   "referral_earning",
   "wallet_funding",
+  "wallet_transfer_received",
 ];
 
 const QUICK_AMOUNTS = [5000, 10000, 25000, 50000];
@@ -119,6 +121,8 @@ export default function WalletPage() {
       case "circle_deposit": return "Circle Deposit";
       case "circle_contribution": return "Circle Contribution";
       case "referral_earning": return "Referral Earning";
+      case "wallet_transfer": return "Wallet Transfer";
+      case "wallet_transfer_received": return "Transfer Received";
       case "payout": return "Payout";
       case "funding": return "Funding";
       case "contribution": return "Contribution";
@@ -216,8 +220,15 @@ export default function WalletPage() {
               Fund Wallet
             </button>
             <a
+              href="/wallet/transfer"
+              className="flex items-center gap-2 rounded-full border border-white/40 bg-white/10 px-5 py-2.5 text-[12px] font-semibold text-white transition-all duration-200 hover:bg-white/20 no-underline"
+            >
+              <Send className="w-4 h-4" />
+              Transfer
+            </a>
+            <a
               href="/transactions"
-              className="flex items-center gap-2 rounded-full border border-white/40 bg-white/10 px-5 py-2.5 text-[12px] font-semibold text-white transition-all duration-200 hover:bg-white/20"
+              className="flex items-center gap-2 rounded-full border border-white/40 bg-white/10 px-5 py-2.5 text-[12px] font-semibold text-white transition-all duration-200 hover:bg-white/20 no-underline"
             >
               <CreditCard className="w-4 h-4" />
               View Activity

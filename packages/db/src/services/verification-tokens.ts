@@ -4,7 +4,8 @@ export type VerificationType =
   | "email_verification"
   | "phone_verification"
   | "password_reset"
-  | "two_factor";
+  | "two_factor"
+  | "transfer";
 
 export type VerificationChannel = "email" | "sms";
 

@@ -2,8 +2,8 @@ import nodeCrypto from "node:crypto";
 import { prisma } from "./prisma";
 import { toNum } from "./decimal";
 
-const CREDIT_TYPES = ["funding", "wallet_funding", "payout", "circle_withdrawal", "circle_interest", "referral_earning"];
-const DEBIT_TYPES = ["contribution", "circle_deposit", "circle_contribution", "circle_default_clearance", "circle_processing_fee"];
+const CREDIT_TYPES = ["funding", "wallet_funding", "payout", "circle_withdrawal", "circle_interest", "referral_earning", "wallet_transfer_received"];
+const DEBIT_TYPES = ["contribution", "circle_deposit", "circle_contribution", "circle_default_clearance", "circle_processing_fee", "wallet_transfer"];
 
 const COMMITTED_STATUSES = ["active"];
 const MATURED_STATUSES = ["matured"];
@@ -69,5 +69,25 @@ export async function creditWallet(
     reference || `${type.toUpperCase()}-${Date.now()}-${nodeCrypto.randomBytes(4).toString("hex")}`;
   return prisma.transaction.create({
     data: { userId, type, amount, reference: txnReference, status: "completed", description },
+  });
+}
+
+export async function debitWalletPending(userId: string, amount: number, description: string, reference: string) {
+  return prisma.transaction.create({
+    data: { userId, type: "wallet_transfer", amount, reference, status: "pending", description },
+  });
+}
+
+export async function confirmTransaction(id: string) {
+  return prisma.transaction.update({
+    where: { id },
+    data: { status: "completed" },
+  });
+}
+
+export async function reverseTransaction(id: string) {
+  return prisma.transaction.update({
+    where: { id },
+    data: { status: "failed" },
   });
 }

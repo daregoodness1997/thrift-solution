@@ -4,8 +4,11 @@ import { useState, useEffect, useCallback } from "react";
 import { Card } from "@thrift/ui";
 import type { NotificationPreferences } from "@thrift/types";
 import { useAuth } from "@/lib/auth-context";
-import { Settings, Shield, Bell, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { Settings, Shield, Bell, Trash2, Lock } from "lucide-react";
 import { fetchNotificationPreferences, updateNotificationPreferences } from "@/lib/notifications";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 export default function SettingsPage() {
   const { user, token } = useAuth();
@@ -15,7 +18,13 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+  // PIN state
+  const [hasPin, setHasPin] = useState(false);
+  const [pinMode, setPinMode] = useState<"idle" | "set" | "change">("idle");
+  const [currentPin, setCurrentPin] = useState("");
+  const [newPin, setNewPin] = useState("");
+  const [confirmPin, setConfirmPin] = useState("");
+  const [pinLoading, setPinLoading] = useState(false);
 
   const fetchProfile = useCallback(async () => {
     if (!token) { setLoading(false); return; }
@@ -30,7 +39,17 @@ export default function SettingsPage() {
     setLoading(false);
   }, [token, API_URL]);
 
+  const fetchPinStatus = useCallback(async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_URL}/api/pin/status`, { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      if (data.success) setHasPin(data.data.hasPin);
+    } catch {}
+  }, [token, API_URL]);
+
   useEffect(() => { fetchProfile(); }, [fetchProfile]);
+  useEffect(() => { fetchPinStatus(); }, [fetchPinStatus]);
 
   useEffect(() => {
     if (!token) return;
@@ -46,6 +65,44 @@ export default function SettingsPage() {
     } catch {
       setPrefs(prefs);
     }
+  };
+
+  const handleSetPin = async () => {
+    if (!newPin || !/^\d{4,6}$/.test(newPin)) {
+      toast.error("PIN must be 4-6 digits");
+      return;
+    }
+    if (newPin !== confirmPin) {
+      toast.error("PINs do not match");
+      return;
+    }
+    if (hasPin && pinMode === "change" && !currentPin) {
+      toast.error("Current PIN is required");
+      return;
+    }
+
+    setPinLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/pin/set`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ currentPin: currentPin || undefined, newPin }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(hasPin ? "PIN changed successfully" : "Transaction PIN set successfully");
+        setHasPin(true);
+        setPinMode("idle");
+        setCurrentPin("");
+        setNewPin("");
+        setConfirmPin("");
+      } else {
+        toast.error(data.error || "Failed to set PIN");
+      }
+    } catch {
+      toast.error("Network error");
+    }
+    setPinLoading(false);
   };
 
   function handleSave() {
@@ -111,6 +168,89 @@ export default function SettingsPage() {
             Manage
           </a>
         </div>
+      </Card>
+
+      <Card padding="1.5rem" className="mb-4 rounded-3xl">
+        <div className="flex items-center gap-2 mb-4">
+          <span className="px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1 w-fit">
+            <Lock className="w-3.5 h-3.5 text-amber-500" />
+            <span>Transaction PIN</span>
+          </span>
+        </div>
+
+        {pinMode === "idle" ? (
+          <div className="flex justify-between items-center">
+            <div>
+              <span className="text-xs font-medium text-slate-900 dark:text-white block">
+                {hasPin ? "Transaction PIN is set" : "No transaction PIN"}
+              </span>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 font-light">
+                {hasPin
+                  ? "Required for all wallet transfers. You can change it anytime."
+                  : "Set a PIN to authorize wallet transfers. Required for all outbound transfers."}
+              </span>
+            </div>
+            <button
+              onClick={() => setPinMode(hasPin ? "change" : "set")}
+              className="btn-secondary py-2 px-4 text-xs"
+            >
+              {hasPin ? "Change PIN" : "Set PIN"}
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4">
+            {pinMode === "change" && (
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] uppercase tracking-[0.1em] text-slate-400 dark:text-slate-500 font-bold">Current PIN</label>
+                <input
+                  type="password"
+                  value={currentPin}
+                  onChange={(e) => setCurrentPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  placeholder="Enter current PIN"
+                  maxLength={6}
+                  className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none font-mono max-w-[200px]"
+                />
+              </div>
+            )}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] uppercase tracking-[0.1em] text-slate-400 dark:text-slate-500 font-bold">New PIN (4-6 digits)</label>
+              <input
+                type="password"
+                value={newPin}
+                onChange={(e) => setNewPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                placeholder="Enter new PIN"
+                maxLength={6}
+                className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none font-mono max-w-[200px]"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] uppercase tracking-[0.1em] text-slate-400 dark:text-slate-500 font-bold">Confirm PIN</label>
+              <input
+                type="password"
+                value={confirmPin}
+                onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                placeholder="Confirm new PIN"
+                maxLength={6}
+                className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none font-mono max-w-[200px]"
+              />
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleSetPin}
+                disabled={pinLoading}
+                className="btn-primary py-2 px-4 text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-md"
+              >
+                {pinLoading ? "Saving..." : "Save PIN"}
+              </button>
+              <button
+                onClick={() => { setPinMode("idle"); setCurrentPin(""); setNewPin(""); setConfirmPin(""); }}
+                className="btn-secondary py-2 px-4 text-xs"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
       </Card>
 
       <Card padding="1.5rem" className="mb-4 rounded-3xl">

@@ -1,4 +1,5 @@
 import { Router, Request, Response, NextFunction } from "express";
+import bcrypt from "bcryptjs";
 import { authMiddleware } from "../middleware/auth";
 import {
   getActiveCircles,
@@ -496,6 +497,28 @@ circlesRouter.post("/admin/payout-requests/:id/clear", adminMiddleware, async (r
 
 circlesRouter.post("/admin/payout-requests/:id/disburse", adminMiddleware, async (req, res) => {
   try {
+    const { pin } = req.body;
+
+    if (!pin || !/^\d{4,6}$/.test(String(pin))) {
+      res.status(400).json({ success: false, error: "PIN must be 4-6 digits" });
+      return;
+    }
+
+    const admin = await findUserById(req.user!.userId);
+    if (!admin) {
+      res.status(404).json({ success: false, error: "Admin not found" });
+      return;
+    }
+    if (!admin.transactionPinHash) {
+      res.status(400).json({ success: false, error: "Please set a transaction PIN in Settings before disbursing" });
+      return;
+    }
+    const pinValid = await bcrypt.compare(String(pin), admin.transactionPinHash);
+    if (!pinValid) {
+      res.status(400).json({ success: false, error: "Incorrect PIN" });
+      return;
+    }
+
     const provider = getPaymentProvider("flutterwave");
     if (!provider.initiateTransfer) {
       res.status(400).json({ success: false, error: "Flutterwave transfers are not available" });
@@ -516,7 +539,28 @@ circlesRouter.post("/admin/payout-requests/:id/disburse", adminMiddleware, async
 
 circlesRouter.post("/admin/payout-requests/:id/mark-disbursed", adminMiddleware, async (req, res) => {
   try {
-    const { proofUrl, note, reference } = req.body;
+    const { proofUrl, note, reference, pin } = req.body;
+
+    if (!pin || !/^\d{4,6}$/.test(String(pin))) {
+      res.status(400).json({ success: false, error: "PIN must be 4-6 digits" });
+      return;
+    }
+
+    const admin = await findUserById(req.user!.userId);
+    if (!admin) {
+      res.status(404).json({ success: false, error: "Admin not found" });
+      return;
+    }
+    if (!admin.transactionPinHash) {
+      res.status(400).json({ success: false, error: "Please set a transaction PIN in Settings before disbursing" });
+      return;
+    }
+    const pinValid = await bcrypt.compare(String(pin), admin.transactionPinHash);
+    if (!pinValid) {
+      res.status(400).json({ success: false, error: "Incorrect PIN" });
+      return;
+    }
+
     const request = await markCirclePayoutRequestDisbursed(req.params.id, req.user!.userId, {
       proofUrl,
       note,
