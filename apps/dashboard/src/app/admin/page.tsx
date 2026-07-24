@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { Card, FadeInUp, StaggerChildren, StatCard, Button } from "@thrift/ui";
 import { formatNaira } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
-import { Shield, Play, Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { Shield, Play, Loader2, CheckCircle2, XCircle, Clock } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -199,16 +199,18 @@ function CronJobPanel({ token }: { token: string }) {
       </div>
 
       {lastResult && (
-        <div className="mt-4 rounded-2xl border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/30 p-3">
-          <div className="flex items-center gap-2 mb-1">
+        <div className="mt-4 rounded-2xl border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/30 p-4">
+          <div className="flex items-center gap-2 mb-3">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             <span className="text-[13px] font-semibold text-emerald-800 dark:text-emerald-300">
-              {lastResult.label} — {(lastResult.elapsedMs / 1000).toFixed(1)}s
+              {lastResult.label}
+            </span>
+            <span className="ml-auto flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400">
+              <Clock className="w-3 h-3" />
+              {(lastResult.elapsedMs / 1000).toFixed(1)}s
             </span>
           </div>
-          <pre className="text-[11px] text-emerald-700 dark:text-emerald-400 overflow-x-auto mt-1">
-            {JSON.stringify(lastResult.result, null, 2)}
-          </pre>
+          <JobResultSummary jobId={lastResult.jobId} result={lastResult.result} />
         </div>
       )}
 
@@ -221,6 +223,96 @@ function CronJobPanel({ token }: { token: string }) {
         </div>
       )}
     </Card>
+  );
+}
+
+function ResultStat({ label, value, accent }: { label: string; value: string | number; accent?: boolean }) {
+  return (
+    <div className={`rounded-xl px-3 py-2 ${accent ? "bg-emerald-100/70 dark:bg-emerald-900/40" : "bg-white/60 dark:bg-slate-800/50"}`}>
+      <span className={`block font-mono text-lg font-bold leading-tight ${accent ? "text-emerald-700 dark:text-emerald-300" : "text-slate-900 dark:text-white"}`}>{value}</span>
+      <span className="block text-[10px] font-medium text-slate-500 dark:text-slate-400 mt-0.5">{label}</span>
+    </div>
+  );
+}
+
+function JobResultSummary({ jobId, result }: { jobId: string; result: Record<string, unknown> }) {
+  const r = result as Record<string, number>;
+
+  const hasErrors = typeof r.errors === "number" && r.errors > 0;
+
+  if (jobId === "circleInterest") {
+    return (
+      <div className="grid grid-cols-3 gap-2">
+        <ResultStat label="Total Accounts" value={r.total ?? "—"} />
+        <ResultStat label="Processed" value={r.processed ?? "—"} accent />
+        <ResultStat label="Errors" value={r.errors ?? 0} />
+      </div>
+    );
+  }
+
+  if (jobId === "circleContribution") {
+    return (
+      <div className="grid grid-cols-4 gap-2">
+        <ResultStat label="Total Members" value={r.total ?? "—"} />
+        <ResultStat label="Charged" value={r.charged ?? "—"} accent />
+        <ResultStat label="Defaulted" value={r.defaulted ?? 0} />
+        <ResultStat label="Errors" value={r.errors ?? 0} />
+      </div>
+    );
+  }
+
+  if (jobId === "virtualAccount") {
+    return (
+      <div className="grid grid-cols-4 gap-2">
+        <ResultStat label="Eligible Users" value={r.total ?? "—"} />
+        <ResultStat label="Created" value={r.created ?? "—"} accent />
+        <ResultStat label="Skipped" value={r.skipped ?? 0} />
+        <ResultStat label="Errors" value={r.errors ?? 0} />
+      </div>
+    );
+  }
+
+  if (jobId === "paymentReversal") {
+    return (
+      <div className="grid grid-cols-3 gap-2">
+        <ResultStat label="Transactions Checked" value={r.checked ?? "—"} />
+        <ResultStat label="Reversed" value={r.reversed ?? "—"} accent={typeof r.reversed === "number" && r.reversed > 0} />
+        <ResultStat label="Errors" value={r.errors ?? 0} />
+      </div>
+    );
+  }
+
+  if (jobId === "virtualAccountDeposit") {
+    return (
+      <div className="space-y-2">
+        <div className="grid grid-cols-3 gap-2">
+          <ResultStat label="Accounts Scanned" value={r.accountsProcessed ?? "—"} />
+          <ResultStat label="Deposits Found" value={r.totalTransfersFound ?? "—"} accent />
+          <ResultStat label="Wallets Credited" value={r.totalTransfersCredited ?? "—"} accent />
+        </div>
+        {Array.isArray(result.results) && result.results.length > 0 && (
+          <div className="mt-2 max-h-32 overflow-y-auto rounded-xl bg-white/60 dark:bg-slate-800/50 p-2">
+            {result.results.map((item: { accountNumber: string; provider: string; found: number; credited: number }, i: number) => (
+              <div key={i} className="flex items-center justify-between py-1 text-[11px] border-b border-slate-200/50 dark:border-slate-700/50 last:border-0">
+                <span className="font-mono text-slate-700 dark:text-slate-300">{item.accountNumber}</span>
+                <span className="text-slate-500 dark:text-slate-400">{item.provider}</span>
+                <span className={item.credited > 0 ? "font-semibold text-emerald-700 dark:text-emerald-300" : "text-slate-400 dark:text-slate-500"}>
+                  {item.credited}/{item.found} credited
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      {Object.entries(r).map(([key, val]) => (
+        <ResultStat key={key} label={key.replace(/([A-Z])/g, " $1").replace(/^./, s => s.toUpperCase())} value={val ?? "—"} />
+      ))}
+    </div>
   );
 }
 
