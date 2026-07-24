@@ -166,6 +166,7 @@ function CronJobPanel({ token }: { token: string }) {
     circleContribution: "Sunday 01:00 — debits weekly contributions from circle members' wallets",
     virtualAccount: "Daily 02:00 — auto-generates virtual accounts for KYC-verified users",
     paymentReversal: "Daily 03:00 — reconciles recent funding transactions and reverses if provider reports reversed",
+    virtualAccountDeposit: "Checks all active virtual accounts for incoming deposits and credits wallets",
   };
 
   return (

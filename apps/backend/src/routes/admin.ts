@@ -888,11 +888,49 @@ adminRouter.delete("/whatsapp-groups/:id", requireAdmin, async (req, res) => {
 
 /* ---------------- Cron job manual triggers ---------------- */
 
+async function virtualAccountDepositReconciliation() {
+  const sinceHours = 24;
+  const allAccounts = await getAllVirtualAccounts({ page: 1, limit: 10000, status: "active" });
+  const accounts = allAccounts.items || [];
+
+  let totalFound = 0;
+  let totalCredited = 0;
+  const results: Array<{ userId: string; accountNumber: string; provider: string; found: number; credited: number }> = [];
+
+  for (const va of accounts) {
+    const paymentProvider = getPaymentProvider(va.provider);
+    if (!paymentProvider?.checkVirtualAccountTransfers) continue;
+
+    try {
+      const recentTransfers = await paymentProvider.checkVirtualAccountTransfers(va.accountNumber, sinceHours);
+      let creditedCount = 0;
+      for (const transfer of recentTransfers) {
+        try {
+          await creditWallet(va.userId, transfer.amount, "wallet_funding", `Wallet funding via ${va.provider} VA ${va.accountNumber} (reconciliation)`, transfer.reference);
+          await updateVirtualAccountLastTransfer(va.id);
+          creditedCount++;
+        } catch (err) {
+          const isDuplicate = typeof err === "object" && err !== null && "code" in err && (err as { code?: string }).code === "P2002";
+          if (!isDuplicate) console.error(`Reconciliation credit error for ${va.accountNumber}:`, err);
+        }
+      }
+      totalFound += recentTransfers.length;
+      totalCredited += creditedCount;
+      results.push({ userId: va.userId, accountNumber: va.accountNumber, provider: va.provider, found: recentTransfers.length, credited: creditedCount });
+    } catch (err) {
+      console.error(`Reconciliation error for ${va.accountNumber}:`, err);
+    }
+  }
+
+  return { accountsProcessed: accounts.length, totalTransfersFound: totalFound, totalTransfersCredited: totalCredited, results };
+}
+
 const CRON_JOBS: Record<string, { fn: () => Promise<unknown>; label: string }> = {
   circleInterest: { fn: circleInterestJob, label: "Circle Interest Calculation" },
   circleContribution: { fn: circleContributionJob, label: "Circle Contribution Debit" },
   virtualAccount: { fn: virtualAccountGenerationJob, label: "Virtual Account Generation" },
   paymentReversal: { fn: paymentReversalReconciliationJob, label: "Payment Reversal Reconciliation" },
+  virtualAccountDeposit: { fn: virtualAccountDepositReconciliation, label: "Virtual Account Deposit Reconciliation" },
 };
 
 const runningJobs = new Set<string>();
