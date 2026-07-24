@@ -54,7 +54,7 @@ export interface VirtualAccountTransaction {
   id: string;
   amount: number;
   reference: string;
-  status: "completed" | "pending" | "failed";
+  status: "completed" | "pending" | "failed" | "reversed";
   createdAt: string;
   accountNumber: string;
 }

@@ -41,6 +41,7 @@ import {
   updateVirtualAccountLastTransfer,
   getComprehensiveUserDetail,
   getUserDashboardOverview,
+  processPaymentReversal,
 } from "@thrift/db";
 import { circleInterestJob } from "../jobs/circleInterestJob";
 import { circleContributionJob } from "../jobs/circleContributionJob";
@@ -555,7 +556,8 @@ adminRouter.post("/virtual-accounts/reconcile-all", requireAdmin, async (req, re
 
     let totalFound = 0;
     let totalCredited = 0;
-    const results: Array<{ userId: string; accountNumber: string; provider: string; found: number; credited: number }> = [];
+    let totalReversed = 0;
+    const results: Array<{ userId: string; accountNumber: string; provider: string; found: number; credited: number; reversed: number }> = [];
 
     for (const va of accounts) {
       const paymentProvider = getPaymentProvider(va.provider);
@@ -570,8 +572,27 @@ adminRouter.post("/virtual-accounts/reconcile-all", requireAdmin, async (req, re
         );
 
         let creditedCount = 0;
+        let reversedCount = 0;
         for (const transfer of recentTransfers) {
           const reference = transfer.reference;
+
+          if (transfer.status === "reversed") {
+            try {
+              const reversalResult = await processPaymentReversal(
+                reference,
+                `Reversal detected during admin reconciliation for VA ${va.accountNumber}`,
+              );
+              if (reversalResult.walletReversed || reversalResult.reversedAccounts > 0) {
+                reversedCount++;
+              }
+            } catch (err) {
+              console.error("Error processing reversal for", reference, err);
+            }
+            continue;
+          }
+
+          if (transfer.status !== "completed") continue;
+
           const description = `Wallet funding via ${va.provider} virtual account ${va.accountNumber} (admin reconciliation)`;
 
           try {
@@ -588,12 +609,14 @@ adminRouter.post("/virtual-accounts/reconcile-all", requireAdmin, async (req, re
 
         totalFound += recentTransfers.length;
         totalCredited += creditedCount;
+        totalReversed += reversedCount;
         results.push({
           userId: va.userId,
           accountNumber: va.accountNumber,
           provider: va.provider,
           found: recentTransfers.length,
           credited: creditedCount,
+          reversed: reversedCount,
         });
       } catch (err) {
         console.error(`Error reconciling account ${va.accountNumber}:`, err);
@@ -609,6 +632,7 @@ adminRouter.post("/virtual-accounts/reconcile-all", requireAdmin, async (req, re
         accountsProcessed: accounts.length,
         totalFound,
         totalCredited,
+        totalReversed,
       },
     });
 
@@ -618,6 +642,7 @@ adminRouter.post("/virtual-accounts/reconcile-all", requireAdmin, async (req, re
         accountsProcessed: accounts.length,
         totalTransfersFound: totalFound,
         totalTransfersCredited: totalCredited,
+        totalTransfersReversed: totalReversed,
         results,
       },
     });

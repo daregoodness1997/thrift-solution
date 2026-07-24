@@ -12,6 +12,7 @@ import {
   hasVirtualAccount,
   isKycVerifiedForVirtualAccount,
   getAllVirtualAccounts,
+  processPaymentReversal,
 } from "@thrift/db";
 
 const router = Router();
@@ -316,10 +317,33 @@ router.post("/reconcile", authMiddleware, async (req: Request, res: Response) =>
     );
 
     let creditedCount = 0;
+    let reversedCount = 0;
     const results: Array<{ reference: string; amount: number; status: string }> = [];
 
     for (const transfer of recentTransfers) {
       const reference = transfer.reference;
+
+      if (transfer.status === "reversed") {
+        try {
+          const result = await processPaymentReversal(
+            reference,
+            `Reversal detected during reconciliation for VA ${virtualAccount.accountNumber}`,
+          );
+          if (result.walletReversed || result.reversedAccounts > 0) {
+            reversedCount++;
+            results.push({ reference, amount: transfer.amount, status: "reversed" });
+          } else {
+            results.push({ reference, amount: transfer.amount, status: "no_action_needed" });
+          }
+        } catch (err) {
+          results.push({ reference, amount: transfer.amount, status: "reversal_error" });
+          console.error("Error processing reversal for transfer:", reference, err);
+        }
+        continue;
+      }
+
+      if (transfer.status !== "completed") continue;
+
       const description = `Wallet funding via ${virtualAccount.provider} virtual account ${virtualAccount.accountNumber} (manual reconciliation)`;
 
       try {
@@ -344,6 +368,7 @@ router.post("/reconcile", authMiddleware, async (req: Request, res: Response) =>
         accountNumber: virtualAccount.accountNumber,
         transfersFound: recentTransfers.length,
         transfersCredited: creditedCount,
+        transfersReversed: reversedCount,
         results,
       },
     });
@@ -376,7 +401,8 @@ router.post("/reconcile-all", authMiddleware, async (req: Request, res: Response
 
     let totalFound = 0;
     let totalCredited = 0;
-    const userResults: Array<{ userId: string; accountNumber: string; found: number; credited: number }> = [];
+    let totalReversed = 0;
+    const userResults: Array<{ userId: string; accountNumber: string; found: number; credited: number; reversed: number }> = [];
 
     for (const va of accounts) {
       const paymentProvider = getPaymentProvider(va.provider);
@@ -391,8 +417,27 @@ router.post("/reconcile-all", authMiddleware, async (req: Request, res: Response
         );
 
         let creditedCount = 0;
+        let reversedCount = 0;
         for (const transfer of recentTransfers) {
           const reference = transfer.reference;
+
+          if (transfer.status === "reversed") {
+            try {
+              const result = await processPaymentReversal(
+                reference,
+                `Reversal detected during reconcile-all for VA ${va.accountNumber}`,
+              );
+              if (result.walletReversed || result.reversedAccounts > 0) {
+                reversedCount++;
+              }
+            } catch (err) {
+              console.error("Error processing reversal:", reference, err);
+            }
+            continue;
+          }
+
+          if (transfer.status !== "completed") continue;
+
           const description = `Wallet funding via ${va.provider} virtual account ${va.accountNumber} (manual reconciliation)`;
 
           try {
@@ -408,11 +453,13 @@ router.post("/reconcile-all", authMiddleware, async (req: Request, res: Response
 
         totalFound += recentTransfers.length;
         totalCredited += creditedCount;
+        totalReversed += reversedCount;
         userResults.push({
           userId: va.userId,
           accountNumber: va.accountNumber,
           found: recentTransfers.length,
           credited: creditedCount,
+          reversed: reversedCount,
         });
       } catch (err) {
         console.error(`Error reconciling account ${va.accountNumber}:`, err);
@@ -425,6 +472,7 @@ router.post("/reconcile-all", authMiddleware, async (req: Request, res: Response
         accountsProcessed: accounts.length,
         totalTransfersFound: totalFound,
         totalTransfersCredited: totalCredited,
+        totalTransfersReversed: totalReversed,
         results: userResults,
       },
     });

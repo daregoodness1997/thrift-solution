@@ -218,7 +218,7 @@ export const flutterwaveProvider: PaymentProvider = {
     let response: Response;
     try {
       response = await fetch(
-        `${FLW_BASE}/transactions?from=${fromStr}&status=successful&account_number=${encodeURIComponent(accountNumber)}`,
+        `${FLW_BASE}/transactions?from=${fromStr}&account_number=${encodeURIComponent(accountNumber)}`,
         {
           headers: { Authorization: `Bearer ${FLW_SECRET}` },
         },
@@ -234,15 +234,28 @@ export const flutterwaveProvider: PaymentProvider = {
       throw new Error(data.message || "Flutterwave transaction fetch failed");
     }
 
+    const REVERSED_STATUSES = ["reversed", "refunded"];
     const transactions: any[] = data.data || [];
 
-    return transactions.map((tx: any) => ({
-      id: String(tx.id),
-      amount: tx.amount,
-      reference: tx.tx_ref || `va_flw_${tx.id}`,
-      status: "completed" as const,
-      createdAt: tx.created_at,
-      accountNumber: tx.account_number || accountNumber,
-    }));
+    return transactions.map((tx: any) => {
+      const flwStatus: string = (tx.status || "").toLowerCase();
+      const status: VirtualAccountTransaction["status"] =
+        flwStatus === "successful"
+          ? "completed"
+          : REVERSED_STATUSES.includes(flwStatus)
+            ? "reversed"
+            : flwStatus === "failed"
+              ? "failed"
+              : "pending";
+
+      return {
+        id: String(tx.id),
+        amount: tx.amount,
+        reference: `va_flw_${tx.id}`,
+        status,
+        createdAt: tx.created_at,
+        accountNumber: tx.account_number || accountNumber,
+      };
+    });
   },
 };
