@@ -214,31 +214,31 @@ export const flutterwaveProvider: PaymentProvider = {
   async checkVirtualAccountTransfers(accountNumber: string, sinceHours = 24): Promise<VirtualAccountTransaction[]> {
     const fromDate = new Date(Date.now() - sinceHours * 60 * 60 * 1000);
     const fromStr = fromDate.toISOString().split("T")[0];
-    
-    let response: Response;
-    try {
-      response = await fetch(
-        `${FLW_BASE}/transactions?from=${fromStr}&account_number=${encodeURIComponent(accountNumber)}`,
-        {
-          headers: { Authorization: `Bearer ${FLW_SECRET}` },
-        },
-      );
-    } catch (err) {
-      const cause = err instanceof Error ? err.message : String(err);
-      throw new Error(`Failed to connect to Flutterwave API: ${cause}`);
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const data: any = await response.json();
-    if (data.status !== "success") {
-      throw new Error(data.message || "Flutterwave transaction fetch failed");
-    }
-
     const REVERSED_STATUSES = ["reversed", "refunded"];
-    const transactions: any[] = data.data || [];
 
-    // Flutterwave's /transactions endpoint may not support the account_number
-    // query param, so always client-side filter as a safety net.
+    async function fetchPage(page: number): Promise<{ txs: any[]; totalPages: number }> {
+      const response = await fetch(
+        `${FLW_BASE}/transactions?from=${fromStr}&status=successful&page=${page}`,
+        { headers: { Authorization: `Bearer ${FLW_SECRET}` } },
+      );
+      const data: any = await response.json();
+      if (data.status !== "success") {
+        throw new Error(data.message || "Flutterwave transaction fetch failed");
+      }
+      const totalPages = data.meta?.page_info?.total_pages ?? 1;
+      return { txs: data.data || [], totalPages };
+    }
+
+    const transactions: any[] = [];
+    const { txs, totalPages } = await fetchPage(1);
+    transactions.push(...txs);
+    for (let p = 2; p <= totalPages; p++) {
+      const { txs: pageTxs } = await fetchPage(p);
+      transactions.push(...pageTxs);
+    }
+
+    // Client-side filter by account number — Flutterwave's API doesn't
+    // natively support filtering transactions by the receiving VA number.
     const filtered = transactions.filter(
       (tx: any) =>
         tx.amount &&
