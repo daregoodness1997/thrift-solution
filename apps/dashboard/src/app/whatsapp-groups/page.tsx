@@ -99,7 +99,7 @@ export default function WhatsAppGroupsPage() {
         setMyGroupsTotalPages(data.data.totalPages || 0);
       }
     } catch {}
-  }, [token, API_URL, myGroupsPage, search, filter]);
+  }, [token, myGroupsPage, search, filter]);
 
   const fetchAllGroups = useCallback(async () => {
     if (!token) return;
@@ -112,15 +112,19 @@ export default function WhatsAppGroupsPage() {
         setAllGroupsTotalPages(data.data.totalPages || 0);
       }
     } catch {}
-  }, [token, API_URL, allGroupsPage]);
+  }, [token, allGroupsPage]);
 
   useEffect(() => {
     if (!token) { setLoading(false); return; }
+    setLoading(true);
+    const abort = new AbortController();
     const timeout = setTimeout(() => {
-      Promise.all([fetchMyGroups(), fetchAllGroups()]).then(() => setLoading(false));
+      Promise.all([fetchMyGroups(), fetchAllGroups()]).then(() => {
+        if (!abort.signal.aborted) setLoading(false);
+      });
     }, 300);
-    return () => clearTimeout(timeout);
-  }, [token, fetchMyGroups, fetchAllGroups, myGroupsPage, allGroupsPage, search, filter]);
+    return () => { clearTimeout(timeout); abort.abort(); };
+  }, [fetchMyGroups, fetchAllGroups]);
 
   const totalMembers = myGroups.reduce((sum, g) => sum + g.memberCount, 0);
 
