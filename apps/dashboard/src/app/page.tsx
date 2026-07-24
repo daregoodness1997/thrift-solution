@@ -81,6 +81,7 @@ interface CircleAccount {
 interface VirtualAccount {
   id: string;
   accountNumber: string;
+  accountName: string;
   bankName: string;
   provider: string;
   reference: string;

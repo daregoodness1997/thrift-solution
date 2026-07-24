@@ -3,11 +3,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { toast } from "sonner";
 
-import { Card, FadeInUp, StaggerChildren, StatCard } from "@thrift/ui";
+import { Card, FadeInUp, StaggerChildren, StatCard, Button } from "@thrift/ui";
 import { formatNaira } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
-import { Shield } from "lucide-react";
+import { Shield, Play, Loader2, CheckCircle2, XCircle } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
@@ -17,6 +18,19 @@ interface AdminStats {
   circles: { activeAccounts: number; totalPrincipal: number; totalInterest: number; assetsUnderManagement: number };
   donations: { completedCount: number; completedAmount: number };
   wallet: { totalCredited: number; totalDebited: number };
+}
+
+interface CronJobInfo {
+  id: string;
+  label: string;
+  running: boolean;
+}
+
+interface JobRunResult {
+  jobId: string;
+  label: string;
+  elapsedMs: number;
+  result: Record<string, unknown>;
 }
 
 export default function AdminDashboardPage() {
@@ -94,7 +108,11 @@ export default function AdminDashboardPage() {
             </Card>
           </FadeInUp>
 
-          <StaggerChildren staggerDelay={80} className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-4">
+          <FadeInUp delay={280}>
+            <CronJobPanel token={token!} />
+          </FadeInUp>
+
+          <StaggerChildren staggerDelay={80} className="mt-6 grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-4">
             <StatCard label="Circle Principal" value={formatNaira(stats.circles.totalPrincipal)} />
             <StatCard label="Interest Accrued" value={formatNaira(stats.circles.totalInterest)} />
             <StatCard label="Donations Raised" value={formatNaira(stats.donations.completedAmount)} />
@@ -103,6 +121,105 @@ export default function AdminDashboardPage() {
         </>
       )}
     </div>
+  );
+}
+
+function CronJobPanel({ token }: { token: string }) {
+  const [jobs, setJobs] = useState<CronJobInfo[]>([]);
+  const [runningJob, setRunningJob] = useState<string | null>(null);
+  const [lastResult, setLastResult] = useState<JobRunResult | null>(null);
+  const [lastError, setLastError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/admin/cron-jobs`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => r.json())
+      .then((d) => { if (d.success) setJobs(d.data); })
+      .catch(() => {});
+  }, [token]);
+
+  const triggerJob = async (jobId: string) => {
+    setRunningJob(jobId);
+    setLastResult(null);
+    setLastError(null);
+    try {
+      const res = await fetch(`${API_URL}/api/admin/cron-jobs/${jobId}/trigger`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success) {
+        setLastResult(data.data);
+        toast.success(`${data.data.label} completed in ${(data.data.elapsedMs / 1000).toFixed(1)}s`);
+      } else {
+        setLastError(data.error);
+        toast.error(data.error);
+      }
+    } catch {
+      setLastError("Network error");
+      toast.error("Failed to trigger job");
+    }
+    setRunningJob(null);
+  };
+
+  const cronDescriptions: Record<string, string> = {
+    circleInterest: "Sunday 00:00 — calculates weekly interest for all active circle accounts",
+    circleContribution: "Sunday 01:00 — debits weekly contributions from circle members' wallets",
+    virtualAccount: "Daily 02:00 — auto-generates virtual accounts for KYC-verified users",
+    paymentReversal: "Daily 03:00 — reconciles recent funding transactions and reverses if provider reports reversed",
+  };
+
+  return (
+    <Card padding="1.5rem" className="mb-6 rounded-3xl">
+      <span className="mb-4 block text-[9px] font-bold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">
+        Cron Jobs — Manual Trigger
+      </span>
+      <div className="space-y-3">
+        {jobs.map((job) => (
+          <div key={job.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 bg-slate-50/50 dark:bg-slate-800/40 p-3">
+            <div className="min-w-0">
+              <span className="block text-[13px] font-semibold text-slate-900 dark:text-white">{job.label}</span>
+              <span className="block text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{cronDescriptions[job.id] || ""}</span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={runningJob !== null}
+              onClick={() => triggerJob(job.id)}
+              style={{ minWidth: 100, justifyContent: "center" }}
+            >
+              {runningJob === job.id ? (
+                <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Running...</>
+              ) : (
+                <><Play className="w-3.5 h-3.5" /> Run Now</>
+              )}
+            </Button>
+          </div>
+        ))}
+      </div>
+
+      {lastResult && (
+        <div className="mt-4 rounded-2xl border border-emerald-200 dark:border-emerald-800/60 bg-emerald-50 dark:bg-emerald-950/30 p-3">
+          <div className="flex items-center gap-2 mb-1">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <span className="text-[13px] font-semibold text-emerald-800 dark:text-emerald-300">
+              {lastResult.label} — {(lastResult.elapsedMs / 1000).toFixed(1)}s
+            </span>
+          </div>
+          <pre className="text-[11px] text-emerald-700 dark:text-emerald-400 overflow-x-auto mt-1">
+            {JSON.stringify(lastResult.result, null, 2)}
+          </pre>
+        </div>
+      )}
+
+      {lastError && (
+        <div className="mt-4 rounded-2xl border border-red-200 dark:border-red-800/60 bg-red-50 dark:bg-red-950/30 p-3">
+          <div className="flex items-center gap-2">
+            <XCircle className="w-4 h-4 text-red-600 dark:text-red-400" />
+            <span className="text-[13px] font-semibold text-red-800 dark:text-red-300">{lastError}</span>
+          </div>
+        </div>
+      )}
+    </Card>
   );
 }
 

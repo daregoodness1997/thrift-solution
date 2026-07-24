@@ -42,6 +42,10 @@ import {
   getComprehensiveUserDetail,
   getUserDashboardOverview,
 } from "@thrift/db";
+import { circleInterestJob } from "../jobs/circleInterestJob";
+import { circleContributionJob } from "../jobs/circleContributionJob";
+import { virtualAccountGenerationJob } from "../jobs/virtualAccountJob";
+import { paymentReversalReconciliationJob } from "../jobs/paymentReversalJob";
 
 export const adminRouter = Router();
 
@@ -879,5 +883,73 @@ adminRouter.delete("/whatsapp-groups/:id", requireAdmin, async (req, res) => {
   } catch (err) {
     console.error("Admin delete whatsapp group error:", err);
     res.status(500).json({ success: false, error: "Failed to delete WhatsApp group" });
+  }
+});
+
+/* ---------------- Cron job manual triggers ---------------- */
+
+const CRON_JOBS: Record<string, { fn: () => Promise<unknown>; label: string }> = {
+  circleInterest: { fn: circleInterestJob, label: "Circle Interest Calculation" },
+  circleContribution: { fn: circleContributionJob, label: "Circle Contribution Debit" },
+  virtualAccount: { fn: virtualAccountGenerationJob, label: "Virtual Account Generation" },
+  paymentReversal: { fn: paymentReversalReconciliationJob, label: "Payment Reversal Reconciliation" },
+};
+
+const runningJobs = new Set<string>();
+
+adminRouter.get("/cron-jobs", requireAdmin, (_req, res) => {
+  const jobs = Object.entries(CRON_JOBS).map(([key, { label }]) => ({
+    id: key,
+    label,
+    running: runningJobs.has(key),
+  }));
+  res.json({ success: true, data: jobs });
+});
+
+adminRouter.post("/cron-jobs/:jobId/trigger", requireAdmin, async (req, res) => {
+  const { jobId } = req.params;
+  const job = CRON_JOBS[jobId];
+
+  if (!job) {
+    res.status(404).json({ success: false, error: `Unknown job: ${jobId}` });
+    return;
+  }
+
+  if (runningJobs.has(jobId)) {
+    res.status(409).json({ success: false, error: `${job.label} is already running` });
+    return;
+  }
+
+  runningJobs.add(jobId);
+
+  const startTime = Date.now();
+  try {
+    const result = await job.fn();
+    const elapsed = Date.now() - startTime;
+
+    await createAuditLog({
+      ...actor(req),
+      action: "cronJob.trigger",
+      entity: "cronJob",
+      entityId: jobId,
+      metadata: { jobId, label: job.label, elapsedMs: elapsed, result },
+    });
+
+    res.json({ success: true, data: { jobId, label: job.label, elapsedMs: elapsed, result } });
+  } catch (err) {
+    const elapsed = Date.now() - startTime;
+    const message = err instanceof Error ? err.message : "Unknown error";
+
+    await createAuditLog({
+      ...actor(req),
+      action: "cronJob.trigger.error",
+      entity: "cronJob",
+      entityId: jobId,
+      metadata: { jobId, label: job.label, elapsedMs: elapsed, error: message },
+    });
+
+    res.status(500).json({ success: false, error: `${job.label} failed: ${message}` });
+  } finally {
+    runningJobs.delete(jobId);
   }
 });
