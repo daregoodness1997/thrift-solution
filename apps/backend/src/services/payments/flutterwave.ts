@@ -237,7 +237,17 @@ export const flutterwaveProvider: PaymentProvider = {
     const REVERSED_STATUSES = ["reversed", "refunded"];
     const transactions: any[] = data.data || [];
 
-    return transactions.map((tx: any) => {
+    // Flutterwave's /transactions endpoint may not support the account_number
+    // query param, so always client-side filter as a safety net.
+    const filtered = transactions.filter(
+      (tx: any) =>
+        tx.amount &&
+        (tx.account_number === accountNumber ||
+          tx.meta?.account_number === accountNumber ||
+          tx.narration?.includes(accountNumber))
+    );
+
+    return filtered.map((tx: any) => {
       const flwStatus: string = (tx.status || "").toLowerCase();
       const status: VirtualAccountTransaction["status"] =
         flwStatus === "successful"
