@@ -126,7 +126,7 @@ export default function WhatsAppGroupsPage() {
 
   const filtered = myGroups;
 
-  async function joinGroup(groupId: string) {
+  async function joinGroup(groupId: string, inviteLink?: string | null) {
     if (!token || joining) return;
     setJoining(groupId);
     try {
@@ -137,6 +137,9 @@ export default function WhatsAppGroupsPage() {
       const data = await res.json();
       if (data.success) {
         await Promise.all([fetchMyGroups(), fetchAllGroups()]);
+        if (inviteLink) {
+          window.open(inviteLink, "_blank");
+        }
       }
     } catch {}
     setJoining(null);
@@ -351,7 +354,7 @@ export default function WhatsAppGroupsPage() {
                         variant="primary"
                         size="sm"
                         style={{ fontSize: "10px", padding: "0.3rem 0.75rem", backgroundColor: WA_GREEN, borderRadius: "0.5rem" }}
-                        onClick={() => joinGroup(g.id)}
+                        onClick={() => joinGroup(g.id, g.inviteLink)}
                         disabled={joining === g.id}
                       >
                         {joining === g.id ? "Joining..." : "Join"}

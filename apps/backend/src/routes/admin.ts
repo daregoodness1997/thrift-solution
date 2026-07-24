@@ -826,6 +826,10 @@ adminRouter.post("/whatsapp-groups", requireAdmin, async (req, res) => {
       res.status(400).json({ success: false, error: "Group name is required" });
       return;
     }
+    if (!inviteLink) {
+      res.status(400).json({ success: false, error: "WhatsApp group link is required" });
+      return;
+    }
     const group = await createWhatsappGroup({ name, description, circleName, inviteLink });
     await createAuditLog({
       ...actor(req),

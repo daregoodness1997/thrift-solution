@@ -115,6 +115,10 @@ export default function AdminWhatsappGroupsPage() {
       show("error", "Group name is required");
       return;
     }
+    if (!editingGroup && !formData.inviteLink.trim()) {
+      show("error", "WhatsApp group link is required");
+      return;
+    }
     setSaving(true);
     try {
       const url = editingGroup
@@ -321,7 +325,7 @@ export default function AdminWhatsappGroupsPage() {
             </div>
             <div className="mb-4">
               <label className="mb-1.5 block text-xs font-medium text-slate-700 dark:text-slate-300">
-                Invite Link
+                WhatsApp Group Link *
               </label>
               <input
                 type="url"
@@ -330,6 +334,7 @@ export default function AdminWhatsappGroupsPage() {
                 className={inputClass}
                 placeholder="https://chat.whatsapp.com/..."
               />
+              <p className="mt-1 text-[10px] text-slate-400">Members will use this link to join the WhatsApp group</p>
             </div>
             <div className="mb-6 flex items-center gap-2">
               <input

@@ -45,6 +45,10 @@ whatsappRouter.post("/", authMiddleware, async (req, res) => {
       res.status(400).json({ success: false, error: "Group name is required" });
       return;
     }
+    if (!inviteLink) {
+      res.status(400).json({ success: false, error: "WhatsApp group link is required" });
+      return;
+    }
     const group = await createWhatsappGroup({ name, description, circleName, inviteLink });
     await joinWhatsappGroup(group.id, req.user!.userId);
     res.status(201).json({ success: true, data: group });

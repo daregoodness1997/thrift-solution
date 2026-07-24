@@ -33,6 +33,7 @@ const ADMIN_NAV = [
   "/admin/marketplace",
   "/admin/jobs",
   "/admin/donations",
+  "/admin/whatsapp-groups",
   "/circle-management",
   "/default-management",
   "/clearance-management",
