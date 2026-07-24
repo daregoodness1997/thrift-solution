@@ -211,7 +211,7 @@ export const flutterwaveProvider: PaymentProvider = {
     };
   },
 
-  async checkVirtualAccountTransfers(accountNumber: string, sinceHours = 24): Promise<VirtualAccountTransaction[]> {
+  async checkVirtualAccountTransfers(accountNumber: string, sinceHours = 24, txRef?: string): Promise<VirtualAccountTransaction[]> {
     const fromDate = new Date(Date.now() - sinceHours * 60 * 60 * 1000);
     const fromStr = fromDate.toISOString().split("T")[0];
     const REVERSED_STATUSES = ["reversed", "refunded"];
@@ -237,15 +237,18 @@ export const flutterwaveProvider: PaymentProvider = {
       transactions.push(...pageTxs);
     }
 
-    // Client-side filter by account number — Flutterwave's API doesn't
-    // natively support filtering transactions by the receiving VA number.
-    const filtered = transactions.filter(
-      (tx: any) =>
-        tx.amount &&
-        (tx.account_number === accountNumber ||
-          tx.meta?.account_number === accountNumber ||
-          tx.narration?.includes(accountNumber))
-    );
+    // Filter by tx_ref (VA reference) — this is the only reliable way to match
+    // a Flutterwave transaction to a specific virtual account. The /transactions
+    // endpoint does not expose the receiving VA account number in a queryable field.
+    const filtered = txRef
+      ? transactions.filter((tx: any) => tx.tx_ref === txRef)
+      : transactions.filter(
+          (tx: any) =>
+            tx.amount &&
+            (tx.account_number === accountNumber ||
+              tx.meta?.account_number === accountNumber ||
+              tx.narration?.includes(accountNumber))
+        );
 
     return filtered.map((tx: any) => {
       const flwStatus: string = (tx.status || "").toLowerCase();
@@ -264,7 +267,7 @@ export const flutterwaveProvider: PaymentProvider = {
         reference: `va_flw_${tx.id}`,
         status,
         createdAt: tx.created_at,
-        accountNumber: tx.account_number || accountNumber,
+        accountNumber: accountNumber,
       };
     });
   },

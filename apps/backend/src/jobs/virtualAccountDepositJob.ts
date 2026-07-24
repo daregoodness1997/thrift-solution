@@ -24,7 +24,7 @@ export async function virtualAccountDepositReconciliation() {
     if (!paymentProvider?.checkVirtualAccountTransfers) continue;
 
     try {
-      const recentTransfers = await paymentProvider.checkVirtualAccountTransfers(va.accountNumber, sinceHours);
+      const recentTransfers = await paymentProvider.checkVirtualAccountTransfers(va.accountNumber, sinceHours, va.reference);
       let creditedCount = 0;
       let reversedCount = 0;
       for (const transfer of recentTransfers) {

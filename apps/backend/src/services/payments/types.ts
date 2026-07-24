@@ -78,5 +78,5 @@ export interface PaymentProvider {
   createVirtualAccount?(params: VirtualAccountParams): Promise<VirtualAccountResult>;
   initiateTransfer?(params: VirtualAccountTransferParams): Promise<VirtualAccountTransferResult>;
   resolveAccount?(params: ResolveAccountParams): Promise<ResolveAccountResult>;
-  checkVirtualAccountTransfers?(accountNumber: string, sinceHours?: number): Promise<VirtualAccountTransaction[]>;
+  checkVirtualAccountTransfers?(accountNumber: string, sinceHours?: number, txRef?: string): Promise<VirtualAccountTransaction[]>;
 }

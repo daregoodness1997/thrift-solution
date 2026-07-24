@@ -568,7 +568,8 @@ adminRouter.post("/virtual-accounts/reconcile-all", requireAdmin, async (req, re
       try {
         const recentTransfers = await paymentProvider.checkVirtualAccountTransfers(
           va.accountNumber,
-          sinceHours
+          sinceHours,
+          va.reference,
         );
 
         let creditedCount = 0;

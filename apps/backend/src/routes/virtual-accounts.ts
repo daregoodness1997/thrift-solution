@@ -313,7 +313,8 @@ router.post("/reconcile", authMiddleware, async (req: Request, res: Response) =>
 
     const recentTransfers = await paymentProvider.checkVirtualAccountTransfers(
       virtualAccount.accountNumber,
-      sinceHours
+      sinceHours,
+      virtualAccount.reference,
     );
 
     let creditedCount = 0;
@@ -413,7 +414,8 @@ router.post("/reconcile-all", authMiddleware, async (req: Request, res: Response
       try {
         const recentTransfers = await paymentProvider.checkVirtualAccountTransfers(
           va.accountNumber,
-          sinceHours
+          sinceHours,
+          va.reference,
         );
 
         let creditedCount = 0;
