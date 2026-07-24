@@ -933,8 +933,8 @@ export default function Dashboard() {
                         <div className="text-[10px] text-white/60">
                           {va.bankName}
                         </div>
-                        <div className="text-[10px] text-white/60">
-                          {bankAccountName || ""}
+                        <div className="text-[10px] text-white/60 text-uppercase truncate max-w-[150px]">
+                          {va.accountName || ""}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
