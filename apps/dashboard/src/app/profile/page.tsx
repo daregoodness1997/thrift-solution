@@ -2,14 +2,17 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { config, BrandConfig } from "@thrift/config";
-import {
-  Card,
-  FadeInUp,
-  StaggerChildren,
-} from "@thrift/ui";
+import { Card, FadeInUp, StaggerChildren } from "@thrift/ui";
 import { formatNaira, NIGERIAN_BANKS, getBankByCode } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
-import { User, CreditCard, PiggyBank, Star, Copy, CheckCircle2 } from "lucide-react";
+import {
+  User,
+  CreditCard,
+  PiggyBank,
+  Star,
+  Copy,
+  CheckCircle2,
+} from "lucide-react";
 
 interface UserProfile {
   id: string;
@@ -103,7 +106,10 @@ export default function ProfilePage() {
   const [resolvedName, setResolvedName] = useState("");
   const [resolvedBankName, setResolvedBankName] = useState("");
   const [resolveError, setResolveError] = useState("");
-  const [matchedUser, setMatchedUser] = useState<{ name: string; accountNumber: string } | null>(null);
+  const [matchedUser, setMatchedUser] = useState<{
+    name: string;
+    accountNumber: string;
+  } | null>(null);
   const [virtualAccount, setVirtualAccount] = useState<{
     accountNumber: string;
     bankName: string;
@@ -187,17 +193,30 @@ export default function ProfilePage() {
     try {
       const res = await fetch(`${API_URL}/api/user/bank-details`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           bankName: bankName.trim(),
           bankCode: bankCode.trim() || undefined,
           bankAccountNumber: bankAccountNumber.trim(),
-          bankAccountName: (bankAccountName.trim() || resolvedName || undefined),
+          bankAccountName: bankAccountName.trim() || resolvedName || undefined,
         }),
       });
       const data = await res.json();
       if (data.success) {
-        setProfile((prev) => (prev ? { ...prev, bankName: data.data.bankName, bankCode: data.data.bankCode, bankAccountNumber: data.data.bankAccountNumber, bankAccountName: data.data.bankAccountName } : prev));
+        setProfile((prev) =>
+          prev
+            ? {
+                ...prev,
+                bankName: data.data.bankName,
+                bankCode: data.data.bankCode,
+                bankAccountNumber: data.data.bankAccountNumber,
+                bankAccountName: data.data.bankAccountName,
+              }
+            : prev,
+        );
         setBankSaved(true);
         setTimeout(() => setBankSaved(false), 2000);
       } else {
@@ -218,7 +237,10 @@ export default function ProfilePage() {
     try {
       const res = await fetch(`${API_URL}/api/user/resolve-account`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           accountNumber: bankAccountNumber.trim(),
           bankCode: bankCode.trim(),
@@ -297,7 +319,12 @@ export default function ProfilePage() {
               <span>Account</span>
             </span>
           </div>
-          <h3 className="font-display font-bold text-xl sm:text-2xl text-slate-900 dark:text-white mt-1">My <span className="bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 bg-clip-text text-transparent">Profile</span></h3>
+          <h3 className="font-display font-bold text-xl sm:text-2xl text-slate-900 dark:text-white mt-1">
+            My{" "}
+            <span className="bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 bg-clip-text text-transparent">
+              Profile
+            </span>
+          </h3>
         </div>
       </div>
 
@@ -305,9 +332,7 @@ export default function ProfilePage() {
         <FadeInUp delay={200}>
           <Card padding="1.5rem" className="rounded-3xl">
             <div className="flex items-center gap-4 mb-6">
-              <div
-                className="w-16 h-16 rounded-full text-white flex items-center justify-center text-2xl font-bold flex-shrink-0 bg-gradient-to-br from-blue-600 to-blue-400"
-              >
+              <div className="w-16 h-16 rounded-full text-white flex items-center justify-center text-2xl font-bold flex-shrink-0 bg-gradient-to-br from-blue-600 to-blue-400">
                 {initials}
               </div>
               <div>
@@ -318,14 +343,10 @@ export default function ProfilePage() {
                   {profile.email}
                 </p>
                 <div className="flex items-center gap-1.5 mt-1">
-                  <div
-                    className="w-4 h-4 rounded-full flex items-center justify-center bg-gradient-to-br from-blue-600 to-blue-400"
-                  >
+                  <div className="w-4 h-4 rounded-full flex items-center justify-center bg-gradient-to-br from-blue-600 to-blue-400">
                     <Star className="w-2.5 h-2.5 text-white" />
                   </div>
-                  <span
-                    className="text-[10px] font-bold text-blue-500 dark:text-blue-400"
-                  >
+                  <span className="text-[10px] font-bold text-blue-500 dark:text-blue-400">
                     {profile.stats.trustLevel}
                   </span>
                 </div>
@@ -536,9 +557,7 @@ export default function ProfilePage() {
                       height="14"
                       viewBox="0 0 24 24"
                       fill={
-                        star <= profile.stats.trustScore
-                          ? "#3B82F6"
-                          : "#D1D5DB"
+                        star <= profile.stats.trustScore ? "#3B82F6" : "#D1D5DB"
                       }
                     >
                       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
@@ -574,7 +593,9 @@ export default function ProfilePage() {
                 onChange={(e) => setName(e.target.value)}
                 disabled={!editing}
                 className={`bg-slate-50 dark:bg-slate-800/60 border rounded-2xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none font-sans transition-colors ${
-                  editing ? "border-blue-600 dark:border-blue-400 bg-white dark:bg-slate-800" : "border-slate-200 dark:border-slate-700"
+                  editing
+                    ? "border-blue-600 dark:border-blue-400 bg-white dark:bg-slate-800"
+                    : "border-slate-200 dark:border-slate-700"
                 }`}
               />
             </div>
@@ -598,14 +619,16 @@ export default function ProfilePage() {
                 disabled={!editing}
                 placeholder="Not set"
                 className={`bg-slate-50 dark:bg-slate-800/60 border rounded-2xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none font-sans transition-colors ${
-                  editing ? "border-blue-600 dark:border-blue-400 bg-white dark:bg-slate-800" : "border-slate-200 dark:border-slate-700"
+                  editing
+                    ? "border-blue-600 dark:border-blue-400 bg-white dark:bg-slate-800"
+                    : "border-slate-200 dark:border-slate-700"
                 }`}
               />
             </div>
           </div>
           {editing && (
             <div className="flex justify-end gap-2 mt-4">
-               <button
+              <button
                 onClick={() => {
                   setEditing(false);
                   setName(profile.name);
@@ -614,7 +637,10 @@ export default function ProfilePage() {
               >
                 Cancel
               </button>
-              <button onClick={handleSave} className="btn-primary py-2 px-4 text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-md">
+              <button
+                onClick={handleSave}
+                className="btn-primary py-2 px-4 text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-md"
+              >
                 Save Changes
               </button>
             </div>
@@ -630,15 +656,20 @@ export default function ProfilePage() {
               <span>Payout Bank Account</span>
             </span>
             {bankSaved && (
-              <span className="text-[11px] text-emerald-600 font-medium">Saved!</span>
+              <span className="text-[11px] text-emerald-600 font-medium">
+                Saved!
+              </span>
             )}
           </div>
-           <p className="text-[12px] text-slate-500 dark:text-slate-400 mb-4">
-            Used for circle payout disbursements via bank transfer. Keep this accurate to avoid failed transfers.
+          <p className="text-[12px] text-slate-500 dark:text-slate-400 mb-4">
+            Used for circle payout disbursements via bank transfer. Keep this
+            accurate to avoid failed transfers.
           </p>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] uppercase tracking-[0.1em] text-slate-400 font-bold">Bank</label>
+              <label className="text-[10px] uppercase tracking-[0.1em] text-slate-400 font-bold">
+                Bank
+              </label>
               <select
                 value={bankCode}
                 onChange={(e) => {
@@ -662,7 +693,9 @@ export default function ProfilePage() {
               </select>
             </div>
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] uppercase tracking-[0.1em] text-slate-400 font-bold">Account Number</label>
+              <label className="text-[10px] uppercase tracking-[0.1em] text-slate-400 font-bold">
+                Account Number
+              </label>
               <div className="flex gap-2">
                 <input
                   value={bankAccountNumber}
@@ -679,32 +712,46 @@ export default function ProfilePage() {
                 <button
                   className="btn-secondary py-2 px-4 text-xs"
                   onClick={handleResolveAccount}
-                  disabled={resolving || !bankCode || bankAccountNumber.trim().length < 6}
+                  disabled={
+                    resolving ||
+                    !bankCode ||
+                    bankAccountNumber.trim().length < 6
+                  }
                 >
                   {resolving ? "Verifying..." : "Verify"}
                 </button>
               </div>
             </div>
             <div className="flex flex-col gap-1.5 md:col-span-2">
-              <label className="text-[10px] uppercase tracking-[0.1em] text-slate-400 font-bold">Account Name</label>
+              <label className="text-[10px] uppercase tracking-[0.1em] text-slate-400 font-bold">
+                Account Name
+              </label>
               <input
                 value={bankAccountName}
                 onChange={(e) => setBankAccountName(e.target.value)}
-                placeholder={resolvedName ? resolvedName : "Resolved automatically after verify"}
+                placeholder={
+                  resolvedName
+                    ? resolvedName
+                    : "Resolved automatically after verify"
+                }
                 className={`bg-white dark:bg-slate-800 border rounded-2xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none font-sans ${
-                  resolvedName ? "border-emerald-300 dark:border-emerald-600" : "border-slate-200 dark:border-slate-700"
+                  resolvedName
+                    ? "border-emerald-300 dark:border-emerald-600"
+                    : "border-slate-200 dark:border-slate-700"
                 }`}
               />
               {resolvedName && (
                 <span className="text-[10px] text-emerald-600 font-medium">
-                  ✓ Verified: {resolvedName} {resolvedBankName ? `· ${resolvedBankName}` : ""}
+                  ✓ Verified: {resolvedName}{" "}
+                  {resolvedBankName ? `· ${resolvedBankName}` : ""}
                 </span>
               )}
             </div>
           </div>
           {matchedUser && (
             <div className="mt-3 rounded-2xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 px-4 py-2.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
-              This account belongs to a Thrift Solution member: <strong>{matchedUser.name}</strong> ({matchedUser.accountNumber}).
+              This account belongs to a Thrift Solution member:{" "}
+              <strong>{matchedUser.name}</strong> ({matchedUser.accountNumber}).
               Transfers to this account will be processed in-app.
             </div>
           )}
@@ -719,7 +766,11 @@ export default function ProfilePage() {
             </div>
           )}
           <div className="flex justify-end mt-4">
-            <button onClick={handleSaveBank} className="btn-primary py-3 px-5 text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-md" disabled={savingBank}>
+            <button
+              onClick={handleSaveBank}
+              className="btn-primary py-3 px-5 text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-md"
+              disabled={savingBank}
+            >
               {savingBank ? "Saving..." : "Save Bank Details"}
             </button>
           </div>
