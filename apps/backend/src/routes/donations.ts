@@ -453,39 +453,10 @@ donationsRouter.post("/webhook/paystack", async (req, res) => {
   }
 });
 
-donationsRouter.post("/webhook/flutterwave", async (req, res) => {
-  try {
-    const hash = crypto
-      .createHmac("sha256", process.env.FLUTTERWAVE_SECRET_KEY || "")
-      .update(JSON.stringify(req.body))
-      .digest("hex");
-
-    if (hash !== req.headers["verif-hash"]) {
-      res.status(400).json({ error: "Invalid signature" });
-      return;
-    }
-
-    const { event, data } = req.body;
-    if (event === "charge.completed" && data.status === "successful") {
-      // Update donation if exists
-      const donation = await findDonationByReference(data.tx_ref);
-      if (donation) {
-        await updateDonationStatus(donation.id, "completed");
-      }
-      
-      // Update wallet funding transaction if exists
-      const transaction = await findTransactionByReference(data.tx_ref);
-      if (transaction && transaction.type === "funding") {
-        await updateTransactionStatus(transaction.id, "completed");
-      }
-    }
-
-    res.sendStatus(200);
-  } catch (err) {
-    console.error("Flutterwave webhook error:", err);
-    res.sendStatus(500);
-  }
-});
+// NOTE: Flutterwave donation webhooks are handled by the centralized
+// webhook at /api/webhooks/flutterwave (flutterwave-webhook.ts). That handler
+// covers charge.completed, reversals, and transfers — removing the need for a
+// separate endpoint here.
 
 donationsRouter.post("/webhook/nomba", async (req, res) => {
   try {

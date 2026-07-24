@@ -218,7 +218,7 @@ export const flutterwaveProvider: PaymentProvider = {
     let response: Response;
     try {
       response = await fetch(
-        `${FLW_BASE}/transactions?from=${fromStr}&status=successful`,
+        `${FLW_BASE}/transactions?from=${fromStr}&status=successful&account_number=${encodeURIComponent(accountNumber)}`,
         {
           headers: { Authorization: `Bearer ${FLW_SECRET}` },
         },
@@ -235,15 +235,8 @@ export const flutterwaveProvider: PaymentProvider = {
     }
 
     const transactions: any[] = data.data || [];
-    const filtered = transactions.filter(
-      (tx: any) =>
-        tx.amount &&
-        (tx.account_number === accountNumber ||
-          tx.meta?.account_number === accountNumber ||
-          tx.narration?.includes(accountNumber))
-    );
 
-    return filtered.map((tx: any) => ({
+    return transactions.map((tx: any) => ({
       id: String(tx.id),
       amount: tx.amount,
       reference: tx.tx_ref || `va_flw_${tx.id}`,

@@ -172,40 +172,30 @@ walletRouter.post("/webhook/paystack", async (req, res) => {
   }
 });
 
-walletRouter.post("/webhook/flutterwave", async (req, res) => {
-  try {
-    const signature = req.headers["verif-hash"];
-    const webhookSecret = process.env.FLUTTERWAVE_WEBHOOK_SECRET || process.env.FLUTTERWAVE_SECRET_KEY || "";
-    const signatureValid =
-      typeof signature === "string" &&
-      signature.length > 0 &&
-      (signature === webhookSecret ||
-        (getRawBody(req) && process.env.FLUTTERWAVE_SECRET_KEY
-          ? crypto.createHmac("sha256", process.env.FLUTTERWAVE_SECRET_KEY).update(getRawBody(req)!).digest("hex") === signature
-          : false));
+// NOTE: Flutterwave wallet funding webhooks are handled by the centralized
+// webhook at /api/webhooks/flutterwave (flutterwave-webhook.ts). That handler
+// covers charge.completed, reversals, and transfers — removing the need for a
+// separate endpoint here.
 
-    if (!signatureValid) {
+walletRouter.post("/webhook/nomba", async (req, res) => {
+  try {
+    const signature = req.headers["x-nomba-signature"];
+    const rawBody = getRawBody(req);
+    const apiKey = process.env.NOMBA_API_KEY || "";
+
+    if (!apiKey || !rawBody || typeof signature !== "string" || !signature) {
+      res.status(400).json({ error: "Missing signature or API key" });
+      return;
+    }
+
+    const expected = crypto.createHmac("sha256", apiKey).update(rawBody).digest("hex");
+    const a = Buffer.from(expected);
+    const b = Buffer.from(signature);
+    if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
       res.status(400).json({ error: "Invalid signature" });
       return;
     }
 
-    const { event, data } = req.body;
-    if (event === "charge.completed" && data.status === "successful") {
-      const transaction = await findTransactionByReference(data.tx_ref);
-      if (transaction && transaction.type === "funding") {
-        await updateTransactionStatus(transaction.id, "completed");
-      }
-    }
-
-    res.sendStatus(200);
-  } catch (err) {
-    console.error("Flutterwave webhook error:", err);
-    res.sendStatus(500);
-  }
-});
-
-walletRouter.post("/webhook/nomba", async (req, res) => {
-  try {
     const { eventType, data } = req.body;
     if (eventType === "PAYMENT_SUCCESS") {
       const transaction = await findTransactionByReference(data.orderId);

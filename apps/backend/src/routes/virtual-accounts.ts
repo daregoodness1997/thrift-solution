@@ -11,6 +11,7 @@ import {
   getKycByUserId,
   hasVirtualAccount,
   isKycVerifiedForVirtualAccount,
+  getAllVirtualAccounts,
 } from "@thrift/db";
 
 const router = Router();
@@ -38,25 +39,6 @@ function verifyHmac(rawBody: Buffer | undefined, secret: string, signature: unkn
 
 function getRawBody(req: Request): Buffer | undefined {
   return (req as unknown as { rawBody?: Buffer }).rawBody;
-}
-
-// Flutterwave sends the "Webhook Secret Hash" you set in the dashboard directly
-// in the `verif-hash` header (plain comparison). Some setups instead sign the
-// raw body with HMAC-SHA256 using the secret key. We accept either so the
-// handler works regardless of how the dashboard was configured.
-function verifyFlutterwave(rawBody: Buffer | undefined, signature: unknown): boolean {
-  if (typeof signature !== "string" || !signature) return false;
-  const webhookSecret = process.env.FLUTTERWAVE_WEBHOOK_SECRET || process.env.FLUTTERWAVE_SECRET_KEY || "";
-
-  if (webhookSecret && signature === webhookSecret) return true;
-
-  if (rawBody && process.env.FLUTTERWAVE_SECRET_KEY) {
-    const expected = crypto.createHmac("sha256", process.env.FLUTTERWAVE_SECRET_KEY).update(rawBody).digest("hex");
-    const a = Buffer.from(expected);
-    const b = Buffer.from(signature);
-    if (a.length === b.length && crypto.timingSafeEqual(a, b)) return true;
-  }
-  return false;
 }
 
 router.get("/providers", (_req: Request, res: Response) => {
@@ -225,41 +207,10 @@ router.get("/", authMiddleware, async (req: Request, res: Response) => {
   }
 });
 
-router.post("/webhook/flutterwave", async (req: Request, res: Response) => {
-  res.status(200).json({ received: true });
-
-  setImmediate(async () => {
-    try {
-      const signature = req.headers["verif-hash"];
-      if (!verifyFlutterwave(getRawBody(req), signature)) {
-        console.error("Flutterwave virtual account webhook: invalid signature");
-        return;
-      }
-
-      const event = req.body;
-      if (event.event !== "charge.completed" || !event.data) return;
-      const data = event.data;
-      if (data.status !== "successful") return;
-
-      const accountNumber =
-        data.account?.account_number || data.account_number || data.meta?.account_number;
-      if (!accountNumber) return;
-
-      const virtualAccount = await getVirtualAccountByAccountNumber(accountNumber);
-      if (!virtualAccount) return;
-
-      const amount = Number(data.amount);
-      const reference = `va_flw_${data.id}`;
-      const description = `Wallet funding via Flutterwave virtual account ${accountNumber}`;
-
-      await creditWallet(virtualAccount.userId, amount, "wallet_funding", description, reference);
-      await updateVirtualAccountLastTransfer(virtualAccount.id);
-    } catch (err) {
-      if (isUniqueViolation(err)) return;
-      console.error("Flutterwave virtual account webhook processing error:", err);
-    }
-  });
-});
+// NOTE: Flutterwave virtual account webhooks are handled by the centralized
+// webhook at /api/webhooks/flutterwave (flutterwave-webhook.ts). That handler
+// covers charge.completed, reversals, and transfers — removing the need for a
+// separate endpoint here.
 
 router.post("/webhook/paystack", async (req: Request, res: Response) => {
   res.status(200).json({ received: true });
@@ -417,7 +368,8 @@ router.post("/reconcile-all", authMiddleware, async (req: Request, res: Response
 
     let accounts: any[];
     if (isAdmin) {
-      accounts = await getVirtualAccountsByUser(userId);
+      const allAccounts = await getAllVirtualAccounts({ page: 1, limit: 10000, status: "active" });
+      accounts = allAccounts.items || [];
     } else {
       accounts = await getVirtualAccountsByUser(userId);
     }

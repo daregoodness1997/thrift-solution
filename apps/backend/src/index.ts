@@ -37,6 +37,7 @@ import { circleInterestJob } from "./jobs/circleInterestJob";
 import { circleContributionJob } from "./jobs/circleContributionJob";
 import { virtualAccountGenerationJob } from "./jobs/virtualAccountJob";
 import { paymentReversalReconciliationJob } from "./jobs/paymentReversalJob";
+import { virtualAccountDepositReconciliation } from "./jobs/virtualAccountDepositJob";
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -93,6 +94,7 @@ cron.schedule("0 0 * * 0", circleInterestJob);
 cron.schedule("0 1 * * 0", circleContributionJob);
 cron.schedule("0 2 * * *", virtualAccountGenerationJob);
 cron.schedule("0 3 * * *", paymentReversalReconciliationJob);
+cron.schedule("0 4 * * *", virtualAccountDepositReconciliation);
 
 import { seedNavigation } from "./seed-navigation-run";
 
