@@ -8,10 +8,7 @@ import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
 import Pagination from "@/components/Pagination";
 import { SimpleTable, SimpleColumn } from "@/components/SimpleTable";
-import {
-  ActionMessage,
-  useFlashMessage,
-} from "@/components/AdminShared";
+import { ActionMessage, useFlashMessage } from "@/components/AdminShared";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const LIMIT = 20;
@@ -86,7 +83,7 @@ export default function AdminWhatsappGroupsPage() {
       show("error", "Failed to fetch groups");
     }
     setLoading(false);
-  }, [token, isAdmin, page, debounced, show]);
+  }, [token, isAdmin, page, debounced]);
 
   useEffect(() => {
     fetchAll();
@@ -94,7 +91,13 @@ export default function AdminWhatsappGroupsPage() {
 
   const openCreate = () => {
     setEditingGroup(null);
-    setFormData({ name: "", description: "", circleName: "", inviteLink: "", pinned: false });
+    setFormData({
+      name: "",
+      description: "",
+      circleName: "",
+      inviteLink: "",
+      pinned: false,
+    });
     setShowCreateModal(true);
   };
 
@@ -150,10 +153,13 @@ export default function AdminWhatsappGroupsPage() {
   const handleDelete = async (group: WhatsappGroup) => {
     if (!confirm(`Delete "${group.name}"? This cannot be undone.`)) return;
     try {
-      const res = await fetch(`${API_URL}/api/admin/whatsapp-groups/${group.id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(
+        `${API_URL}/api/admin/whatsapp-groups/${group.id}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
       const data = await res.json();
       if (data.success) {
         show("success", "Group deleted");
@@ -168,7 +174,8 @@ export default function AdminWhatsappGroupsPage() {
 
   if (authLoading || !isAdmin) return null;
 
-  const inputClass = "w-full rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-[13px] outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400";
+  const inputClass =
+    "w-full rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-[13px] outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400";
 
   const groupColumns: SimpleColumn<WhatsappGroup>[] = [
     {
@@ -176,15 +183,25 @@ export default function AdminWhatsappGroupsPage() {
       header: "Name",
       render: (g) => (
         <div>
-          <span className="block font-semibold text-slate-900 dark:text-white">{g.name}</span>
-          {g.description && <span className="text-[11px] text-slate-500 dark:text-slate-400">{g.description}</span>}
+          <span className="block font-semibold text-slate-900 dark:text-white">
+            {g.name}
+          </span>
+          {g.description && (
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">
+              {g.description}
+            </span>
+          )}
         </div>
       ),
     },
     {
       key: "circleName",
       header: "Circle",
-      render: (g) => <span className="text-slate-500 dark:text-slate-400">{g.circleName || "—"}</span>,
+      render: (g) => (
+        <span className="text-slate-500 dark:text-slate-400">
+          {g.circleName || "—"}
+        </span>
+      ),
     },
     {
       key: "memberCount",
@@ -196,18 +213,23 @@ export default function AdminWhatsappGroupsPage() {
     {
       key: "pinned",
       header: "Pinned",
-      render: (g) => (
+      render: (g) =>
         g.pinned ? (
-          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">Pinned</span>
+          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+            Pinned
+          </span>
         ) : (
           <span className="text-slate-400 dark:text-slate-500">—</span>
-        )
-      ),
+        ),
     },
     {
       key: "createdAt",
       header: "Created",
-      render: (g) => <span className="text-slate-500 dark:text-slate-400">{formatDate(new Date(g.createdAt))}</span>,
+      render: (g) => (
+        <span className="text-slate-500 dark:text-slate-400">
+          {formatDate(new Date(g.createdAt))}
+        </span>
+      ),
     },
     {
       key: "actions",
@@ -215,12 +237,22 @@ export default function AdminWhatsappGroupsPage() {
       align: "right",
       render: (g) => (
         <div className="flex justify-end gap-1.5">
-          <button onClick={(e) => { e.stopPropagation(); openEdit(g); }}
-            className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold border border-blue-400/40 bg-blue-500/[0.06] text-blue-600">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              openEdit(g);
+            }}
+            className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold border border-blue-400/40 bg-blue-500/[0.06] text-blue-600"
+          >
             Edit
           </button>
-          <button onClick={(e) => { e.stopPropagation(); handleDelete(g); }}
-            className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold border border-red-400/40 bg-red-500/[0.06] text-red-600">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDelete(g);
+            }}
+            className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold border border-red-400/40 bg-red-500/[0.06] text-red-600"
+          >
             Delete
           </button>
         </div>
@@ -294,7 +326,9 @@ export default function AdminWhatsappGroupsPage() {
               <input
                 type="text"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 className={inputClass}
                 placeholder="e.g. Savings Tips & Advice"
               />
@@ -305,7 +339,9 @@ export default function AdminWhatsappGroupsPage() {
               </label>
               <textarea
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
                 className={`${inputClass} resize-none`}
                 rows={2}
                 placeholder="What is this group about?"
@@ -318,7 +354,9 @@ export default function AdminWhatsappGroupsPage() {
               <input
                 type="text"
                 value={formData.circleName}
-                onChange={(e) => setFormData({ ...formData, circleName: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, circleName: e.target.value })
+                }
                 className={inputClass}
                 placeholder="e.g. All Circles, Community"
               />
@@ -330,21 +368,30 @@ export default function AdminWhatsappGroupsPage() {
               <input
                 type="url"
                 value={formData.inviteLink}
-                onChange={(e) => setFormData({ ...formData, inviteLink: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, inviteLink: e.target.value })
+                }
                 className={inputClass}
                 placeholder="https://chat.whatsapp.com/..."
               />
-              <p className="mt-1 text-[10px] text-slate-400">Members will use this link to join the WhatsApp group</p>
+              <p className="mt-1 text-[10px] text-slate-400">
+                Members will use this link to join the WhatsApp group
+              </p>
             </div>
             <div className="mb-6 flex items-center gap-2">
               <input
                 type="checkbox"
                 id="pinned"
                 checked={formData.pinned}
-                onChange={(e) => setFormData({ ...formData, pinned: e.target.checked })}
+                onChange={(e) =>
+                  setFormData({ ...formData, pinned: e.target.checked })
+                }
                 className="h-4 w-4 rounded border-gray-300"
               />
-              <label htmlFor="pinned" className="text-xs font-medium text-slate-700 dark:text-slate-300">
+              <label
+                htmlFor="pinned"
+                className="text-xs font-medium text-slate-700 dark:text-slate-300"
+              >
                 Pin this group
               </label>
             </div>
@@ -369,5 +416,3 @@ export default function AdminWhatsappGroupsPage() {
     </div>
   );
 }
-
-
