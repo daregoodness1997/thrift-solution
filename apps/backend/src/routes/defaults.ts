@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { authMiddleware } from "../middleware/auth";
 import { getDefaultsForUser } from "@thrift/db";
+import { Prisma } from "@prisma/client";
 
 export const defaultsRouter = Router();
 
@@ -35,7 +36,7 @@ defaultsRouter.post("/:id/resolve", authMiddleware, async (req, res) => {
 
     await prisma.transaction.update({
       where: { id },
-      data: { status: "completed", metadata },
+      data: { status: "completed", metadata: metadata as Prisma.InputJsonValue },
     });
 
     res.json({ success: true, data: { message: "Default resolved" } });
