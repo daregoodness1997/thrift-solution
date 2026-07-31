@@ -43,7 +43,7 @@ interface PayoutRequest {
     interestEarned: number;
     clearanceFee?: number;
     status: string;
-    circle: { id: string; name: string; amount: number; durationMonths: number; interestRateAnnual: number };
+    circle: { id: string; name: string; amount: number; durationMonths: number; interestRateAnnual: number; payoutMode: string };
   };
 }
 
@@ -60,7 +60,7 @@ const statusStyles: Record<string, { bg: string; color: string; border: string }
 export default function ClearanceManagementPage() {
   const { token } = useAuth();
   const [cfg] = useState<BrandConfig>(config);
-  const [activeTab, setActiveTab] = useState<"group" | "circle">("group");
+  const [activeTab, setActiveTab] = useState<"group" | "circle" | "early">("group");
 
   const [clearances, setClearances] = useState<ClearanceItem[]>([]);
   const [filter, setFilter] = useState<"all" | "cleared" | "partial" | "pending">("all");
@@ -87,12 +87,37 @@ export default function ClearanceManagementPage() {
   const [disbursePin, setDisbursePin] = useState("");
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
+  const [earlyWithdrawals, setEarlyWithdrawals] = useState<PayoutRequest[]>([]);
+  const [ewFilter, setEwFilter] = useState<"all" | "pending" | "approved" | "declined">("all");
+  const [ewPage, setEwPage] = useState(1);
+  const [ewTotalPages, setEwTotalPages] = useState(1);
+  const [ewTotal, setEwTotal] = useState(0);
+  const [ewProcessingId, setEwProcessingId] = useState<string | null>(null);
+  const [ewDeclineNote, setEwDeclineNote] = useState("");
+  const [ewDeclineTarget, setEwDeclineTarget] = useState<string | null>(null);
+
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
   const showMessage = (type: "success" | "error", text: string) => {
     setMessage({ type, text });
     setTimeout(() => setMessage(null), 4000);
   };
+
+  const fetchEarlyWithdrawals = useCallback(async () => {
+    if (!token) return;
+    try {
+      const statusParam = ewFilter === "all" ? "" : `&status=${ewFilter}`;
+      const res = await fetch(`${API_URL}/api/circles/admin/payout-requests?page=${ewPage}&limit=${LIMIT}&accountStatus=active${statusParam}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success) {
+        setEarlyWithdrawals(data.data.items || []);
+        setEwTotalPages(data.data.totalPages || 1);
+        setEwTotal(data.data.total || 0);
+      }
+    } catch {}
+  }, [token, ewPage, ewFilter, API_URL]);
 
   const fetchClearances = useCallback(async () => {
     if (!token) { setLoading(false); return; }
@@ -143,6 +168,7 @@ export default function ClearanceManagementPage() {
   useEffect(() => { fetchClearances(); }, [fetchClearances]);
   useEffect(() => { fetchPaginatedList(); }, [fetchPaginatedList]);
   useEffect(() => { fetchPayoutRequests(); }, [fetchPayoutRequests]);
+  useEffect(() => { if (activeTab === "early") fetchEarlyWithdrawals(); }, [activeTab, fetchEarlyWithdrawals]);
 
   const approveClearance = async (id: string) => {
     if (!token) return;
@@ -285,6 +311,50 @@ export default function ClearanceManagementPage() {
   };
 
   const pendingPRCount = payoutRequests.filter((r) => r.status === "pending").length;
+
+  const pendingEWCount = earlyWithdrawals.filter((r) => r.status === "pending").length;
+
+  const handleApproveEarlyWithdrawal = async (id: string) => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_URL}/api/circles/admin/payout-requests/${id}/approve`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success) {
+        showMessage("success", "Early withdrawal approved. Funds will be returned to user wallet.");
+        fetchEarlyWithdrawals();
+      } else {
+        showMessage("error", data.error || "Failed to approve early withdrawal");
+      }
+    } catch {
+      showMessage("error", "Failed to approve early withdrawal");
+    }
+  };
+
+  const handleDeclineEarlyWithdrawal = async (id: string) => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_URL}/api/circles/admin/payout-requests/${id}/decline`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ note: ewDeclineNote || undefined }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showMessage("success", "Early withdrawal declined");
+        setEwDeclineTarget(null);
+        setEwDeclineNote("");
+        fetchEarlyWithdrawals();
+      } else {
+        showMessage("error", data.error || "Failed to decline early withdrawal");
+      }
+    } catch {
+      showMessage("error", "Failed to decline early withdrawal");
+    }
+    setEwProcessingId(null);
+  };
 
   const clearanceColumns: SimpleColumn<ClearanceItem>[] = [
     {
@@ -482,6 +552,93 @@ export default function ClearanceManagementPage() {
     },
   ];
 
+  const earlyWithdrawalColumns: SimpleColumn<PayoutRequest>[] = [
+    {
+      key: "user",
+      header: "Member",
+      render: (r) => {
+        const initials = r.user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
+        return (
+          <div className="flex items-center gap-2">
+            <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold" style={{ backgroundColor: "#DC262615", color: "#DC2626" }}>{initials}</div>
+            <span className="font-medium text-slate-900 dark:text-white">{r.user.name}</span>
+          </div>
+        );
+      },
+    },
+    {
+      key: "circle",
+      header: "Circle",
+      render: (r) => (
+        <span className="rounded-md px-2 py-0.5 font-mono text-[9px] font-bold uppercase" style={{ backgroundColor: "#DC262612", color: "#DC2626", border: "1px solid #DC262620" }}>{r.circleAccount.circle.name}</span>
+      ),
+    },
+    {
+      key: "principal",
+      header: "Principal",
+      align: "right",
+      mono: true,
+      render: (r) => <span className="font-semibold text-slate-900 dark:text-white">{formatNaira(r.circleAccount.principalAmount)}</span>,
+    },
+    {
+      key: "amount",
+      header: "Withdrawal Amount",
+      align: "right",
+      mono: true,
+      render: (r) => <span className="font-bold text-red-600">{formatNaira(r.amount)}</span>,
+    },
+    {
+      key: "createdAt",
+      header: "Requested",
+      align: "right",
+      mono: true,
+      render: (r) => (
+        <span className="text-slate-500 dark:text-slate-400">
+          {new Date(r.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      align: "right",
+      render: (r) => {
+        const st = statusStyles[r.status] || statusStyles.pending;
+        return (
+          <span className="rounded-md px-2 py-0.5 font-bold uppercase text-[9px]" style={{ backgroundColor: st.bg, color: st.color, border: `1px solid ${st.border}` }}>{r.status}</span>
+        );
+      },
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      align: "right",
+      render: (r) => (
+        <div className="flex justify-end gap-1.5">
+          {r.status === "pending" && (
+            <>
+              <button onClick={(e) => { e.stopPropagation(); handleApproveEarlyWithdrawal(r.id); }} disabled={ewProcessingId === r.id}
+                className="cursor-pointer rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-semibold text-emerald-600"
+                style={{ opacity: ewProcessingId === r.id ? 0.5 : 1 }}>
+                {ewProcessingId === r.id ? "..." : "Approve"}
+              </button>
+              <button onClick={(e) => { e.stopPropagation(); setEwDeclineTarget(r.id); }} disabled={ewProcessingId === r.id}
+                className="cursor-pointer rounded-md border border-red-200 bg-red-50 px-2 py-1 text-[10px] font-semibold text-red-600">
+                Decline
+              </button>
+            </>
+          )}
+          {r.status === "approved" && (
+            <span className="text-[10px] font-semibold text-emerald-600">Approved</span>
+          )}
+          {r.status === "declined" && (
+            <span className="text-[10px] font-semibold text-red-600">Declined</span>
+          )}
+        </div>
+      ),
+    },
+  ];
+
   if (loading) {
     return (
       <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
@@ -517,6 +674,11 @@ export default function ClearanceManagementPage() {
           className="cursor-pointer rounded-full border-[1.5px] px-5 py-2 text-[12px] font-semibold transition-all duration-150"
           style={{ backgroundColor: activeTab === "circle" ? "#2563EB" : "#ffffff", color: activeTab === "circle" ? "#ffffff" : "#717171", borderColor: activeTab === "circle" ? "#2563EB" : "#EAEAEA" }}>
           Circle Payouts {pendingPRCount > 0 && <span className="ml-1 rounded-full bg-red-600 px-1.5 text-[10px] text-white">{pendingPRCount}</span>}
+        </button>
+        <button onClick={() => setActiveTab("early")}
+          className="cursor-pointer rounded-full border-[1.5px] px-5 py-2 text-[12px] font-semibold transition-all duration-150"
+          style={{ backgroundColor: activeTab === "early" ? "#2563EB" : "#ffffff", color: activeTab === "early" ? "#ffffff" : "#717171", borderColor: activeTab === "early" ? "#2563EB" : "#EAEAEA" }}>
+          Early Withdrawals {pendingEWCount > 0 && <span className="ml-1 rounded-full bg-red-600 px-1.5 text-[10px] text-white">{pendingEWCount}</span>}
         </button>
       </div>
 
@@ -614,6 +776,53 @@ export default function ClearanceManagementPage() {
         </>
       )}
 
+      {activeTab === "early" && (
+        <>
+          <StaggerChildren staggerDelay={100} className="mb-8 grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
+            <Card padding="1.5rem">
+              <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">Pending Early Withdrawals</span>
+              <span className="mt-1 block font-mono text-2xl font-bold text-amber-600">{earlyWithdrawals.filter((r) => r.status === "pending").length}</span>
+            </Card>
+            <Card padding="1.5rem">
+              <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">Total Early Withdrawn</span>
+              <span className="mt-1 block font-mono text-2xl font-bold text-slate-900 dark:text-white">
+                {formatNaira(earlyWithdrawals.filter((r) => r.status === "approved" || r.status === "disbursed").reduce((sum, r) => sum + r.amount, 0))}
+              </span>
+            </Card>
+            <Card padding="1.5rem">
+              <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">Total Requests</span>
+              <span className="mt-1 block font-mono text-2xl font-bold text-slate-900 dark:text-white">{ewTotal}</span>
+            </Card>
+          </StaggerChildren>
+
+          <FadeInUp delay={300}>
+            <Card padding="1.5rem">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                <span className="rounded-[0.375rem] px-2 py-0.5 text-[9px] font-bold uppercase" style={{ backgroundColor: "#DC262612", color: "#DC2626" }}>
+                  Early Withdrawal Requests
+                </span>
+                <div className="flex gap-1 rounded-lg bg-slate-100 dark:bg-slate-800 p-1">
+                  {(["all", "pending", "approved", "declined"] as const).map((f) => (
+                    <button key={f} onClick={() => { setEwFilter(f); setEwPage(1); }}
+                      className="cursor-pointer rounded-md px-3 py-1.5 text-[11px] font-semibold capitalize"
+                      style={{ backgroundColor: ewFilter === f ? "#ffffff" : "transparent", color: ewFilter === f ? "#2563EB" : "#717171", boxShadow: ewFilter === f ? "0 1px 3px rgba(0,0,0,0.08)" : "none" }}>
+                      {f}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {earlyWithdrawals.length === 0 ? (
+                <div className="p-8 text-center text-[13px] text-slate-500 dark:text-slate-400">No early withdrawal requests found.</div>
+              ) : (
+                <SimpleTable columns={earlyWithdrawalColumns} data={earlyWithdrawals} minWidth="750px" />
+              )}
+              <Pagination page={ewPage} totalPages={ewTotalPages} total={ewTotal} limit={LIMIT} onPageChange={setEwPage} />
+            </Card>
+          </FadeInUp>
+        </>
+      )}
+
       <FadeInUp delay={400}>
         <Card padding="1.5rem">
           <div className="mb-4">
@@ -656,6 +865,27 @@ export default function ClearanceManagementPage() {
                 className="flex-1 cursor-pointer rounded-lg bg-red-600 px-2.5 py-2.5 text-[13px] font-semibold text-white"
                 style={{ opacity: processingId === declineTarget ? 0.5 : 1 }}>
                 {processingId === declineTarget ? "Declining..." : "Decline"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {ewDeclineTarget && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 p-4" onClick={() => { setEwDeclineTarget(null); setEwDeclineNote(""); }}>
+          <div className="w-full max-w-[400px] rounded-2xl bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.15)]" onClick={(e) => e.stopPropagation()}>
+            <h3 className="mb-2 text-base font-semibold text-slate-900 dark:text-white">Decline Early Withdrawal</h3>
+            <p className="mb-4 text-[12px] text-slate-500 dark:text-slate-400">Optionally provide a reason for declining.</p>
+            <textarea value={ewDeclineNote} onChange={(e) => setEwDeclineNote(e.target.value)} placeholder="Reason (optional)"
+              rows={3}
+              className="mb-4 w-full resize-y rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-[13px] outline-none" />
+            <div className="flex gap-3">
+              <button onClick={() => { setEwDeclineTarget(null); setEwDeclineNote(""); }}
+                className="flex-1 cursor-pointer rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-2.5 text-[13px] font-medium">Cancel</button>
+              <button onClick={() => handleDeclineEarlyWithdrawal(ewDeclineTarget)} disabled={ewProcessingId === ewDeclineTarget}
+                className="flex-1 cursor-pointer rounded-lg bg-red-600 px-2.5 py-2.5 text-[13px] font-semibold text-white"
+                style={{ opacity: ewProcessingId === ewDeclineTarget ? 0.5 : 1 }}>
+                {ewProcessingId === ewDeclineTarget ? "Declining..." : "Decline"}
               </button>
             </div>
           </div>

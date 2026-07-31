@@ -382,7 +382,7 @@ export async function getCircleAccountById(id: string) {
   return prisma.circleAccount.findUnique({
     where: { id },
     include: {
-      circle: { select: { id: true, name: true, amount: true, durationMonths: true, interestRateAnnual: true } },
+      circle: { select: { id: true, name: true, amount: true, durationMonths: true, interestRateAnnual: true, payoutMode: true } },
       user: { select: { id: true, name: true, email: true } },
       interestLogs: { orderBy: { calculatedAt: "desc" }, take: 50 },
     },
@@ -477,10 +477,34 @@ export async function updateCircleAccount(id: string, data: {
 }
 
 export async function earlyWithdrawCircleAccount(id: string, userId: string) {
-  const account = await prisma.circleAccount.findUnique({ where: { id } });
+  const account = await prisma.circleAccount.findUnique({
+    where: { id },
+    include: { circle: true },
+  });
   if (!account) throw new Error("Circle account not found");
   if (account.userId !== userId) throw new Error("Not your account");
   if (account.status !== "active") throw new Error("Account is not active");
+
+  if (account.circle.payoutMode === "clearance") {
+    const existingPending = await prisma.circlePayoutRequest.findFirst({
+      where: { circleAccountId: id, status: "pending" },
+    });
+    if (existingPending) {
+      throw new Error("A withdrawal request is already pending for this account");
+    }
+
+    return prisma.$transaction(async (tx) => {
+      const request = await tx.circlePayoutRequest.create({
+        data: {
+          circleAccountId: id,
+          userId,
+          amount: account.principalAmount,
+        },
+      });
+
+      return { type: "pending" as const, request };
+    });
+  }
 
   return prisma.$transaction(async (tx) => {
     const reference = `CIRCLE-WITHDRAWAL-${id}-${Date.now()}-${nodeCrypto.randomBytes(4).toString("hex")}`;
@@ -757,8 +781,9 @@ export async function getCirclePayoutRequests(params: {
   page?: number;
   limit?: number;
   status?: string;
+  accountStatus?: string;
 }) {
-  const { page = 1, limit = 20, status } = params;
+  const { page = 1, limit = 20, status, accountStatus } = params;
   const where: Record<string, unknown> = {};
   if (status) where.status = status;
 
@@ -768,7 +793,7 @@ export async function getCirclePayoutRequests(params: {
       include: {
         circleAccount: {
           include: {
-            circle: { select: { id: true, name: true, amount: true, durationMonths: true, interestRateAnnual: true } },
+            circle: { select: { id: true, name: true, amount: true, durationMonths: true, interestRateAnnual: true, payoutMode: true } },
           },
         },
         user: { select: { id: true, name: true, email: true } },
@@ -780,7 +805,11 @@ export async function getCirclePayoutRequests(params: {
     prisma.circlePayoutRequest.count({ where }),
   ]);
 
-  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+  const filteredItems = accountStatus
+    ? items.filter((item) => item.circleAccount.status === accountStatus)
+    : items;
+
+  return { items: filteredItems, total: filteredItems.length, page, limit, totalPages: Math.ceil(filteredItems.length / limit) };
 }
 
 export async function getCirclePayoutRequestsByCircle(circleId: string, params?: {
@@ -797,7 +826,7 @@ export async function getCirclePayoutRequestsByCircle(circleId: string, params?:
     prisma.circlePayoutRequest.findMany({
       where,
       include: {
-        circleAccount: { select: { id: true, principalAmount: true, interestEarned: true, clearanceFee: true } },
+        circleAccount: { select: { id: true, principalAmount: true, interestEarned: true, clearanceFee: true, circle: { select: { id: true, name: true, payoutMode: true } } } },
         user: { select: { id: true, name: true, email: true } },
       },
       orderBy: { createdAt: "desc" },
@@ -814,6 +843,7 @@ export async function getCirclePayoutRequestsByUser(userId: string, params?: {
   page?: number;
   limit?: number;
   status?: string;
+  accountStatus?: string;
 }) {
   const page = params?.page ?? 1;
   const limit = params?.limit ?? 20;
@@ -826,7 +856,7 @@ export async function getCirclePayoutRequestsByUser(userId: string, params?: {
       include: {
         circleAccount: {
           include: {
-            circle: { select: { id: true, name: true, amount: true, durationMonths: true, interestRateAnnual: true } },
+            circle: { select: { id: true, name: true, amount: true, durationMonths: true, interestRateAnnual: true, payoutMode: true } },
           },
         },
       },
@@ -837,7 +867,11 @@ export async function getCirclePayoutRequestsByUser(userId: string, params?: {
     prisma.circlePayoutRequest.count({ where }),
   ]);
 
-  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+  const filteredItems = params?.accountStatus
+    ? items.filter((item) => item.circleAccount.status === params.accountStatus)
+    : items;
+
+  return { items: filteredItems, total: filteredItems.length, page, limit, totalPages: Math.ceil(filteredItems.length / limit) };
 }
 
 export async function approveCirclePayoutRequest(requestId: string, reviewerId: string) {
@@ -859,15 +893,18 @@ export async function approveCirclePayoutRequest(requestId: string, reviewerId: 
         amount: request.amount,
         reference,
         status: "completed",
-        description: `Circle maturity payout (approved) [${request.circleAccountId}]`,
+        description: `Circle payout (approved) [${request.circleAccountId}]`,
       },
     });
+
+    const isEarlyWithdrawal = request.circleAccount.status === "active";
 
     await tx.circleAccount.update({
       where: { id: request.circleAccountId },
       data: {
-        status: "withdrawn",
-        totalWithdrawn: toNum(request.circleAccount.principalAmount) + toNum(request.circleAccount.interestEarned),
+        status: isEarlyWithdrawal ? "early_withdrawn" : "withdrawn",
+        totalWithdrawn: request.amount,
+        ...(isEarlyWithdrawal ? { interestEarned: 0 } : {}),
       },
     });
 

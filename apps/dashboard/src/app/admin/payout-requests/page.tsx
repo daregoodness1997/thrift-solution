@@ -39,6 +39,10 @@ interface PayoutRequest {
   createdAt: string;
   user: PayoutRequestUser;
   reviewedBy?: { id: string; name: string; email: string } | null;
+  payoutBankAccountNumber?: string | null;
+  payoutBankCode?: string | null;
+  payoutBankName?: string | null;
+  payoutBankAccountName?: string | null;
 }
 
 const STATUSES = ["pending", "approved", "disbursed", "rejected", "cancelled"] as const;
@@ -272,8 +276,8 @@ export default function AdminPayoutRequestsPage() {
       header: "Bank Account",
       render: (r) => (
         <>
-          <span className="block font-mono text-slate-900 dark:text-white">{r.user.bankAccountNumber || "—"}</span>
-          <span className="block text-[11px] text-slate-500 dark:text-slate-400">{r.user.bankAccountName || r.user.bankName || "—"}</span>
+          <span className="block font-mono text-slate-900 dark:text-white">{r.payoutBankAccountNumber || r.user.bankAccountNumber || "—"}</span>
+          <span className="block text-[11px] text-slate-500 dark:text-slate-400">{r.payoutBankAccountName || r.user.bankAccountName || r.payoutBankName || r.user.bankName || "—"}</span>
         </>
       ),
     },
@@ -415,10 +419,10 @@ export default function AdminPayoutRequestsPage() {
               </button>
             </div>
             <h3 className="mb-1 mt-3 text-base font-semibold text-slate-900 dark:text-white">
-              {formatNaira(target.request.amount)} → {target.request.user.bankAccountName || target.request.user.name}
+              {formatNaira(target.request.amount)} → {target.request.payoutBankAccountName || target.request.user.bankAccountName || target.request.user.name}
             </h3>
             <p className="mb-6 text-[12px] text-slate-500 dark:text-slate-400">
-              {target.request.user.bankName || "—"} · {target.request.user.bankAccountNumber || "—"}
+              {target.request.payoutBankName || target.request.user.bankName || "—"} · {target.request.payoutBankAccountNumber || target.request.user.bankAccountNumber || "—"}
             </p>
 
             {target.kind === "reject" && (

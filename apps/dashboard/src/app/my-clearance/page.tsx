@@ -42,12 +42,14 @@ interface PayoutRequest {
     principalAmount: number;
     interestEarned: number;
     clearanceFee?: number;
+    status: string;
     circle: {
       id: string;
       name: string;
       amount: number;
       durationMonths: number;
       interestRateAnnual: number;
+      payoutMode: string;
     };
   };
 }
@@ -72,7 +74,8 @@ const PAGE_SIZE = 20;
 
 type ClearanceRow =
   | (ClearanceItem & { _type: "group" })
-  | (PayoutRequest & { _type: "circle" });
+  | (PayoutRequest & { _type: "circle" })
+  | (PayoutRequest & { _type: "early" });
 
 function normalizeGroup(c: ClearanceItem): ClearanceRow {
   return { ...c, _type: "group" };
@@ -85,7 +88,7 @@ function normalizeCircle(r: PayoutRequest): ClearanceRow {
 export default function MyClearancePage() {
   const { token } = useAuth();
   const [cfg] = useState<BrandConfig>(config);
-  const [activeTab, setActiveTab] = useState<"group" | "circle">("circle");
+  const [activeTab, setActiveTab] = useState<"group" | "circle" | "early">("circle");
 
   const [clearances, setClearances] = useState<ClearanceItem[]>([]);
   const [stats, setStats] = useState({ totalPayouts: 0, totalContributed: 0 });
@@ -103,6 +106,15 @@ export default function MyClearancePage() {
   const [payoutRequests, setPayoutRequests] = useState<PayoutRequest[]>([]);
   const [prLoading, setPrLoading] = useState(false);
   const [prPagination, setPrPagination] = useState<PaginationInfo>({
+    page: 1,
+    limit: PAGE_SIZE,
+    total: 0,
+    totalPages: 1,
+  });
+
+  const [earlyWithdrawals, setEarlyWithdrawals] = useState<PayoutRequest[]>([]);
+  const [ewLoading, setEwLoading] = useState(false);
+  const [ewPagination, setEwPagination] = useState<PaginationInfo>({
     page: 1,
     limit: PAGE_SIZE,
     total: 0,
@@ -186,7 +198,36 @@ export default function MyClearancePage() {
     fetchPayoutRequests();
   }, [fetchPayoutRequests]);
 
+  const fetchEarlyWithdrawals = useCallback(async () => {
+    if (!token) return;
+    setEwLoading(true);
+    try {
+      const res = await fetch(
+        `${API_URL}/api/circles/payout-requests/my?page=${ewPagination.page}&limit=${PAGE_SIZE}&accountStatus=active`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      const data = await res.json();
+      if (data.success) {
+        setEarlyWithdrawals(data.data.items || []);
+        setEwPagination({
+          page: data.data.page || ewPagination.page,
+          limit: data.data.limit || PAGE_SIZE,
+          total: data.data.total || 0,
+          totalPages: data.data.totalPages || 1,
+        });
+      }
+    } catch {}
+    setEwLoading(false);
+  }, [token, ewPagination.page, API_URL]);
+
+  useEffect(() => {
+    fetchEarlyWithdrawals();
+  }, [fetchEarlyWithdrawals]);
+
   const pendingRequests = payoutRequests.filter((r) => r.status === "pending");
+  const pendingEarlyWithdrawals = earlyWithdrawals.filter((r) => r.status === "pending");
 
   const groupColumns: Column<ClearanceRow>[] = [
     {
@@ -366,16 +407,91 @@ export default function MyClearancePage() {
     },
   ];
 
-  const columns = activeTab === "group" ? groupColumns : circleColumns;
+  const earlyWithdrawalColumns: Column<ClearanceRow>[] = [
+    {
+      key: "circle",
+      header: "Circle",
+      render: (row) =>
+        row._type === "early" ? (
+          <div>
+            <span className="block font-medium text-slate-900 dark:text-white">
+              {row.circleAccount.circle.name}
+            </span>
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">
+              Early Withdrawal · {formatNaira(row.circleAccount.principalAmount)} &middot;{" "}
+              {row.circleAccount.circle.interestRateAnnual}% p.a.
+            </span>
+          </div>
+        ) : null,
+    },
+    {
+      key: "principal",
+      header: "Principal",
+      mono: true,
+      render: (row) =>
+        row._type === "early" ? (
+          <span className="font-semibold" style={{ color: "#2563EB" }}>
+            {formatNaira(row.circleAccount.principalAmount)}
+          </span>
+        ) : null,
+    },
+    {
+      key: "amount",
+      header: "Withdrawal Amount",
+      mono: true,
+      render: (row) =>
+        row._type === "early" ? (
+          <span className="font-bold text-red-600">{formatNaira(row.amount)}</span>
+        ) : null,
+    },
+    {
+      key: "requested",
+      header: "Requested",
+      align: "right",
+      mono: true,
+      render: (row) =>
+        row._type === "early" ? (
+          <span className="text-slate-500 dark:text-slate-400">
+            {new Date(row.createdAt).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            })}
+          </span>
+        ) : null,
+    },
+    {
+      key: "status",
+      header: "Status",
+      align: "right",
+      render: (row) =>
+        row._type === "early" ? (
+          <span
+            className="rounded-[0.375rem] px-2 py-0.5 text-[9px] font-bold capitalize"
+            style={{
+              color: statusColor(row.status),
+              backgroundColor: `${statusColor(row.status)}12`,
+            }}
+          >
+            {row.status}
+          </span>
+        ) : null,
+    },
+  ];
+
+  const columns = activeTab === "group" ? groupColumns : activeTab === "early" ? earlyWithdrawalColumns : circleColumns;
   const rows: ClearanceRow[] =
     activeTab === "group"
       ? paginatedItems.map(normalizeGroup)
-      : payoutRequests.map(normalizeCircle);
+      : activeTab === "early"
+        ? earlyWithdrawals.map((r) => ({ ...r, _type: "early" as const }))
+        : payoutRequests.map(normalizeCircle);
 
-  const activePagination = activeTab === "group" ? pagination : prPagination;
-  const activeLoading = activeTab === "group" ? listLoading : prLoading;
+  const activePagination = activeTab === "group" ? pagination : activeTab === "early" ? ewPagination : prPagination;
+  const activeLoading = activeTab === "group" ? listLoading : activeTab === "early" ? ewLoading : prLoading;
   const setActivePage = (page: number) => {
     if (activeTab === "group") setPagination((p) => ({ ...p, page }));
+    else if (activeTab === "early") setEwPagination((p) => ({ ...p, page }));
     else setPrPagination((p) => ({ ...p, page }));
   };
 
@@ -406,7 +522,7 @@ export default function MyClearancePage() {
 
       <StaggerChildren
         staggerDelay={100}
-        className="mb-8 grid grid-cols-3 gap-6"
+        className="mb-8 grid grid-cols-4 gap-6"
       >
         <StatCard
           label="Total Payouts Received"
@@ -431,24 +547,37 @@ export default function MyClearancePage() {
           positive
           variant={pendingRequests.length > 0 ? "warm" : "default"}
         />
+        <StatCard
+          label="Pending Early Withdrawals"
+          value={String(pendingEarlyWithdrawals.length)}
+          change={
+            pendingEarlyWithdrawals.length > 0 ? "Awaiting admin approval" : "All clear"
+          }
+          positive
+          variant={pendingEarlyWithdrawals.length > 0 ? "warm" : "default"}
+        />
       </StaggerChildren>
 
       <FadeInUp delay={400}>
         <Card padding="1.5rem" className="rounded-3xl">
-          <div className="mb-6 flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800/80 pb-4">
+          <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800/80 pb-4">
             <div>
               <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-950/80 text-blue-700 dark:text-blue-300 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1 w-fit">
                 <BadgeCheck className="w-3.5 h-3.5 text-blue-500" />
-                <span>{activeTab === "group" ? "Group Clearances" : "Circle Payouts"}</span>
+                <span>
+                  {activeTab === "group" ? "Group Clearances" : activeTab === "early" ? "Early Withdrawals" : "Circle Payouts"}
+                </span>
               </span>
               <h2 className="mt-2 text-[1.125rem] font-medium text-slate-900 dark:text-white">
                 {activeTab === "group"
                   ? "My Payout Clearances"
-                  : "My Circle Payout Requests"}
+                  : activeTab === "early"
+                    ? "My Early Withdrawal Requests"
+                    : "My Circle Payout Requests"}
               </h2>
             </div>
             <div className="flex gap-1 rounded-lg bg-slate-100 dark:bg-slate-800 p-1">
-              {(["group", "circle"] as const).map((t) => (
+              {(["group", "circle", "early"] as const).map((t) => (
                 <button
                   key={t}
                   onClick={() => setActiveTab(t)}
@@ -459,7 +588,7 @@ export default function MyClearancePage() {
                     color: activeTab === t ? "#2563EB" : "#717171",
                   }}
                 >
-                  {t === "group" ? "Group" : "Circle"}
+                  {t === "group" ? "Group" : t === "early" ? "Early Withdrawals" : "Circle"}
                 </button>
               ))}
             </div>
@@ -474,7 +603,9 @@ export default function MyClearancePage() {
             emptyMessage={
               activeTab === "group"
                 ? "No clearances yet. Join a circle to start earning payouts."
-                : "No circle payout requests yet. Maturity payouts will appear here when requested."
+                : activeTab === "early"
+                  ? "No early withdrawal requests yet. Requests appear here when the circle has clearance mode enabled."
+                  : "No circle payout requests yet. Maturity payouts will appear here when requested."
             }
             accentColor="#2563EB"
           />

@@ -212,8 +212,12 @@ export default function MyCirclesPage() {
       });
       const data = await res.json();
       if (data.success) {
-        showMessage("success", "Early withdrawal completed. Principal returned to wallet.");
-        setWalletBalance(data.data.walletBalance);
+        if (data.data?.account?.type === "pending") {
+          showMessage("success", "Early withdrawal request submitted for approval.");
+        } else {
+          showMessage("success", "Early withdrawal completed. Principal returned to wallet.");
+          setWalletBalance(data.data.walletBalance);
+        }
         fetchData();
       } else {
         showMessage("error", data.error || "Failed to withdraw");

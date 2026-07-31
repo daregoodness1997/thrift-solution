@@ -217,8 +217,12 @@ export default function CirclesPage() {
       });
       const data = await res.json();
       if (data.success) {
-        triggerToast("Early withdrawal completed. Principal returned to wallet.");
-        setWalletBalance(data.data.walletBalance);
+        if (data.data?.account?.type === "pending") {
+          triggerToast("Early withdrawal request submitted for approval.");
+        } else {
+          triggerToast("Early withdrawal completed. Principal returned to wallet.");
+          setWalletBalance(data.data.walletBalance);
+        }
         fetchData();
       } else {
         triggerToast(data.error || "Failed to withdraw");

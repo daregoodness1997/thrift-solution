@@ -176,7 +176,11 @@ export default function AccountDetailPage() {
       });
       const data = await res.json();
       if (data.success) {
-        showMessage("success", "Early withdrawal completed. Principal returned to wallet.");
+        if (data.data?.account?.type === "pending") {
+          showMessage("success", "Early withdrawal request submitted for approval.");
+        } else {
+          showMessage("success", "Early withdrawal completed. Principal returned to wallet.");
+        }
         fetchData();
       } else {
         showMessage("error", data.error || "Failed to withdraw");

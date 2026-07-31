@@ -7,10 +7,17 @@ function round2(n: number) {
   return Math.round(n * 100) / 100;
 }
 
+const MIN_PAYOUT = 100;
+const MAX_PAYOUT = 500_000;
+
 /**
  * Create a wallet payout request. The user must have an admin-approved payout
  * bank account and enough available wallet balance. Only one in-flight request
  * (pending or approved) is allowed at a time.
+ *
+ * Anti-cheat: bank account details are snapshotted at creation so that
+ * even if an admin later changes the user's bank account, the disbursement
+ * always goes to the original approved account.
  */
 export async function createWalletPayoutRequest(
   userId: string,
@@ -28,8 +35,11 @@ export async function createWalletPayoutRequest(
   }
 
   const value = round2(Number(amount));
-  if (!Number.isFinite(value) || value <= 0) {
-    throw new Error("Amount must be greater than 0");
+  if (!Number.isFinite(value) || value < MIN_PAYOUT) {
+    throw new Error(`Minimum payout is ₦${MIN_PAYOUT.toLocaleString()}`);
+  }
+  if (value > MAX_PAYOUT) {
+    throw new Error(`Maximum payout per request is ₦${MAX_PAYOUT.toLocaleString()}`);
   }
 
   const balance = await getWalletBalance(userId);
@@ -45,7 +55,15 @@ export async function createWalletPayoutRequest(
   }
 
   return prisma.walletPayoutRequest.create({
-    data: { userId, amount: value, note: note?.trim() || undefined },
+    data: {
+      userId,
+      amount: value,
+      note: note?.trim() || undefined,
+      payoutBankAccountNumber: user.bankAccountNumber,
+      payoutBankCode: user.bankCode,
+      payoutBankName: user.bankName || undefined,
+      payoutBankAccountName: user.bankAccountName || undefined,
+    },
     include: { user: { select: { id: true, name: true, email: true } } },
   });
 }
@@ -89,31 +107,31 @@ export async function getAllWalletPayoutRequests(params: {
     ];
   }
 
-  const [items, total] = await Promise.all([
-    prisma.walletPayoutRequest.findMany({
-      where,
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            accountNumber: true,
-            bankName: true,
-            bankCode: true,
-            bankAccountNumber: true,
-            bankAccountName: true,
-            bankAccountStatus: true,
-          },
-        },
-        reviewedBy: { select: { id: true, name: true, email: true } },
-      },
-      orderBy: { createdAt: "desc" },
-      skip: (page - 1) * limit,
-      take: limit,
-    }),
-    prisma.walletPayoutRequest.count({ where }),
-  ]);
+   const [items, total] = await Promise.all([
+     prisma.walletPayoutRequest.findMany({
+       where,
+       include: {
+         user: {
+           select: {
+             id: true,
+             name: true,
+             email: true,
+             accountNumber: true,
+             bankName: true,
+             bankCode: true,
+             bankAccountNumber: true,
+             bankAccountName: true,
+             bankAccountStatus: true,
+           },
+         },
+         reviewedBy: { select: { id: true, name: true, email: true } },
+       },
+       orderBy: { createdAt: "desc" },
+       skip: (page - 1) * limit,
+       take: limit,
+     }),
+     prisma.walletPayoutRequest.count({ where }),
+   ]);
 
   return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
 }
@@ -129,6 +147,7 @@ export async function approveWalletPayoutRequest(
   });
   if (!request) throw new Error("Payout request not found");
   if (request.status !== "pending") throw new Error("Only pending payout requests can be approved");
+  if (request.userId === adminId) throw new Error("Admins cannot approve their own payout requests");
 
   if (request.user.bankAccountStatus !== "approved") {
     throw new Error("User's payout bank account must be approved before disbursement");
@@ -185,21 +204,15 @@ interface DisbursementResult {
 async function assertDisbursable(request: {
   status: string;
   disbursementStatus: string;
-  user: {
-    bankAccountNumber: string | null;
-    bankCode: string | null;
-    bankAccountStatus: string | null;
-  };
+  payoutBankAccountNumber: string | null;
+  payoutBankCode: string | null;
 }) {
   if (request.status === "disbursing") throw new Error("A disbursement for this request is already in progress");
   if (request.status !== "approved") throw new Error("Request must be approved before disbursement");
   if (request.disbursementStatus === "completed") throw new Error("Request is already disbursed");
 
-  if (!request.user.bankAccountNumber || !request.user.bankCode) {
-    throw new Error("User has no saved bank account number and bank code for transfer");
-  }
-  if (request.user.bankAccountStatus !== "approved") {
-    throw new Error("User's payout bank account must be approved by an admin before disbursement");
+  if (!request.payoutBankAccountNumber || !request.payoutBankCode) {
+    throw new Error("Payout bank account details are missing; contact an admin");
   }
 }
 
@@ -221,7 +234,6 @@ export async function disburseWalletPayoutRequestViaFlutterwave(
 ) {
   const request = await prisma.walletPayoutRequest.findUnique({
     where: { id: requestId },
-    include: { user: true },
   });
   if (!request) throw new Error("Payout request not found");
 
@@ -238,8 +250,8 @@ export async function disburseWalletPayoutRequestViaFlutterwave(
   let result: DisbursementResult;
   try {
     result = await transfer({
-      accountNumber: request.user.bankAccountNumber!,
-      bankCode: request.user.bankCode!,
+      accountNumber: request.payoutBankAccountNumber!,
+      bankCode: request.payoutBankCode!,
       amount,
       reference,
     });
@@ -269,7 +281,7 @@ export async function disburseWalletPayoutRequestViaFlutterwave(
         amount,
         reference,
         status: accepted ? "completed" : "failed",
-        description: `Wallet payout to ${request.user.bankAccountName || "your bank account"} (${request.user.bankAccountNumber})`,
+        description: `Wallet payout to ${request.payoutBankAccountName || "your bank account"} (${request.payoutBankAccountNumber})`,
       },
     });
 
@@ -299,13 +311,15 @@ export async function markWalletPayoutRequestDisbursed(
 ) {
   const request = await prisma.walletPayoutRequest.findUnique({
     where: { id: requestId },
-    include: { user: true },
   });
   if (!request) throw new Error("Payout request not found");
   if (request.status !== "approved") throw new Error("Request must be approved before it can be marked disbursed");
   if (request.disbursementStatus === "completed") throw new Error("Request is already disbursed");
   if (!data.proofUrl && !data.reference) {
     throw new Error("Provide a proof URL or a transfer reference");
+  }
+  if (!request.payoutBankAccountNumber || !request.payoutBankCode) {
+    throw new Error("Payout bank account details are missing; contact an admin");
   }
 
   const amount = round2(toNum(request.amount));
@@ -325,7 +339,7 @@ export async function markWalletPayoutRequestDisbursed(
         amount,
         reference,
         status: "completed",
-        description: `Wallet payout to ${request.user.bankAccountName || "your bank account"} (${request.user.bankAccountNumber})`,
+        description: `Wallet payout to ${request.payoutBankAccountName || "your bank account"} (${request.payoutBankAccountNumber})`,
       },
     });
 

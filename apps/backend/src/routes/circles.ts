@@ -443,7 +443,8 @@ circlesRouter.get("/payout-requests/my", authMiddleware, async (req, res) => {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
     const status = req.query.status as string | undefined;
-    const result = await getCirclePayoutRequestsByUser(req.user!.userId, { page, limit, status });
+    const accountStatus = req.query.accountStatus as string | undefined;
+    const result = await getCirclePayoutRequestsByUser(req.user!.userId, { page, limit, status, accountStatus });
     res.json({ success: true, data: result });
   } catch (err) {
     console.error("Get my payout requests error:", err);
@@ -456,7 +457,8 @@ circlesRouter.get("/admin/payout-requests", adminMiddleware, async (req, res) =>
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
     const status = req.query.status as string | undefined;
-    const result = await getCirclePayoutRequests({ page, limit, status });
+    const accountStatus = req.query.accountStatus as string | undefined;
+    const result = await getCirclePayoutRequests({ page, limit, status, accountStatus });
     res.json({ success: true, data: result });
   } catch (err) {
     console.error("Get payout requests error:", err);
