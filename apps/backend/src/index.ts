@@ -80,6 +80,7 @@ app.use("/api/payouts", payoutsRouter);
 app.use("/api/virtual-accounts", virtualAccountsRouter);
 app.use("/api/transactions", transactionsRouter);
 app.use("/api/clearances", clearancesRouter);
+app.use("/api/defaults", defaultsRouter);
 app.use("/api/whatsapp", whatsappRouter);
 app.use("/api/marketplace", marketplaceRouter);
 app.use("/api/jobs", jobsRouter);
