@@ -20,6 +20,7 @@ defaultsRouter.get("/", authMiddleware, async (req, res) => {
 defaultsRouter.post("/:id/resolve", authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
+    const { proofUrl, note } = req.body;
     const { prisma } = await import("@thrift/db");
 
     const transaction = await prisma.transaction.findUnique({ where: { id } });
@@ -28,9 +29,13 @@ defaultsRouter.post("/:id/resolve", authMiddleware, async (req, res) => {
       return;
     }
 
+    const metadata: Record<string, unknown> = { ...(transaction.metadata as Record<string, unknown> || {}) };
+    if (proofUrl) metadata.clearanceProofUrl = proofUrl;
+    if (note) metadata.clearanceNote = note;
+
     await prisma.transaction.update({
       where: { id },
-      data: { status: "completed" },
+      data: { status: "completed", metadata },
     });
 
     res.json({ success: true, data: { message: "Default resolved" } });

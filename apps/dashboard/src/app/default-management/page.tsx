@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { config, BrandConfig } from "@thrift/config";
-import { Card, Button, FadeInUp, StaggerChildren } from "@thrift/ui";
+import { Card, Button, FadeIn, FadeInUp, StaggerChildren } from "@thrift/ui";
 import { formatNaira } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
@@ -26,6 +26,7 @@ const statusStyles: Record<string, { bg: string; color: string; border: string }
   overdue: { bg: "#FEF2F2", color: "#DC2626", border: "#FECACA" },
   pending: { bg: "#FFFBEB", color: "#D97706", border: "#FDE68A" },
   resolved: { bg: "#ECFDF5", color: "#059669", border: "#A7F3D0" },
+  cleared: { bg: "#ECFDF5", color: "#059669", border: "#A7F3D0" },
 };
 
 export default function DefaultManagementPage() {
@@ -39,6 +40,11 @@ export default function DefaultManagementPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [defStats, setDefStats] = useState({ totalDefaults: 0, totalOverdue: 0, totalPending: 0 });
+  const [resolveTarget, setResolveTarget] = useState<string | null>(null);
+  const [proofUrl, setProofUrl] = useState("");
+  const [resolveNote, setResolveNote] = useState("");
+  const [processingResolve, setProcessingResolve] = useState(false);
+  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const LIMIT = 20;
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -75,16 +81,27 @@ export default function DefaultManagementPage() {
 
   const markResolved = async (id: string) => {
     if (!token) return;
+    setProcessingResolve(true);
     try {
       const res = await fetch(`${API_URL}/api/defaults/${id}/resolve`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ proofUrl: proofUrl || undefined, note: resolveNote || undefined }),
       });
       const data = await res.json();
       if (data.success) {
         setDefaults((prev) => prev.map((d) => d.id === id ? { ...d, status: "resolved", daysOverdue: 0 } : d));
+        setResolveTarget(null);
+        setProofUrl("");
+        setResolveNote("");
+        showMessage("success", "Default marked as cleared");
+      } else {
+        showMessage("error", data.error || "Failed to resolve default");
       }
-    } catch {}
+    } catch {
+      showMessage("error", "Failed to resolve default");
+    }
+    setProcessingResolve(false);
   };
 
   const columns: SimpleColumn<DefaultItem>[] = [
@@ -145,17 +162,10 @@ export default function DefaultManagementPage() {
       render: (d) => (
         <div className="flex justify-end gap-1.5">
           {d.status !== "resolved" && (
-            <>
-              <button onClick={(e) => { e.stopPropagation(); sendReminder(d.id); }}
-                className="cursor-pointer rounded-md px-2 py-1 text-[10px] font-semibold"
-                style={{ border: "1px solid #2563EB30", backgroundColor: showReminder === d.id ? "#ECFDF5" : "#2563EB08", color: "#2563EB" }}>
-                {showReminder === d.id ? "Sent!" : "Remind"}
-              </button>
-              <button onClick={(e) => { e.stopPropagation(); markResolved(d.id); }}
-                className="cursor-pointer rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-semibold text-emerald-600">
-                Resolve
-              </button>
-            </>
+            <button onClick={(e) => { e.stopPropagation(); setResolveTarget(d.id); setProofUrl(""); setResolveNote(""); }}
+              className="cursor-pointer rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-semibold text-emerald-600">
+              Mark Cleared
+            </button>
           )}
         </div>
       ),
@@ -193,6 +203,14 @@ export default function DefaultManagementPage() {
           <span className="mt-1 block font-mono text-2xl font-bold text-amber-600">{formatNaira(defStats.totalPending)}</span>
         </Card>
       </StaggerChildren>
+
+      {message && (
+        <FadeIn>
+          <div className={`mb-6 rounded-2xl border px-4 py-3 text-[13px] font-medium ${message.type === "success" ? "bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-900" : "bg-red-50 text-red-600 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-900"}`}>
+            {message.text}
+          </div>
+        </FadeIn>
+      )}
 
       <FadeInUp delay={300}>
         <Card padding="1.5rem" className="mb-6">
@@ -255,6 +273,30 @@ export default function DefaultManagementPage() {
           </div>
         </Card>
       </FadeInUp>
+
+      {resolveTarget && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 p-4" onClick={() => { setResolveTarget(null); setProofUrl(""); setResolveNote(""); }}>
+          <div className="w-full max-w-[400px] rounded-2xl bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.15)]" onClick={(e) => e.stopPropagation()}>
+            <h3 className="mb-2 text-base font-semibold text-slate-900 dark:text-white">Mark Default as Cleared</h3>
+            <p className="mb-4 text-[12px] text-slate-500 dark:text-slate-400">Provide proof of payment and/or a note for the record.</p>
+            <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Proof URL</label>
+            <input type="text" value={proofUrl} onChange={(e) => setProofUrl(e.target.value)} placeholder="e.g. https://..."
+              className="mb-3 w-full rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-[13px] outline-none" />
+            <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Reasoning / Note</label>
+            <textarea value={resolveNote} onChange={(e) => setResolveNote(e.target.value)} placeholder="Optional note" rows={3}
+              className="mb-4 w-full resize-y rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-[13px] outline-none" />
+            <div className="flex gap-3">
+              <button onClick={() => { setResolveTarget(null); setProofUrl(""); setResolveNote(""); }}
+                className="flex-1 cursor-pointer rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-2.5 text-[13px] font-medium">Cancel</button>
+              <button onClick={() => resolveTarget && markResolved(resolveTarget)} disabled={processingResolve}
+                className="flex-1 cursor-pointer rounded-lg bg-emerald-600 px-2.5 py-2.5 text-[13px] font-semibold text-white"
+                style={{ opacity: processingResolve ? 0.5 : 1 }}>
+                {processingResolve ? "Saving..." : "Mark Cleared"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
