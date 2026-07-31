@@ -107,7 +107,7 @@ export default function ClearanceManagementPage() {
     if (!token) return;
     try {
       const statusParam = ewFilter === "all" ? "" : `&status=${ewFilter}`;
-      const res = await fetch(`${API_URL}/api/circles/admin/payout-requests?page=${ewPage}&limit=${LIMIT}&accountStatus=active${statusParam}`, {
+      const res = await fetch(`${API_URL}/api/circles/admin/payout-requests?page=${ewPage}&limit=${LIMIT}&accountStatus=active,early_withdrawn${statusParam}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();

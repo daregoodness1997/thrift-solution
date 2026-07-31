@@ -203,7 +203,7 @@ export default function MyClearancePage() {
     setEwLoading(true);
     try {
       const res = await fetch(
-        `${API_URL}/api/circles/payout-requests/my?page=${ewPagination.page}&limit=${PAGE_SIZE}&accountStatus=active`,
+        `${API_URL}/api/circles/payout-requests/my?page=${ewPagination.page}&limit=${PAGE_SIZE}&accountStatus=active,early_withdrawn`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
