@@ -82,7 +82,7 @@ export { getUserGroups } from "./services/user-groups";
 
 export { getClearancesForUser, getClearanceStats, getUpcomingClearance } from "./services/clearances";
 
-export { getDefaultsForUser, getDefaultsSummary } from "./services/defaults";
+export { getDefaultsForUser, getDefaultsSummary, markDefaultAsCleared } from "./services/defaults";
 
 export {
   getWhatsappGroups,

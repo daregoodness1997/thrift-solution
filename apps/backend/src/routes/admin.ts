@@ -52,6 +52,7 @@ import {
   rejectWalletPayoutRequest,
   disburseWalletPayoutRequestViaFlutterwave,
   markWalletPayoutRequestDisbursed,
+  markDefaultAsCleared,
 } from "@thrift/db";
 import { circleInterestJob } from "../jobs/circleInterestJob";
 import { circleContributionJob } from "../jobs/circleContributionJob";
@@ -1201,6 +1202,25 @@ adminRouter.post("/payout-requests/:id/mark-disbursed", requireAdmin, async (req
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to mark payout request as disbursed";
     console.error("Mark payout request disbursed error:", err);
+    res.status(400).json({ success: false, error: message });
+  }
+});
+
+adminRouter.post("/defaults/:id/clear", requireAdmin, async (req, res) => {
+  try {
+    const { proofUrl, note } = req.body;
+    const result = await markDefaultAsCleared(req.params.id, req.user!.userId, { proofUrl, note });
+    await createAuditLog({
+      ...actor(req),
+      action: "default.clear",
+      entity: "circleDefault",
+      entityId: result.id,
+      metadata: { userId: result.userId, weekNumber: result.weekNumber, clearanceAmount: result.clearanceAmount, proofUrl, note },
+    });
+    res.json({ success: true, data: result });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to mark default as cleared";
+    console.error("Mark default cleared error:", err);
     res.status(400).json({ success: false, error: message });
   }
 });

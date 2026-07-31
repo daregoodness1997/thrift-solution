@@ -88,3 +88,24 @@ export async function getDefaultsForUser(userId: string, opts?: { page?: number;
 
   return { items, total, page, limit, totalPages: Math.ceil(total / limit), stats };
 }
+
+export async function markDefaultAsCleared(
+  defaultId: string,
+  adminId: string,
+  data: { proofUrl?: string; note?: string },
+) {
+  const def = await prisma.circleDefault.findUnique({ where: { id: defaultId } });
+  if (!def) throw new Error("Default record not found");
+  if (def.status !== "outstanding") throw new Error(`Default is already ${def.status}`);
+
+  return prisma.circleDefault.update({
+    where: { id: defaultId },
+    data: {
+      status: "cleared",
+      clearedAt: new Date(),
+      clearedBy: adminId,
+      clearanceProofUrl: data.proofUrl || undefined,
+      clearanceNote: data.note || undefined,
+    },
+  });
+}
