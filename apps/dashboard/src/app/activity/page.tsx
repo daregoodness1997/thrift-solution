@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { Card, FadeInUp } from "@thrift/ui";
 import { formatDate } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
@@ -14,33 +13,15 @@ const LIMIT = 20;
 
 interface AuditLog {
   id: string;
-  actorEmail: string | null;
   action: string;
   entity: string;
   entityId: string | null;
   metadata: string | Record<string, unknown> | null;
   ipAddress: string | null;
   createdAt: string;
-  actor: { id: string; name: string; email: string } | null;
 }
 
-const ENTITIES = [
-  "",
-  "auth",
-  "user",
-  "loan",
-  "kyc",
-  "circle",
-  "wallet",
-  "marketplace",
-  "jobs",
-  "donations",
-  "transfers",
-  "support",
-  "config",
-  "virtualAccount",
-  "cronJob",
-];
+const ENTITIES = ["", "wallet", "loan", "kyc", "marketplace", "jobs", "transfers", "circles", "support", "auth", "user", "donations"];
 
 function parseMetadata(meta: string | Record<string, unknown> | null): Record<string, unknown> | null {
   if (!meta) return null;
@@ -52,11 +33,10 @@ function parseMetadata(meta: string | Record<string, unknown> | null): Record<st
   }
 }
 
-function MetaDetails({ log }: { log: AuditLog }) {
+function ActivityDetails({ log }: { log: AuditLog }) {
   const meta = parseMetadata(log.metadata);
   const statusCode = meta?.statusCode as number | undefined;
   const method = meta?.method as string | undefined;
-  const route = meta?.route as string | undefined;
   const changes = meta?.changes as unknown;
 
   const ok = statusCode === undefined || statusCode < 400;
@@ -70,7 +50,7 @@ function MetaDetails({ log }: { log: AuditLog }) {
         : JSON.stringify(changes);
 
   return (
-    <div className="min-w-[220px] space-y-1">
+    <div className="min-w-[200px] space-y-1">
       <div className="flex items-center gap-1.5">
         {method && (
           <span className="rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 font-mono text-[9px] font-bold text-slate-500 dark:text-slate-400">{method}</span>
@@ -78,7 +58,7 @@ function MetaDetails({ log }: { log: AuditLog }) {
         {statusCode !== undefined && (
           <span className={`rounded px-1.5 py-0.5 font-mono text-[9px] font-bold ${statusColor}`}>{statusCode}</span>
         )}
-        {route && <span className="font-mono text-[9px] text-slate-400">{route}</span>}
+        {log.ipAddress && <span className="font-mono text-[9px] text-slate-400">{log.ipAddress}</span>}
       </div>
       {changeText ? (
         <div className="line-clamp-3 whitespace-pre-wrap break-all font-mono text-[10px] leading-relaxed text-slate-500 dark:text-slate-400">
@@ -91,10 +71,8 @@ function MetaDetails({ log }: { log: AuditLog }) {
   );
 }
 
-export default function AdminAuditLogsPage() {
-  const { user, token, loading: authLoading } = useAuth();
-  const router = useRouter();
-  const isAdmin = user?.role === "admin" || user?.role === "superadmin";
+export default function ActivityPage() {
+  const { token } = useAuth();
 
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -107,12 +85,8 @@ export default function AdminAuditLogsPage() {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
 
-  useEffect(() => {
-    if (!authLoading && user && !isAdmin) router.replace("/");
-  }, [authLoading, user, isAdmin, router]);
-
   const fetchLogs = useCallback(async () => {
-    if (!token || !isAdmin) { setLoading(false); return; }
+    if (!token) { setLoading(false); return; }
     setLoading(true);
     try {
       const params = new URLSearchParams({ page: String(page), limit: String(LIMIT) });
@@ -120,7 +94,7 @@ export default function AdminAuditLogsPage() {
       if (search) params.set("search", search);
       if (from) params.set("from", from);
       if (to) params.set("to", `${to}T23:59:59.999`);
-      const res = await fetch(`${API_URL}/api/admin/audit-logs?${params}`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${API_URL}/api/user/audit-logs?${params}`, { headers: { Authorization: `Bearer ${token}` } });
       const data = await res.json();
       if (data.success) {
         setLogs(data.data.items || []);
@@ -129,7 +103,7 @@ export default function AdminAuditLogsPage() {
       }
     } catch {}
     setLoading(false);
-  }, [token, isAdmin, page, entity, search, from, to]);
+  }, [token, page, entity, search, from, to]);
 
   useEffect(() => { fetchLogs(); }, [fetchLogs]);
 
@@ -138,32 +112,17 @@ export default function AdminAuditLogsPage() {
     setPage(1);
   };
 
-  if (authLoading || !isAdmin) return null;
-
   const logColumns: SimpleColumn<AuditLog>[] = [
     {
       key: "createdAt",
       header: "When",
-      width: "150px",
+      width: "160px",
       render: (log) => <span className="whitespace-nowrap text-slate-500 dark:text-slate-400">{formatDate(new Date(log.createdAt))}</span>,
-    },
-    {
-      key: "actor",
-      header: "Actor",
-      width: "200px",
-      render: (log) => (
-        <div className="min-w-[150px]">
-          <div className="text-slate-900 dark:text-white">{log.actor?.name || log.actorEmail || "—"}</div>
-          {log.actorEmail && log.actor?.name && (
-            <div className="font-mono text-[10px] text-slate-400">{log.actorEmail}</div>
-          )}
-        </div>
-      ),
     },
     {
       key: "action",
       header: "Action",
-      width: "180px",
+      width: "190px",
       render: (log) => (
         <span className="rounded-md bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 font-mono text-[9px] font-bold text-blue-600 dark:text-blue-400">{log.action}</span>
       ),
@@ -171,7 +130,7 @@ export default function AdminAuditLogsPage() {
     {
       key: "entity",
       header: "Entity",
-      width: "110px",
+      width: "120px",
       render: (log) => (
         <span className="text-slate-500 dark:text-slate-400">
           {log.entity}
@@ -182,13 +141,13 @@ export default function AdminAuditLogsPage() {
     {
       key: "metadata",
       header: "Details",
-      render: (log) => <MetaDetails log={log} />,
+      render: (log) => <ActivityDetails log={log} />,
     },
   ];
 
   return (
     <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
-      <PageHeader badgeLabel="Admin" heading="Audit" accentText="Log" description="System-wide record of every activity across the platform." />
+      <PageHeader badgeLabel="Member" heading="My Activity" description="A record of everything you've done on the platform, including changes you made and actions taken on your account." />
 
       <FadeInUp delay={200}>
         <Card padding="1.5rem">
@@ -226,8 +185,8 @@ export default function AdminAuditLogsPage() {
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") applySearch(); }}
-                placeholder="Search actor, action, entity..."
-                className="w-56 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-1.5 text-[11px] text-slate-600 dark:text-slate-300"
+                placeholder="Search action, entity..."
+                className="w-52 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-1.5 text-[11px] text-slate-600 dark:text-slate-300"
               />
               <button onClick={applySearch}
                 className="cursor-pointer rounded-md bg-blue-600 px-3 py-1.5 text-[11px] font-semibold text-white transition-colors hover:bg-blue-700">
@@ -237,11 +196,11 @@ export default function AdminAuditLogsPage() {
           </div>
 
           {loading ? (
-            <div className="p-12 text-center text-[13px] text-slate-500 dark:text-slate-400">Loading logs...</div>
+            <div className="p-12 text-center text-[13px] text-slate-500 dark:text-slate-400">Loading activity...</div>
           ) : logs.length === 0 ? (
-            <div className="p-8 text-center text-[13px] text-slate-500 dark:text-slate-400">No audit logs found.</div>
+            <div className="p-8 text-center text-[13px] text-slate-500 dark:text-slate-400">No activity found.</div>
           ) : (
-            <SimpleTable columns={logColumns} data={logs} minWidth="980px" />
+            <SimpleTable columns={logColumns} data={logs} minWidth="900px" />
           )}
           <Pagination page={page} totalPages={totalPages} total={total} limit={LIMIT} onPageChange={setPage} loading={loading} />
         </Card>

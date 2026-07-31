@@ -107,11 +107,13 @@ function getTransactionTypeColor(type: string) {
     case "circle_deposit": return "#7C3AED";
     case "circle_interest": return "#D97706";
     case "circle_withdrawal": return "#0891B2";
+    case "circle_clearance_fee": return "#D97706";
     default: return "#717171";
   }
 }
 
 function getTransactionTypeLabel(type: string) {
+  if (type === "circle_clearance_fee") return "Clearance Fee";
   return type.split("_").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
 }
 
@@ -582,8 +584,8 @@ export default function AccountDetailPage() {
                       </span>
                     )},
                     { key: "amount", header: "Amount", align: "right", render: (tx) => (
-                      <span className="font-mono font-semibold" style={{ color: tx.type === "circle_withdrawal" ? "#DC2626" : tx.type === "circle_interest" ? "#10B981" : "#2563EB" }}>
-                        {tx.type === "circle_withdrawal" ? "-" : "+"}{formatNaira(tx.amount)}
+                      <span className="font-mono font-semibold" style={{ color: tx.type === "circle_withdrawal" ? "#DC2626" : tx.type === "circle_interest" ? "#10B981" : tx.type === "circle_clearance_fee" ? "#D97706" : "#2563EB" }}>
+                        {tx.type === "circle_withdrawal" || tx.type === "circle_clearance_fee" ? "-" : "+"}{formatNaira(tx.amount)}
                       </span>
                     )},
                     { key: "status", header: "Status", align: "right", render: (tx) => (

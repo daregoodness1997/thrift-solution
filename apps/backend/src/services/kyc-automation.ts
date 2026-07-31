@@ -16,6 +16,7 @@ import {
   setUserIdentity,
   setRegistrationProgress,
   isKycVerifiedForVirtualAccount,
+  encryptField,
 } from "@thrift/db";
 import { creditChek, normaliseCreditReport } from "./creditchek";
 import { getPaymentProvider, resolveVirtualAccount } from "./payments";
@@ -92,7 +93,11 @@ export async function runAutomatedKyc({
   let creditReport: any = null;
   try {
     const cr = await creditChek.getCreditReportAdvanced(sanitisedBvn);
-    if (cr.status) creditReport = normaliseCreditReport(cr.data, "advanced");
+    if (cr.status) {
+      creditReport = normaliseCreditReport(cr.data, "advanced");
+      if (creditReport?.bvn) creditReport.bvn = encryptField(creditReport.bvn);
+      if (creditReport?.raw?.bvn) creditReport.raw.bvn = encryptField(creditReport.raw.bvn);
+    }
   } catch (err) {
     console.warn("[KYC] Credit report fetch failed:", err);
   }
@@ -105,8 +110,8 @@ export async function runAutomatedKyc({
   if (!user) throw new Error("User not found");
 
   const verificationData: any = {
-    bvn: bvnRes.data,
-    nin: ninRes.data,
+    bvn: { ...bvnRes.data, bvn: encryptField(bvnRes.data?.bvn) },
+    nin: { ...ninRes.data, nin: encryptField(ninRes.data?.nin) },
   };
 
   // Prefer the BVN-verified legal name, falling back to NIN, then the
@@ -127,9 +132,9 @@ export async function runAutomatedKyc({
       userId,
       level: 1,
       idType: "bvn",
-      idNumber: sanitisedBvn,
-      bvn: sanitisedBvn,
-      nin: sanitisedNin,
+      idNumber: encryptField(sanitisedBvn)!,
+      bvn: encryptField(sanitisedBvn)!,
+      nin: encryptField(sanitisedNin)!,
       verifiedName,
       creditReport,
       verificationData,
@@ -140,9 +145,9 @@ export async function runAutomatedKyc({
     update: {
       level: 1,
       idType: "bvn",
-      idNumber: sanitisedBvn,
-      bvn: sanitisedBvn,
-      nin: sanitisedNin,
+      idNumber: encryptField(sanitisedBvn)!,
+      bvn: encryptField(sanitisedBvn)!,
+      nin: encryptField(sanitisedNin)!,
       verifiedName,
       creditReport,
       verificationData,

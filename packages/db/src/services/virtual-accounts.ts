@@ -1,4 +1,5 @@
 import { PrismaClient, VirtualAccount } from "@prisma/client";
+import { encryptField, decryptField } from "../encryption";
 
 const prisma = new PrismaClient();
 
@@ -31,8 +32,8 @@ export async function createVirtualAccount(
       reference: params.reference,
       providerRef: params.providerRef,
       isPermanent: params.isPermanent ?? true,
-      bvn: params.bvn,
-      nin: params.nin,
+      bvn: params.bvn ? encryptField(params.bvn) : undefined,
+      nin: params.nin ? encryptField(params.nin) : undefined,
       accountName: params.accountName,
       status: "active",
     },
@@ -108,7 +109,7 @@ export async function deleteVirtualAccount(id: string): Promise<VirtualAccount> 
 }
 
 export async function getUsersWithoutVirtualAccounts(): Promise<{ id: string; email: string; name: string; bvn: string | null; nin: string | null; verifiedName: string | null }[]> {
-  return prisma.$queryRaw`
+  const rows = await prisma.$queryRaw<{ id: string; email: string; name: string; bvn: string | null; nin: string | null; verifiedName: string | null }[]>`
     SELECT u.id, u.email, u.name, k.bvn, k.nin, k.verified_name AS "verifiedName"
     FROM users u
     INNER JOIN kyc k ON k.user_id = u.id AND k.status IN ('verified', 'approved') AND k.deleted_at IS NULL
@@ -121,6 +122,11 @@ export async function getUsersWithoutVirtualAccounts(): Promise<{ id: string; em
     AND k.nin <> ''
     LIMIT 50
   `;
+  return rows.map((row) => ({
+    ...row,
+    bvn: decryptField(row.bvn),
+    nin: decryptField(row.nin),
+  }));
 }
 
 export async function hasVirtualAccountForProvider(

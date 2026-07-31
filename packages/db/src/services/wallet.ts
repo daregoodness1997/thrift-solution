@@ -3,7 +3,7 @@ import { prisma } from "./prisma";
 import { toNum } from "./decimal";
 
 const CREDIT_TYPES = ["funding", "wallet_funding", "payout", "circle_withdrawal", "circle_interest", "referral_earning", "wallet_transfer_received"];
-const DEBIT_TYPES = ["contribution", "circle_deposit", "circle_contribution", "circle_default_clearance", "circle_processing_fee", "wallet_transfer"];
+const DEBIT_TYPES = ["contribution", "circle_deposit", "circle_contribution", "circle_default_clearance", "circle_processing_fee", "circle_clearance_fee", "wallet_transfer", "wallet_payout"];
 
 const COMMITTED_STATUSES = ["active"];
 const MATURED_STATUSES = ["matured"];

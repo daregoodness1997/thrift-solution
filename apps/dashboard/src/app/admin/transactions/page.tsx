@@ -85,7 +85,7 @@ export default function AdminTransactionsPage() {
   if (authLoading || !isAdmin) return null;
 
   const statuses = ["all", "pending", "completed", "failed"];
-  const types = ["all", "contribution", "payout", "donation", "funding", "wallet_funding", "wallet_funding_reversal", "referral_earning", "circle_deposit", "circle_contribution", "circle_withdrawal", "circle_payout", "circle_interest", "circle_processing_fee", "circle_reversal", "loan_payout", "loan_disbursement", "loan_repayment", "registration_fee", "default_clearance", "circle_default_clearance"];
+  const types = ["all", "contribution", "payout", "donation", "funding", "wallet_funding", "wallet_funding_reversal", "referral_earning", "circle_deposit", "circle_contribution", "circle_withdrawal", "circle_payout", "circle_interest", "circle_processing_fee", "circle_clearance_fee", "circle_reversal", "loan_payout", "loan_disbursement", "loan_repayment", "registration_fee", "default_clearance", "circle_default_clearance"];
 
   return (
     <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">

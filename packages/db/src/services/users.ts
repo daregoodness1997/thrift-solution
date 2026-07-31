@@ -1,5 +1,6 @@
 import nodeCrypto from "node:crypto";
 import { prisma } from "./prisma";
+import { encryptField } from "../encryption";
 
 export async function findUserByEmail(email: string) {
   return prisma.user.findUnique({ where: { email } });
@@ -104,8 +105,8 @@ export async function setUserIdentity(userId: string, data: { bvn?: string; nin?
   return prisma.user.update({
     where: { id: userId },
     data: {
-      ...(data.bvn !== undefined ? { bvn: data.bvn } : {}),
-      ...(data.nin !== undefined ? { nin: data.nin } : {}),
+      ...(data.bvn !== undefined ? { bvn: encryptField(data.bvn) } : {}),
+      ...(data.nin !== undefined ? { nin: encryptField(data.nin) } : {}),
     },
   });
 }
@@ -281,4 +282,25 @@ export async function setRegistrationProgress(
       ...(data.completedAt !== undefined ? { registrationCompletedAt: data.completedAt } : {}),
     },
   });
+}
+
+/** Extract the verified name recorded on the user's NIN from the stored CreditChek data. */
+export async function getUserNinName(userId: string): Promise<string | null> {
+  const kyc = await prisma.kyc.findUnique({ where: { userId } });
+  const verificationData = kyc?.verificationData as
+    | { nin?: { firstName?: string; lastName?: string; fullName?: string } }
+    | null
+    | undefined;
+  const nin = verificationData?.nin;
+  const name = [nin?.firstName, nin?.lastName].filter(Boolean).join(" ").trim() || nin?.fullName || null;
+  return name?.trim() || null;
+}
+
+/** Lenient name comparison: ignores case, punctuation and extra whitespace. */
+export function namesMatch(a?: string | null, b?: string | null): boolean {
+  const normalize = (s?: string | null) => (s || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const na = normalize(a);
+  const nb = normalize(b);
+  if (!na || !nb) return false;
+  return na === nb || na.includes(nb) || nb.includes(na);
 }

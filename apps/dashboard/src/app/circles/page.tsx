@@ -41,6 +41,8 @@ interface Circle {
   interestRateAnnual: number;
   maxAccountsPerUser: number;
   payoutMode?: string;
+  clearanceFeeType?: string | null;
+  clearanceFeeValue?: number | null;
   status: string;
   _count?: { accounts: number };
   addons?: { id: string; name: string; description?: string; imageUrl?: string; estimatedCost: number }[];
@@ -58,7 +60,7 @@ interface CircleAccount {
   startDate: string;
   maturityDate: string;
   lastInterestCalculation?: string;
-  circle: { id: string; name: string; cycleType?: string; amount: number; weeklyAmount?: number | null; totalWeeks?: number | null; durationMonths: number; interestRateAnnual: number; autoPayout?: boolean; payoutMode?: string; blockPayoutOnDefault?: boolean; defaultPenaltyType?: string | null; defaultPenaltyValue?: number | null };
+  circle: { id: string; name: string; cycleType?: string; amount: number; weeklyAmount?: number | null; totalWeeks?: number | null; durationMonths: number; interestRateAnnual: number; autoPayout?: boolean; payoutMode?: string; blockPayoutOnDefault?: boolean; defaultPenaltyType?: string | null; defaultPenaltyValue?: number | null; clearanceFeeType?: string | null; clearanceFeeValue?: number | null };
 }
 
 function circleOpenCost(c: { cycleType?: string; amount: number; weeklyAmount?: number | null }) {
@@ -84,6 +86,14 @@ function formatClearanceLabel(penaltyType?: string | null, penaltyValue?: number
   const pv = penaltyValue != null ? penaltyValue : 100;
   if (pt === "percent") return `${100 + pv}%`;
   return `+${formatNaira(pv)}`;
+}
+
+function clearanceFeeDescription(c: { payoutMode?: string; clearanceFeeType?: string | null; clearanceFeeValue?: number | null }) {
+  if (c.payoutMode && c.payoutMode !== "clearance") return null;
+  if (!c.clearanceFeeType || c.clearanceFeeValue == null || c.clearanceFeeValue <= 0) return null;
+  return c.clearanceFeeType === "percent"
+    ? `${c.clearanceFeeValue}% of maturity payout`
+    : formatNaira(c.clearanceFeeValue);
 }
 
 const ACCOUNT_STATUS_COLORS: Record<string, string> = {
@@ -521,8 +531,14 @@ export default function CirclesPage() {
                            <div className="flex flex-wrap gap-2">
                              {(() => {
                                const hasOutstandingDefaults = (account.weeksDefaulted ?? 0) > 0 && account.circle.blockPayoutOnDefault !== false;
+                               const cfDesc = clearanceFeeDescription(account.circle);
                                return (
                                  <>
+                                   {cfDesc && account.status !== "withdrawn" && (
+                                     <div className="w-full rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 px-4 py-2.5 text-[11px] text-amber-700 dark:text-amber-300">
+                                       Clearance fee of <strong>{cfDesc}</strong> will be charged from your wallet when you come for clearance after maturity.
+                                     </div>
+                                   )}
                                    {account.status === "active" && (
                                      <>
                                        <Button variant="primary" size="sm" className="btn-primary py-2.5 px-4 text-xs bg-rose-600 hover:bg-rose-700" disabled={claiming === account.id || daysUntil(account.maturityDate) > 0 || hasOutstandingDefaults} onClick={() => handleClaim(account.id)}>
@@ -623,6 +639,15 @@ export default function CirclesPage() {
                 <span className="text-slate-500 dark:text-slate-400">Total charged now</span>
                 <span className="font-mono font-bold text-rose-600">{formatNaira(circleOpenCost(openModalCircle) * accountCount)}</span>
               </div>
+              {(() => {
+                const cfDesc = clearanceFeeDescription(openModalCircle);
+                return cfDesc ? (
+                  <div className="mb-2 flex justify-between">
+                    <span className="text-slate-500 dark:text-slate-400">Clearance fee (at maturity) / account</span>
+                    <span className="font-mono font-semibold text-amber-600">{cfDesc}</span>
+                  </div>
+                ) : null;
+              })()}
               <div className="flex justify-between">
                 <span className="text-slate-500 dark:text-slate-400">Your wallet</span>
                 <span className="font-mono font-semibold" style={{ color: walletBalance >= circleOpenCost(openModalCircle) * accountCount ? "#059669" : "#DC2626" }}>{formatNaira(walletBalance)}</span>

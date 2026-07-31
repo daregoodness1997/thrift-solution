@@ -1,10 +1,12 @@
 export { prisma, softDelete } from "./services/prisma";
 
+export { encryptField, decryptField } from "./encryption";
+
 export { toNum } from "./services/decimal";
 
 export { getConfig, saveConfig } from "./services/config";
 
-export { findUserByEmail, findUserByPhone, findUserById, findUserByBankAccountNumber, findUserByAccountNumber as findUserByThrAccountNumber, createUser, setEmailVerified, setPhoneVerified, setTotpSecret, setTwoFactorEnabled, setEmail2faEnabled, updatePasswordHash, setUserIdentity, setUserBankDetails, setUserNextOfKin, listPayoutAccounts, approvePayoutAccount, rejectPayoutAccount, setRegistrationProgress, setTransactionPin } from "./services/users";
+export { findUserByEmail, findUserByPhone, findUserById, findUserByBankAccountNumber, findUserByAccountNumber as findUserByThrAccountNumber, createUser, setEmailVerified, setPhoneVerified, setTotpSecret, setTwoFactorEnabled, setEmail2faEnabled, updatePasswordHash, setUserIdentity, setUserBankDetails, setUserNextOfKin, listPayoutAccounts, approvePayoutAccount, rejectPayoutAccount, getUserNinName, namesMatch, setRegistrationProgress, setTransactionPin } from "./services/users";
 
 export {
   createVerificationToken,
@@ -218,7 +220,7 @@ export {
   hasVirtualAccount,
 } from "./services/virtual-accounts";
 
-export { createAuditLog, getAuditLogs } from "./services/audit";
+export { createAuditLog, getAuditLogs, getAuditLogsForUser, computeChanges } from "./services/audit";
 
 export {
   ensureNotificationPreference,
@@ -256,6 +258,18 @@ export {
   findTransferById,
   getUserTransfers,
 } from "./services/transfers";
+
+export {
+  createWalletPayoutRequest,
+  getWalletPayoutRequestsByUser,
+  getAllWalletPayoutRequests,
+  approveWalletPayoutRequest,
+  rejectWalletPayoutRequest,
+  cancelWalletPayoutRequest,
+  disburseWalletPayoutRequestViaFlutterwave,
+  markWalletPayoutRequestDisbursed,
+  reconcileWalletPayoutDisbursementByRef,
+} from "./services/payout-requests";
 
 export {
   getAllTransactions,

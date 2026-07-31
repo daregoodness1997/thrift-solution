@@ -3,14 +3,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { formatNaira, NIGERIAN_BANKS } from "@thrift/utils";
+import { formatNaira } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
 import confetti from "canvas-confetti";
 import {
   Send,
   User,
-  Building2,
   ArrowLeft,
   ArrowRight,
   CheckCircle2,
@@ -28,7 +27,7 @@ interface WalletBalance {
 }
 
 interface RecipientPreview {
-  recipientType: "member" | "bank";
+  recipientType: "member";
   recipientName: string;
   recipientAccount: string;
   recipientBank?: string;
@@ -55,9 +54,7 @@ export default function TransferPage() {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
 
   // Step 1: Recipient
-  const [recipientType, setRecipientType] = useState<"member" | "bank">("member");
   const [accountNumber, setAccountNumber] = useState("");
-  const [bankCode, setBankCode] = useState("");
   const [recipientPreview, setRecipientPreview] = useState<RecipientPreview | null>(null);
   const [resolving, setResolving] = useState(false);
 
@@ -100,12 +97,8 @@ export default function TransferPage() {
   useEffect(() => { fetchBalance(); fetchPinStatus(); }, [fetchBalance, fetchPinStatus]);
 
   const handleResolveRecipient = async () => {
-    if (recipientType === "member" && !accountNumber) {
+    if (!accountNumber) {
       toast.error("Enter a THR account number");
-      return;
-    }
-    if (recipientType === "bank" && (!accountNumber || !bankCode)) {
-      toast.error("Enter account number and bank code");
       return;
     }
 
@@ -114,7 +107,7 @@ export default function TransferPage() {
       const res = await fetch(`${API_URL}/api/transfers/preview`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ recipientType, accountNumber, bankCode }),
+        body: JSON.stringify({ recipientType: "member", accountNumber }),
       });
       const data = await res.json();
       if (data.success) {
@@ -151,9 +144,8 @@ export default function TransferPage() {
         body: JSON.stringify({
           pin,
           amount: parseFloat(amount),
-          recipientType,
+          recipientType: "member",
           accountNumber,
-          bankCode: bankCode || undefined,
           description: description || undefined,
         }),
       });
@@ -235,9 +227,7 @@ export default function TransferPage() {
 
   const resetForm = () => {
     setStep(1);
-    setRecipientType("member");
     setAccountNumber("");
-    setBankCode("");
     setRecipientPreview(null);
     setAmount("");
     setDescription("");
@@ -257,7 +247,7 @@ export default function TransferPage() {
         badgeLabel="Send Money"
         heading="Transfer"
         accentText="Funds"
-        description="Send money to another member or withdraw to a bank account."
+        description="Send money to another member. To move funds to your bank account, request a payout from your wallet instead."
         right={
           <button
             onClick={() => router.push("/wallet")}
@@ -330,66 +320,29 @@ export default function TransferPage() {
             </span>
           </div>
 
-          {/* Type toggle */}
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              onClick={() => { setRecipientType("member"); setAccountNumber(""); setBankCode(""); }}
-              className={`p-4 rounded-2xl border-2 text-left transition-all ${
-                recipientType === "member"
-                  ? "border-blue-500 bg-blue-50 dark:bg-blue-950/30"
-                  : "border-slate-200 dark:border-slate-700 hover:border-slate-300"
-              }`}
-            >
-              <User className={`w-5 h-5 mb-2 ${recipientType === "member" ? "text-blue-600" : "text-slate-400"}`} />
+          {/* Recipient card */}
+          <div className="p-4 rounded-2xl border-2 border-blue-500 bg-blue-50 dark:bg-blue-950/30 flex items-start gap-3">
+            <User className="w-5 h-5 text-blue-600 mt-0.5" />
+            <div>
               <div className="text-xs font-semibold text-slate-900 dark:text-white">Thrift Member</div>
-              <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Send to THR account</div>
-            </button>
-            <button
-              onClick={() => { setRecipientType("bank"); setAccountNumber(""); setBankCode(""); }}
-              className={`p-4 rounded-2xl border-2 text-left transition-all ${
-                recipientType === "bank"
-                  ? "border-blue-500 bg-blue-50 dark:bg-blue-950/30"
-                  : "border-slate-200 dark:border-slate-700 hover:border-slate-300"
-              }`}
-            >
-              <Building2 className={`w-5 h-5 mb-2 ${recipientType === "bank" ? "text-blue-600" : "text-slate-400"}`} />
-              <div className="text-xs font-semibold text-slate-900 dark:text-white">Bank Account</div>
-              <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Withdraw to bank</div>
-            </button>
+              <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                Send to a THR account. Bank withdrawals go through wallet payouts.
+              </div>
+            </div>
           </div>
 
           {/* Account input */}
           <div className="flex flex-col gap-1.5">
             <label className="text-[10px] uppercase tracking-[0.1em] text-slate-400 dark:text-slate-500 font-bold">
-              {recipientType === "member" ? "THR Account Number" : "Account Number"}
+              THR Account Number
             </label>
             <input
               value={accountNumber}
               onChange={(e) => setAccountNumber(e.target.value)}
-              placeholder={recipientType === "member" ? "e.g. THR-000001" : "e.g. 0123456789"}
+              placeholder="e.g. THR-000001"
               className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white outline-none font-mono"
             />
           </div>
-
-          {recipientType === "bank" && (
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] uppercase tracking-[0.1em] text-slate-400 dark:text-slate-500 font-bold">
-                Bank
-              </label>
-              <select
-                value={bankCode}
-                onChange={(e) => setBankCode(e.target.value)}
-                className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs text-slate-900 dark:text-white outline-none font-sans"
-              >
-                <option value="">Select bank</option>
-                {NIGERIAN_BANKS.map((b) => (
-                  <option key={b.code} value={b.code}>
-                    {b.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
 
           <button
             onClick={handleResolveRecipient}

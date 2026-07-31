@@ -1,4 +1,5 @@
 import { Router, Request } from "express";
+import bcrypt from "bcryptjs";
 import { requireAdmin } from "../middleware/auth";
 import { getPaymentProvider, resolveVirtualAccount } from "../services/payments";
 import { notifyUser } from "../services/notifications";
@@ -45,6 +46,12 @@ import {
   getComprehensiveUserDetail,
   getUserDashboardOverview,
   processPaymentReversal,
+  decryptField,
+  getAllWalletPayoutRequests,
+  approveWalletPayoutRequest,
+  rejectWalletPayoutRequest,
+  disburseWalletPayoutRequestViaFlutterwave,
+  markWalletPayoutRequestDisbursed,
 } from "@thrift/db";
 import { circleInterestJob } from "../jobs/circleInterestJob";
 import { circleContributionJob } from "../jobs/circleContributionJob";
@@ -188,9 +195,23 @@ adminRouter.get("/audit-logs", requireAdmin, async (req, res) => {
     const entity = (req.query.entity as string) || undefined;
     const action = (req.query.action as string) || undefined;
     const actorId = (req.query.actorId as string) || undefined;
+    const search = (req.query.search as string) || undefined;
+    const from = (req.query.from as string) || undefined;
+    const to = (req.query.to as string) || undefined;
 
-    const result = await getAuditLogs({ page, limit, entity, action, actorId });
-    res.json({ success: true, data: result });
+    const result = await getAuditLogs({ page, limit, entity, action, actorId, search, from, to });
+    const items = result.items.map((log) => {
+      let metadata: unknown = log.metadata;
+      if (typeof log.metadata === "string" && log.metadata.length > 0) {
+        try {
+          metadata = JSON.parse(log.metadata);
+        } catch {
+          metadata = log.metadata;
+        }
+      }
+      return { ...log, metadata };
+    });
+    res.json({ success: true, data: { ...result, items } });
   } catch (err) {
     console.error("Get audit logs error:", err);
     res.status(500).json({ success: false, error: "Failed to fetch audit logs" });
@@ -490,8 +511,8 @@ adminRouter.post("/virtual-accounts/:userId/regenerate", requireAdmin, async (re
       firstName,
       lastName,
       phone: user.phone || undefined,
-      bvn: user.bvn || undefined,
-      nin: user.nin || undefined,
+      bvn: decryptField(user.bvn) || undefined,
+      nin: decryptField(user.nin) || undefined,
       reference,
       narration: "Thrift Solution Virtual Account",
     });
@@ -507,8 +528,8 @@ adminRouter.post("/virtual-accounts/:userId/regenerate", requireAdmin, async (re
       reference: result.reference,
       providerRef: result.providerRef,
       isPermanent: true,
-      bvn: user.bvn || undefined,
-      nin: user.nin || undefined,
+      bvn: decryptField(user.bvn) || undefined,
+      nin: decryptField(user.nin) || undefined,
       accountName: kyc?.verifiedName || undefined,
     });
 
@@ -1020,6 +1041,166 @@ adminRouter.post("/payout-accounts/:id/reject", requireAdmin, async (req, res) =
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to reject payout account";
     console.error("Reject payout account error:", err);
+    res.status(400).json({ success: false, error: message });
+  }
+});
+
+/* ---------------- Wallet payout requests ---------------- */
+
+adminRouter.get("/payout-requests", requireAdmin, async (req, res) => {
+  try {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 20;
+    const status = (req.query.status as string) || undefined;
+    const search = (req.query.search as string) || undefined;
+
+    const result = await getAllWalletPayoutRequests({ page, limit, status, search });
+    res.json({ success: true, data: result });
+  } catch (err) {
+    console.error("List payout requests error:", err);
+    res.status(500).json({ success: false, error: "Failed to fetch payout requests" });
+  }
+});
+
+adminRouter.post("/payout-requests/:id/approve", requireAdmin, async (req, res) => {
+  try {
+    const note = (req.body?.note as string)?.trim() || undefined;
+    const request = await approveWalletPayoutRequest(req.params.id, req.user!.userId, note);
+    await createAuditLog({
+      ...actor(req),
+      action: "payoutRequest.approve",
+      entity: "walletPayoutRequest",
+      entityId: request.id,
+      metadata: { amount: request.amount, userId: request.userId },
+    });
+    await notifyUser(request.userId, {
+      type: "payout_request",
+      title: "Payout request approved",
+      body: `Your wallet payout request of ₦${Number(request.amount).toLocaleString()} has been approved and will be disbursed to your approved bank account.`,
+      data: { payoutRequestId: request.id, status: "approved" },
+      email: {
+        subject: "Your payout request was approved",
+        heading: "Payout request approved",
+        text: `Your wallet payout request of ₦${Number(request.amount).toLocaleString()} has been approved.`,
+      },
+    });
+    res.json({ success: true, data: request });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to approve payout request";
+    console.error("Approve payout request error:", err);
+    res.status(400).json({ success: false, error: message });
+  }
+});
+
+adminRouter.post("/payout-requests/:id/reject", requireAdmin, async (req, res) => {
+  try {
+    const reason = (req.body?.reason as string)?.trim() || undefined;
+    const request = await rejectWalletPayoutRequest(req.params.id, req.user!.userId, reason);
+    await createAuditLog({
+      ...actor(req),
+      action: "payoutRequest.reject",
+      entity: "walletPayoutRequest",
+      entityId: request.id,
+      metadata: { amount: request.amount, userId: request.userId, reason },
+    });
+    await notifyUser(request.userId, {
+      type: "payout_request",
+      title: "Payout request declined",
+      body: `Your wallet payout request of ₦${Number(request.amount).toLocaleString()} was declined. ${reason ? `Reason: ${reason}` : ""}`,
+      data: { payoutRequestId: request.id, status: "rejected", reason },
+      email: {
+        subject: "Your payout request was declined",
+        heading: "Payout request declined",
+        text: `Your wallet payout request of ₦${Number(request.amount).toLocaleString()} was declined. ${reason ? `Reason: ${reason}` : ""}`,
+      },
+    });
+    res.json({ success: true, data: request });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to reject payout request";
+    console.error("Reject payout request error:", err);
+    res.status(400).json({ success: false, error: message });
+  }
+});
+
+async function requireAdminPin(req: Request, pin?: string): Promise<void> {
+  if (!pin || !/^\d{4,6}$/.test(String(pin))) {
+    throw new Error("PIN must be 4-6 digits");
+  }
+  const admin = await findUserById(req.user!.userId);
+  if (!admin) throw new Error("Admin not found");
+  if (!admin.transactionPinHash) {
+    throw new Error("Please set a transaction PIN in Settings before disbursing");
+  }
+  const pinValid = await bcrypt.compare(String(pin), admin.transactionPinHash);
+  if (!pinValid) throw new Error("Incorrect PIN");
+}
+
+adminRouter.post("/payout-requests/:id/disburse", requireAdmin, async (req, res) => {
+  try {
+    await requireAdminPin(req, req.body?.pin);
+
+    const provider = getPaymentProvider("flutterwave");
+    if (!provider.initiateTransfer) {
+      res.status(400).json({ success: false, error: "Flutterwave transfers are not available" });
+      return;
+    }
+
+    const request = await disburseWalletPayoutRequestViaFlutterwave(
+      req.params.id,
+      req.user!.userId,
+      (params) => provider.initiateTransfer!({ ...params, narration: "Thrift Solution wallet payout" }),
+    );
+    await createAuditLog({
+      ...actor(req),
+      action: "payoutRequest.disburse",
+      entity: "walletPayoutRequest",
+      entityId: request.id,
+      metadata: { amount: request.amount, userId: request.userId, ref: request.disbursementRef },
+    });
+    res.json({ success: true, data: request });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to disburse payout request";
+    console.error("Disburse payout request error:", err);
+    res.status(400).json({ success: false, error: message });
+  }
+});
+
+adminRouter.post("/payout-requests/:id/mark-disbursed", requireAdmin, async (req, res) => {
+  try {
+    await requireAdminPin(req, req.body?.pin);
+
+    const request = await markWalletPayoutRequestDisbursed(req.params.id, req.user!.userId, {
+      proofUrl: req.body?.proofUrl,
+      note: req.body?.note,
+      reference: req.body?.reference,
+    });
+    await createAuditLog({
+      ...actor(req),
+      action: "payoutRequest.markDisbursed",
+      entity: "walletPayoutRequest",
+      entityId: request.id,
+      metadata: {
+        amount: request.amount,
+        userId: request.userId,
+        ref: request.disbursementRef,
+        proofUrl: request.disbursementProofUrl,
+      },
+    });
+    await notifyUser(request.userId, {
+      type: "payout_request",
+      title: "Payout disbursed",
+      body: `Your wallet payout of ₦${Number(request.amount).toLocaleString()} has been sent to your bank account.`,
+      data: { payoutRequestId: request.id, status: "disbursed" },
+      email: {
+        subject: "Your payout has been disbursed",
+        heading: "Payout disbursed",
+        text: `Your wallet payout of ₦${Number(request.amount).toLocaleString()} has been sent to your bank account.`,
+      },
+    });
+    res.json({ success: true, data: request });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to mark payout request as disbursed";
+    console.error("Mark payout request disbursed error:", err);
     res.status(400).json({ success: false, error: message });
   }
 });

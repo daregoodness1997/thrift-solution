@@ -60,6 +60,8 @@ model User {
   circleAccounts          CircleAccount[]
   reviewedPayoutRequests  CirclePayoutRequest[]   @relation("ReviewedBy")
   circlePayoutRequests    CirclePayoutRequest[]   @relation("CirclePayoutRequestUser")
+  walletPayoutRequests    WalletPayoutRequest[]   @relation("WalletPayoutRequestUser")
+  reviewedWalletPayoutRequests WalletPayoutRequest[] @relation("WalletPayoutRequestReviewedBy")
   conversationMembers     ConversationMember[]
   donations               Donation[]
   groupMembers            GroupMember[]
@@ -550,6 +552,8 @@ model Circle {
   maxSubscribers       Int?            @map("max_subscribers")
   processingFeeType    String?         @map("processing_fee_type")
   processingFeeValue   Decimal?        @map("processing_fee_value")
+  clearanceFeeType     String?         @map("clearance_fee_type")
+  clearanceFeeValue    Decimal?        @map("clearance_fee_value")
   defaultPenaltyType   String          @default("percent") @map("default_penalty_type")
   defaultPenaltyValue  Decimal         @default(100) @map("default_penalty_value")
   initialWeeksCount    Int             @default(3) @map("initial_weeks_count")
@@ -597,6 +601,8 @@ model CircleAccount {
   createdAt               DateTime              @default(now()) @map("created_at")
   updatedAt               DateTime              @default(now()) @updatedAt @map("updated_at")
   processingFee           Decimal               @default(0) @map("processing_fee")
+  clearanceFee            Decimal               @default(0) @map("clearance_fee")
+  clearanceFeePaidAt      DateTime?             @map("clearance_fee_paid_at")
   fundedByTxnRef          String?               @map("funded_by_txn_ref")
   reversedAt              DateTime?             @map("reversed_at")
   circle                  Circle                @relation(fields: [circleId], references: [id])
@@ -691,6 +697,32 @@ model CirclePayoutRequest {
   @@index([userId])
   @@index([status])
   @@map("circle_payout_requests")
+}
+
+model WalletPayoutRequest {
+  id                   String        @id @default(uuid())
+  userId               String        @map("user_id")
+  amount               Decimal
+  status               String        @default("pending")
+  note                 String?
+  reviewedById         String?       @map("reviewed_by_id")
+  reviewedAt           DateTime?     @map("reviewed_at")
+  reviewedNote         String?       @map("reviewed_note")
+  disbursementMethod   String?       @map("disbursement_method")
+  disbursementStatus   String        @default("pending") @map("disbursement_status")
+  disbursementRef      String?       @map("disbursement_ref")
+  disbursementProofUrl String?       @map("disbursement_proof_url")
+  disbursementNote     String?       @map("disbursement_note")
+  disbursedById        String?       @map("disbursed_by_id")
+  disbursedAt          DateTime?     @map("disbursed_at")
+  createdAt            DateTime      @default(now()) @map("created_at")
+  updatedAt            DateTime      @default(now()) @updatedAt @map("updated_at")
+  reviewedBy           User?         @relation("WalletPayoutRequestReviewedBy", fields: [reviewedById], references: [id])
+  user                 User          @relation("WalletPayoutRequestUser", fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@map("wallet_payout_requests")
 }
 
 model NavigationItem {

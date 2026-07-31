@@ -11,6 +11,7 @@ import {
   getKycStats,
   getKycAuditLogs,
   findUserById,
+  decryptField,
 } from "@thrift/db";
 
 export const kycRouter = Router();
@@ -75,7 +76,7 @@ kycRouter.get("/", authMiddleware, async (req, res) => {
         level: kyc.level,
         status: kyc.status,
         idType: kyc.idType,
-        idNumber: kyc.idNumber,
+        idNumber: decryptField(kyc.idNumber),
         idDocumentUrl: kyc.idDocumentUrl,
         selfieUrl: kyc.selfieUrl,
         rejectionReason: kyc.rejectionReason,
@@ -222,7 +223,7 @@ kycRouter.post("/", authMiddleware, upload.fields([
         level: kyc!.level,
         status: kyc!.status,
         idType: kyc!.idType,
-        idNumber: kyc!.idNumber,
+        idNumber: decryptField(kyc!.idNumber),
         submittedAt: kyc!.submittedAt,
         documents: kyc!.documents,
       },

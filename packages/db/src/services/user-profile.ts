@@ -1,11 +1,14 @@
 import { prisma } from "./prisma";
 import { getWalletBalance } from "./wallet";
 import { getVirtualAccountsByUser } from "./virtual-accounts";
+import { getUserNinName, namesMatch } from "./users";
 import { toNum } from "./decimal";
 
 export async function getUserProfile(userId: string) {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) return null;
+
+  const ninName = await getUserNinName(userId);
 
   const [totalDonated, totalContributed, totalReceived, activeCircles, defaults, clearances, referralCount, virtualAccounts] = await Promise.all([
     prisma.donation.aggregate({
@@ -59,6 +62,8 @@ export async function getUserProfile(userId: string) {
     bankAccountName: user.bankAccountName,
     bankAccountStatus: user.bankAccountStatus,
     bankAccountRejectionReason: user.bankAccountRejectionReason,
+    ninName,
+    bankAccountNameMatchesNin: ninName ? namesMatch(user.bankAccountName, ninName) : null,
     nextOfKin: {
       name: user.nextOfKinName,
       phone: user.nextOfKinPhone,

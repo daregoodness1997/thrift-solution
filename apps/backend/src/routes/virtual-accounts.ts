@@ -13,6 +13,7 @@ import {
   isKycVerifiedForVirtualAccount,
   getAllVirtualAccounts,
   processPaymentReversal,
+  decryptField,
 } from "@thrift/db";
 
 const router = Router();
@@ -123,8 +124,8 @@ router.post("/create", authMiddleware, async (req: Request, res: Response) => {
       return;
     }
 
-    const bvn = kyc.bvn!;
-    const nin = kyc.nin!;
+    const bvn = decryptField(kyc.bvn)!;
+    const nin = decryptField(kyc.nin)!;
     const reference = generateReference("va");
 
     // Use the KYC-verified legal name for the account, not the user's

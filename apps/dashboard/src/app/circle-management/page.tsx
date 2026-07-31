@@ -28,6 +28,8 @@ interface Circle {
   autoPayout: boolean;
   payoutMode: string;
   blockPayoutOnDefault: boolean;
+  clearanceFeeType?: string | null;
+  clearanceFeeValue?: number | null;
   status: string;
   _count?: { accounts: number };
   addons?: Array<{ id: string; name: string; estimatedCost: number }>;
@@ -267,6 +269,23 @@ export default function CircleManagementPage() {
           <span className="rounded-md px-2 py-0.5 font-mono text-[9px] font-bold uppercase"
             style={{ backgroundColor: isAuto ? "#ECFDF5" : "#FEF2F2", color: isAuto ? "#059669" : "#DC2626", border: `1px solid ${isAuto ? "#A7F3D0" : "#FECACA"}` }}>
             {isAuto ? "Auto" : "Clearance"}
+          </span>
+        );
+      },
+    },
+    {
+      key: "clearanceFee",
+      header: "Clearance Fee",
+      align: "right",
+      mono: true,
+      render: (circle) => {
+        const isClearance = circle.payoutMode ? circle.payoutMode === "clearance" : !circle.autoPayout;
+        if (!isClearance || !circle.clearanceFeeType || circle.clearanceFeeValue == null) {
+          return <span className="text-slate-300 dark:text-slate-600">—</span>;
+        }
+        return (
+          <span className="font-semibold text-slate-900 dark:text-white">
+            {circle.clearanceFeeType === "percent" ? `${circle.clearanceFeeValue}%` : formatNaira(circle.clearanceFeeValue)}
           </span>
         );
       },

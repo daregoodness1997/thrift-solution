@@ -23,12 +23,20 @@ interface CircleAccount {
   startDate: string;
   maturityDate: string;
   lastInterestCalculation?: string;
-  circle: { id: string; name: string; cycleType?: string; amount: number; weeklyAmount?: number | null; totalWeeks?: number | null; durationMonths: number; interestRateAnnual: number; autoPayout?: boolean; payoutMode?: string; blockPayoutOnDefault?: boolean; defaultPenaltyType?: string | null; defaultPenaltyValue?: number | null };
+  circle: { id: string; name: string; cycleType?: string; amount: number; weeklyAmount?: number | null; totalWeeks?: number | null; durationMonths: number; interestRateAnnual: number; autoPayout?: boolean; payoutMode?: string; blockPayoutOnDefault?: boolean; defaultPenaltyType?: string | null; defaultPenaltyValue?: number | null; clearanceFeeType?: string | null; clearanceFeeValue?: number | null };
 }
 
 function isAutoPayout(c: { autoPayout?: boolean; payoutMode?: string }) {
   if (c.payoutMode) return c.payoutMode === "auto";
   return !!c.autoPayout;
+}
+
+function clearanceFeeDescription(c: { payoutMode?: string; clearanceFeeType?: string | null; clearanceFeeValue?: number | null }) {
+  if (c.payoutMode && c.payoutMode !== "clearance") return null;
+  if (!c.clearanceFeeType || c.clearanceFeeValue == null || c.clearanceFeeValue <= 0) return null;
+  return c.clearanceFeeType === "percent"
+    ? `${c.clearanceFeeValue}% of maturity payout`
+    : formatNaira(c.clearanceFeeValue);
 }
 
 function formatClearanceLabel(penaltyType?: string | null, penaltyValue?: number | null) {
@@ -109,6 +117,7 @@ function getTransactionTypeColor(type: string) {
     case "circle_interest": return "#D97706";
     case "circle_withdrawal": return "#0891B2";
     case "circle_reversal": return "#DC2626";
+    case "circle_clearance_fee": return "#D97706";
     default: return "#717171";
   }
 }
@@ -119,6 +128,7 @@ function getTransactionTypeLabel(type: string) {
     case "circle_deposit": return "Deposit";
     case "circle_interest": return "Interest";
     case "circle_withdrawal": return "Withdrawal";
+    case "circle_clearance_fee": return "Clearance Fee";
     default: return type.split("_").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
   }
 }
@@ -461,6 +471,12 @@ export default function MyCirclesPage() {
                                   </div>
                                 )}
 
+                                {clearanceFeeDescription(account.circle) && (
+                                  <div className="mb-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 px-3 py-2 text-[11px] text-amber-700 dark:text-amber-400">
+                                    A clearance fee of <strong>{clearanceFeeDescription(account.circle)}</strong> will be charged from your wallet when you come for clearance after maturity.
+                                  </div>
+                                )}
+
                                 <div className="mb-4 flex gap-1.5">
                                 <button onClick={() => setAccountSubTab("interest")}
                                   className="cursor-pointer rounded-full border-[1.5px] px-4 py-1.5 text-[11px] font-semibold transition-all duration-150"
@@ -508,8 +524,8 @@ export default function MyCirclesPage() {
                                         return <span className="rounded-[0.375rem] px-2 py-0.5 text-[9px] font-bold uppercase font-mono" style={{ color, backgroundColor: `${color}12` }}>{getTransactionTypeLabel(tx.type)}</span>;
                                       }},
                                       { key: "amount", header: "Amount", align: "right", render: (tx) => (
-                                        <span className="font-mono font-semibold" style={{ color: tx.type === "circle_withdrawal" || tx.type === "circle_reversal" ? "#DC2626" : tx.type === "circle_interest" ? "#10B981" : "#2563EB" }}>
-                                          {tx.type === "circle_withdrawal" || tx.type === "circle_reversal" ? "-" : "+"}{formatNaira(tx.amount)}
+                                        <span className="font-mono font-semibold" style={{ color: tx.type === "circle_withdrawal" || tx.type === "circle_reversal" ? "#DC2626" : tx.type === "circle_interest" ? "#10B981" : tx.type === "circle_clearance_fee" ? "#D97706" : "#2563EB" }}>
+                                          {tx.type === "circle_withdrawal" || tx.type === "circle_reversal" || tx.type === "circle_clearance_fee" ? "-" : "+"}{formatNaira(tx.amount)}
                                         </span>
                                       )},
                                       { key: "status", header: "Status", render: (tx) => (

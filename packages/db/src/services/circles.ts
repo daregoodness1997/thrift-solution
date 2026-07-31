@@ -67,6 +67,8 @@ export async function createCircle(data: {
   blockPayoutOnDefault?: boolean;
   processingFeeType?: "fixed" | "percent" | null;
   processingFeeValue?: number | null;
+  clearanceFeeType?: "fixed" | "percent" | null;
+  clearanceFeeValue?: number | null;
   initialWeeksCount?: number;
   defaultPenaltyType?: "percent" | "fixed";
   defaultPenaltyValue?: number;
@@ -82,6 +84,7 @@ export async function createCircle(data: {
   }
   const payoutMode = resolvePayoutMode(data.payoutMode, data.autoPayout);
   const { processingFeeType, processingFeeValue } = resolveProcessingFee(data.processingFeeType, data.processingFeeValue);
+  const { clearanceFeeType, clearanceFeeValue } = resolveClearanceFee(data.clearanceFeeType, data.clearanceFeeValue);
   const initialWeeksCount = data.initialWeeksCount != null && data.initialWeeksCount > 0 ? data.initialWeeksCount : 3;
   const defaultPenaltyType = data.defaultPenaltyType === "fixed" ? "fixed" : "percent";
   const defaultPenaltyValue = data.defaultPenaltyValue != null && data.defaultPenaltyValue >= 0 ? data.defaultPenaltyValue : 100;
@@ -103,6 +106,8 @@ export async function createCircle(data: {
       blockPayoutOnDefault: data.blockPayoutOnDefault,
       processingFeeType,
       processingFeeValue,
+      clearanceFeeType,
+      clearanceFeeValue,
       initialWeeksCount,
       defaultPenaltyType,
       defaultPenaltyValue,
@@ -128,6 +133,27 @@ export function computeProcessingFee(
   if (type !== "fixed" && type !== "percent") return 0;
   if (value == null || value <= 0) return 0;
   const fee = type === "fixed" ? value : baseAmount * (value / 100);
+  return Math.round(fee * 100) / 100;
+}
+
+export function resolveClearanceFee(
+  type?: "fixed" | "percent" | string | null,
+  value?: number | string | null,
+): { clearanceFeeType: "fixed" | "percent" | null; clearanceFeeValue: number | null } {
+  if (type !== "fixed" && type !== "percent") return { clearanceFeeType: null, clearanceFeeValue: null };
+  const numeric = typeof value === "string" ? Number(value) : value;
+  if (numeric == null || isNaN(numeric) || numeric < 0) return { clearanceFeeType: null, clearanceFeeValue: null };
+  return { clearanceFeeType: type, clearanceFeeValue: Math.round(numeric * 100) / 100 };
+}
+
+export function computeClearanceFee(
+  type: "fixed" | "percent" | null | undefined,
+  value: number | null | undefined,
+  payoutAmount: number,
+): number {
+  if (type !== "fixed" && type !== "percent") return 0;
+  if (value == null || value <= 0) return 0;
+  const fee = type === "fixed" ? value : payoutAmount * (value / 100);
   return Math.round(fee * 100) / 100;
 }
 
@@ -202,6 +228,8 @@ export async function updateCircle(id: string, data: {
   blockPayoutOnDefault?: boolean;
   processingFeeType?: "fixed" | "percent" | null;
   processingFeeValue?: number | null;
+  clearanceFeeType?: "fixed" | "percent" | null;
+  clearanceFeeValue?: number | null;
   initialWeeksCount?: number;
   defaultPenaltyType?: "percent" | "fixed";
   defaultPenaltyValue?: number;
@@ -222,6 +250,14 @@ export async function updateCircle(id: string, data: {
     );
     patch.processingFeeType = processingFeeType;
     patch.processingFeeValue = processingFeeValue;
+  }
+  if (data.clearanceFeeType !== undefined || data.clearanceFeeValue !== undefined) {
+    const { clearanceFeeType, clearanceFeeValue } = resolveClearanceFee(
+      data.clearanceFeeType ?? null,
+      data.clearanceFeeValue ?? null,
+    );
+    patch.clearanceFeeType = clearanceFeeType;
+    patch.clearanceFeeValue = clearanceFeeValue;
   }
   return prisma.circle.update({
     where: { id },
@@ -396,7 +432,7 @@ export async function getCircleAccountTransactions(accountId: string, userId: st
   return prisma.transaction.findMany({
     where: {
       userId,
-      type: { in: ["circle_deposit", "circle_withdrawal", "circle_interest"] },
+      type: { in: ["circle_deposit", "circle_withdrawal", "circle_interest", "circle_clearance_fee"] },
       OR: [
         { description: { contains: accountId } },
         { reference: { contains: accountId } },
@@ -516,15 +552,55 @@ export async function matureCircleAccount(id: string, userId: string) {
       throw new Error("A payout request is already pending for this account");
     }
 
-    const request = await prisma.circlePayoutRequest.create({
-      data: {
-        circleAccountId: id,
-        userId,
-        amount: toNum(account.principalAmount) + toNum(account.interestEarned),
-      },
-    });
+    const payoutAmount = toNum(account.principalAmount) + toNum(account.interestEarned);
+    const clearanceFee =
+      account.circle.payoutMode === "clearance"
+        ? computeClearanceFee(
+            account.circle.clearanceFeeType as "fixed" | "percent" | null | undefined,
+            toNum(account.circle.clearanceFeeValue),
+            payoutAmount,
+          )
+        : 0;
 
-    return { type: "payout_request" as const, request };
+    if (clearanceFee > 0) {
+      const balance = await getWalletBalance(userId);
+      if (balance < clearanceFee) {
+        throw new Error(
+          `Insufficient wallet balance to pay clearance fee of ${clearanceFee}. Available: ${balance}`,
+        );
+      }
+    }
+
+    return prisma.$transaction(async (tx) => {
+      if (clearanceFee > 0) {
+        const feeReference = `CIRCLE-CLEARANCE-FEE-${id}-${Date.now()}-${nodeCrypto.randomBytes(4).toString("hex")}`;
+        await tx.transaction.create({
+          data: {
+            userId,
+            type: "circle_clearance_fee",
+            amount: clearanceFee,
+            reference: feeReference,
+            status: "completed",
+            description: `Clearance fee for ${account.circle.name} [${id}]`,
+          },
+        });
+
+        await tx.circleAccount.update({
+          where: { id },
+          data: { clearanceFee, clearanceFeePaidAt: new Date() },
+        });
+      }
+
+      const request = await tx.circlePayoutRequest.create({
+        data: {
+          circleAccountId: id,
+          userId,
+          amount: payoutAmount,
+        },
+      });
+
+      return { type: "payout_request" as const, request };
+    });
   }
 
   const totalPayout = toNum(account.principalAmount) + toNum(account.interestEarned);
@@ -721,7 +797,7 @@ export async function getCirclePayoutRequestsByCircle(circleId: string, params?:
     prisma.circlePayoutRequest.findMany({
       where,
       include: {
-        circleAccount: { select: { id: true, principalAmount: true, interestEarned: true } },
+        circleAccount: { select: { id: true, principalAmount: true, interestEarned: true, clearanceFee: true } },
         user: { select: { id: true, name: true, email: true } },
       },
       orderBy: { createdAt: "desc" },

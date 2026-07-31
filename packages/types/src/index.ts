@@ -25,7 +25,7 @@ export interface Transaction {
   createdAt: Date;
 }
 
-export type TransactionType = "contribution" | "payout" | "donation" | "funding" | "referral_earning" | "circle_deposit" | "circle_withdrawal" | "circle_interest";
+export type TransactionType = "contribution" | "payout" | "donation" | "funding" | "referral_earning" | "circle_deposit" | "circle_withdrawal" | "circle_interest" | "wallet_payout";
 
 export type DonationType = "monetary" | "item";
 
@@ -536,6 +536,8 @@ export interface Circle {
   interestRateAnnual: number;
   maxAccountsPerUser: number;
   status: CircleStatus;
+  clearanceFeeType?: "fixed" | "percent" | null;
+  clearanceFeeValue?: number | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -554,6 +556,8 @@ export interface CircleAccount {
   interestEarned: number;
   totalWithdrawn: number;
   status: CircleAccountStatus;
+  clearanceFee: number;
+  clearanceFeePaidAt?: Date;
   startDate: Date;
   maturityDate: Date;
   lastInterestCalculation?: Date;

@@ -21,9 +21,11 @@ import {
   findRefreshToken,
   deleteRefreshToken,
   deleteUserRefreshTokens,
+  createAuditLog,
   prisma,
 } from "@thrift/db";
 import { signToken, signRefreshToken, verifyRefreshToken, signChallengeToken, verifyChallengeToken, authMiddleware } from "../middleware/auth";
+import { getRequestMeta } from "../middleware/audit";
 import { issueOtp, verifyOtp } from "../services/auth/otp";
 import { generateTotpSecret, getTotpUri, verifyTotp } from "../services/auth/totp";
 import { sendWelcomeEmail, sendPasswordResetEmail } from "../services/auth/emails";
@@ -156,6 +158,16 @@ authRouter.post("/register", async (req, res) => {
       destination: user.email,
       title: "Verify your email",
       actionLabel: "verify your email address",
+    });
+
+    await createAuditLog({
+      ...getRequestMeta(req),
+      actorId: user.id,
+      actorEmail: user.email,
+      action: "auth.register",
+      entity: "user",
+      entityId: user.id,
+      metadata: { method: "email", referredBy: referralCode ?? null },
     });
 
     res.status(201).json({
@@ -462,16 +474,32 @@ authRouter.post("/login", async (req, res) => {
     }
 
     let user;
+    let method: "email" | "phone" = "email";
     if (phone) {
+      method = "phone";
       const normalizedPhone = normalizePhoneForLogin(phone);
       user = await findUserByPhone(normalizedPhone);
       if (!user) {
+        await createAuditLog({
+          ...getRequestMeta(req),
+          actorEmail: phone,
+          action: "auth.login.failed",
+          entity: "auth",
+          metadata: { method, reason: "invalid_identifier" },
+        });
         res.status(401).json({ success: false, error: "Invalid phone number or password" });
         return;
       }
     } else if (email) {
       user = await findUserByEmail(email);
       if (!user) {
+        await createAuditLog({
+          ...getRequestMeta(req),
+          actorEmail: email,
+          action: "auth.login.failed",
+          entity: "auth",
+          metadata: { method, reason: "invalid_identifier" },
+        });
         res.status(401).json({ success: false, error: "Invalid email or password" });
         return;
       }
@@ -482,9 +510,27 @@ authRouter.post("/login", async (req, res) => {
 
     const valid = await bcrypt.compare(password, user.passwordHash);
     if (!valid) {
+      await createAuditLog({
+        ...getRequestMeta(req),
+        actorEmail: user.email,
+        action: "auth.login.failed",
+        entity: "auth",
+        entityId: user.id,
+        metadata: { method, reason: "invalid_password" },
+      });
       res.status(401).json({ success: false, error: "Invalid email or password" });
       return;
     }
+
+    await createAuditLog({
+      ...getRequestMeta(req),
+      actorId: user.id,
+      actorEmail: user.email,
+      action: "auth.login",
+      entity: "auth",
+      entityId: user.id,
+      metadata: { method },
+    });
 
     if (user.twoFactorEnabled && (user.totpSecret || user.email2faEnabled)) {
       const challengeToken = signChallengeToken(user.id);

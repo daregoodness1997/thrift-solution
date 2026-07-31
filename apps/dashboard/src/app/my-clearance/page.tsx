@@ -41,6 +41,7 @@ interface PayoutRequest {
   circleAccount: {
     principalAmount: number;
     interestEarned: number;
+    clearanceFee?: number;
     circle: {
       id: string;
       name: string;
@@ -313,6 +314,21 @@ export default function MyClearancePage() {
           <span className="font-semibold text-slate-900 dark:text-white">
             {formatNaira(row.amount)}
           </span>
+        ) : null,
+    },
+    {
+      key: "clearanceFee",
+      header: "Clearance Fee",
+      mono: true,
+      render: (row) =>
+        row._type === "circle" ? (
+          (row.circleAccount.clearanceFee ?? 0) > 0 ? (
+            <span className="font-semibold text-amber-600">
+              {formatNaira(row.circleAccount.clearanceFee ?? 0)}
+            </span>
+          ) : (
+            <span className="text-slate-300 dark:text-slate-600">—</span>
+          )
         ) : null,
     },
     {

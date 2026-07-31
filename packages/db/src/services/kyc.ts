@@ -1,4 +1,5 @@
 import { prisma } from "./prisma";
+import { encryptField } from "../encryption";
 
 export async function getKycByUserId(userId: string) {
   return prisma.kyc.findUnique({
@@ -50,7 +51,7 @@ export async function createKycSubmission(data: {
         userId: data.userId,
         level,
         idType: data.idType,
-        idNumber: data.idNumber,
+        idNumber: encryptField(data.idNumber)!,
         idDocumentUrl: data.idDocumentUrl ?? null,
         selfieUrl: data.selfieUrl ?? null,
         status: "pending",
@@ -59,7 +60,7 @@ export async function createKycSubmission(data: {
       update: {
         level,
         idType: data.idType,
-        idNumber: data.idNumber,
+        idNumber: encryptField(data.idNumber)!,
         idDocumentUrl: data.idDocumentUrl ?? null,
         selfieUrl: data.selfieUrl ?? null,
         status: "pending",

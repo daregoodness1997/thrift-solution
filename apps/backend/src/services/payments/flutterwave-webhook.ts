@@ -13,6 +13,7 @@ import {
   processPaymentReversal,
   reconcileLoanDisbursementByRef,
   reconcileCirclePayoutDisbursementByRef,
+  reconcileWalletPayoutDisbursementByRef,
   setRegistrationProgress,
 } from "@thrift/db";
 
@@ -180,6 +181,11 @@ async function handleTransfer(data: Record<string, any>): Promise<void> {
       status,
     );
     if (circleMatched) return;
+    const walletMatched = await reconcileWalletPayoutDisbursementByRef(
+      ref,
+      status,
+    );
+    if (walletMatched) return;
   }
 }
 

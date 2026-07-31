@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { findUserById } from "@thrift/db";
+import { auditRequest } from "./audit";
 
 const JWT_SECRET = process.env.JWT_SECRET || "thrift-dev-secret-change-in-production";
 
@@ -49,6 +50,7 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as AuthPayload;
     req.user = decoded;
+    auditRequest(req, res);
     next();
   } catch {
     res.status(401).json({ success: false, error: "Invalid or expired token" });

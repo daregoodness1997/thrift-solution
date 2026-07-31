@@ -1,5 +1,6 @@
 import { prisma } from "./prisma";
 import { toNum } from "./decimal";
+import { decryptField } from "../encryption";
 
 /* ---------------- Transactions ---------------- */
 
@@ -146,7 +147,11 @@ export async function getMembersWithoutVirtualAccount(): Promise<
     AND k.nin IS NOT NULL AND k.nin <> ''
     LIMIT 200
   `;
-  return rows;
+  return rows.map((row) => ({
+    ...row,
+    bvn: decryptField(row.bvn),
+    nin: decryptField(row.nin),
+  }));
 }
 
 /* ---------------- Marketplace moderation ---------------- */

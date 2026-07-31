@@ -204,6 +204,13 @@ const ALL_NAV_ITEMS: NavItem[] = [
     sortOrder: 19,
   },
   {
+    label: "My Activity",
+    href: "/activity",
+    icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",
+    section: "Member Portal",
+    sortOrder: 20,
+  },
+  {
     label: "Profile",
     href: "/profile",
     icon: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z",
@@ -386,6 +393,7 @@ const ROLE_ASSIGNMENTS: Record<string, string[]> = {
     "/circles",
     "/whatsapp-groups",
     "/support",
+    "/activity",
     "/profile",
     "/settings",
   ],

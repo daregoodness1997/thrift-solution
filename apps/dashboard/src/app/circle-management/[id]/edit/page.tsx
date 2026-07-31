@@ -29,6 +29,8 @@ interface Circle {
   blockPayoutOnDefault: boolean;
   processingFeeType?: string | null;
   processingFeeValue?: number | null;
+  clearanceFeeType?: string | null;
+  clearanceFeeValue?: number | null;
   initialWeeksCount?: number | null;
   defaultPenaltyType?: string | null;
   defaultPenaltyValue?: number | null;
@@ -60,6 +62,8 @@ interface CircleFormData {
   blockPayoutOnDefault: boolean;
   processingFeeType: "fixed" | "percent" | "";
   processingFeeValue: string;
+  clearanceFeeType: "fixed" | "percent" | "";
+  clearanceFeeValue: string;
   initialWeeksCount: string;
   defaultPenaltyType: "percent" | "fixed";
   defaultPenaltyValue: string;
@@ -118,6 +122,8 @@ export default function EditCirclePage() {
           blockPayoutOnDefault: c.blockPayoutOnDefault ?? true,
           processingFeeType: (c.processingFeeType as CircleFormData["processingFeeType"]) ?? "",
           processingFeeValue: c.processingFeeValue != null ? String(c.processingFeeValue) : "",
+          clearanceFeeType: (c.clearanceFeeType as CircleFormData["clearanceFeeType"]) ?? "",
+          clearanceFeeValue: c.clearanceFeeValue != null ? String(c.clearanceFeeValue) : "",
           initialWeeksCount: c.initialWeeksCount != null ? String(c.initialWeeksCount) : "3",
           defaultPenaltyType: (c.defaultPenaltyType as CircleFormData["defaultPenaltyType"]) ?? "percent",
           defaultPenaltyValue: c.defaultPenaltyValue != null ? String(c.defaultPenaltyValue) : "100",
@@ -179,6 +185,8 @@ export default function EditCirclePage() {
         blockPayoutOnDefault: form.blockPayoutOnDefault,
         processingFeeType: form.processingFeeType || undefined,
         processingFeeValue: form.processingFeeValue ? Number(form.processingFeeValue) : undefined,
+        clearanceFeeType: form.clearanceFeeType || undefined,
+        clearanceFeeValue: form.clearanceFeeValue ? Number(form.clearanceFeeValue) : undefined,
         initialWeeksCount: isWeekly ? Number(form.initialWeeksCount) || 3 : undefined,
         defaultPenaltyType: form.defaultPenaltyType,
         defaultPenaltyValue: Number(form.defaultPenaltyValue) || 100,
@@ -430,6 +438,31 @@ export default function EditCirclePage() {
               </div>
             </div>
 
+            {form.payoutMode === "clearance" && (
+              <div>
+                <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Clearance Fee (per account)</label>
+                <p className="mb-2 text-[11px] text-slate-500 dark:text-slate-400">Charged from the wallet when a member comes for clearance after maturity. Only applies in clearance payout mode.</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Type</label>
+                    <select value={form.clearanceFeeType} onChange={(e) => setForm((p) => ({ ...p!, clearanceFeeType: e.target.value as CircleFormData["clearanceFeeType"] }))}
+                      className="w-full rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-[13px] outline-none bg-white dark:bg-slate-800 text-slate-900 dark:text-white">
+                      <option value="">None</option>
+                      <option value="fixed">Fixed (₦)</option>
+                      <option value="percent">Percent of maturity payout (%)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Value</label>
+                    <input type="number" step="0.01" value={form.clearanceFeeValue} onChange={(e) => setForm((p) => ({ ...p!, clearanceFeeValue: e.target.value }))}
+                      placeholder={form.clearanceFeeType === "percent" ? "e.g. 2" : "e.g. 500"}
+                      disabled={!form.clearanceFeeType}
+                      className="w-full rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 font-mono text-[13px] outline-none disabled:bg-slate-100 dark:disabled:bg-slate-800 bg-white dark:bg-slate-800 text-slate-900 dark:text-white" />
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="rounded-2xl border border-slate-200 dark:border-slate-700 p-5">
               <div className="mb-4">
                 <label className="block text-[11px] font-semibold text-slate-900 dark:text-white">Defaults & Penalties</label>
@@ -629,6 +662,16 @@ export default function EditCirclePage() {
                             {form.processingFeeType === "percent"
                               ? `${form.processingFeeValue}% (${formatNaira(principal * (Number(form.processingFeeValue) / 100))})`
                               : formatNaira(Number(form.processingFeeValue))}
+                          </span>
+                        </div>
+                      ) : null}
+                      {form.payoutMode === "clearance" && form.clearanceFeeType && form.clearanceFeeValue ? (
+                        <div className="mb-1 flex justify-between">
+                          <span className="text-slate-500 dark:text-slate-400">Clearance Fee</span>
+                          <span className="font-mono font-semibold text-slate-900 dark:text-white">
+                            {form.clearanceFeeType === "percent"
+                              ? `${form.clearanceFeeValue}% of payout`
+                              : formatNaira(Number(form.clearanceFeeValue))}
                           </span>
                         </div>
                       ) : null}

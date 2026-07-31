@@ -31,6 +31,8 @@ interface UserProfile {
   bankAccountName?: string | null;
   bankAccountStatus?: string | null;
   bankAccountRejectionReason?: string | null;
+  ninName?: string | null;
+  bankAccountNameMatchesNin?: boolean | null;
   nextOfKin?: {
     name?: string | null;
     phone?: string | null;
@@ -115,6 +117,8 @@ export default function ProfilePage() {
   const [bankError, setBankError] = useState("");
   const [bankStatus, setBankStatus] = useState<string | null>(null);
   const [bankRejectionReason, setBankRejectionReason] = useState<string | null>(null);
+  const [ninName, setNinName] = useState<string | null>(null);
+  const [nameMismatch, setNameMismatch] = useState(false);
   const [nextOfKinName, setNextOfKinName] = useState("");
   const [nextOfKinPhone, setNextOfKinPhone] = useState("");
   const [nextOfKinEmail, setNextOfKinEmail] = useState("");
@@ -166,6 +170,11 @@ export default function ProfilePage() {
         setBankAccountName(profileData.data.bankAccountName || "");
         setBankStatus(profileData.data.bankAccountStatus || null);
         setBankRejectionReason(profileData.data.bankAccountRejectionReason || null);
+        setNinName(profileData.data.ninName || null);
+        setNameMismatch(
+          profileData.data.bankAccountNameMatchesNin === false &&
+            Boolean(profileData.data.bankAccountNumber),
+        );
         setNextOfKinName(profileData.data.nextOfKin?.name || "");
         setNextOfKinPhone(profileData.data.nextOfKin?.phone || "");
         setNextOfKinEmail(profileData.data.nextOfKin?.email || "");
@@ -247,6 +256,10 @@ export default function ProfilePage() {
         );
         setBankStatus(data.data.bankAccountStatus || "pending");
         setBankRejectionReason(data.data.bankAccountRejectionReason || null);
+        if (data.data.ninName) {
+          setNinName(data.data.ninName);
+          setNameMismatch(data.data.nameMatchesNin === false);
+        }
         setBankSaved(true);
         setTimeout(() => setBankSaved(false), 2000);
       } else {
@@ -321,6 +334,8 @@ export default function ProfilePage() {
         setResolvedBankName(data.data.bankName);
         setBankName(data.data.bankName || bankName);
         setBankAccountName(data.data.accountName);
+        setNinName(data.data.ninName || null);
+        setNameMismatch(data.data.nameMatchesNin === false);
         if (data.data.isThriftUser && data.data.thriftUser) {
           setMatchedUser({
             name: data.data.thriftUser.name,
@@ -772,6 +787,13 @@ export default function ProfilePage() {
               Please review and resubmit.
             </div>
           )}
+          {bankAccountNumber && nameMismatch && ninName && (
+            <div className="mb-3 rounded-2xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/40 px-4 py-2.5 text-xs font-medium text-red-700 dark:text-red-400">
+              The account name on this payout account does not match the name on
+              your NIN ({ninName}). The name on your bank account must match the
+              name on your NIN.
+            </div>
+          )}
           <p className="text-[12px] text-slate-500 dark:text-slate-400 mb-4">
             Used for circle payout disbursements via bank transfer. Any new or
             updated account must be approved by an admin before it can receive
@@ -793,6 +815,8 @@ export default function ProfilePage() {
                   setResolvedName("");
                   setMatchedUser(null);
                   setResolveError("");
+                  setBankAccountName("");
+                  setNameMismatch(false);
                 }}
                 className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none font-sans"
               >
@@ -816,6 +840,8 @@ export default function ProfilePage() {
                     setResolvedName("");
                     setMatchedUser(null);
                     setResolveError("");
+                    setBankAccountName("");
+                    setNameMismatch(false);
                   }}
                   placeholder="10-digit NUBAN"
                   maxLength={15}
@@ -840,13 +866,13 @@ export default function ProfilePage() {
               </label>
               <input
                 value={bankAccountName}
-                onChange={(e) => setBankAccountName(e.target.value)}
+                readOnly
                 placeholder={
                   resolvedName
                     ? resolvedName
-                    : "Resolved automatically after verify"
+                    : "Verify your account number to resolve the account name"
                 }
-                className={`bg-white dark:bg-slate-800 border rounded-2xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none font-sans ${
+                className={`bg-slate-50 dark:bg-slate-800/60 border rounded-2xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none font-sans cursor-not-allowed ${
                   resolvedName
                     ? "border-emerald-300 dark:border-emerald-600"
                     : "border-slate-200 dark:border-slate-700"
@@ -856,6 +882,12 @@ export default function ProfilePage() {
                 <span className="text-[10px] text-emerald-600 font-medium">
                   ✓ Verified: {resolvedName}{" "}
                   {resolvedBankName ? `· ${resolvedBankName}` : ""}
+                </span>
+              )}
+              {nameMismatch && ninName && (
+                <span className="text-[10px] font-medium text-red-600 dark:text-red-400">
+                  ⚠ This account name does not match the name on your NIN (
+                  {ninName}).
                 </span>
               )}
             </div>

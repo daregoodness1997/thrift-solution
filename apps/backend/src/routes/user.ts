@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { authMiddleware } from "../middleware/auth";
-import { getUserProfile, updateUserProfile, getUserGroups, setUserBankDetails, setUserNextOfKin, findUserByBankAccountNumber, getDefaultsSummary, getUpcomingClearance } from "@thrift/db";
+import { getUserProfile, updateUserProfile, getUserGroups, setUserBankDetails, setUserNextOfKin, findUserByBankAccountNumber, getDefaultsSummary, getUpcomingClearance, getUserNinName, namesMatch, getAuditLogsForUser } from "@thrift/db";
 import { resolveAccountNumber } from "../services/payments";
 
 export const userRouter = Router();
@@ -39,6 +39,7 @@ userRouter.put("/bank-details", authMiddleware, async (req, res) => {
       bankAccountNumber,
       bankAccountName,
     });
+    const ninName = await getUserNinName(req.user!.userId);
     res.json({
       success: true,
       data: {
@@ -48,6 +49,8 @@ userRouter.put("/bank-details", authMiddleware, async (req, res) => {
         bankAccountName: updated.bankAccountName,
         bankAccountStatus: updated.bankAccountStatus,
         bankAccountRejectionReason: updated.bankAccountRejectionReason,
+        ninName,
+        nameMatchesNin: ninName ? namesMatch(updated.bankAccountName, ninName) : null,
       },
     });
   } catch (err) {
@@ -107,6 +110,9 @@ userRouter.post("/resolve-account", authMiddleware, async (req, res) => {
 
     const thriftUser = await findUserByBankAccountNumber(resolution.accountNumber);
 
+    const ninName = await getUserNinName(req.user!.userId);
+    const nameMatchesNin = ninName ? namesMatch(resolution.accountName, ninName) : null;
+
     res.json({
       success: true,
       data: {
@@ -114,6 +120,8 @@ userRouter.post("/resolve-account", authMiddleware, async (req, res) => {
         accountName: resolution.accountName,
         bankName: resolution.bankName,
         bankCode: resolution.bankCode,
+        ninName,
+        nameMatchesNin,
         isThriftUser: Boolean(thriftUser),
         thriftUser: thriftUser
           ? {
@@ -136,6 +144,35 @@ userRouter.get("/groups", authMiddleware, async (req, res) => {
   } catch (err) {
     console.error("Get user groups error:", err);
     res.status(500).json({ success: false, error: "Failed to fetch groups" });
+  }
+});
+
+userRouter.get("/audit-logs", authMiddleware, async (req, res) => {
+  try {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 20;
+    const entity = (req.query.entity as string) || undefined;
+    const action = (req.query.action as string) || undefined;
+    const search = (req.query.search as string) || undefined;
+    const from = (req.query.from as string) || undefined;
+    const to = (req.query.to as string) || undefined;
+
+    const result = await getAuditLogsForUser(req.user!.userId, { page, limit, entity, action, search, from, to });
+    const items = result.items.map((log) => {
+      let metadata: unknown = log.metadata;
+      if (typeof log.metadata === "string" && log.metadata.length > 0) {
+        try {
+          metadata = JSON.parse(log.metadata);
+        } catch {
+          metadata = log.metadata;
+        }
+      }
+      return { ...log, metadata };
+    });
+    res.json({ success: true, data: { ...result, items } });
+  } catch (err) {
+    console.error("Get user audit logs error:", err);
+    res.status(500).json({ success: false, error: "Failed to fetch activity log" });
   }
 });
 

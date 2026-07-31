@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import nodeCrypto from "node:crypto";
 import { authMiddleware } from "../middleware/auth";
 import { issueOtp, verifyOtp } from "../services/auth/otp";
-import { resolveAccountNumber, getPaymentProvider } from "../services/payments";
+import { resolveAccountNumber } from "../services/payments";
 import {
   findUserById,
   findUserByThrAccountNumber,
@@ -34,6 +34,14 @@ transfersRouter.post("/preview", authMiddleware, async (req, res) => {
       return;
     }
 
+    if (recipientType === "bank") {
+      res.status(400).json({
+        success: false,
+        error: "Bank transfers are no longer self-served. Request a payout from your wallet instead.",
+      });
+      return;
+    }
+
     if (recipientType === "member") {
       if (!accountNumber) {
         res.status(400).json({ success: false, error: "THR account number is required" });
@@ -60,34 +68,7 @@ transfersRouter.post("/preview", authMiddleware, async (req, res) => {
       return;
     }
 
-    if (!accountNumber || !bankCode) {
-      res.status(400).json({ success: false, error: "Account number and bank code are required" });
-      return;
-    }
-
-    let resolution;
-    try {
-      resolution = await resolveAccountNumber({
-        accountNumber: String(accountNumber).trim(),
-        bankCode: String(bankCode).trim(),
-      });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Could not resolve bank account details";
-      console.error("Transfer preview resolve error:", message);
-      res.status(402).json({ success: false, error: message });
-      return;
-    }
-
-    res.json({
-      success: true,
-      data: {
-        recipientType: "bank",
-        recipientName: resolution.accountName,
-        recipientAccount: resolution.accountNumber,
-        recipientBank: resolution.bankName,
-        fee: 0,
-      },
-    });
+    res.status(400).json({ success: false, error: "Invalid recipient type" });
   } catch (err) {
     console.error("Transfer preview error:", err);
     res.status(500).json({ success: false, error: "Failed to preview transfer" });
@@ -109,6 +90,14 @@ transfersRouter.post("/initiate", authMiddleware, async (req, res) => {
     }
     if (!recipientType || !["member", "bank"].includes(recipientType)) {
       res.status(400).json({ success: false, error: "Recipient type must be 'member' or 'bank'" });
+      return;
+    }
+
+    if (recipientType === "bank") {
+      res.status(400).json({
+        success: false,
+        error: "Bank transfers are no longer self-served. Request a payout from your wallet instead.",
+      });
       return;
     }
 
@@ -157,25 +146,6 @@ transfersRouter.post("/initiate", authMiddleware, async (req, res) => {
       recipientName = recipient.name;
       recipientUserId = recipient.id;
       recipientAccountNumber = recipient.accountNumber;
-    } else {
-      if (!accountNumber || !bankCode) {
-        res.status(400).json({ success: false, error: "Account number and bank code are required" });
-        return;
-      }
-      try {
-        const resolution = await resolveAccountNumber({
-          accountNumber: String(accountNumber).trim(),
-          bankCode: String(bankCode).trim(),
-        });
-        recipientName = resolution.accountName;
-        recipientBankName = resolution.bankName;
-        recipientAccountNumber = resolution.accountNumber;
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Could not resolve bank account";
-        console.error("Transfer initiate resolve error:", message);
-        res.status(402).json({ success: false, error: message });
-        return;
-      }
     }
 
     const reference = `TXF-${Date.now()}-${nodeCrypto.randomBytes(4).toString("hex")}`;
@@ -266,21 +236,12 @@ transfersRouter.post("/confirm", authMiddleware, async (req, res) => {
         );
         await updateTransferStatus(transfer.id, "completed");
       } else {
-        const provider = getPaymentProvider("flutterwave");
-        if (!provider.initiateTransfer) {
-          await updateTransferStatus(transfer.id, "failed");
-          res.status(500).json({ success: false, error: "Bank transfers not supported" });
-          return;
-        }
-        const flwRef = `PAYOUT-${Date.now()}-${nodeCrypto.randomBytes(4).toString("hex")}`;
-        const result = await provider.initiateTransfer({
-          amount: Number(transfer.amount),
-          accountNumber: transfer.recipientAccount!,
-          bankCode: "",
-          reference: flwRef,
-          narration: `Transfer via Thrift Solution`,
+        await updateTransferStatus(transfer.id, "failed");
+        res.status(400).json({
+          success: false,
+          error: "Bank transfers are no longer supported. Request a payout from your wallet instead.",
         });
-        await updateTransferStatus(transfer.id, result.status);
+        return;
       }
 
       const pendingDebit = await prisma.transaction.findFirst({

@@ -416,6 +416,8 @@ export default function Dashboard() {
         return "Contribution";
       case "circle_processing_fee":
         return "Fee";
+      case "circle_clearance_fee":
+        return "Clearance Fee";
       default:
         return type;
     }
@@ -444,6 +446,8 @@ export default function Dashboard() {
       case "circle_contribution":
         return "#7C3AED";
       case "circle_processing_fee":
+        return "#D97706";
+      case "circle_clearance_fee":
         return "#D97706";
       default:
         return "#64748B";

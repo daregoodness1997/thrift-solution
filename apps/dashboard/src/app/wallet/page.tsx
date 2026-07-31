@@ -21,6 +21,7 @@ import {
   Clock,
   PieChart,
   Send,
+  Banknote,
 } from "lucide-react";
 
 const fallback = config;
@@ -118,6 +119,7 @@ export default function WalletPage() {
       case "loan_payout": return "Loan Disbursement";
       case "circle_interest": return "Circle Interest";
       case "circle_processing_fee": return "Processing Fee";
+      case "circle_clearance_fee": return "Clearance Fee";
       case "circle_deposit": return "Circle Deposit";
       case "circle_contribution": return "Circle Contribution";
       case "referral_earning": return "Referral Earning";
@@ -225,6 +227,13 @@ export default function WalletPage() {
             >
               <Send className="w-4 h-4" />
               Transfer
+            </a>
+            <a
+              href="/wallet/payout"
+              className="flex items-center gap-2 rounded-full border border-white/40 bg-white/10 px-5 py-2.5 text-[12px] font-semibold text-white transition-all duration-200 hover:bg-white/20 no-underline"
+            >
+              <Banknote className="w-4 h-4" />
+              Withdraw
             </a>
             <a
               href="/transactions"

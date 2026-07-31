@@ -651,6 +651,10 @@ export default function AdminCircleDetailPage() {
             columns={[
               { key: "user.name", header: "User", render: (p: any) => <span className="font-medium">{p.user?.name || "—"}</span> },
               { key: "amount", header: "Amount", align: "right", mono: true, render: (p: any) => <span className="font-bold text-slate-900 dark:text-white">{formatNaira(p.amount || 0)}</span> },
+              { key: "clearanceFee", header: "Clearance Fee", align: "right", mono: true, render: (p: any) => {
+                const fee = p.circleAccount?.clearanceFee;
+                return fee ? <span className="font-bold text-amber-600 dark:text-amber-400">{formatNaira(fee)}</span> : <span className="text-slate-400">—</span>;
+              } },
               { key: "status", header: "Status", render: (p: any) => (
                 <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase ${
                   p.status === "approved" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" :

@@ -1,5 +1,6 @@
 import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
+import { decryptField } from "@thrift/db";
 import { flutterwaveProvider } from "../services/payments/flutterwave";
 import { resolveVirtualAccount } from "../services/payments";
 
@@ -33,6 +34,14 @@ async function getMembers(): Promise<MemberRow[]> {
   `;
 }
 
+function decryptMembers(rows: MemberRow[]): MemberRow[] {
+  return rows.map((row) => ({
+    ...row,
+    bvn: decryptField(row.bvn),
+    nin: decryptField(row.nin),
+  }));
+}
+
 async function main() {
   if (!process.env.FLUTTERWAVE_SECRET_KEY) {
     throw new Error("FLUTTERWAVE_SECRET_KEY is not set. Add your live secret key to apps/backend/.env first.");
@@ -41,7 +50,7 @@ async function main() {
     console.warn("[WARN] FLUTTERWAVE_SECRET_KEY does not look like a LIVE key (expected prefix FLWSECK-).");
   }
 
-  const members = await getMembers();
+  const members = decryptMembers(await getMembers());
   console.log(`Found ${members.length} member(s).${DRY_RUN ? " (dry run)" : ""}`);
 
   let created = 0;

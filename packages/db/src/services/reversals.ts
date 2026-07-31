@@ -104,7 +104,7 @@ export async function reverseCircleAccount(circleAccountId: string, reason: stri
     const linked = await tx.transaction.findMany({
       where: {
         userId: account.userId,
-        type: { in: ["circle_deposit", "circle_contribution", "circle_processing_fee"] },
+        type: { in: ["circle_deposit", "circle_contribution", "circle_processing_fee", "circle_clearance_fee"] },
         description: { contains: account.id },
         status: "completed",
       },

@@ -84,6 +84,7 @@ export default function TransactionsPage() {
       case "loan_payout": return "#0891B2";
       case "circle_interest": return "#D97706";
       case "circle_processing_fee": return "#D97706";
+      case "circle_clearance_fee": return "#D97706";
       default: return "#717171";
     }
   };
@@ -94,6 +95,7 @@ export default function TransactionsPage() {
       case "circle_reversal": return "Circle Reversed";
       case "wallet_funding": return "Wallet Funding";
       case "circle_processing_fee": return "Processing Fee";
+      case "circle_clearance_fee": return "Clearance Fee";
       default: return type.split("_").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
     }
   };
@@ -174,6 +176,7 @@ export default function TransactionsPage() {
     { key: "circle_payout", label: "Circle Payouts" },
     { key: "circle_interest", label: "Circle Interest" },
     { key: "circle_processing_fee", label: "Processing Fees" },
+    { key: "circle_clearance_fee", label: "Clearance Fees" },
     { key: "circle_reversal", label: "Circle Reversed" },
     { key: "loan_payout", label: "Loan Payouts" },
   ];
