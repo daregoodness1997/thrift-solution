@@ -44,9 +44,14 @@ export default function DefaultManagementPage() {
   const [proofUrl, setProofUrl] = useState("");
   const [resolveNote, setResolveNote] = useState("");
   const [processingResolve, setProcessingResolve] = useState(false);
-  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-  const LIMIT = 20;
+   const showMessage = (type: "success" | "error", text: string) => {
+     setMessage({ type, text });
+     setTimeout(() => setMessage(null), 4000);
+   };
+
+   const LIMIT = 20;
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
   const fetchDefaults = useCallback(async () => {
