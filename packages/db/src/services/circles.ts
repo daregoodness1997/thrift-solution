@@ -786,6 +786,11 @@ export async function getCirclePayoutRequests(params: {
   const { page = 1, limit = 20, status, accountStatus } = params;
   const where: Record<string, unknown> = {};
   if (status) where.status = status;
+  if (accountStatus) {
+    const statuses = accountStatus.split(",").map((s) => s.trim());
+    where.circleAccount =
+      statuses.length === 1 ? { status: statuses[0] } : { status: { in: statuses } };
+  }
 
   const [items, total] = await Promise.all([
     prisma.circlePayoutRequest.findMany({
@@ -805,11 +810,7 @@ export async function getCirclePayoutRequests(params: {
     prisma.circlePayoutRequest.count({ where }),
   ]);
 
-  const filteredItems = accountStatus
-    ? items.filter((item) => item.circleAccount.status === accountStatus)
-    : items;
-
-  return { items: filteredItems, total: filteredItems.length, page, limit, totalPages: Math.ceil(filteredItems.length / limit) };
+  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
 }
 
 export async function getCirclePayoutRequestsByCircle(circleId: string, params?: {
@@ -849,6 +850,11 @@ export async function getCirclePayoutRequestsByUser(userId: string, params?: {
   const limit = params?.limit ?? 20;
   const where: Record<string, unknown> = { userId };
   if (params?.status) where.status = params.status;
+  if (params?.accountStatus) {
+    const statuses = params.accountStatus.split(",").map((s) => s.trim());
+    where.circleAccount =
+      statuses.length === 1 ? { status: statuses[0] } : { status: { in: statuses } };
+  }
 
   const [items, total] = await Promise.all([
     prisma.circlePayoutRequest.findMany({
@@ -867,11 +873,7 @@ export async function getCirclePayoutRequestsByUser(userId: string, params?: {
     prisma.circlePayoutRequest.count({ where }),
   ]);
 
-  const filteredItems = params?.accountStatus
-    ? items.filter((item) => item.circleAccount.status === params.accountStatus)
-    : items;
-
-  return { items: filteredItems, total: filteredItems.length, page, limit, totalPages: Math.ceil(filteredItems.length / limit) };
+  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
 }
 
 export async function approveCirclePayoutRequest(requestId: string, reviewerId: string) {

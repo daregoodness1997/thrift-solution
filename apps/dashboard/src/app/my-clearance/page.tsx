@@ -169,7 +169,7 @@ export default function MyClearancePage() {
     setPrLoading(true);
     try {
       const res = await fetch(
-        `${API_URL}/api/circles/payout-requests/my?page=${prPagination.page}&limit=${PAGE_SIZE}`,
+         `${API_URL}/api/circles/payout-requests/my?page=${prPagination.page}&limit=${PAGE_SIZE}&accountStatus=matured,withdrawn`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -421,6 +421,11 @@ export default function MyClearancePage() {
               Early Withdrawal · {formatNaira(row.circleAccount.principalAmount)} &middot;{" "}
               {row.circleAccount.circle.interestRateAnnual}% p.a.
             </span>
+            {row.circleAccount.circle.payoutMode === "clearance" && (
+              <span className="mt-0.5 block rounded-md px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase" style={{ backgroundColor: "#F59E1E12", color: "#F59E1E", border: "1px solid #F59E1E20" }}>
+                Clearance Mode
+              </span>
+            )}
           </div>
         ) : null,
     },
@@ -467,12 +472,13 @@ export default function MyClearancePage() {
       render: (row) =>
         row._type === "early" ? (
           <span
-            className="rounded-[0.375rem] px-2 py-0.5 text-[9px] font-bold capitalize"
+            className="inline-flex items-center gap-1 rounded-[0.375rem] px-2 py-0.5 text-[9px] font-bold capitalize"
             style={{
               color: statusColor(row.status),
               backgroundColor: `${statusColor(row.status)}12`,
             }}
           >
+            <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: statusColor(row.status) }}></span>
             {row.status}
           </span>
         ) : null,

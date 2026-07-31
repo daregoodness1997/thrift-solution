@@ -72,10 +72,72 @@ export default function AdminTransactionsPage() {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
+  const getTxnColor = (type: string, description?: string): string => {
+    if (type === "circle_withdrawal") {
+      if (description && description.includes("Early")) return "#DC2626";
+      if (description && description.includes("maturity")) return "#059669";
+      return "#0891B2";
+    }
+    switch (type) {
+      case "contribution": return "#4A5D4E";
+      case "payout": return "#059669";
+      case "donation": return "#2563EB";
+      case "funding": return "#2563EB";
+      case "referral_earning": return "#8A7D73";
+      case "wallet_funding": return "#2563EB";
+      case "wallet_funding_reversal": return "#DC2626";
+      case "circle_reversal": return "#DC2626";
+      case "circle_deposit": return "#7C3AED";
+      case "circle_contribution": return "#7C3AED";
+      case "circle_payout": return "#0891B2";
+      case "loan_payout": return "#0891B2";
+      case "circle_interest": return "#D97706";
+      case "circle_processing_fee": return "#D97706";
+      case "circle_clearance_fee": return "#D97706";
+      default: return "#717171";
+    }
+  };
+
+  const getTxnLabel = (type: string, description?: string): string => {
+    if (type === "circle_withdrawal" && description && description.includes("Early")) {
+      return "Early Withdrawal";
+    }
+    if (type === "circle_withdrawal" && description && description.includes("maturity")) {
+      return "Maturity Payout";
+    }
+    switch (type) {
+      case "circle_deposit": return "Circle Deposit";
+      case "circle_interest": return "Circle Interest";
+      case "circle_clearance_fee": return "Clearance Fee";
+      case "circle_processing_fee": return "Processing Fee";
+      case "wallet_funding_reversal": return "Funding Reversed";
+      case "wallet_funding": return "Wallet Funding";
+      default: return type.replace(/_/g, " ");
+    }
+  };
+
   const columns: SimpleColumn<Txn>[] = [
     { key: "user", header: "User", render: (t) => <><span className="block font-semibold text-slate-900 dark:text-white">{t.user?.name || "—"}</span><span className="text-[11px] text-slate-500 dark:text-slate-400">{t.user?.email}</span></> },
-    { key: "type", header: "Type", render: (t) => <span className="capitalize text-slate-500 dark:text-slate-400">{t.type.replace(/_/g, " ")}</span> },
-    { key: "amount", header: "Amount", align: "right", mono: true, render: (t) => <span className="font-semibold text-slate-900 dark:text-white">{formatNaira(t.amount)}</span> },
+    { key: "type", header: "Type", render: (t) => {
+      const color = getTxnColor(t.type, t.description);
+      const isEarlyWithdrawal = t.type === "circle_withdrawal" && t.description && t.description.includes("Early");
+      return (
+        <span className="rounded-md px-2 py-0.5 font-mono text-[9px] font-bold uppercase" style={{ backgroundColor: `${color}12`, color }}>
+          {getTxnLabel(t.type, t.description)}
+          {isEarlyWithdrawal && (
+            <span className="ml-1 rounded-md bg-red-100 dark:bg-red-950/40 px-1 py-0.25 text-[8px] font-bold text-red-600 dark:text-red-400">
+              FORFEITED
+            </span>
+          )}
+        </span>
+      );
+    }},
+    { key: "amount", header: "Amount", align: "right", mono: true, render: (t) => {
+      const isCredit = ["payout", "funding", "circle_withdrawal", "circle_payout", "loan_payout", "circle_interest", "referral_earning", "wallet_funding"].includes(t.type);
+      const isEarlyWithdrawal = t.type === "circle_withdrawal" && t.description && t.description.includes("Early");
+      const color = isCredit ? (isEarlyWithdrawal ? "#DC2626" : "#059669") : "#2D2D2D";
+      return <span className="font-semibold" style={{ color }}>{isCredit ? "+" : "-"}{formatNaira(t.amount)}</span>;
+    }},
     { key: "status", header: "Status", render: (t) => <StatusBadge status={t.status} /> },
     { key: "date", header: "Date", render: (t) => <span className="text-slate-500 dark:text-slate-400">{formatDate(new Date(t.createdAt))}</span> },
     { key: "reference", header: "Reference", mono: true, render: (t) => <span className="text-[10px] text-slate-500 dark:text-slate-400">{t.reference || "—"}</span> },

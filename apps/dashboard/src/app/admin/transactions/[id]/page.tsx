@@ -70,10 +70,6 @@ export default function AdminTransactionDetailPage() {
       .finally(() => setLoading(false));
   }, [token, txId, isAdmin, API_URL]);
 
-  const getTypeLabel = (type: string) => {
-    return type.split("_").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
-  };
-
   const statusConfig: Record<string, { color: string; bg: string; border: string }> = {
     completed: { color: "#059669", bg: "#ECFDF5", border: "#A7F3D0" },
     pending: { color: "#D97706", bg: "#FFFBEB", border: "#FDE68A" },
@@ -96,7 +92,23 @@ export default function AdminTransactionDetailPage() {
     loan_disbursement: "#059669",
     loan_repayment: "#4A5D4E",
   };
-  const typeColor = typeColorMap[transaction?.type || ""] || "#717171";
+
+  const getTypeLabel = (type: string, description?: string) => {
+    if (type === "circle_withdrawal" && description && description.includes("Early")) {
+      return "Early Withdrawal";
+    }
+    if (type === "circle_withdrawal" && description && description.includes("maturity")) {
+      return "Maturity Payout";
+    }
+    return type.split("_").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+  };
+
+  const isEarlyWithdrawal = transaction?.type === "circle_withdrawal" && transaction?.description && transaction?.description.includes("Early");
+  const typeColor = isEarlyWithdrawal
+    ? "#DC2626"
+    : transaction?.type === "circle_withdrawal" && transaction?.description && transaction?.description.includes("maturity")
+      ? "#059669"
+      : typeColorMap[transaction?.type || ""] || "#717171";
 
   if (authLoading || loading) {
     return (
@@ -124,10 +136,10 @@ export default function AdminTransactionDetailPage() {
   const detailRows: { label: string; value: string; mono?: boolean; copyable?: boolean; badge?: boolean; badgeColor?: string; badgeBg?: string; large?: boolean; amountColor?: string }[] = [
     { label: "Transaction ID", value: transaction.id, mono: true, copyable: true },
     { label: "Reference", value: transaction.reference || "—", mono: true, copyable: true },
-    { label: "Type", value: getTypeLabel(transaction.type), badge: true, badgeColor: typeColor },
+    { label: "Type", value: getTypeLabel(transaction.type, transaction.description), badge: true, badgeColor: typeColor },
     { label: "Status", value: transaction.status, badge: true, badgeColor: sConfig.color, badgeBg: sConfig.bg },
     { label: "Amount", value: formatNaira(transaction.amount), large: true },
-    { label: "Description", value: transaction.description || getTypeLabel(transaction.type) },
+    { label: "Description", value: transaction.description || getTypeLabel(transaction.type, transaction.description) },
     { label: "Date & Time", value: new Date(transaction.createdAt).toLocaleString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" }) },
   ];
 
@@ -197,11 +209,16 @@ export default function AdminTransactionDetailPage() {
               <h2 className="m-0 font-mono text-[1.5rem] font-bold text-slate-900 dark:text-white">
                 {formatNaira(transaction.amount)}
               </h2>
-              <span className="text-[11px] text-slate-500 dark:text-slate-400">{getTypeLabel(transaction.type)}</span>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400">{getTypeLabel(transaction.type, transaction.description)}</span>
             </div>
             <div className="flex gap-2">
               <span className="rounded-full border px-3 py-1 text-[10px] font-bold uppercase font-mono" style={{ backgroundColor: `${typeColor}12`, color: typeColor, borderColor: `${typeColor}20` }}>
-                {getTypeLabel(transaction.type)}
+                {getTypeLabel(transaction.type, transaction.description)}
+                {isEarlyWithdrawal && (
+                  <span className="ml-1 rounded-md bg-red-100 dark:bg-red-950/40 px-1 py-0.25 text-[8px] font-bold text-red-600 dark:text-red-400">
+                    FORFEITED
+                  </span>
+                )}
               </span>
               <span className="rounded-full px-3 py-1 text-[10px] font-bold uppercase font-mono" style={{ backgroundColor: sConfig.bg, color: sConfig.color }}>
                 {transaction.status}

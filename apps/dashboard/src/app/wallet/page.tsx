@@ -111,7 +111,10 @@ export default function WalletPage() {
   useEffect(() => { loadWallet(); }, [loadWallet]);
   useEffect(() => { loadTransactions(); }, [loadTransactions]);
 
-  const getTypeLabel = (type: string) => {
+  const getTypeLabel = (type: string, description?: string) => {
+    if (type === "circle_withdrawal" && description && description.includes("Early")) {
+      return "Early Withdrawal";
+    }
     switch (type) {
       case "wallet_funding": return "Wallet Funding";
       case "circle_withdrawal": return "Circle Payout";
@@ -359,8 +362,9 @@ export default function WalletPage() {
           </div>
         ) : (
           <div className="divide-y divide-slate-200/80 dark:divide-slate-800/80">
-            {transactions.map((t) => {
+              {transactions.map((t) => {
               const credit = isCredit(t);
+              const isEarlyWithdrawal = t.type === "circle_withdrawal" && t.description && t.description.includes("Early");
               return (
                 <div
                   key={t.id}
@@ -370,24 +374,29 @@ export default function WalletPage() {
                   <div className="flex items-center gap-3">
                     <div
                       className="flex h-10 w-10 items-center justify-center rounded-full text-[15px] font-bold"
-                      style={{ backgroundColor: credit ? "#ECFDF5" : "#FEF2F2", color: credit ? "#059669" : "#DC2626" }}
+                      style={{ backgroundColor: credit ? "#FEF2F2" : "#FEF2F2", color: isEarlyWithdrawal ? "#DC2626" : credit ? "#059669" : "#DC2626" }}
                     >
                       {credit ? "+" : "\u2212"}
                     </div>
                     <div>
                       <div className="text-[13px] font-semibold text-slate-900 dark:text-white">
-                        {getTypeLabel(t.type)}
+                        {getTypeLabel(t.type, t.description)}
                       </div>
                       <div className="text-[11px] text-slate-400">
                         {new Date(t.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                         {t.description ? ` \u00b7 ${t.description}` : ""}
+                        {isEarlyWithdrawal && (
+                          <span className="ml-1 rounded-md bg-red-100 dark:bg-red-950/40 px-1 py-0.25 text-[8px] font-bold text-red-600 dark:text-red-400">
+                            INTEREST FORFEITED
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
                   <div className="text-right">
                     <div
                       className="font-mono text-[13px] font-semibold"
-                      style={{ color: credit ? "#059669" : "#DC2626" }}
+                      style={{ color: isEarlyWithdrawal ? "#DC2626" : credit ? "#059669" : "#2D2D2D" }}
                     >
                       {credit ? "+" : "\u2212"}{formatNaira(t.amount)}
                     </div>

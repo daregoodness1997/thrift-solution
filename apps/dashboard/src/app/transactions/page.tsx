@@ -67,7 +67,12 @@ export default function TransactionsPage() {
     setFilter(newFilter);
   };
 
-  const getTypeColor = (type: string) => {
+  const getTypeColor = (type: string, description?: string) => {
+    if (type === "circle_withdrawal") {
+      if (description && description.includes("Early")) return "#DC2626";
+      if (description && description.includes("maturity")) return "#059669";
+      return "#0891B2";
+    }
     switch (type) {
       case "contribution": return "#4A5D4E";
       case "payout": return "#059669";
@@ -79,7 +84,6 @@ export default function TransactionsPage() {
       case "circle_reversal": return "#DC2626";
       case "circle_deposit": return "#7C3AED";
       case "circle_contribution": return "#7C3AED";
-      case "circle_withdrawal": return "#0891B2";
       case "circle_payout": return "#0891B2";
       case "loan_payout": return "#0891B2";
       case "circle_interest": return "#D97706";
@@ -89,13 +93,17 @@ export default function TransactionsPage() {
     }
   };
 
-  const getTypeLabel = (type: string) => {
+  const getTypeLabel = (type: string, description?: string) => {
+    if (type === "circle_withdrawal" && description && description.includes("Early")) {
+      return "Early Withdrawal";
+    }
     switch (type) {
       case "wallet_funding_reversal": return "Funding Reversed";
       case "circle_reversal": return "Circle Reversed";
       case "wallet_funding": return "Wallet Funding";
       case "circle_processing_fee": return "Processing Fee";
       case "circle_clearance_fee": return "Clearance Fee";
+      case "circle_withdrawal": return "Circle Withdrawal";
       default: return type.split("_").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
     }
   };
@@ -115,10 +123,17 @@ export default function TransactionsPage() {
       key: "type",
       header: "Type",
       render: (t) => {
-        const c = getTypeColor(t.type);
+        const c = getTypeColor(t.type, t.description);
+        const label = getTypeLabel(t.type, t.description);
+        const isEarlyWithdrawal = t.type === "circle_withdrawal" && t.description && t.description.includes("Early");
         return (
           <span className="rounded-lg px-2 py-0.5 font-mono text-[9px] font-bold uppercase" style={{ backgroundColor: `${c}12`, color: c }}>
-            {getTypeLabel(t.type)}
+            {label}
+            {isEarlyWithdrawal && (
+              <span className="ml-1 rounded-md bg-red-100 dark:bg-red-950/40 px-1 py-0.25 text-[8px] font-bold text-red-600 dark:text-red-400">
+                INTEREST FORFEITED
+              </span>
+            )}
           </span>
         );
       },
@@ -153,11 +168,16 @@ export default function TransactionsPage() {
       header: "Amount",
       align: "right",
       mono: true,
-      render: (t) => (
-        <span className="font-semibold" style={{ color: t.type === "payout" || t.type === "funding" || t.type === "circle_withdrawal" || t.type === "circle_payout" || t.type === "loan_payout" || t.type === "circle_interest" || t.type === "referral_earning" ? "#059669" : "#2D2D2D" }}>
-          {formatNaira(t.amount)}
-        </span>
-      ),
+      render: (t) => {
+        const isCredit = ["payout", "funding", "circle_withdrawal", "circle_payout", "loan_payout", "circle_interest", "referral_earning", "wallet_funding"].includes(t.type);
+        const isEarlyWithdrawal = t.type === "circle_withdrawal" && t.description && t.description.includes("Early");
+        const color = isCredit ? (isEarlyWithdrawal ? "#DC2626" : "#059669") : "#2D2D2D";
+        return (
+          <span className="font-semibold" style={{ color }}>
+            {isCredit ? "+" : "-"}{formatNaira(t.amount)}
+          </span>
+        );
+      },
     },
   ];
 

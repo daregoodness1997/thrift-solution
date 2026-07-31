@@ -153,7 +153,7 @@ export default function ClearanceManagementPage() {
     if (!token) return;
     try {
       const statusParam = prFilter === "all" ? "" : `&status=${prFilter}`;
-      const res = await fetch(`${API_URL}/api/circles/admin/payout-requests?page=${prPage}&limit=${LIMIT}${statusParam}`, {
+      const res = await fetch(`${API_URL}/api/circles/admin/payout-requests?page=${prPage}&limit=${LIMIT}&accountStatus=matured,withdrawn${statusParam}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -547,6 +547,18 @@ export default function ClearanceManagementPage() {
               Proof
             </a>
           )}
+          {r.status === "disbursed" && !r.disbursementProofUrl && (
+            <span className="rounded-md px-2 py-1 text-[10px] font-semibold text-emerald-600">Disbursed</span>
+          )}
+          {r.status === "disbursing" && (
+            <span className="rounded-md px-2 py-1 text-[10px] font-semibold text-amber-600">Processing…</span>
+          )}
+          {r.status === "disbursement_failed" && (
+            <span className="rounded-md px-2 py-1 text-[10px] font-semibold text-red-600">Failed</span>
+          )}
+          {r.status === "declined" && (
+            <span className="rounded-md px-2 py-1 text-[10px] font-semibold text-red-600">Declined</span>
+          )}
         </div>
       ),
     },
@@ -561,7 +573,10 @@ export default function ClearanceManagementPage() {
         return (
           <div className="flex items-center gap-2">
             <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold" style={{ backgroundColor: "#DC262615", color: "#DC2626" }}>{initials}</div>
-            <span className="font-medium text-slate-900 dark:text-white">{r.user.name}</span>
+            <div>
+              <span className="block font-medium text-slate-900 dark:text-white">{r.user.name}</span>
+              <span className="text-[9px] text-slate-500 dark:text-slate-400">{r.user.email}</span>
+            </div>
           </div>
         );
       },
@@ -570,7 +585,14 @@ export default function ClearanceManagementPage() {
       key: "circle",
       header: "Circle",
       render: (r) => (
-        <span className="rounded-md px-2 py-0.5 font-mono text-[9px] font-bold uppercase" style={{ backgroundColor: "#DC262612", color: "#DC2626", border: "1px solid #DC262620" }}>{r.circleAccount.circle.name}</span>
+        <div>
+          <span className="rounded-md px-2 py-0.5 font-mono text-[9px] font-bold uppercase" style={{ backgroundColor: "#DC262612", color: "#DC2626", border: "1px solid #DC262620" }}>{r.circleAccount.circle.name}</span>
+          {r.circleAccount.circle.payoutMode === "clearance" && (
+            <span className="mt-0.5 block rounded-md px-2 py-0.5 font-mono text-[8px] font-bold uppercase" style={{ backgroundColor: "#F59E1E12", color: "#F59E1E", border: "1px solid #F59E1E20" }}>
+              Clearance Mode
+            </span>
+          )}
+        </div>
       ),
     },
     {
@@ -581,20 +603,36 @@ export default function ClearanceManagementPage() {
       render: (r) => <span className="font-semibold text-slate-900 dark:text-white">{formatNaira(r.circleAccount.principalAmount)}</span>,
     },
     {
+      key: "interest",
+      header: "Interest Forfeited",
+      align: "right",
+      mono: true,
+      render: (r) => {
+        const interest = r.circleAccount.interestEarned;
+        return interest > 0 ? (
+          <span className="font-semibold text-amber-600">-{formatNaira(interest)}</span>
+        ) : (
+          <span className="text-slate-300 dark:text-slate-600">—</span>
+        );
+      },
+    },
+    {
       key: "amount",
       header: "Withdrawal Amount",
       align: "right",
       mono: true,
-      render: (r) => <span className="font-bold text-red-600">{formatNaira(r.amount)}</span>,
+      render: (r) => (
+        <span className="font-bold text-red-600">{formatNaira(r.amount)}</span>
+      ),
     },
     {
-      key: "createdAt",
+      key: "requested",
       header: "Requested",
       align: "right",
       mono: true,
       render: (r) => (
         <span className="text-slate-500 dark:text-slate-400">
-          {new Date(r.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+          {new Date(r.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
         </span>
       ),
     },
@@ -629,10 +667,21 @@ export default function ClearanceManagementPage() {
             </>
           )}
           {r.status === "approved" && (
-            <span className="text-[10px] font-semibold text-emerald-600">Approved</span>
+            <span className="flex items-center gap-1 text-[10px] font-semibold text-emerald-600">
+              <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
+              Approved
+            </span>
           )}
           {r.status === "declined" && (
-            <span className="text-[10px] font-semibold text-red-600">Declined</span>
+            <span className="flex items-center gap-1 text-[10px] font-semibold text-red-600">
+              <span className="h-2 w-2 rounded-full bg-red-500"></span>
+              Declined
+            </span>
+          )}
+          {r.status === "declined" && r.clearanceNote && (
+            <span className="text-[9px] text-slate-400" title={r.clearanceNote}>
+              "{r.clearanceNote.slice(0, 30)}..."
+            </span>
           )}
         </div>
       ),

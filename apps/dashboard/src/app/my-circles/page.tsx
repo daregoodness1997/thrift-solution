@@ -111,23 +111,30 @@ function getMaturityProgress(startDate: string, maturityDate: string) {
   return Math.min(100, Math.round(((now - start) / (end - start)) * 100));
 }
 
-function getTransactionTypeColor(type: string) {
+function getTransactionTypeColor(type: string, description?: string) {
+  if (type === "circle_withdrawal") {
+    if (description && description.includes("Early")) return "#DC2626";
+    if (description && description.includes("maturity")) return "#059669";
+    return "#0891B2";
+  }
   switch (type) {
     case "circle_deposit": return "#7C3AED";
     case "circle_interest": return "#D97706";
-    case "circle_withdrawal": return "#0891B2";
     case "circle_reversal": return "#DC2626";
     case "circle_clearance_fee": return "#D97706";
     default: return "#717171";
   }
 }
 
-function getTransactionTypeLabel(type: string) {
+function getTransactionTypeLabel(type: string, description?: string) {
   switch (type) {
     case "circle_reversal": return "Reversal (Payment Reversed)";
     case "circle_deposit": return "Deposit";
     case "circle_interest": return "Interest";
-    case "circle_withdrawal": return "Withdrawal";
+    case "circle_withdrawal":
+      if (description && description.includes("Early")) return "Early Withdrawal";
+      if (description && description.includes("maturity")) return "Maturity Payout";
+      return "Withdrawal";
     case "circle_clearance_fee": return "Clearance Fee";
     default: return type.split("_").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
   }
@@ -524,14 +531,29 @@ export default function MyCirclesPage() {
                                     columns={[
                                       { key: "date", header: "Date", render: (tx) => <span className="font-mono text-[#666] dark:text-slate-400">{formatDateTime(tx.createdAt)}</span> },
                                       { key: "type", header: "Type", render: (tx) => {
-                                        const color = getTransactionTypeColor(tx.type);
-                                        return <span className="rounded-[0.375rem] px-2 py-0.5 text-[9px] font-bold uppercase font-mono" style={{ color, backgroundColor: `${color}12` }}>{getTransactionTypeLabel(tx.type)}</span>;
+                                        const color = getTransactionTypeColor(tx.type, tx.description);
+                                        const isEarlyWithdrawal = tx.type === "circle_withdrawal" && tx.description && tx.description.includes("Early");
+                                        return (
+                                          <span className="rounded-[0.375rem] px-2 py-0.5 text-[9px] font-bold uppercase font-mono" style={{ color, backgroundColor: `${color}12` }}>
+                                            {getTransactionTypeLabel(tx.type, tx.description)}
+                                            {isEarlyWithdrawal && (
+                                              <span className="ml-1 rounded-md bg-red-100 dark:bg-red-950/40 px-1 py-0.25 text-[8px] font-bold text-red-600 dark:text-red-400">
+                                                FORFEITED
+                                              </span>
+                                            )}
+                                          </span>
+                                        );
                                       }},
-                                      { key: "amount", header: "Amount", align: "right", render: (tx) => (
-                                        <span className="font-mono font-semibold" style={{ color: tx.type === "circle_withdrawal" || tx.type === "circle_reversal" ? "#DC2626" : tx.type === "circle_interest" ? "#10B981" : tx.type === "circle_clearance_fee" ? "#D97706" : "#2563EB" }}>
-                                          {tx.type === "circle_withdrawal" || tx.type === "circle_reversal" || tx.type === "circle_clearance_fee" ? "-" : "+"}{formatNaira(tx.amount)}
-                                        </span>
-                                      )},
+                                      { key: "amount", header: "Amount", align: "right", render: (tx) => {
+                                        const isEarlyWithdrawal = tx.type === "circle_withdrawal" && tx.description && tx.description.includes("Early");
+                                        const color = isEarlyWithdrawal ? "#DC2626" : tx.type === "circle_interest" ? "#10B981" : tx.type === "circle_clearance_fee" ? "#D97706" : "#2563EB";
+                                        const isDebit = tx.type === "circle_withdrawal" || tx.type === "circle_reversal" || tx.type === "circle_clearance_fee";
+                                        return (
+                                          <span className="font-mono font-semibold" style={{ color }}>
+                                            {isDebit ? "-" : "+"}{formatNaira(tx.amount)}
+                                          </span>
+                                        );
+                                      }},
                                       { key: "status", header: "Status", render: (tx) => (
                                         <span className="rounded-[0.375rem] px-2 py-0.5 text-[9px] font-semibold uppercase" style={{ color: tx.status === "completed" ? "#059669" : "#D97706", backgroundColor: tx.status === "completed" ? "#ECFDF5" : "#FFFBEB" }}>
                                           {tx.status}
