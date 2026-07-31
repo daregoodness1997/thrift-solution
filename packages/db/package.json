@@ -10,8 +10,20 @@
     "typecheck": "tsc --noEmit",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
     "db:push": "prisma db push",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "db:seed:navigation": "tsx prisma/seed-navigation.ts",
+    "db:seed:admin": "tsx prisma/seed-admin.ts",
+    "db:seed:admin-nav": "tsx prisma/seed-admin-navigation.ts",
+    "db:seed:role-nav": "tsx prisma/seed-role-navigation.ts",
+    "db:seed:support-nav": "tsx prisma/seed-support-nav.ts",
+    "db:seed:circles": "tsx prisma/seed-circles.ts",
+    "db:seed:dashboard": "tsx prisma/seed-dashboard-data.ts",
+    "db:seed:impact": "tsx prisma/seed-impact-spotlight.ts",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:encrypt:backfill": "tsx prisma/encrypt-pii.ts",
+    "db:setup": "pnpm db:migrate:deploy && pnpm db:seed:navigation && pnpm db:encrypt:backfill"
   },
   "dependencies": {
     "@prisma/client": "^5.15.0",
