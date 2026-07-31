@@ -57,6 +57,14 @@ export async function getUserProfile(userId: string) {
     bankCode: user.bankCode,
     bankAccountNumber: user.bankAccountNumber,
     bankAccountName: user.bankAccountName,
+    bankAccountStatus: user.bankAccountStatus,
+    bankAccountRejectionReason: user.bankAccountRejectionReason,
+    nextOfKin: {
+      name: user.nextOfKinName,
+      phone: user.nextOfKinPhone,
+      email: user.nextOfKinEmail,
+      relationship: user.nextOfKinRelationship,
+    },
     virtualAccount,
     stats: {
       totalSaved,

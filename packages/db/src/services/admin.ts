@@ -8,6 +8,7 @@ export async function getAdminStats() {
     kycPending,
     loansPending,
     payoutRequestsPending,
+    payoutAccountsPending,
     activeCircleAccounts,
     circlePrincipal,
     completedDonations,
@@ -21,6 +22,7 @@ export async function getAdminStats() {
     prisma.kyc.count({ where: { status: "pending" } }),
     prisma.loan.count({ where: { status: "pending" } }),
     prisma.circlePayoutRequest.count({ where: { status: "pending" } }),
+    prisma.user.count({ where: { bankAccountNumber: { not: null }, bankAccountStatus: "pending" } }),
     prisma.circleAccount.count({ where: { status: "active" } }),
     prisma.circleAccount.aggregate({
       where: { status: "active" },
@@ -53,6 +55,7 @@ export async function getAdminStats() {
       kyc: kycPending,
       loans: loansPending,
       payoutRequests: payoutRequestsPending,
+      payoutAccounts: payoutAccountsPending,
     },
     circles: {
       activeAccounts: activeCircleAccounts,

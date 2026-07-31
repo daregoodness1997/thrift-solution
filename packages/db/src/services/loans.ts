@@ -286,6 +286,9 @@ export async function disburseLoanViaFlutterwave(
   if (!borrower.bankAccountNumber || !borrower.bankCode) {
     throw new Error("Borrower has no saved bank account number and bank code for transfer");
   }
+  if (borrower.bankAccountStatus !== "approved") {
+    throw new Error("Borrower's payout bank account must be approved by an admin before disbursement");
+  }
 
   const amount = resolveDisbursedAmount(
     { amount: toNum(loan.amount), processingFee: toNum(loan.processingFee) },

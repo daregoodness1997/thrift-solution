@@ -14,7 +14,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 interface AdminStats {
   users: { total: number; newThisMonth: number };
-  pending: { kyc: number; loans: number; payoutRequests: number };
+  pending: { kyc: number; loans: number; payoutRequests: number; payoutAccounts: number };
   circles: { activeAccounts: number; totalPrincipal: number; totalInterest: number; assetsUnderManagement: number };
   donations: { completedCount: number; completedAmount: number };
   wallet: { totalCredited: number; totalDebited: number };
@@ -103,7 +103,7 @@ export default function AdminDashboardPage() {
 
   if (!isAdmin) return null;
 
-  const totalPending = stats ? stats.pending.kyc + stats.pending.loans + stats.pending.payoutRequests : 0;
+  const totalPending = stats ? stats.pending.kyc + stats.pending.loans + stats.pending.payoutRequests + stats.pending.payoutAccounts : 0;
 
   return (
     <div className="mx-auto max-w-[1280px] p-[clamp(1rem,3vw,2rem)]">
@@ -144,6 +144,7 @@ export default function AdminDashboardPage() {
                 <PendingItem label="KYC Reviews" count={stats.pending.kyc} href="/kyc/admin" />
                 <PendingItem label="Loan Requests" count={stats.pending.loans} href="/admin/loans" />
                 <PendingItem label="Payout Requests" count={stats.pending.payoutRequests} href="/clearance-management" />
+                <PendingItem label="Payout Accounts" count={stats.pending.payoutAccounts} href="/admin/payout-accounts" />
               </div>
             </Card>
           </FadeInUp>

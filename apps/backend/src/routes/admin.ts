@@ -11,6 +11,9 @@ import {
   updateUserByAdmin,
   suspendUser,
   reactivateUser,
+  listPayoutAccounts,
+  approvePayoutAccount,
+  rejectPayoutAccount,
   getAuditLogs,
   createAuditLog,
   getAllTransactions,
@@ -936,6 +939,89 @@ adminRouter.get("/cron-jobs", requireAdmin, (_req, res) => {
     running: runningJobs.has(key),
   }));
   res.json({ success: true, data: jobs });
+});
+
+/* ---------------- Payout bank accounts ---------------- */
+
+adminRouter.get("/payout-accounts", requireAdmin, async (req, res) => {
+  try {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 20;
+    const status = (req.query.status as "pending" | "approved" | "rejected") || undefined;
+    const search = (req.query.search as string) || undefined;
+
+    const result = await listPayoutAccounts({ page, limit, status, search });
+    res.json({ success: true, data: result });
+  } catch (err) {
+    console.error("List payout accounts error:", err);
+    res.status(500).json({ success: false, error: "Failed to fetch payout accounts" });
+  }
+});
+
+adminRouter.post("/payout-accounts/:id/approve", requireAdmin, async (req, res) => {
+  try {
+    const account = await approvePayoutAccount(req.params.id, req.user!.userId);
+    await createAuditLog({
+      ...actor(req),
+      action: "payoutAccount.approve",
+      entity: "user",
+      entityId: req.params.id,
+      metadata: {
+        bankAccountNumber: account.bankAccountNumber,
+        bankAccountName: account.bankAccountName,
+        bankName: account.bankName,
+      },
+    });
+    await notifyUser(req.params.id, {
+      type: "payout_account",
+      title: "Payout account approved",
+      body: `Your payout bank account (${account.bankAccountName || "—"} · ${account.bankAccountNumber || "—"}) has been approved.`,
+      data: { bankAccountStatus: "approved" },
+      email: {
+        subject: "Your payout account was approved",
+        heading: "Payout account approved",
+        text: `Your payout bank account (${account.bankAccountName || "—"} · ${account.bankAccountNumber || "—"}) has been approved and can now receive disbursements.`,
+      },
+    });
+    res.json({ success: true, data: account });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to approve payout account";
+    console.error("Approve payout account error:", err);
+    res.status(400).json({ success: false, error: message });
+  }
+});
+
+adminRouter.post("/payout-accounts/:id/reject", requireAdmin, async (req, res) => {
+  try {
+    const reason = (req.body?.reason as string)?.trim() || undefined;
+    const account = await rejectPayoutAccount(req.params.id, req.user!.userId, reason);
+    await createAuditLog({
+      ...actor(req),
+      action: "payoutAccount.reject",
+      entity: "user",
+      entityId: req.params.id,
+      metadata: {
+        bankAccountNumber: account.bankAccountNumber,
+        reason: account.bankAccountRejectionReason,
+      },
+    });
+    await notifyUser(req.params.id, {
+      type: "payout_account",
+      title: "Payout account rejected",
+      body: `Your payout bank account was rejected. ${reason ? `Reason: ${reason}` : "Please review and resubmit."}`,
+      data: { bankAccountStatus: "rejected", reason },
+      email: {
+        subject: "Your payout account was rejected",
+        heading: "Payout account rejected",
+        text: `Your payout bank account was rejected. ${reason ? `Reason: ${reason}` : "Please review and resubmit."}`,
+      },
+    });
+    res.json({ success: true, data: account });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to reject payout account";
+    console.error("Reject payout account error:", err);
+    res.status(400).json({ success: false, error: message });
+  }
 });
 
 adminRouter.post("/cron-jobs/:jobId/trigger", requireAdmin, async (req, res) => {

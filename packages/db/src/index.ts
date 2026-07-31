@@ -4,7 +4,7 @@ export { toNum } from "./services/decimal";
 
 export { getConfig, saveConfig } from "./services/config";
 
-export { findUserByEmail, findUserByPhone, findUserById, findUserByBankAccountNumber, findUserByAccountNumber as findUserByThrAccountNumber, createUser, setEmailVerified, setPhoneVerified, setTotpSecret, setTwoFactorEnabled, setEmail2faEnabled, updatePasswordHash, setUserIdentity, setUserBankDetails, setRegistrationProgress, setTransactionPin } from "./services/users";
+export { findUserByEmail, findUserByPhone, findUserById, findUserByBankAccountNumber, findUserByAccountNumber as findUserByThrAccountNumber, createUser, setEmailVerified, setPhoneVerified, setTotpSecret, setTwoFactorEnabled, setEmail2faEnabled, updatePasswordHash, setUserIdentity, setUserBankDetails, setUserNextOfKin, listPayoutAccounts, approvePayoutAccount, rejectPayoutAccount, setRegistrationProgress, setTransactionPin } from "./services/users";
 
 export {
   createVerificationToken,

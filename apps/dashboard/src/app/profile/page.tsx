@@ -12,6 +12,9 @@ import {
   Star,
   Copy,
   CheckCircle2,
+  Clock,
+  XCircle,
+  Users,
 } from "lucide-react";
 
 interface UserProfile {
@@ -26,6 +29,14 @@ interface UserProfile {
   bankCode?: string | null;
   bankAccountNumber?: string | null;
   bankAccountName?: string | null;
+  bankAccountStatus?: string | null;
+  bankAccountRejectionReason?: string | null;
+  nextOfKin?: {
+    name?: string | null;
+    phone?: string | null;
+    email?: string | null;
+    relationship?: string | null;
+  } | null;
   stats: {
     totalSaved: number;
     totalDonated: number;
@@ -102,6 +113,15 @@ export default function ProfilePage() {
   const [savingBank, setSavingBank] = useState(false);
   const [bankSaved, setBankSaved] = useState(false);
   const [bankError, setBankError] = useState("");
+  const [bankStatus, setBankStatus] = useState<string | null>(null);
+  const [bankRejectionReason, setBankRejectionReason] = useState<string | null>(null);
+  const [nextOfKinName, setNextOfKinName] = useState("");
+  const [nextOfKinPhone, setNextOfKinPhone] = useState("");
+  const [nextOfKinEmail, setNextOfKinEmail] = useState("");
+  const [nextOfKinRelationship, setNextOfKinRelationship] = useState("");
+  const [savingNextOfKin, setSavingNextOfKin] = useState(false);
+  const [nextOfKinSaved, setNextOfKinSaved] = useState(false);
+  const [nextOfKinError, setNextOfKinError] = useState("");
   const [resolving, setResolving] = useState(false);
   const [resolvedName, setResolvedName] = useState("");
   const [resolvedBankName, setResolvedBankName] = useState("");
@@ -144,6 +164,12 @@ export default function ProfilePage() {
         setBankCode(profileData.data.bankCode || "");
         setBankAccountNumber(profileData.data.bankAccountNumber || "");
         setBankAccountName(profileData.data.bankAccountName || "");
+        setBankStatus(profileData.data.bankAccountStatus || null);
+        setBankRejectionReason(profileData.data.bankAccountRejectionReason || null);
+        setNextOfKinName(profileData.data.nextOfKin?.name || "");
+        setNextOfKinPhone(profileData.data.nextOfKin?.phone || "");
+        setNextOfKinEmail(profileData.data.nextOfKin?.email || "");
+        setNextOfKinRelationship(profileData.data.nextOfKin?.relationship || "");
       }
       if (vaData?.virtualAccounts && vaData.virtualAccounts.length > 0) {
         setVirtualAccount({
@@ -214,9 +240,13 @@ export default function ProfilePage() {
                 bankCode: data.data.bankCode,
                 bankAccountNumber: data.data.bankAccountNumber,
                 bankAccountName: data.data.bankAccountName,
+                bankAccountStatus: data.data.bankAccountStatus,
+                bankAccountRejectionReason: data.data.bankAccountRejectionReason,
               }
             : prev,
         );
+        setBankStatus(data.data.bankAccountStatus || "pending");
+        setBankRejectionReason(data.data.bankAccountRejectionReason || null);
         setBankSaved(true);
         setTimeout(() => setBankSaved(false), 2000);
       } else {
@@ -226,6 +256,45 @@ export default function ProfilePage() {
       setBankError("Failed to save bank details");
     }
     setSavingBank(false);
+  };
+
+  const handleSaveNextOfKin = async () => {
+    if (!token) return;
+    setNextOfKinError("");
+    setSavingNextOfKin(true);
+    try {
+      const res = await fetch(`${API_URL}/api/user/next-of-kin`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: nextOfKinName.trim() || undefined,
+          phone: nextOfKinPhone.trim() || undefined,
+          email: nextOfKinEmail.trim() || undefined,
+          relationship: nextOfKinRelationship.trim() || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setProfile((prev) =>
+          prev
+            ? {
+                ...prev,
+                nextOfKin: data.data.nextOfKin,
+              }
+            : prev,
+        );
+        setNextOfKinSaved(true);
+        setTimeout(() => setNextOfKinSaved(false), 2000);
+      } else {
+        setNextOfKinError(data.error || "Failed to save next of kin");
+      }
+    } catch {
+      setNextOfKinError("Failed to save next of kin");
+    }
+    setSavingNextOfKin(false);
   };
 
   const handleResolveAccount = async () => {
@@ -661,9 +730,52 @@ export default function ProfilePage() {
               </span>
             )}
           </div>
+          {bankAccountNumber && bankStatus && (
+            <div className="mb-3">
+              {(() => {
+                if (bankStatus === "approved") {
+                  return (
+                    <span className="inline-flex items-center gap-1.5 rounded-md border border-emerald-300 bg-emerald-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-400">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Approved
+                    </span>
+                  );
+                }
+                if (bankStatus === "pending") {
+                  return (
+                    <span className="inline-flex items-center gap-1.5 rounded-md border border-amber-300 bg-amber-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-700 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-400">
+                      <Clock className="w-3.5 h-3.5" />
+                      Pending approval
+                    </span>
+                  );
+                }
+                return (
+                  <span className="inline-flex items-center gap-1.5 rounded-md border border-red-300 bg-red-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-red-700 dark:border-red-800 dark:bg-red-950/40 dark:text-red-400">
+                    <XCircle className="w-3.5 h-3.5" />
+                    Rejected
+                  </span>
+                );
+              })()}
+            </div>
+          )}
+          {bankAccountNumber && bankStatus === "pending" && (
+            <div className="mb-3 rounded-2xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 px-4 py-2.5 text-xs font-medium text-amber-700 dark:text-amber-400">
+              Your bank details have been submitted and are awaiting admin
+              approval. Disbursements will be sent to this account once
+              approved.
+            </div>
+          )}
+          {bankAccountNumber && bankStatus === "rejected" && (
+            <div className="mb-3 rounded-2xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/40 px-4 py-2.5 text-xs font-medium text-red-700 dark:text-red-400">
+              Your bank details were rejected.
+              {bankRejectionReason ? ` Reason: ${bankRejectionReason}` : ""}{" "}
+              Please review and resubmit.
+            </div>
+          )}
           <p className="text-[12px] text-slate-500 dark:text-slate-400 mb-4">
-            Used for circle payout disbursements via bank transfer. Keep this
-            accurate to avoid failed transfers.
+            Used for circle payout disbursements via bank transfer. Any new or
+            updated account must be approved by an admin before it can receive
+            payments.
           </p>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
             <div className="flex flex-col gap-1.5">
@@ -772,6 +884,94 @@ export default function ProfilePage() {
               disabled={savingBank}
             >
               {savingBank ? "Saving..." : "Save Bank Details"}
+            </button>
+          </div>
+        </Card>
+      </FadeInUp>
+
+      <FadeInUp delay={500}>
+        <Card padding="1.5rem" className="mb-6 rounded-3xl">
+          <div className="flex justify-between items-center mb-2">
+            <span className="px-3 py-1 rounded-full bg-violet-100 dark:bg-violet-950/80 text-violet-700 dark:text-violet-300 text-[10px] font-mono font-bold uppercase tracking-wider flex items-center gap-1 w-fit">
+              <Users className="w-3.5 h-3.5 text-violet-500" />
+              <span>Next of Kin</span>
+            </span>
+            {nextOfKinSaved && (
+              <span className="text-[11px] text-emerald-600 font-medium">
+                Saved!
+              </span>
+            )}
+          </div>
+          <p className="text-[12px] text-slate-500 dark:text-slate-400 mb-4">
+            The person we should contact in case of an emergency related to your
+            account.
+          </p>
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] uppercase tracking-[0.1em] text-slate-400 font-bold">
+                Full Name
+              </label>
+              <input
+                value={nextOfKinName}
+                onChange={(e) => setNextOfKinName(e.target.value)}
+                placeholder="e.g. Jane Doe"
+                className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none font-sans"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] uppercase tracking-[0.1em] text-slate-400 font-bold">
+                Relationship
+              </label>
+              <select
+                value={nextOfKinRelationship}
+                onChange={(e) => setNextOfKinRelationship(e.target.value)}
+                className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none font-sans"
+              >
+                <option value="">Select relationship</option>
+                {["Spouse", "Parent", "Sibling", "Child", "Friend", "Other"].map(
+                  (r) => (
+                    <option key={r} value={r}>
+                      {r}
+                    </option>
+                  ),
+                )}
+              </select>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] uppercase tracking-[0.1em] text-slate-400 font-bold">
+                Phone Number
+              </label>
+              <input
+                value={nextOfKinPhone}
+                onChange={(e) => setNextOfKinPhone(e.target.value)}
+                placeholder="e.g. 0801 234 5678"
+                className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none font-mono"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[10px] uppercase tracking-[0.1em] text-slate-400 font-bold">
+                Email
+              </label>
+              <input
+                value={nextOfKinEmail}
+                onChange={(e) => setNextOfKinEmail(e.target.value)}
+                placeholder="e.g. jane@example.com"
+                className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none font-sans"
+              />
+            </div>
+          </div>
+          {nextOfKinError && (
+            <div className="mt-3 rounded-2xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/40 px-4 py-2.5 text-xs font-medium text-red-600 dark:text-red-400">
+              {nextOfKinError}
+            </div>
+          )}
+          <div className="flex justify-end mt-4">
+            <button
+              onClick={handleSaveNextOfKin}
+              className="btn-primary py-3 px-5 text-xs bg-violet-600 hover:bg-violet-700 text-white shadow-md"
+              disabled={savingNextOfKin}
+            >
+              {savingNextOfKin ? "Saving..." : "Save Next of Kin"}
             </button>
           </div>
         </Card>

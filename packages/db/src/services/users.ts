@@ -114,13 +114,143 @@ export async function setUserBankDetails(
   userId: string,
   data: { bankName?: string; bankCode?: string; bankAccountNumber?: string; bankAccountName?: string },
 ) {
+  const existing = await prisma.user.findUnique({ where: { id: userId } });
+  if (!existing) throw new Error("User not found");
+
+  const patch: Record<string, unknown> = {};
+  if (data.bankName !== undefined) patch.bankName = data.bankName;
+  if (data.bankCode !== undefined) patch.bankCode = data.bankCode;
+  if (data.bankAccountNumber !== undefined) patch.bankAccountNumber = data.bankAccountNumber;
+  if (data.bankAccountName !== undefined) patch.bankAccountName = data.bankAccountName;
+
+  const changed =
+    (patch.bankName !== undefined && patch.bankName !== existing.bankName) ||
+    (patch.bankCode !== undefined && patch.bankCode !== existing.bankCode) ||
+    (patch.bankAccountNumber !== undefined && patch.bankAccountNumber !== existing.bankAccountNumber) ||
+    (patch.bankAccountName !== undefined && patch.bankAccountName !== existing.bankAccountName);
+
+  if (changed) {
+    patch.bankAccountStatus = "pending";
+    patch.bankAccountRejectionReason = null;
+    patch.bankAccountReviewedById = null;
+    patch.bankAccountReviewedAt = null;
+  }
+
+  return prisma.user.update({ where: { id: userId }, data: patch });
+}
+
+export async function setUserNextOfKin(
+  userId: string,
+  data: { name?: string; phone?: string; email?: string; relationship?: string },
+) {
   return prisma.user.update({
     where: { id: userId },
     data: {
-      ...(data.bankName !== undefined ? { bankName: data.bankName } : {}),
-      ...(data.bankCode !== undefined ? { bankCode: data.bankCode } : {}),
-      ...(data.bankAccountNumber !== undefined ? { bankAccountNumber: data.bankAccountNumber } : {}),
-      ...(data.bankAccountName !== undefined ? { bankAccountName: data.bankAccountName } : {}),
+      ...(data.name !== undefined ? { nextOfKinName: data.name } : {}),
+      ...(data.phone !== undefined ? { nextOfKinPhone: data.phone } : {}),
+      ...(data.email !== undefined ? { nextOfKinEmail: data.email } : {}),
+      ...(data.relationship !== undefined ? { nextOfKinRelationship: data.relationship } : {}),
+    },
+  });
+}
+
+export async function listPayoutAccounts(params: {
+  page?: number;
+  limit?: number;
+  status?: "pending" | "approved" | "rejected";
+  search?: string;
+}) {
+  const { page = 1, limit = 20, status, search } = params;
+  const where: Record<string, unknown> = { bankAccountNumber: { not: null }, deletedAt: null };
+  if (status) where.bankAccountStatus = status;
+  if (search) {
+    where.OR = [
+      { name: { contains: search, mode: "insensitive" } },
+      { email: { contains: search, mode: "insensitive" } },
+      { bankAccountNumber: { contains: search, mode: "insensitive" } },
+      { bankAccountName: { contains: search, mode: "insensitive" } },
+      { bankName: { contains: search, mode: "insensitive" } },
+    ];
+  }
+
+  const [items, total] = await Promise.all([
+    prisma.user.findMany({
+      where,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        accountNumber: true,
+        bankName: true,
+        bankCode: true,
+        bankAccountNumber: true,
+        bankAccountName: true,
+        bankAccountStatus: true,
+        bankAccountRejectionReason: true,
+        bankAccountReviewedById: true,
+        bankAccountReviewedAt: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      orderBy: { updatedAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.user.count({ where }),
+  ]);
+
+  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+}
+
+export async function approvePayoutAccount(userId: string, adminId: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new Error("User not found");
+  if (!user.bankAccountNumber) throw new Error("User has no payout account to approve");
+
+  return prisma.user.update({
+    where: { id: userId },
+    data: {
+      bankAccountStatus: "approved",
+      bankAccountRejectionReason: null,
+      bankAccountReviewedById: adminId,
+      bankAccountReviewedAt: new Date(),
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      bankName: true,
+      bankCode: true,
+      bankAccountNumber: true,
+      bankAccountName: true,
+      bankAccountStatus: true,
+    },
+  });
+}
+
+export async function rejectPayoutAccount(userId: string, adminId: string, reason?: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new Error("User not found");
+  if (!user.bankAccountNumber) throw new Error("User has no payout account to reject");
+
+  return prisma.user.update({
+    where: { id: userId },
+    data: {
+      bankAccountStatus: "rejected",
+      bankAccountRejectionReason: reason ?? "Rejected by admin",
+      bankAccountReviewedById: adminId,
+      bankAccountReviewedAt: new Date(),
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      bankName: true,
+      bankCode: true,
+      bankAccountNumber: true,
+      bankAccountName: true,
+      bankAccountStatus: true,
+      bankAccountRejectionReason: true,
     },
   });
 }

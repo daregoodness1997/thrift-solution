@@ -878,6 +878,9 @@ export async function disburseCirclePayoutRequestViaFlutterwave(
   if (!user.bankAccountNumber || !user.bankCode) {
     throw new Error("User has no saved bank account number and bank code for transfer");
   }
+  if (user.bankAccountStatus !== "approved") {
+    throw new Error("User's payout bank account must be approved by an admin before disbursement");
+  }
 
   const reference = `CIRDIS-${Date.now().toString(36)}-${nodeCrypto.randomBytes(6).toString("hex")}`;
 

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { authMiddleware } from "../middleware/auth";
-import { getUserProfile, updateUserProfile, getUserGroups, setUserBankDetails, findUserByBankAccountNumber, getDefaultsSummary, getUpcomingClearance } from "@thrift/db";
+import { getUserProfile, updateUserProfile, getUserGroups, setUserBankDetails, setUserNextOfKin, findUserByBankAccountNumber, getDefaultsSummary, getUpcomingClearance } from "@thrift/db";
 import { resolveAccountNumber } from "../services/payments";
 
 export const userRouter = Router();
@@ -46,11 +46,34 @@ userRouter.put("/bank-details", authMiddleware, async (req, res) => {
         bankCode: updated.bankCode,
         bankAccountNumber: updated.bankAccountNumber,
         bankAccountName: updated.bankAccountName,
+        bankAccountStatus: updated.bankAccountStatus,
+        bankAccountRejectionReason: updated.bankAccountRejectionReason,
       },
     });
   } catch (err) {
     console.error("Update bank details error:", err);
     res.status(500).json({ success: false, error: "Failed to update bank details" });
+  }
+});
+
+userRouter.put("/next-of-kin", authMiddleware, async (req, res) => {
+  try {
+    const { name, phone, email, relationship } = req.body;
+    const updated = await setUserNextOfKin(req.user!.userId, { name, phone, email, relationship });
+    res.json({
+      success: true,
+      data: {
+        nextOfKin: {
+          name: updated.nextOfKinName,
+          phone: updated.nextOfKinPhone,
+          email: updated.nextOfKinEmail,
+          relationship: updated.nextOfKinRelationship,
+        },
+      },
+    });
+  } catch (err) {
+    console.error("Update next of kin error:", err);
+    res.status(500).json({ success: false, error: "Failed to update next of kin" });
   }
 });
 
