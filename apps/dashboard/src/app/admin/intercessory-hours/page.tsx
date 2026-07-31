@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/PageHeader";
 import Pagination from "@/components/Pagination";
 import { ActionMessage, useFlashMessage } from "@/components/AdminShared";
 import { SimpleTable, SimpleColumn } from "@/components/SimpleTable";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const LIMIT = 20;
@@ -24,6 +25,7 @@ interface IntercessoryHour {
 
 export default function AdminIntercessoryHoursPage() {
   const { user, token, loading: authLoading } = useAuth();
+  const { confirm, Dialog } = useConfirm();
   const router = useRouter();
   const { message, show } = useFlashMessage();
   const showRef = useRef(show);
@@ -145,7 +147,8 @@ export default function AdminIntercessoryHoursPage() {
   };
 
   const handleDelete = async (hour: IntercessoryHour) => {
-    if (!confirm(`Delete "${hour.name}"?`)) return;
+    const proceed = await confirm({ variant: "danger", title: `Delete "${hour.name}"?`, description: "This cannot be undone.", confirmLabel: "Delete" });
+    if (!proceed) return;
     try {
       const res = await fetch(`${API_URL}/api/intercessory-hours/admin/${hour.id}`, {
         method: "DELETE",
@@ -427,6 +430,7 @@ export default function AdminIntercessoryHoursPage() {
           </div>
         </div>
       )}
+      {Dialog}
     </div>
   );
 }

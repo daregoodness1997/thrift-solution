@@ -792,7 +792,7 @@ export async function getCirclePayoutRequests(params: {
       statuses.length === 1 ? { status: statuses[0] } : { status: { in: statuses } };
   }
 
-  const [items, total] = await Promise.all([
+  const [items, total, pendingCount, totalDisbursed, totalApproved] = await Promise.all([
     prisma.circlePayoutRequest.findMany({
       where,
       include: {
@@ -808,9 +808,19 @@ export async function getCirclePayoutRequests(params: {
       take: limit,
     }),
     prisma.circlePayoutRequest.count({ where }),
+    prisma.circlePayoutRequest.count({ where: { ...where, status: "pending" } }),
+    prisma.circlePayoutRequest.aggregate({ where: { ...where, status: "disbursed" }, _sum: { amount: true } }),
+    prisma.circlePayoutRequest.aggregate({ where: { ...where, status: "approved" }, _sum: { amount: true } }),
   ]);
 
-  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+  return {
+    items, total, page, limit, totalPages: Math.ceil(total / limit),
+    stats: {
+      pendingCount,
+      totalDisbursed: toNum(totalDisbursed._sum.amount),
+      totalApproved: toNum(totalApproved._sum.amount),
+    },
+  };
 }
 
 export async function getCirclePayoutRequestsByCircle(circleId: string, params?: {
@@ -1288,7 +1298,7 @@ export async function getDefaultsByUser(userId: string, params?: {
   const where: Record<string, unknown> = { userId };
   if (params?.status) where.status = params.status;
 
-  const [items, total] = await Promise.all([
+  const [items, total, outstandingAgg] = await Promise.all([
     prisma.circleDefault.findMany({
       where,
       include: {
@@ -1301,9 +1311,139 @@ export async function getDefaultsByUser(userId: string, params?: {
       take: limit,
     }),
     prisma.circleDefault.count({ where }),
+    prisma.circleDefault.aggregate({
+      where: { userId, status: "outstanding" },
+      _sum: { clearanceAmount: true },
+      _count: true,
+    }),
   ]);
 
-  return { items, total, page, limit, totalPages: Math.ceil(total / limit) };
+  return {
+    items, total, page, limit, totalPages: Math.ceil(total / limit),
+    stats: {
+      outstandingTotal: toNum(outstandingAgg._sum.clearanceAmount),
+      outstandingCount: outstandingAgg._count,
+    },
+  };
+}
+
+export async function getAllCircleDefaults(params?: {
+  page?: number;
+  limit?: number;
+  status?: string;
+}) {
+  const page = params?.page ?? 1;
+  const limit = params?.limit ?? 20;
+  const statusParam = params?.status;
+  const now = Date.now();
+  const graceDays = 3;
+  const msPerDay = 1000 * 60 * 60 * 24;
+  const computeDaysOverdue = (createdAt: Date) =>
+    Math.max(0, Math.floor((now - createdAt.getTime()) / msPerDay) - graceDays);
+
+  const totalAll = await prisma.circleDefault.count({});
+
+  const outstandingAll = await prisma.circleDefault.findMany({
+    where: { status: "outstanding" },
+    select: { clearanceAmount: true, createdAt: true },
+  });
+  let totalOverdueAmount = 0;
+  let totalPendingAmount = 0;
+  for (const d of outstandingAll) {
+    const days = computeDaysOverdue(d.createdAt);
+    const amt = toNum(d.clearanceAmount);
+    if (days > 0) totalOverdueAmount += amt;
+    else totalPendingAmount += amt;
+  }
+
+  const include = {
+    circleAccount: {
+      include: {
+        circle: { select: { id: true, name: true } },
+        user: { select: { id: true, name: true } },
+      },
+    },
+  };
+
+  let items: any[] = [];
+  let total = 0;
+
+  if (statusParam === "cleared" || statusParam === "resolved") {
+    [items, total] = await Promise.all([
+      prisma.circleDefault.findMany({
+        where: { status: "cleared" },
+        include,
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.circleDefault.count({ where: { status: "cleared" } }),
+    ]);
+  } else if (statusParam === "overdue" || statusParam === "pending") {
+    const allOutstanding = await prisma.circleDefault.findMany({
+      where: { status: "outstanding" },
+      include,
+      orderBy: { createdAt: "desc" },
+    });
+    const isOverdue = statusParam === "overdue";
+    items = allOutstanding.filter((d) => {
+      const days = computeDaysOverdue(d.createdAt);
+      return isOverdue ? days > 0 : days === 0;
+    });
+    total = items.length;
+    items = items.slice((page - 1) * limit, page * limit);
+  } else {
+    [items, total] = await Promise.all([
+      prisma.circleDefault.findMany({
+        include,
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      totalAll,
+    ]);
+  }
+
+  const mapped = (items ?? []).map((d) => {
+    const daysOverdue =
+      d.status === "outstanding" ? computeDaysOverdue(d.createdAt) : 0;
+    const displayStatus =
+      d.status === "cleared"
+        ? "resolved"
+        : daysOverdue > 0
+          ? "overdue"
+          : "pending";
+    return {
+      id: d.id,
+      userId: d.userId,
+      userName: d.circleAccount?.user?.name || d.user?.name || "Unknown",
+      groupName: d.circleAccount.circle.name,
+      amount: toNum(d.clearanceAmount),
+      amountDue: toNum(d.amountDue),
+      clearanceAmount: toNum(d.clearanceAmount),
+      weekNumber: d.weekNumber,
+      dueDate: d.createdAt,
+      status: displayStatus,
+      daysOverdue,
+      clearedAt: d.clearedAt,
+      clearedBy: d.clearedBy,
+      clearanceProofUrl: d.clearanceProofUrl,
+      clearanceNote: d.clearanceNote,
+    };
+  });
+
+  return {
+    items: mapped,
+    total,
+    page,
+    limit,
+    totalPages: total === 0 ? 1 : Math.ceil(total / limit),
+    stats: {
+      totalDefaults: totalAll,
+      totalOverdue: totalOverdueAmount,
+      totalPending: totalPendingAmount,
+    },
+  };
 }
 
 export async function clearCircleDefault(defaultId: string, userId: string) {

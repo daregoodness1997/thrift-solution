@@ -7,6 +7,7 @@ import { config } from "@thrift/config";
 import { useAuth } from "@/lib/auth-context";
 import { wakeUpServer } from "@/lib/wake-up";
 import { NotificationBell } from "@/components/NotificationBell";
+import { useConfirm } from "@/components/ConfirmDialog";
 import { fetchDeduped } from "@/lib/fetch-cache";
 import {
   ArrowLeft,
@@ -174,6 +175,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, token, loading, logout } = useAuth();
+  const { confirm, Dialog } = useConfirm();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
@@ -300,7 +302,11 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   if (!user) return null;
 
-  const handleLogout = () => { logout(); router.push("/login"); };
+  const handleLogout = async () => {
+    const proceed = await confirm({ title: "Log out?", description: "You'll be signed out and redirected to the login screen.", variant: "warning", confirmLabel: "Log Out" });
+    if (!proceed) return;
+    logout(); router.push("/login");
+  };
 
   const handleWakeUp = async () => {
     setWakeUpLoading(true);
@@ -491,6 +497,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
         {children}
       </main>
+      {Dialog}
     </div>
   );
 }

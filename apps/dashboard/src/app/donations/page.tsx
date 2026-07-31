@@ -27,6 +27,7 @@ interface DonationStats {
   totalDonated: number;
   totalCount: number;
   completedCount: number;
+  itemCount: number;
 }
 
 const PAGE_SIZE = 20;
@@ -34,7 +35,7 @@ const PAGE_SIZE = 20;
 export default function DonationsPage() {
   const { token } = useAuth();
   const [donations, setDonations] = useState<Donation[]>([]);
-  const [stats, setStats] = useState<DonationStats>({ totalDonated: 0, totalCount: 0, completedCount: 0 });
+  const [stats, setStats] = useState<DonationStats>({ totalDonated: 0, totalCount: 0, completedCount: 0, itemCount: 0 });
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "monetary" | "item">("all");
   const [pagination, setPagination] = useState<PaginationInfo>({ page: 1, limit: PAGE_SIZE, total: 0, totalPages: 1 });
@@ -152,7 +153,7 @@ export default function DonationsPage() {
       <StaggerChildren staggerDelay={100} className="mb-8 grid grid-cols-3 gap-6">
         <StatCard label="Total Donated" value={formatNaira(stats.totalDonated)} change="All time" positive variant="default" />
         <StatCard label="Total Donations" value={String(stats.totalCount)} change={`${stats.completedCount} completed`} positive variant="warm" />
-        <StatCard label="Item Donations" value={String(stats.totalCount - stats.completedCount)} change="Items contributed" positive variant="default" />
+        <StatCard label="Item Donations" value={String(stats.itemCount)} change="Items contributed" positive variant="default" />
       </StaggerChildren>
 
       <FadeInUp delay={400}>

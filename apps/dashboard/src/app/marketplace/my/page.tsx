@@ -7,6 +7,7 @@ import { formatNaira } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
 import { Skeleton, SkeletonCard } from "@/components/Skeleton";
+import { useConfirm } from "@/components/ConfirmDialog";
 import Pagination from "@/components/Pagination";
 
 const fallback = config;
@@ -56,6 +57,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function MyMarketplacePage() {
   const { token, user } = useAuth();
+  const { confirm, Dialog } = useConfirm();
   const [cfg, setCfg] = useState<BrandConfig>(fallback);
   const [listings, setListings] = useState<Listing[]>([]);
   const [receivedOffers, setReceivedOffers] = useState<ReceivedOffer[]>([]);
@@ -122,6 +124,16 @@ export default function MyMarketplacePage() {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleOfferAction = async (listingId: string, offerId: string, status: string) => {
+    const isAccept = status === "accepted";
+    const proceed = await confirm({
+      variant: isAccept ? "success" : "danger",
+      title: isAccept ? "Accept offer?" : "Reject offer?",
+      description: isAccept
+        ? "Accept this offer? The listing will be marked as sold and the offerer notified."
+        : "Reject this offer? The offerer will be notified and the listing remains active.",
+      confirmLabel: isAccept ? "Accept" : "Reject",
+    });
+    if (!proceed) return;
     try {
       const res = await fetch(`${API_URL}/api/marketplace/${listingId}/offers/${offerId}`, {
         method: "PUT",
@@ -278,6 +290,7 @@ export default function MyMarketplacePage() {
           <Pagination page={myOffersPage} totalPages={myOffersTotalPages} total={myOffersTotal} limit={LIMIT} onPageChange={setMyOffersPage} loading={loading} />
         </>
       )}
+      {Dialog}
     </div>
   );
 }

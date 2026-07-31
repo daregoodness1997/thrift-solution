@@ -9,6 +9,7 @@ import { PageHeader } from "@/components/PageHeader";
 import Pagination from "@/components/Pagination";
 import { ActionMessage, useFlashMessage } from "@/components/AdminShared";
 import { SimpleTable, SimpleColumn } from "@/components/SimpleTable";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const LIMIT = 20;
@@ -56,6 +57,7 @@ interface Narrative {
 
 export default function AdminImpactSpotlightPage() {
   const { user, token, loading: authLoading } = useAuth();
+  const { confirm, Dialog } = useConfirm();
   const router = useRouter();
   const { message, show } = useFlashMessage();
   const showRef = useRef(show);
@@ -112,7 +114,8 @@ export default function AdminImpactSpotlightPage() {
   const openEdit = (item: unknown) => { setEditingItem(item); setShowModal(true); };
 
   const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Delete "${name}"?`)) return;
+    const proceed = await confirm({ variant: "danger", title: `Delete "${name}"?`, description: "This cannot be undone.", confirmLabel: "Delete" });
+    if (!proceed) return;
     try {
       const res = await fetch(`${API_URL}/api/impact/admin/narratives/${id}`, {
         method: "DELETE",
@@ -304,6 +307,7 @@ export default function AdminImpactSpotlightPage() {
           inputClass={inputClass}
         />
       )}
+      {Dialog}
     </div>
   );
 }

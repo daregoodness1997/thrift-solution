@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { Card, ColorBar, FadeInUp } from "@thrift/ui";
 import Pagination from "@/components/Pagination";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 const LIMIT = 20;
 
@@ -56,6 +57,7 @@ interface KycStats {
 
 export default function KycAdminPage() {
   const { token } = useAuth();
+  const { confirm, Dialog } = useConfirm();
   const [submissions, setSubmissions] = useState<KycSubmission[]>([]);
   const [stats, setStats] = useState<KycStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -120,6 +122,14 @@ export default function KycAdminPage() {
     kycId: string,
     action: "approve" | "reject" | "review",
   ) => {
+    if (action === "approve") {
+      const proceed = await confirm({ variant: "success", title: "Approve KYC?", description: "Approve this verification? The user's KYC will be marked verified.", confirmLabel: "Approve" });
+      if (!proceed) return;
+    }
+    if (action === "review") {
+      const proceed = await confirm({ variant: "info", title: "Start review?", description: "Mark this submission as under review.", confirmLabel: "Start Review" });
+      if (!proceed) return;
+    }
     setActionLoading(true);
     setMessage("");
     try {
@@ -514,6 +524,7 @@ export default function KycAdminPage() {
           onPageChange={setPage}
         />
       )}
+      {Dialog}
     </div>
   );
 }

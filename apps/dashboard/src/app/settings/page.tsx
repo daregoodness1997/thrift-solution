@@ -5,13 +5,15 @@ import { Card } from "@thrift/ui";
 import type { NotificationPreferences } from "@thrift/types";
 import { useAuth } from "@/lib/auth-context";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/ConfirmDialog";
 import { Settings, Shield, Bell, Trash2, Lock } from "lucide-react";
 import { fetchNotificationPreferences, updateNotificationPreferences } from "@/lib/notifications";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 export default function SettingsPage() {
-  const { user, token } = useAuth();
+  const { user, token, logout } = useAuth();
+  const { confirm, Dialog } = useConfirm();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [prefs, setPrefs] = useState<NotificationPreferences | null>(null);
@@ -109,6 +111,32 @@ export default function SettingsPage() {
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   }
+
+  const handleDeleteAccount = async () => {
+    const proceed = await confirm({
+      variant: "danger",
+      title: "Delete account?",
+      description: "This permanently deletes your account and all associated data. This cannot be undone.",
+      confirmLabel: "Delete Account",
+      confirmValue: "delete my account",
+    });
+    if (!proceed) return;
+    try {
+      const res = await fetch(`${API_URL}/api/user`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success("Account deleted successfully.");
+        logout();
+      } else {
+        toast.error(data.error || "Failed to delete account");
+      }
+    } catch {
+      toast.error("Network error");
+    }
+  };
 
   if (loading) {
     return (
@@ -310,7 +338,7 @@ export default function SettingsPage() {
             <span className="text-xs font-medium text-slate-900 dark:text-white block">Delete Account</span>
             <span className="text-[11px] text-slate-500 dark:text-slate-400 font-light">Permanently delete your account and all associated data.</span>
           </div>
-          <button className="btn-secondary py-2 px-4 text-xs !border-red-300 !text-red-500">Delete Account</button>
+            <button onClick={handleDeleteAccount} className="btn-secondary py-2 px-4 text-xs !border-red-300 !text-red-500">Delete Account</button>
         </div>
       </Card>
 
@@ -318,6 +346,7 @@ export default function SettingsPage() {
         {saved && <span className="text-xs text-emerald-600 font-medium self-center">Settings saved!</span>}
         <button onClick={handleSave} className="btn-primary py-3 px-5 text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-md">Save Changes</button>
       </div>
+      {Dialog}
     </div>
   );
 }

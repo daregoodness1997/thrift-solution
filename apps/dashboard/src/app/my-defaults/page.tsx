@@ -47,6 +47,7 @@ export default function MyDefaultsPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [outstandingStats, setOutstandingStats] = useState<{ outstandingTotal: number; outstandingCount: number }>({ outstandingTotal: 0, outstandingCount: 0 });
   const [clearingId, setClearingId] = useState<string | null>(null);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
@@ -70,6 +71,7 @@ export default function MyDefaultsPage() {
         setDefaults(data.data.items || []);
         setTotalPages(data.data.totalPages || 1);
         setTotal(data.data.total || 0);
+        if (data.data.stats) setOutstandingStats(data.data.stats);
       }
       try {
         const walletRes = await fetch(`${API_URL}/api/wallet/balance`, { headers: { Authorization: `Bearer ${token}` } });
@@ -103,9 +105,6 @@ export default function MyDefaultsPage() {
     setClearingId(null);
   };
 
-  const outstandingTotal = defaults.filter((d) => d.status === "outstanding").reduce((s, d) => s + d.clearanceAmount, 0);
-  const outstandingCount = defaults.filter((d) => d.status === "outstanding").length;
-
   return (
     <div className="mx-auto max-w-[900px] p-[clamp(1rem,3vw,2rem)]">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4 mb-8">
@@ -135,13 +134,13 @@ export default function MyDefaultsPage() {
           <div className="text-[10px] font-bold uppercase text-rose-700 dark:text-rose-400 tracking-wider flex items-center gap-1">
             <AlertTriangle className="w-3.5 h-3.5" /><span>Outstanding Defaults</span>
           </div>
-          <div className="font-display font-bold text-2xl text-rose-600 dark:text-rose-400">{outstandingCount}</div>
+          <div className="font-display font-bold text-2xl text-rose-600 dark:text-rose-400">{outstandingStats.outstandingCount}</div>
         </div>
         <div className="p-4 rounded-2xl bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200/80 dark:border-blue-900/50 space-y-1">
           <div className="text-[10px] font-bold uppercase text-blue-700 dark:text-blue-400 tracking-wider flex items-center gap-1">
             <DollarSign className="w-3.5 h-3.5" /><span>Clearance Owed</span>
           </div>
-          <div className="font-display font-bold text-2xl text-slate-900 dark:text-white">{formatNaira(outstandingTotal)}</div>
+          <div className="font-display font-bold text-2xl text-slate-900 dark:text-white">{formatNaira(outstandingStats.outstandingTotal)}</div>
         </div>
       </StaggerChildren>
 

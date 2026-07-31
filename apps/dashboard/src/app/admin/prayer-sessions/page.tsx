@@ -9,6 +9,7 @@ import { PageHeader } from "@/components/PageHeader";
 import Pagination from "@/components/Pagination";
 import { ActionMessage, useFlashMessage } from "@/components/AdminShared";
 import { SimpleTable, SimpleColumn } from "@/components/SimpleTable";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const LIMIT = 20;
@@ -29,6 +30,7 @@ interface PrayerSession {
 
 export default function AdminPrayerSessionsPage() {
   const { user, token, loading: authLoading } = useAuth();
+  const { confirm, Dialog } = useConfirm();
   const router = useRouter();
   const { message, show } = useFlashMessage();
   const showRef = useRef(show);
@@ -158,7 +160,8 @@ export default function AdminPrayerSessionsPage() {
   };
 
   const handleDelete = async (session: PrayerSession) => {
-    if (!confirm(`Delete "${session.title}"?`)) return;
+    const proceed = await confirm({ variant: "danger", title: `Delete "${session.title}"?`, description: "This cannot be undone.", confirmLabel: "Delete" });
+    if (!proceed) return;
     try {
       const res = await fetch(`${API_URL}/api/prayer-sessions/admin/${session.id}`, {
         method: "DELETE",
@@ -522,6 +525,7 @@ export default function AdminPrayerSessionsPage() {
           </div>
         </div>
       )}
+      {Dialog}
     </div>
   );
 }

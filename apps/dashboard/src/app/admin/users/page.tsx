@@ -8,6 +8,7 @@ import { Users, Wallet, TrendingUp, Activity, AlertTriangle, Coins, CreditCard, 
 import { formatNaira } from "@thrift/utils";
 import Pagination from "@/components/Pagination";
 import { SimpleTable, SimpleColumn } from "@/components/SimpleTable";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const LIMIT = 20;
@@ -30,6 +31,7 @@ type DetailTab = "overview" | "transactions" | "circles" | "interests" | "defaul
 
 export default function AdminUsersPage() {
   const { user, token, loading: authLoading } = useAuth();
+  const { confirm, Dialog } = useConfirm();
   const router = useRouter();
   const isAdmin = user?.role === "admin" || user?.role === "superadmin";
 
@@ -107,6 +109,8 @@ export default function AdminUsersPage() {
   };
 
   const handleToggleSuspend = async (u: AdminUser) => {
+    const proceed = await confirm({ variant: "warning", title: u.deletedAt ? "Reactivate user?" : "Suspend user?", description: u.deletedAt ? `Reactivate ${u.name}? They will regain access to their account.` : `Suspend ${u.name}? They won't be able to sign in until reactivated.`, confirmLabel: u.deletedAt ? "Reactivate" : "Suspend" });
+    if (!proceed) return;
     setBusyId(u.id);
     try {
       const action = u.deletedAt ? "reactivate" : "suspend";
@@ -578,11 +582,12 @@ export default function AdminUsersPage() {
                     <div className="p-8 text-center text-[13px] text-slate-500 dark:text-slate-400">No donations found.</div>
                   )}
                 </div>
-              ) : null}
-            </div>
+            ) : null}
           </div>
         </div>
+      </div>
       )}
+      {Dialog}
     </div>
   );
 }

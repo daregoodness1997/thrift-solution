@@ -7,8 +7,8 @@ export function formatCurrency(amount: number, currency = "NGN"): string {
   }).format(amount);
 }
 
-export function formatNaira(amount: number): string {
-  return `₦${amount.toLocaleString("en-NG")}`;
+export function formatNaira(amount: number | string): string {
+  return `₦${Number(amount).toLocaleString("en-NG")}`;
 }
 
 export function formatDate(date: Date): string {

@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useParams, useRouter } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
 import { Skeleton } from "@/components/Skeleton";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 const fallback = config;
 
@@ -51,6 +52,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function ListingDetailPage() {
   const { token, user } = useAuth();
+  const { confirm, Dialog } = useConfirm();
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
@@ -120,6 +122,16 @@ export default function ListingDetailPage() {
   };
 
   const handleOfferAction = async (offerId: string, status: string) => {
+    const isAccept = status === "accepted";
+    const proceed = await confirm({
+      variant: isAccept ? "success" : "danger",
+      title: isAccept ? "Accept offer?" : "Reject offer?",
+      description: isAccept
+        ? "Accept this offer? The listing will be marked as sold and the offerer notified."
+        : "Reject this offer? The offerer will be notified and the listing remains active.",
+      confirmLabel: isAccept ? "Accept" : "Reject",
+    });
+    if (!proceed) return;
     try {
       const res = await fetch(`${API_URL}/api/marketplace/${id}/offers/${offerId}`, {
         method: "PUT",
@@ -132,7 +144,8 @@ export default function ListingDetailPage() {
   };
 
   const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete this listing?")) return;
+    const proceed = await confirm({ variant: "danger", title: "Delete listing?", description: "This permanently deletes this listing from the marketplace.", confirmLabel: "Delete" });
+    if (!proceed) return;
     setDeleting(true);
     try {
       const res = await fetch(`${API_URL}/api/marketplace/${id}`, {
@@ -304,8 +317,9 @@ export default function ListingDetailPage() {
               ))}
             </div>
           </div>
-        </FadeInUp>
-      )}
-    </div>
-  );
+         </FadeInUp>
+       )}
+       {Dialog}
+     </div>
+   );
 }

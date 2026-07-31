@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { formatNaira } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
+import { useConfirm } from "@/components/ConfirmDialog";
 import confetti from "canvas-confetti";
 import {
   Send,
@@ -48,6 +49,7 @@ const QUICK_AMOUNTS = [1000, 5000, 10000, 25000];
 
 export default function TransferPage() {
   const { token } = useAuth();
+  const { confirm, Dialog } = useConfirm();
   const router = useRouter();
 
   // Step tracking
@@ -213,6 +215,8 @@ export default function TransferPage() {
   };
 
   const handleCancel = async () => {
+    const proceed = await confirm({ variant: "warning", title: "Cancel transfer?", description: "This pending transfer will be cancelled and funds returned to your wallet.", confirmLabel: "Cancel Transfer" });
+    if (!proceed) return;
     if (transferRef) {
       try {
         await fetch(`${API_URL}/api/transfers/cancel`, {
@@ -611,6 +615,7 @@ export default function TransferPage() {
           </div>
         </div>
       )}
+      {Dialog}
     </div>
   );
 }

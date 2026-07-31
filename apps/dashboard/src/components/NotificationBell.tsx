@@ -13,6 +13,7 @@ import {
   deleteNotification,
 } from "@/lib/notifications";
 import { Bell, X } from "lucide-react";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 function timeAgo(date: string): string {
   const d = new Date(date).getTime();
@@ -48,6 +49,7 @@ export function NotificationBell() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const { confirm, Dialog } = useConfirm();
 
   const loadCount = useCallback(async () => {
     try {
@@ -118,6 +120,8 @@ export function NotificationBell() {
 
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
+    const proceed = await confirm({ variant: "danger", title: "Delete notification?", description: "Remove this notification. You can't undo this.", confirmLabel: "Delete" });
+    if (!proceed) return;
     try {
       await deleteNotification(id);
       const removed = items.find((x) => x.id === id);
@@ -224,6 +228,7 @@ export function NotificationBell() {
           </div>,
           document.body,
         )}
+      {Dialog}
     </div>
   );
 }

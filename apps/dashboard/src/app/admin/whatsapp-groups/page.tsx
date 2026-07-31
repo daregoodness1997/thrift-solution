@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
 import Pagination from "@/components/Pagination";
 import { SimpleTable, SimpleColumn } from "@/components/SimpleTable";
+import { useConfirm } from "@/components/ConfirmDialog";
 import { ActionMessage, useFlashMessage } from "@/components/AdminShared";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -26,6 +27,7 @@ interface WhatsappGroup {
 
 export default function AdminWhatsappGroupsPage() {
   const { user, token, loading: authLoading } = useAuth();
+  const { confirm, Dialog } = useConfirm();
   const router = useRouter();
   const isAdmin = user?.role === "admin" || user?.role === "superadmin";
   const { message, show } = useFlashMessage();
@@ -151,7 +153,8 @@ export default function AdminWhatsappGroupsPage() {
   };
 
   const handleDelete = async (group: WhatsappGroup) => {
-    if (!confirm(`Delete "${group.name}"? This cannot be undone.`)) return;
+    const proceed = await confirm({ variant: "danger", title: `Delete "${group.name}"?`, description: "This cannot be undone.", confirmLabel: "Delete" });
+    if (!proceed) return;
     try {
       const res = await fetch(
         `${API_URL}/api/admin/whatsapp-groups/${group.id}`,
@@ -413,6 +416,7 @@ export default function AdminWhatsappGroupsPage() {
           </div>
         </div>
       )}
+      {Dialog}
     </div>
   );
 }

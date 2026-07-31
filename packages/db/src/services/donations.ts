@@ -65,17 +65,19 @@ export async function getUserDonations(userId: string, opts?: { limit?: number; 
 }
 
 export async function getDonationStats(userId: string) {
-  const [totalMonetary, totalCount, completedCount] = await Promise.all([
+  const [totalMonetary, totalCount, completedCount, itemCount] = await Promise.all([
     prisma.donation.aggregate({
       where: { userId, type: "monetary", status: "completed" },
       _sum: { amount: true },
     }),
     prisma.donation.count({ where: { userId } }),
     prisma.donation.count({ where: { userId, status: "completed" } }),
+    prisma.donation.count({ where: { userId, type: "item" } }),
   ]);
   return {
     totalDonated: toNum(totalMonetary._sum.amount),
     totalCount,
     completedCount,
+    itemCount,
   };
 }

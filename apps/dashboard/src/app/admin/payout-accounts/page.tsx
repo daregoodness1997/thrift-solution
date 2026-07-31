@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth-context";
 import { CreditCard, CheckCircle2, XCircle, Clock, X } from "lucide-react";
 import Pagination from "@/components/Pagination";
 import { SimpleTable, SimpleColumn } from "@/components/SimpleTable";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const LIMIT = 20;
@@ -31,6 +32,7 @@ type Status = (typeof STATUSES)[number];
 
 export default function AdminPayoutAccountsPage() {
   const { user, token, loading: authLoading } = useAuth();
+  const { confirm, Dialog } = useConfirm();
   const router = useRouter();
   const isAdmin = user?.role === "admin" || user?.role === "superadmin";
 
@@ -77,6 +79,8 @@ export default function AdminPayoutAccountsPage() {
   useEffect(() => { fetchAccounts(); }, [fetchAccounts]);
 
   const handleApprove = async (acc: PayoutAccount) => {
+    const proceed = await confirm({ variant: "success", title: "Approve payout account?", description: `${acc.name}'s bank account will be approved for future disbursements.`, confirmLabel: "Approve" });
+    if (!proceed) return;
     setBusyId(acc.id);
     try {
       const res = await fetch(`${API_URL}/api/admin/payout-accounts/${acc.id}/approve`, {
@@ -349,6 +353,7 @@ export default function AdminPayoutAccountsPage() {
           </div>
         </div>
       )}
+      {Dialog}
     </div>
   );
 }

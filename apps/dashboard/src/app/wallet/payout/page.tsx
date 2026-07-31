@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { formatNaira } from "@thrift/utils";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
+import { useConfirm } from "@/components/ConfirmDialog";
 import {
   Banknote,
   ArrowLeft,
@@ -90,6 +91,7 @@ function StatusBadge({ status }: { status: string }) {
 
 export default function PayoutPage() {
   const { token } = useAuth();
+  const { confirm, Dialog } = useConfirm();
   const router = useRouter();
 
   const [balance, setBalance] = useState<number | null>(null);
@@ -168,6 +170,8 @@ export default function PayoutPage() {
   };
 
   const handleCancel = async (id: string) => {
+    const proceed = await confirm({ variant: "warning", title: "Cancel payout request?", description: "This payout request will be cancelled and funds returned to your wallet.", confirmLabel: "Cancel Request" });
+    if (!proceed) return;
     setCancellingId(id);
     try {
       const res = await fetch(`${API_URL}/api/payouts/requests/${id}/cancel`, {
@@ -333,6 +337,7 @@ export default function PayoutPage() {
           ))
         )}
       </div>
+      {Dialog}
     </div>
   );
 }

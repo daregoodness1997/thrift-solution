@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth-context";
 import { Landmark } from "lucide-react";
 import Pagination from "@/components/Pagination";
 import { SimpleTable, SimpleColumn } from "@/components/SimpleTable";
+import { useConfirm, ConfirmOptions } from "@/components/ConfirmDialog";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 const LIMIT = 20;
@@ -49,6 +50,7 @@ const STATUS_COLORS: Record<string, { bg: string; color: string; border: string 
 
 export default function AdminLoansPage() {
   const { user, token, loading: authLoading } = useAuth();
+  const { confirm, Dialog } = useConfirm();
   const router = useRouter();
   const isAdmin = user?.role === "admin" || user?.role === "superadmin";
 
@@ -147,6 +149,15 @@ export default function AdminLoansPage() {
   };
 
   const act = async (loan: Loan, action: "approve" | "reject" | "disburse" | "complete" | "settle") => {
+    const cfg: Record<string, ConfirmOptions> = {
+      approve: { variant: "success", title: "Approve loan?", description: "Approve this loan request? The borrower will be notified.", confirmLabel: "Approve" },
+      reject: { variant: "danger", title: "Reject loan?", description: "Reject this loan request? The borrower will be notified.", confirmLabel: "Reject" },
+      disburse: { variant: "warning", title: "Disburse loan?", description: "Disburse the approved loan amount to the borrower's wallet.", confirmLabel: "Disburse" },
+      complete: { variant: "success", title: "Mark loan complete?", description: "Mark this loan as fully repaid.", confirmLabel: "Complete" },
+      settle: { variant: "danger", title: "Settle / write-off loan?", description: "Write off this loan as settled. This cannot be undone.", confirmLabel: "Settle" },
+    };
+    const proceed = await confirm(cfg[action]);
+    if (!proceed) return;
     setBusyId(loan.id);
     try {
       const res = await fetch(`${API_URL}/api/loans/${loan.id}/${action}`, {
@@ -345,6 +356,7 @@ export default function AdminLoansPage() {
           </div>
         </div>
       )}
+      {Dialog}
     </div>
   );
 }

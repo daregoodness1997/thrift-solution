@@ -5,11 +5,13 @@ import { Card, Button } from "@thrift/ui";
 import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
 import type { TicketCategory } from "@thrift/types";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 export default function AdminCategoriesPage() {
   const { token } = useAuth();
+  const { confirm, Dialog } = useConfirm();
   const [categories, setCategories] = useState<TicketCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -140,7 +142,8 @@ export default function AdminCategoriesPage() {
   };
 
   const remove = async (c: TicketCategory) => {
-    if (!confirm(`Delete category "${c.name}"?`)) return;
+    const proceed = await confirm({ variant: "danger", title: `Delete category "${c.name}"?`, description: "This cannot be undone.", confirmLabel: "Delete" });
+    if (!proceed) return;
     try {
       const res = await fetch(
         `${API_URL}/api/support/admin/categories/${c.id}`,
@@ -318,6 +321,7 @@ export default function AdminCategoriesPage() {
           </div>
         )}
       </div>
+      {Dialog}
     </div>
   );
 }

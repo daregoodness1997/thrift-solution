@@ -184,6 +184,7 @@ export {
   runWeeklyContributionJob,
   getDefaultsByAccount,
   getDefaultsByUser,
+  getAllCircleDefaults,
   clearCircleDefault,
   getCircleAnalytics,
   createCircleAddon,

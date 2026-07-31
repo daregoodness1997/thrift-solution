@@ -115,11 +115,12 @@ export async function getClearancesForUser(userId: string, opts?: { page?: numbe
 }
 
 export async function getClearanceStats(userId: string) {
-  const { items: clearances } = await getClearancesForUser(userId);
+  const result = await getClearancesForUser(userId);
+  const clearances = result.items;
   const totalPayouts = clearances
     .filter((c: { status: string }) => c.status === "cleared")
     .reduce((sum: number, c: { payoutAmount: number }) => sum + c.payoutAmount, 0);
   const totalContributed = clearances.reduce((sum: number, c: { contributed: number }) => sum + c.contributed, 0);
 
-  return { totalPayouts, totalContributed, clearances };
+  return { totalPayouts, totalContributed, stats: result.stats, clearances };
 }

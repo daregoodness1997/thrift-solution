@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useParams, useRouter } from "next/navigation";
 import { PageHeader } from "@/components/PageHeader";
 import { Skeleton } from "@/components/Skeleton";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 const fallback = config;
 
@@ -53,6 +54,7 @@ const APP_STATUS_COLORS: Record<string, string> = {
 
 export default function JobDetailPage() {
   const { token, user } = useAuth();
+  const { confirm, Dialog } = useConfirm();
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
@@ -160,7 +162,8 @@ export default function JobDetailPage() {
   };
 
   const handleDelete = async () => {
-    if (!confirm("Delete this job listing?")) return;
+    const proceed = await confirm({ variant: "danger", title: "Delete job listing?", description: "This permanently deletes this job listing and all associated applications.", confirmLabel: "Delete" });
+    if (!proceed) return;
     setDeleting(true);
     try {
       const res = await fetch(`${API_URL}/api/jobs/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });

@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth-context";
 import { PageHeader } from "@/components/PageHeader";
 import Pagination from "@/components/Pagination";
 import { SimpleTable, SimpleColumn } from "@/components/SimpleTable";
+import { useConfirm } from "@/components/ConfirmDialog";
 
 const fallback = config;
 
@@ -59,6 +60,7 @@ const statusStyles: Record<string, { bg: string; color: string; border: string }
 
 export default function ClearanceManagementPage() {
   const { token } = useAuth();
+  const { confirm, Dialog } = useConfirm();
   const [cfg] = useState<BrandConfig>(config);
   const [activeTab, setActiveTab] = useState<"group" | "circle" | "early">("group");
 
@@ -76,6 +78,7 @@ export default function ClearanceManagementPage() {
   const [prPage, setPrPage] = useState(1);
   const [prTotalPages, setPrTotalPages] = useState(1);
   const [prTotal, setPrTotal] = useState(0);
+  const [prStats, setPrStats] = useState<{ pendingCount: number; totalDisbursed: number; totalApproved: number }>({ pendingCount: 0, totalDisbursed: 0, totalApproved: 0 });
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [declineNote, setDeclineNote] = useState("");
   const [declineTarget, setDeclineTarget] = useState<string | null>(null);
@@ -92,6 +95,7 @@ export default function ClearanceManagementPage() {
   const [ewPage, setEwPage] = useState(1);
   const [ewTotalPages, setEwTotalPages] = useState(1);
   const [ewTotal, setEwTotal] = useState(0);
+  const [ewStats, setEwStats] = useState<{ pendingCount: number; totalDisbursed: number; totalApproved: number }>({ pendingCount: 0, totalDisbursed: 0, totalApproved: 0 });
   const [ewProcessingId, setEwProcessingId] = useState<string | null>(null);
   const [ewDeclineNote, setEwDeclineNote] = useState("");
   const [ewDeclineTarget, setEwDeclineTarget] = useState<string | null>(null);
@@ -115,6 +119,7 @@ export default function ClearanceManagementPage() {
         setEarlyWithdrawals(data.data.items || []);
         setEwTotalPages(data.data.totalPages || 1);
         setEwTotal(data.data.total || 0);
+        if (data.data.stats) setEwStats(data.data.stats);
       }
     } catch {}
   }, [token, ewPage, ewFilter, API_URL]);
@@ -161,6 +166,7 @@ export default function ClearanceManagementPage() {
         setPayoutRequests(data.data.items || []);
         setPrTotalPages(data.data.totalPages || 1);
         setPrTotal(data.data.total || 0);
+        if (data.data.stats) setPrStats(data.data.stats);
       }
     } catch {}
   }, [token, prPage, prFilter, API_URL]);
@@ -171,6 +177,8 @@ export default function ClearanceManagementPage() {
   useEffect(() => { if (activeTab === "early") fetchEarlyWithdrawals(); }, [activeTab, fetchEarlyWithdrawals]);
 
   const approveClearance = async (id: string) => {
+    const proceed = await confirm({ variant: "info", title: "Approve clearance?", description: "Approve this payout clearance for the circle member.", confirmLabel: "Approve" });
+    if (!proceed) return;
     if (!token) return;
     try {
       const res = await fetch(`${API_URL}/api/clearances/${id}/approve`, {
@@ -315,6 +323,8 @@ export default function ClearanceManagementPage() {
   const pendingEWCount = earlyWithdrawals.filter((r) => r.status === "pending").length;
 
   const handleApproveEarlyWithdrawal = async (id: string) => {
+    const proceed = await confirm({ variant: "warning", title: "Approve early withdrawal?", description: "Approve this early withdrawal? Interest may be forfeited per circle rules.", confirmLabel: "Approve" });
+    if (!proceed) return;
     if (!token) return;
     try {
       const res = await fetch(`${API_URL}/api/circles/admin/payout-requests/${id}/approve`, {
@@ -783,12 +793,12 @@ export default function ClearanceManagementPage() {
           <StaggerChildren staggerDelay={100} className="mb-8 grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
             <Card padding="1.5rem">
               <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">Pending Requests</span>
-              <span className="mt-1 block font-mono text-2xl font-bold text-amber-600">{payoutRequests.filter((r) => r.status === "pending").length}</span>
+              <span className="mt-1 block font-mono text-2xl font-bold text-amber-600">{prStats.pendingCount}</span>
             </Card>
             <Card padding="1.5rem">
               <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">Disbursed Total</span>
               <span className="mt-1 block font-mono text-2xl font-bold text-emerald-600">
-                {formatNaira(payoutRequests.filter((r) => r.status === "disbursed").reduce((sum, r) => sum + r.amount, 0))}
+                {formatNaira(prStats.totalDisbursed)}
               </span>
             </Card>
             <Card padding="1.5rem">
@@ -830,12 +840,12 @@ export default function ClearanceManagementPage() {
           <StaggerChildren staggerDelay={100} className="mb-8 grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
             <Card padding="1.5rem">
               <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">Pending Early Withdrawals</span>
-              <span className="mt-1 block font-mono text-2xl font-bold text-amber-600">{earlyWithdrawals.filter((r) => r.status === "pending").length}</span>
+              <span className="mt-1 block font-mono text-2xl font-bold text-amber-600">{ewStats.pendingCount}</span>
             </Card>
             <Card padding="1.5rem">
               <span className="block text-[9px] font-bold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400">Total Early Withdrawn</span>
               <span className="mt-1 block font-mono text-2xl font-bold text-slate-900 dark:text-white">
-                {formatNaira(earlyWithdrawals.filter((r) => r.status === "approved" || r.status === "disbursed").reduce((sum, r) => sum + r.amount, 0))}
+                {formatNaira(ewStats.totalDisbursed + ewStats.totalApproved)}
               </span>
             </Card>
             <Card padding="1.5rem">
@@ -998,6 +1008,7 @@ export default function ClearanceManagementPage() {
           </div>
         </div>
       )}
+      {Dialog}
     </div>
   );
 }

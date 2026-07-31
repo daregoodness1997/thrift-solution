@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Card } from "@thrift/ui";
 import type { Notification, NotificationPreferences } from "@thrift/types";
 import { useAuth } from "@/lib/auth-context";
+import { useConfirm } from "@/components/ConfirmDialog";
 import { Bell, CheckCheck, Settings, Trash2 } from "lucide-react";
 import {
   fetchNotifications,
@@ -43,6 +44,7 @@ function notificationHref(n: Notification): string | null {
 
 export default function NotificationsPage() {
   const { user, token } = useAuth();
+  const { confirm, Dialog } = useConfirm();
   const [items, setItems] = useState<Notification[]>([]);
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -106,6 +108,8 @@ export default function NotificationsPage() {
   };
 
   const handleDelete = async (id: string) => {
+    const proceed = await confirm({ variant: "danger", title: "Delete notification?", description: "Remove this notification permanently.", confirmLabel: "Delete" });
+    if (!proceed) return;
     try {
       await deleteNotification(id);
       const removed = items.find((x) => x.id === id);
@@ -279,6 +283,7 @@ export default function NotificationsPage() {
           )}
         </Card>
       </div>
+      {Dialog}
     </div>
   );
 }
