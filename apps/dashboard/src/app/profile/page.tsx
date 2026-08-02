@@ -782,6 +782,23 @@ export default function ProfilePage() {
               approved.
             </div>
           )}
+          {bankAccountNumber && bankStatus === "approved" && (
+            <div className="mb-3 rounded-2xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 px-4 py-2.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <span>
+                  Your bank details have been approved and can receive disbursements.
+                </span>
+                {!isResubmitting && (
+                  <button
+                    onClick={() => setIsResubmitting(true)}
+                    className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                  >
+                    Change Account
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
           {bankAccountNumber && bankStatus === "rejected" && (
             <div className="mb-3 rounded-2xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/40 px-4 py-2.5 text-xs font-medium text-red-700 dark:text-red-400">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -813,12 +830,14 @@ export default function ProfilePage() {
             updated account must be approved by an admin before it can receive
             payments.
           </p>
-          {(!bankAccountNumber || (bankStatus === "rejected" && isResubmitting)) && (
-            <div className={`grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4 ${isResubmitting ? 'mt-4 p-4 border border-red-200 dark:border-red-800 rounded-2xl bg-red-50/50 dark:bg-red-950/20' : ''}`}>
+          {(!bankAccountNumber || (isResubmitting && (bankStatus === "rejected" || bankStatus === "approved"))) && (
+            <div className={`grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4 ${isResubmitting ? 'mt-4 p-4 border border-blue-200 dark:border-blue-800 rounded-2xl bg-blue-50/50 dark:bg-blue-950/20' : ''}`}>
               {isResubmitting && (
                 <div className="col-span-full mb-2">
-                  <p className="text-xs font-semibold text-red-700 dark:text-red-400">
-                    Re-verify your bank account details and submit again.
+                  <p className="text-xs font-semibold text-blue-700 dark:text-blue-400">
+                    {bankStatus === "approved" 
+                      ? "Update your bank account details. The new account will need admin approval."
+                      : "Re-verify your bank account details and submit again."}
                   </p>
                 </div>
               )}
@@ -932,14 +951,14 @@ export default function ProfilePage() {
               {bankError}
             </div>
           )}
-          {(!bankAccountNumber || (bankStatus === "rejected" && isResubmitting)) && (
+          {(!bankAccountNumber || (isResubmitting && (bankStatus === "rejected" || bankStatus === "approved"))) && (
             <div className="flex justify-end mt-4">
               <button
                 onClick={handleSaveBank}
                 className="btn-primary py-3 px-5 text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-md"
                 disabled={savingBank}
               >
-                {savingBank ? "Saving..." : isResubmitting ? "Resubmit Bank Details" : "Save Bank Details"}
+                {savingBank ? "Saving..." : isResubmitting ? "Update Bank Details" : "Save Bank Details"}
               </button>
             </div>
           )}
