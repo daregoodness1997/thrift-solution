@@ -14,9 +14,13 @@ export async function findUserById(id: string) {
   return prisma.user.findUnique({ where: { id } });
 }
 
-export async function findUserByBankAccountNumber(bankAccountNumber: string) {
+export async function findUserByBankAccountNumber(bankAccountNumber: string, excludeUserId?: string) {
   return prisma.user.findFirst({
-    where: { bankAccountNumber, deletedAt: null },
+    where: {
+      bankAccountNumber,
+      deletedAt: null,
+      ...(excludeUserId ? { id: { not: excludeUserId } } : {}),
+    },
     select: {
       id: true,
       name: true,

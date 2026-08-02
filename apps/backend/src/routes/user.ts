@@ -108,7 +108,7 @@ userRouter.post("/resolve-account", authMiddleware, async (req, res) => {
       return;
     }
 
-    const thriftUser = await findUserByBankAccountNumber(resolution.accountNumber);
+    const thriftUser = await findUserByBankAccountNumber(resolution.accountNumber, req.user!.userId);
 
     const ninName = await getUserNinName(req.user!.userId);
     const nameMatchesNin = ninName ? namesMatch(resolution.accountName, ninName) : null;

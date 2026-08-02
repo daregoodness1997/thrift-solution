@@ -134,6 +134,7 @@ export default function ProfilePage() {
     name: string;
     accountNumber: string;
   } | null>(null);
+  const [isResubmitting, setIsResubmitting] = useState(false);
   const [virtualAccount, setVirtualAccount] = useState<{
     accountNumber: string;
     bankName: string;
@@ -261,6 +262,7 @@ export default function ProfilePage() {
           setNameMismatch(data.data.nameMatchesNin === false);
         }
         setBankSaved(true);
+        setIsResubmitting(false);
         setTimeout(() => setBankSaved(false), 2000);
       } else {
         setBankError(data.error || "Failed to save bank details");
@@ -786,15 +788,16 @@ export default function ProfilePage() {
                 <span>
                   Your bank details were rejected.
                   {bankRejectionReason ? ` Reason: ${bankRejectionReason}` : ""}{" "}
-                  Please review and resubmit.
+                  {!isResubmitting && "Please review and resubmit."}
                 </span>
-                <button
-                  onClick={handleSaveBank}
-                  disabled={savingBank}
-                  className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-                >
-                  {savingBank ? "Resubmitting..." : "Resubmit"}
-                </button>
+                {!isResubmitting && (
+                  <button
+                    onClick={() => setIsResubmitting(true)}
+                    className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                  >
+                    Resubmit
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -810,99 +813,108 @@ export default function ProfilePage() {
             updated account must be approved by an admin before it can receive
             payments.
           </p>
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] uppercase tracking-[0.1em] text-slate-400 font-bold">
-                Bank
-              </label>
-              <select
-                value={bankCode}
-                onChange={(e) => {
-                  const code = e.target.value;
-                  setBankCode(code);
-                  const bank = getBankByCode(code);
-                  setBankName(bank ? bank.name : "");
-                  setResolvedBankName("");
-                  setResolvedName("");
-                  setMatchedUser(null);
-                  setResolveError("");
-                  setBankAccountName("");
-                  setNameMismatch(false);
-                }}
-                className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none font-sans"
-              >
-                <option value="">Select bank</option>
-                {NIGERIAN_BANKS.map((b) => (
-                  <option key={b.code} value={b.code}>
-                    {b.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] uppercase tracking-[0.1em] text-slate-400 font-bold">
-                Account Number
-              </label>
-              <div className="flex gap-2">
-                <input
-                  value={bankAccountNumber}
+          {(!bankAccountNumber || (bankStatus === "rejected" && isResubmitting)) && (
+            <div className={`grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4 ${isResubmitting ? 'mt-4 p-4 border border-red-200 dark:border-red-800 rounded-2xl bg-red-50/50 dark:bg-red-950/20' : ''}`}>
+              {isResubmitting && (
+                <div className="col-span-full mb-2">
+                  <p className="text-xs font-semibold text-red-700 dark:text-red-400">
+                    Re-verify your bank account details and submit again.
+                  </p>
+                </div>
+              )}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] uppercase tracking-[0.1em] text-slate-400 font-bold">
+                  Bank
+                </label>
+                <select
+                  value={bankCode}
                   onChange={(e) => {
-                    setBankAccountNumber(e.target.value);
+                    const code = e.target.value;
+                    setBankCode(code);
+                    const bank = getBankByCode(code);
+                    setBankName(bank ? bank.name : "");
+                    setResolvedBankName("");
                     setResolvedName("");
                     setMatchedUser(null);
                     setResolveError("");
                     setBankAccountName("");
                     setNameMismatch(false);
                   }}
-                  placeholder="10-digit NUBAN"
-                  maxLength={15}
-                  className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none font-mono"
-                />
-                <button
-                  className="btn-secondary py-2 px-4 text-xs"
-                  onClick={handleResolveAccount}
-                  disabled={
-                    resolving ||
-                    !bankCode ||
-                    bankAccountNumber.trim().length < 6
-                  }
+                  className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none font-sans"
                 >
-                  {resolving ? "Verifying..." : "Verify"}
-                </button>
+                  <option value="">Select bank</option>
+                  {NIGERIAN_BANKS.map((b) => (
+                    <option key={b.code} value={b.code}>
+                      {b.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[10px] uppercase tracking-[0.1em] text-slate-400 font-bold">
+                  Account Number
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    value={bankAccountNumber}
+                    onChange={(e) => {
+                      setBankAccountNumber(e.target.value);
+                      setResolvedName("");
+                      setMatchedUser(null);
+                      setResolveError("");
+                      setBankAccountName("");
+                      setNameMismatch(false);
+                    }}
+                    placeholder="10-digit NUBAN"
+                    maxLength={15}
+                    className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none font-mono"
+                  />
+                  <button
+                    className="btn-secondary py-2 px-4 text-xs"
+                    onClick={handleResolveAccount}
+                    disabled={
+                      resolving ||
+                      !bankCode ||
+                      bankAccountNumber.trim().length < 6
+                    }
+                  >
+                    {resolving ? "Verifying..." : "Verify"}
+                  </button>
+                </div>
+              </div>
+              <div className="flex flex-col gap-1.5 md:col-span-2">
+                <label className="text-[10px] uppercase tracking-[0.1em] text-slate-400 font-bold">
+                  Account Name
+                </label>
+                <input
+                  value={bankAccountName}
+                  readOnly
+                  placeholder={
+                    resolvedName
+                      ? resolvedName
+                      : "Verify your account number to resolve the account name"
+                  }
+                  className={`bg-slate-50 dark:bg-slate-800/60 border rounded-2xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none font-sans cursor-not-allowed ${
+                    resolvedName
+                      ? "border-emerald-300 dark:border-emerald-600"
+                      : "border-slate-200 dark:border-slate-700"
+                  }`}
+                />
+                {resolvedName && (
+                  <span className="text-[10px] text-emerald-600 font-medium">
+                    ✓ Verified: {resolvedName}{" "}
+                    {resolvedBankName ? `· ${resolvedBankName}` : ""}
+                  </span>
+                )}
+                {nameMismatch && ninName && (
+                  <span className="text-[10px] font-medium text-red-600 dark:text-red-400">
+                    ⚠ This account name does not match the name on your NIN (
+                    {ninName}).
+                  </span>
+                )}
               </div>
             </div>
-            <div className="flex flex-col gap-1.5 md:col-span-2">
-              <label className="text-[10px] uppercase tracking-[0.1em] text-slate-400 font-bold">
-                Account Name
-              </label>
-              <input
-                value={bankAccountName}
-                readOnly
-                placeholder={
-                  resolvedName
-                    ? resolvedName
-                    : "Verify your account number to resolve the account name"
-                }
-                className={`bg-slate-50 dark:bg-slate-800/60 border rounded-2xl px-3 py-2 text-xs text-slate-900 dark:text-white outline-none font-sans cursor-not-allowed ${
-                  resolvedName
-                    ? "border-emerald-300 dark:border-emerald-600"
-                    : "border-slate-200 dark:border-slate-700"
-                }`}
-              />
-              {resolvedName && (
-                <span className="text-[10px] text-emerald-600 font-medium">
-                  ✓ Verified: {resolvedName}{" "}
-                  {resolvedBankName ? `· ${resolvedBankName}` : ""}
-                </span>
-              )}
-              {nameMismatch && ninName && (
-                <span className="text-[10px] font-medium text-red-600 dark:text-red-400">
-                  ⚠ This account name does not match the name on your NIN (
-                  {ninName}).
-                </span>
-              )}
-            </div>
-          </div>
+          )}
           {matchedUser && (
             <div className="mt-3 rounded-2xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 px-4 py-2.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
               This account belongs to a Thrift Solution member:{" "}
@@ -920,15 +932,17 @@ export default function ProfilePage() {
               {bankError}
             </div>
           )}
-          <div className="flex justify-end mt-4">
-            <button
-              onClick={handleSaveBank}
-              className="btn-primary py-3 px-5 text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-md"
-              disabled={savingBank}
-            >
-              {savingBank ? "Saving..." : "Save Bank Details"}
-            </button>
-          </div>
+          {(!bankAccountNumber || (bankStatus === "rejected" && isResubmitting)) && (
+            <div className="flex justify-end mt-4">
+              <button
+                onClick={handleSaveBank}
+                className="btn-primary py-3 px-5 text-xs bg-blue-600 hover:bg-blue-700 text-white shadow-md"
+                disabled={savingBank}
+              >
+                {savingBank ? "Saving..." : isResubmitting ? "Resubmit Bank Details" : "Save Bank Details"}
+              </button>
+            </div>
+          )}
         </Card>
       </FadeInUp>
 
