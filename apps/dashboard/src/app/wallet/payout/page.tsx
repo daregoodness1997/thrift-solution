@@ -232,11 +232,17 @@ export default function PayoutPage() {
                 <div className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 mt-1 flex items-center gap-1">
                   <ShieldCheck className="w-3 h-3" /> Approved for payout
                 </div>
+              ) : bankStatus === "rejected" ? (
+                <div className="text-[10px] font-semibold text-red-600 dark:text-red-400 mt-1">
+                  <div className="flex items-center gap-1">
+                    <XCircle className="w-3 h-3" /> Rejected
+                    {profile.bankAccountRejectionReason ? `: ${profile.bankAccountRejectionReason}` : ""}
+                  </div>
+                  <a href="/profile" className="text-blue-600 underline mt-1 inline-block">Resubmit on Profile →</a>
+                </div>
               ) : (
                 <div className="text-[10px] font-semibold text-amber-600 dark:text-amber-400 mt-1 flex items-center gap-1">
-                  <AlertTriangle className="w-3 h-3" />
-                  Awaiting admin approval
-                  {profile.bankAccountRejectionReason ? ` (${profile.bankAccountRejectionReason})` : ""}
+                  <AlertTriangle className="w-3 h-3" /> Awaiting admin approval
                 </div>
               )}
             </>

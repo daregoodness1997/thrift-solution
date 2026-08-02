@@ -39,3 +39,21 @@ function escapeHtml(input: string): string {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 }
+
+export async function sendInvitationEmail(
+  to: string,
+  inviterName: string,
+  inviteUrl: string,
+): Promise<void> {
+  const bodyHtml = `<p style="margin:0 0 18px;font-size:16px;line-height:1.6;color:#1A1A1A;">${escapeHtml(inviterName)} has invited you to join Global Freedom Worldwide — community savings, collective prosperity.</p>
+    <p style="margin:0 0 18px;font-size:16px;line-height:1.6;color:#1A1A1A;">Click the button below to accept the invitation and set up your account. This invitation expires in 7 days.</p>
+    <p style="margin:0;font-size:13px;line-height:1.6;color:#5A5A5A;">If you weren't expecting this invitation, you can safely ignore this email.</p>`;
+
+  const rendered = renderBrandedEmail({
+    title: "You're Invited to Join GFW",
+    preheader: `${inviterName} invited you to join GFW`,
+    bodyHtml,
+    cta: { label: "Accept Invitation", url: inviteUrl },
+  });
+  await sendEmail({ to, subject: "You're Invited to Join GFW", htmlBody: rendered.html, textBody: rendered.text });
+}

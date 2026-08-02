@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Card, Button, FadeIn, FadeInUp } from "@thrift/ui";
 import { useAuth } from "@/lib/auth-context";
-import { Users, Wallet, TrendingUp, Activity, AlertTriangle, Coins, CreditCard, Eye, X } from "lucide-react";
+import { Users, Wallet, TrendingUp, Activity, AlertTriangle, Coins, CreditCard, Eye, X, Mail, Clock, CheckCircle, Ban, Copy, Shield } from "lucide-react";
 import { formatNaira } from "@thrift/utils";
 import Pagination from "@/components/Pagination";
 import { SimpleTable, SimpleColumn } from "@/components/SimpleTable";
@@ -52,6 +52,17 @@ export default function AdminUsersPage() {
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [detailTab, setDetailTab] = useState<DetailTab>("overview");
 
+  const [invitations, setInvitations] = useState<any[]>([]);
+  const [invitationsLoading, setInvitationsLoading] = useState(false);
+  const [invitationsPage, setInvitationsPage] = useState(1);
+  const [invitationsTotalPages, setInvitationsTotalPages] = useState(1);
+  const [invitationsTotal, setInvitationsTotal] = useState(0);
+  const [invitationStatusFilter, setInvitationStatusFilter] = useState<"pending" | "accepted" | "revoked" | "expired">("pending");
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteForm, setInviteForm] = useState({ email: "", role: "member", name: "", registrationFeePaid: false, bvn: "", nin: "" });
+  const [inviting, setInviting] = useState(false);
+  const [activeTab, setActiveTab] = useState<"users" | "invitations">("users");
+
   useEffect(() => {
     if (!authLoading && user && !isAdmin) router.replace("/");
   }, [authLoading, user, isAdmin, router]);
@@ -79,6 +90,24 @@ export default function AdminUsersPage() {
   }, [token, isAdmin, page, statusFilter, search]);
 
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
+
+  const fetchInvitations = useCallback(async () => {
+    if (!token || !isAdmin) { setInvitationsLoading(false); return; }
+    setInvitationsLoading(true);
+    try {
+      const params = new URLSearchParams({ page: String(invitationsPage), limit: "20", status: invitationStatusFilter });
+      const res = await fetch(`${API_URL}/api/admin/invitations?${params}`, { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      if (data.success) {
+        setInvitations(data.data.items || []);
+        setInvitationsTotalPages(data.data.totalPages || 1);
+        setInvitationsTotal(data.data.total || 0);
+      }
+    } catch {}
+    setInvitationsLoading(false);
+  }, [token, isAdmin, invitationsPage, invitationStatusFilter]);
+
+  useEffect(() => { if (activeTab === "invitations") fetchInvitations(); }, [fetchInvitations, activeTab]);
 
   const openEdit = (u: AdminUser) => {
     setEditing(u);
@@ -164,6 +193,60 @@ export default function AdminUsersPage() {
   const closeViewDetail = () => {
     setViewingUser(null);
     setDetailTab("overview");
+  };
+
+  const handleInvite = async () => {
+    if (!inviteForm.email.trim()) return;
+    setInviting(true);
+    try {
+      const body: Record<string, unknown> = {
+        email: inviteForm.email.trim(),
+        role: inviteForm.role,
+      };
+      if (inviteForm.name.trim()) body.name = inviteForm.name.trim();
+      if (inviteForm.role === "member") {
+        body.registrationFeePaid = inviteForm.registrationFeePaid;
+        if (inviteForm.bvn.trim()) body.bvn = inviteForm.bvn.trim();
+        if (inviteForm.nin.trim()) body.nin = inviteForm.nin.trim();
+      }
+      const res = await fetch(`${API_URL}/api/admin/invitations`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showMessage("success", `Invitation sent to ${inviteForm.email}`);
+        setShowInviteModal(false);
+        setInviteForm({ email: "", role: "member", name: "", registrationFeePaid: false, bvn: "", nin: "" });
+        fetchInvitations();
+      } else {
+        showMessage("error", data.error || "Failed to send invitation");
+      }
+    } catch {
+      showMessage("error", "Failed to send invitation");
+    }
+    setInviting(false);
+  };
+
+  const handleRevokeInvitation = async (id: string) => {
+    const proceed = await confirm({ variant: "warning", title: "Revoke invitation?", description: "This will invalidate the invitation link. The user will need a new invitation.", confirmLabel: "Revoke" });
+    if (!proceed) return;
+    try {
+      const res = await fetch(`${API_URL}/api/admin/invitations/${id}/revoke`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success) {
+        showMessage("success", "Invitation revoked");
+        fetchInvitations();
+      } else {
+        showMessage("error", data.error || "Failed to revoke invitation");
+      }
+    } catch {
+      showMessage("error", "Failed to revoke invitation");
+    }
   };
 
   const detailTabIcon = (tab: DetailTab) => {
@@ -279,35 +362,168 @@ export default function AdminUsersPage() {
       <FadeInUp delay={200}>
         <Card padding="1.5rem" className="rounded-3xl">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              placeholder="Search name, email, account no."
-              className="min-w-[260px] rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-            />
             <div className="flex gap-1 rounded-lg bg-slate-100 p-1 dark:bg-slate-800">
-              {(["active", "suspended"] as const).map((f) => (
-                <button key={f} onClick={() => { setStatusFilter(f); setPage(1); }}
-                  className={`cursor-pointer rounded-md px-3 py-1.5 text-[11px] font-semibold capitalize transition-colors ${statusFilter === f ? "bg-white text-blue-600 shadow-sm dark:bg-slate-700 dark:text-blue-400" : "text-slate-500 dark:text-slate-400"}`}>
-                  {f}
+              {(["users", "invitations"] as const).map((t) => (
+                <button key={t} onClick={() => setActiveTab(t)}
+                  className={`cursor-pointer rounded-md px-4 py-1.5 text-[12px] font-semibold capitalize transition-colors ${activeTab === t ? "bg-white text-blue-600 shadow-sm dark:bg-slate-700 dark:text-blue-400" : "text-slate-500 dark:text-slate-400"}`}>
+                  {t === "invitations" ? "Invitations" : "Users"}
                 </button>
               ))}
             </div>
+            {activeTab === "users" && (
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                placeholder="Search name, email, account no."
+                className="min-w-[260px] rounded-lg border border-slate-200 bg-white px-3 py-2 text-[13px] outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+              />
+            )}
+            {activeTab === "invitations" && (
+              <button onClick={() => setShowInviteModal(true)}
+                className="cursor-pointer rounded-lg bg-blue-600 px-4 py-2 text-[12px] font-semibold text-white hover:bg-blue-700 transition-colors">
+                <Mail className="w-3.5 h-3.5 inline mr-1" />
+                Invite User
+              </button>
+            )}
           </div>
 
-          {loading ? (
-            <div className="p-12 text-center text-[13px] text-slate-500 dark:text-slate-400">Loading users...</div>
-          ) : users.length === 0 ? (
-            <div className="p-8 text-center text-[13px] text-slate-500 dark:text-slate-400">No users found.</div>
+          {activeTab === "users" ? (
+            <>
+              <div className="mb-3 flex gap-1 rounded-lg bg-slate-100 p-1 dark:bg-slate-800 w-fit">
+                {(["active", "suspended"] as const).map((f) => (
+                  <button key={f} onClick={() => { setStatusFilter(f); setPage(1); }}
+                    className={`cursor-pointer rounded-md px-3 py-1.5 text-[11px] font-semibold capitalize transition-colors ${statusFilter === f ? "bg-white text-blue-600 shadow-sm dark:bg-slate-700 dark:text-blue-400" : "text-slate-500 dark:text-slate-400"}`}>
+                    {f}
+                  </button>
+                ))}
+              </div>
+              {loading ? (
+                <div className="p-12 text-center text-[13px] text-slate-500 dark:text-slate-400">Loading users...</div>
+              ) : users.length === 0 ? (
+                <div className="p-8 text-center text-[13px] text-slate-500 dark:text-slate-400">No users found.</div>
+              ) : (
+                <SimpleTable
+                  columns={columns}
+                  data={users}
+                  minWidth="820px"
+                />
+              )}
+              <Pagination page={page} totalPages={totalPages} total={total} limit={LIMIT} onPageChange={setPage} loading={loading} />
+            </>
           ) : (
-            <SimpleTable
-              columns={columns}
-              data={users}
-              minWidth="820px"
-            />
+            <>
+              <div className="mb-3 flex gap-1 rounded-lg bg-slate-100 p-1 dark:bg-slate-800 w-fit">
+                {(["pending", "accepted", "revoked", "expired"] as const).map((f) => (
+                  <button key={f} onClick={() => { setInvitationStatusFilter(f); setInvitationsPage(1); }}
+                    className={`cursor-pointer rounded-md px-3 py-1.5 text-[11px] font-semibold capitalize transition-colors ${invitationStatusFilter === f ? "bg-white text-blue-600 shadow-sm dark:bg-slate-700 dark:text-blue-400" : "text-slate-500 dark:text-slate-400"}`}>
+                    {f}
+                  </button>
+                ))}
+              </div>
+              {invitationsLoading ? (
+                <div className="p-12 text-center text-[13px] text-slate-500 dark:text-slate-400">Loading invitations...</div>
+              ) : invitations.length === 0 ? (
+                <div className="p-8 text-center text-[13px] text-slate-500 dark:text-slate-400">No {invitationStatusFilter} invitations found.</div>
+              ) : (
+                <SimpleTable
+                  columns={[
+                    {
+                      key: "email",
+                      header: "Invitee",
+                      render: (inv: any) => (
+                        <>
+                          <span className="block font-semibold text-slate-900 dark:text-white">{inv.email}</span>
+                          <span className="text-[11px] text-slate-500 dark:text-slate-400">Role: {inv.role}</span>
+                          {inv.name && <span className="block text-[11px] text-slate-500 dark:text-slate-400">Name: {inv.name}</span>}
+                        </>
+                      ),
+                    },
+                    {
+                      key: "invitedBy",
+                      header: "Invited By",
+                      render: (inv: any) => (
+                        <div className="flex flex-col gap-1">
+                          <span className="text-[12px] text-slate-500 dark:text-slate-400">{inv.invitedBy?.name || "—"}</span>
+                          {inv.adminInitiated && (
+                            <span className="inline-flex items-center gap-1 rounded-md bg-blue-600/10 px-1.5 py-0.5 text-[8px] font-bold uppercase text-blue-600 dark:bg-blue-500/15 dark:text-blue-400 w-fit">
+                              <Shield className="w-2.5 h-2.5" />
+                              Admin Initiated
+                            </span>
+                          )}
+                        </div>
+                      ),
+                    },
+                    {
+                      key: "details",
+                      header: "Details",
+                      render: (inv: any) => (
+                        <div className="flex flex-col gap-1">
+                          {inv.role === "member" && (
+                            <>
+                              <span className={`text-[10px] font-semibold ${inv.registrationFeePaid ? "text-emerald-600 dark:text-emerald-400" : "text-slate-500 dark:text-slate-400"}`}>
+                                Fee: {inv.registrationFeePaid ? "Paid" : "Pending"}
+                              </span>
+                              {inv.bvn && <span className="text-[10px] text-slate-500 dark:text-slate-400">BVN: Provided</span>}
+                              {inv.nin && <span className="text-[10px] text-slate-500 dark:text-slate-400">NIN: Provided</span>}
+                            </>
+                          )}
+                        </div>
+                      ),
+                    },
+                    {
+                      key: "status",
+                      header: "Status",
+                      render: (inv: any) => {
+                        const now = new Date();
+                        const isExpired = !inv.acceptedAt && !inv.revokedAt && new Date(inv.expiresAt) < now;
+                        const status = inv.acceptedAt ? "accepted" : inv.revokedAt ? "revoked" : isExpired ? "expired" : "pending";
+                        const colors: Record<string, string> = {
+                          pending: "bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900/50",
+                          accepted: "bg-emerald-50 text-emerald-600 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-900/50",
+                          revoked: "bg-red-50 text-red-600 border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-900/50",
+                          expired: "bg-slate-50 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700",
+                        };
+                        return (
+                          <span className={`rounded-md px-2 py-0.5 font-mono text-[9px] font-bold uppercase border ${colors[status]}`}>
+                            {status}
+                          </span>
+                        );
+                      },
+                    },
+                    {
+                      key: "createdAt",
+                      header: "Sent",
+                      render: (inv: any) => (
+                        <span className="text-[12px] text-slate-500 dark:text-slate-400">
+                          {new Date(inv.createdAt).toLocaleDateString()}
+                        </span>
+                      ),
+                    },
+                    {
+                      key: "actions",
+                      header: "Actions",
+                      align: "right",
+                      render: (inv: any) => {
+                        const now = new Date();
+                        const isPending = !inv.acceptedAt && !inv.revokedAt && new Date(inv.expiresAt) > now;
+                        return isPending ? (
+                          <button onClick={(e) => { e.stopPropagation(); handleRevokeInvitation(inv.id); }}
+                            className="cursor-pointer rounded-md border border-red-300 bg-red-50 px-2 py-1 text-[10px] font-semibold text-red-600 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-400">
+                            <Ban className="w-3 h-3 inline mr-0.5" />
+                            Revoke
+                          </button>
+                        ) : null;
+                      },
+                    },
+                  ]}
+                  data={invitations}
+                  minWidth="900px"
+                />
+              )}
+              <Pagination page={invitationsPage} totalPages={invitationsTotalPages} total={invitationsTotal} limit={20} onPageChange={setInvitationsPage} loading={invitationsLoading} />
+            </>
           )}
-          <Pagination page={page} totalPages={totalPages} total={total} limit={LIMIT} onPageChange={setPage} loading={loading} />
         </Card>
       </FadeInUp>
 
@@ -342,6 +558,93 @@ export default function AdminUsersPage() {
               <button onClick={handleSave} disabled={saving}
                 className={`btn-primary flex-1 ${saving ? "opacity-50" : ""}`}>
                 {saving ? "Saving..." : "Save Changes"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showInviteModal && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 p-4" onClick={() => setShowInviteModal(false)}>
+          <div className="w-full max-w-[480px] rounded-3xl bg-white p-8 shadow-[0_20px_60px_rgba(0,0,0,0.15)] dark:bg-slate-900 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <span className="inline-block rounded-full bg-blue-600/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:bg-blue-500/15 dark:text-blue-400">Invite User</span>
+            <h3 className="mb-1 mt-3 text-base font-semibold text-slate-900 dark:text-white">Send an invitation</h3>
+            <p className="mb-6 text-[12px] text-slate-500 dark:text-slate-400">The user will receive an email with a link to set up their account.</p>
+
+            <div className="flex flex-col gap-4">
+              <div>
+                <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Email *</label>
+                <input type="email" value={inviteForm.email} onChange={(e) => setInviteForm((p) => ({ ...p, email: e.target.value }))} placeholder="user@example.com" className={inputClass} />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Full Name</label>
+                <input type="text" value={inviteForm.name} onChange={(e) => setInviteForm((p) => ({ ...p, name: e.target.value }))} placeholder="Optional pre-filled name" className={inputClass} />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-[11px] font-semibold text-slate-900 dark:text-white">Role</label>
+                <select value={inviteForm.role} onChange={(e) => setInviteForm((p) => ({ ...p, role: e.target.value }))} className={inputClass}>
+                  {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+                </select>
+              </div>
+
+              {inviteForm.role === "member" && (
+                <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-4 bg-slate-50 dark:bg-slate-800/50">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Shield className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    <span className="text-[11px] font-semibold text-slate-900 dark:text-white">Member Setup (Optional)</span>
+                  </div>
+
+                  <label className="flex items-center gap-3 cursor-pointer mb-4">
+                    <input
+                      type="checkbox"
+                      checked={inviteForm.registrationFeePaid}
+                      onChange={(e) => setInviteForm((p) => ({ ...p, registrationFeePaid: e.target.checked }))}
+                      className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <div>
+                      <span className="block text-[12px] font-medium text-slate-900 dark:text-white">Mark registration fee as paid</span>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400">Skips the ₦4,200 payment step</span>
+                    </div>
+                  </label>
+
+                  <div className="space-y-3">
+                    <div>
+                      <label className="mb-1 block text-[10px] font-semibold text-slate-600 dark:text-slate-400">BVN (11 digits)</label>
+                      <input
+                        type="text"
+                        value={inviteForm.bvn}
+                        onChange={(e) => setInviteForm((p) => ({ ...p, bvn: e.target.value.replace(/\D/g, "").slice(0, 11) }))}
+                        placeholder="Optional - for KYC verification"
+                        className={inputClass}
+                        maxLength={11}
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-[10px] font-semibold text-slate-600 dark:text-slate-400">NIN (11 digits)</label>
+                      <input
+                        type="text"
+                        value={inviteForm.nin}
+                        onChange={(e) => setInviteForm((p) => ({ ...p, nin: e.target.value.replace(/\D/g, "").slice(0, 11) }))}
+                        placeholder="Optional - for KYC verification"
+                        className={inputClass}
+                        maxLength={11}
+                      />
+                    </div>
+                    {(inviteForm.bvn || inviteForm.nin) && (
+                      <p className="text-[10px] text-blue-600 dark:text-blue-400">
+                        KYC will be verified automatically and a virtual account will be created when the user accepts.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-6 flex gap-3">
+              <button className="btn-secondary" onClick={() => setShowInviteModal(false)}>Cancel</button>
+              <button onClick={handleInvite} disabled={inviting || !inviteForm.email.trim()}
+                className={`btn-primary flex-1 ${inviting || !inviteForm.email.trim() ? "opacity-50" : ""}`}>
+                {inviting ? "Sending..." : "Send Invitation"}
               </button>
             </div>
           </div>

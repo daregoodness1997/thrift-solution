@@ -86,6 +86,7 @@ model User {
   virtualAccounts         VirtualAccount[]
   transfers               Transfer[]
   whatsappGroupMembers    WhatsappGroupMember[]
+  invitedUsers            Invitation[]           @relation("InvitationInviter")
 
   @@map("users")
 }
@@ -1048,4 +1049,27 @@ model Transfer {
   @@index([senderId])
   @@index([reference])
   @@map("transfers")
+}
+
+model Invitation {
+  id                   String    @id @default(uuid())
+  email                String
+  role                 String    @default("member")
+  token                String    @unique
+  invitedById          String?   @map("invited_by_id")
+  name                 String?
+  registrationFeePaid  Boolean   @default(false) @map("registration_fee_paid")
+  bvn                  String?
+  nin                  String?
+  adminInitiated       Boolean   @default(true) @map("admin_initiated")
+  expiresAt            DateTime  @map("expires_at")
+  acceptedAt           DateTime? @map("accepted_at")
+  revokedAt            DateTime? @map("revoked_at")
+  createdAt            DateTime  @default(now()) @map("created_at")
+
+  invitedBy User? @relation("InvitationInviter", fields: [invitedById], references: [id])
+
+  @@index([token])
+  @@index([email])
+  @@map("invitations")
 }

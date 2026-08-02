@@ -130,7 +130,7 @@ export async function setUserBankDetails(
     (patch.bankAccountNumber !== undefined && patch.bankAccountNumber !== existing.bankAccountNumber) ||
     (patch.bankAccountName !== undefined && patch.bankAccountName !== existing.bankAccountName);
 
-  if (changed) {
+  if (changed || existing.bankAccountStatus === "rejected") {
     patch.bankAccountStatus = "pending";
     patch.bankAccountRejectionReason = null;
     patch.bankAccountReviewedById = null;

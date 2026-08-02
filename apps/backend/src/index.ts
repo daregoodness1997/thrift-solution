@@ -36,6 +36,7 @@ import { prayerRouter } from "./routes/prayer-requests";
 import { prayerSessionsRouter } from "./routes/prayer-sessions";
 import { intercessoryHoursRouter } from "./routes/intercessory-hours";
 import { impactRouter } from "./routes/impact";
+import { invitationsRouter } from "./routes/invitations";
 import { circleInterestJob } from "./jobs/circleInterestJob";
 import { circleContributionJob } from "./jobs/circleContributionJob";
 import { virtualAccountGenerationJob } from "./jobs/virtualAccountJob";
@@ -95,6 +96,7 @@ app.use("/api/prayer-requests", prayerRouter);
 app.use("/api/prayer-sessions", prayerSessionsRouter);
 app.use("/api/intercessory-hours", intercessoryHoursRouter);
 app.use("/api/impact", impactRouter);
+app.use("/api/invitations", invitationsRouter);
 app.use("/api/webhooks", webhookRouter);
 
 cron.schedule("0 0 * * 0", circleInterestJob);

@@ -782,9 +782,20 @@ export default function ProfilePage() {
           )}
           {bankAccountNumber && bankStatus === "rejected" && (
             <div className="mb-3 rounded-2xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/40 px-4 py-2.5 text-xs font-medium text-red-700 dark:text-red-400">
-              Your bank details were rejected.
-              {bankRejectionReason ? ` Reason: ${bankRejectionReason}` : ""}{" "}
-              Please review and resubmit.
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <span>
+                  Your bank details were rejected.
+                  {bankRejectionReason ? ` Reason: ${bankRejectionReason}` : ""}{" "}
+                  Please review and resubmit.
+                </span>
+                <button
+                  onClick={handleSaveBank}
+                  disabled={savingBank}
+                  className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                >
+                  {savingBank ? "Resubmitting..." : "Resubmit"}
+                </button>
+              </div>
             </div>
           )}
           {bankAccountNumber && nameMismatch && ninName && (

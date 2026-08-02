@@ -358,3 +358,13 @@ export type {
   UpdateTicketInput,
   AddTicketMessageInput,
 } from "./services/support";
+
+export {
+  generateInvitationToken,
+  createInvitation,
+  findInvitationByToken,
+  findPendingInvitationByEmail,
+  markInvitationAccepted,
+  revokeInvitation,
+  listInvitations,
+} from "./services/invitations";

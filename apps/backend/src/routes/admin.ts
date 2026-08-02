@@ -6,6 +6,7 @@ import {
   resolveVirtualAccount,
 } from "../services/payments";
 import { notifyUser } from "../services/notifications";
+import { sendInvitationEmail } from "../services/auth/emails";
 import {
   findUserById,
   getAdminStats,
@@ -56,6 +57,11 @@ import {
   disburseWalletPayoutRequestViaFlutterwave,
   markWalletPayoutRequestDisbursed,
   markDefaultAsCleared,
+  findUserByEmail,
+  generateInvitationToken,
+  createInvitation,
+  listInvitations,
+  revokeInvitation as revokeInvitationDb,
 } from "@thrift/db";
 import { circleInterestJob } from "../jobs/circleInterestJob";
 import { circleContributionJob } from "../jobs/circleContributionJob";
@@ -1629,3 +1635,145 @@ adminRouter.post(
     }
   },
 );
+
+/* ---------------- Invitations ---------------- */
+
+const INVITATION_EXPIRY_DAYS = 7;
+
+adminRouter.post("/invitations", requireAdmin, async (req, res) => {
+  try {
+    const { email, role, name, registrationFeePaid, bvn, nin } = req.body;
+    if (!email || typeof email !== "string") {
+      res.status(400).json({ success: false, error: "Email is required" });
+      return;
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const invitedRole = VALID_ROLES.includes(role) ? role : "member";
+
+    if (bvn && !/^\d{11}$/.test(bvn)) {
+      res.status(400).json({ success: false, error: "BVN must be exactly 11 digits" });
+      return;
+    }
+    if (nin && !/^\d{11}$/.test(nin)) {
+      res.status(400).json({ success: false, error: "NIN must be exactly 11 digits" });
+      return;
+    }
+
+    const existingUser = await findUserByEmail(normalizedEmail);
+    if (existingUser) {
+      res.status(409).json({ success: false, error: "Email is already registered" });
+      return;
+    }
+
+    const pending = await prisma.invitation.findFirst({
+      where: {
+        email: normalizedEmail,
+        acceptedAt: null,
+        revokedAt: null,
+        expiresAt: { gt: new Date() },
+      },
+    });
+    if (pending) {
+      res.status(409).json({ success: false, error: "An active invitation already exists for this email" });
+      return;
+    }
+
+    const token = generateInvitationToken();
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + INVITATION_EXPIRY_DAYS);
+
+    const invitation = await createInvitation({
+      email: normalizedEmail,
+      role: invitedRole,
+      invitedById: req.user!.userId,
+      token,
+      expiresAt,
+      name: name || undefined,
+      registrationFeePaid: invitedRole === "member" ? Boolean(registrationFeePaid) : false,
+      bvn: bvn || undefined,
+      nin: nin || undefined,
+    });
+
+    const dashboardUrl = process.env.DASHBOARD_URL || "http://localhost:3001";
+    const inviteUrl = `${dashboardUrl}/accept-invite?token=${token}`;
+
+    const inviter = await findUserById(req.user!.userId);
+    await sendInvitationEmail(normalizedEmail, inviter?.name || "An admin", inviteUrl);
+
+    await createAuditLog({
+      ...actor(req),
+      action: "invitation.create",
+      entity: "invitation",
+      entityId: invitation.id,
+      metadata: {
+        email: normalizedEmail,
+        role: invitedRole,
+        name: name || null,
+        registrationFeePaid: invitedRole === "member" ? Boolean(registrationFeePaid) : false,
+        hasBvn: Boolean(bvn),
+        hasNin: Boolean(nin),
+        adminInitiated: true,
+      },
+    });
+
+    res.status(201).json({
+      success: true,
+      data: {
+        id: invitation.id,
+        email: normalizedEmail,
+        role: invitedRole,
+        name: name || null,
+        registrationFeePaid: invitedRole === "member" ? Boolean(registrationFeePaid) : false,
+        adminInitiated: true,
+        expiresAt,
+      },
+    });
+  } catch (err) {
+    console.error("Create invitation error:", err);
+    res.status(500).json({ success: false, error: "Failed to create invitation" });
+  }
+});
+
+adminRouter.get("/invitations", requireAdmin, async (req, res) => {
+  try {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 20;
+    const status = (req.query.status as string) as "pending" | "accepted" | "revoked" | "expired" | undefined;
+
+    const result = await listInvitations({ page, limit, status });
+    res.json({ success: true, data: result });
+  } catch (err) {
+    console.error("List invitations error:", err);
+    res.status(500).json({ success: false, error: "Failed to fetch invitations" });
+  }
+});
+
+adminRouter.post("/invitations/:id/revoke", requireAdmin, async (req, res) => {
+  try {
+    const invitation = await prisma.invitation.findUnique({ where: { id: req.params.id } });
+    if (!invitation) {
+      res.status(404).json({ success: false, error: "Invitation not found" });
+      return;
+    }
+    if (invitation.acceptedAt) {
+      res.status(400).json({ success: false, error: "Cannot revoke an accepted invitation" });
+      return;
+    }
+
+    const revoked = await revokeInvitationDb(req.params.id);
+
+    await createAuditLog({
+      ...actor(req),
+      action: "invitation.revoke",
+      entity: "invitation",
+      entityId: req.params.id,
+      metadata: { email: invitation.email },
+    });
+
+    res.json({ success: true, data: revoked });
+  } catch (err) {
+    console.error("Revoke invitation error:", err);
+    res.status(500).json({ success: false, error: "Failed to revoke invitation" });
+  }
+});
