@@ -98,6 +98,14 @@ export function SiteFooter() {
                 </Link>
               </li>
               <li>
+                <Link
+                  href="/terms"
+                  className="transition-colors hover:text-white"
+                >
+                  Terms & Conditions
+                </Link>
+              </li>
+              <li>
                 <a
                   href={`${DASHBOARD_URL}/login`}
                   className="transition-colors hover:text-white"
