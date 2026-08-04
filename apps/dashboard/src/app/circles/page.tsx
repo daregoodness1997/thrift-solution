@@ -143,6 +143,7 @@ export default function CirclesPage() {
   const [openModalCircle, setOpenModalCircle] = useState<Circle | null>(null);
   const [viewBenefitsCircle, setViewBenefitsCircle] = useState<Circle | null>(null);
   const [accountCount, setAccountCount] = useState(1);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [page, setPage] = useState(1);
   const LIMIT = 20;
   const [accountsData, setAccountsData] = useState<{ total: number; totalPages: number }>({ total: 0, totalPages: 1 });
@@ -583,9 +584,9 @@ export default function CirclesPage() {
 
       {/* Open Account Modal */}
       {openModalCircle && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-slate-950/75 backdrop-blur-md p-4" onClick={() => setOpenModalCircle(null)}>
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-slate-950/75 backdrop-blur-md p-4" onClick={() => { setOpenModalCircle(null); setTermsAccepted(false); }}>
           <div className="w-full max-w-[400px] cursor-default rounded-3xl bg-white dark:bg-slate-900 p-6 shadow-2xl border border-slate-200 dark:border-slate-800 relative" onClick={(e) => e.stopPropagation()}>
-            <button onClick={() => setOpenModalCircle(null)} className="absolute top-5 right-5 p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white cursor-pointer">
+            <button onClick={() => { setOpenModalCircle(null); setTermsAccepted(false); }} className="absolute top-5 right-5 p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white cursor-pointer">
               <X className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-3 mb-6">
@@ -657,13 +658,35 @@ export default function CirclesPage() {
                 <span className="font-mono font-semibold" style={{ color: walletBalance >= circleOpenCost(openModalCircle) * accountCount ? "#059669" : "#DC2626" }}>{formatNaira(walletBalance)}</span>
               </div>
             </div>
+            <div className="mb-4">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={termsAccepted}
+                  onChange={(e) => setTermsAccepted(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-rose-600 focus:ring-rose-500 cursor-pointer"
+                />
+                <span className="text-[12px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                  I have read and agree to the{" "}
+                  <a
+                    href="/terms"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-rose-600 hover:text-rose-700 underline font-medium"
+                  >
+                    Terms & Conditions
+                  </a>{" "}
+                  of membership
+                </span>
+              </label>
+            </div>
             <div className="flex gap-3">
-              <button onClick={() => setOpenModalCircle(null)} className="flex-1 btn-secondary py-2.5 text-xs justify-center cursor-pointer">Cancel</button>
+              <button onClick={() => { setOpenModalCircle(null); setTermsAccepted(false); }} className="flex-1 btn-secondary py-2.5 text-xs justify-center cursor-pointer">Cancel</button>
               <button
-                disabled={openingCircle === openModalCircle.id || walletBalance < circleOpenCost(openModalCircle) * accountCount}
+                disabled={openingCircle === openModalCircle.id || walletBalance < circleOpenCost(openModalCircle) * accountCount || !termsAccepted}
                 onClick={() => { handleOpenAccount(openModalCircle.id, accountCount); }}
                 className="flex-1 btn-primary py-2.5 text-xs justify-center cursor-pointer bg-rose-600 hover:bg-rose-700 text-white"
-                style={{ opacity: (openingCircle === openModalCircle.id || walletBalance < circleOpenCost(openModalCircle) * accountCount) ? 0.5 : 1 }}
+                style={{ opacity: (openingCircle === openModalCircle.id || walletBalance < circleOpenCost(openModalCircle) * accountCount || !termsAccepted) ? 0.5 : 1 }}
               >
                 {openingCircle === openModalCircle.id ? "Opening..." : `Open ${accountCount > 1 ? `${accountCount} Accounts` : "Account"}`}
               </button>
